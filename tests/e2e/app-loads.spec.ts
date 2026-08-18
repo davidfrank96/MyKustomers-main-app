@@ -1,0 +1,22 @@
+import { expect, test } from "@playwright/test";
+
+test("home page loads", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "My Customers" })).toBeVisible();
+  await expect(page.getByText("Your customers. Your orders. Your business.")).toBeVisible();
+});
+
+test("dashboard shell loads on mobile", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/dashboard");
+  await expect(page).toHaveURL(/\/login\?next=%2Fdashboard/);
+  await expect(page.getByRole("heading", { name: "Log in" })).toBeVisible();
+});
+
+test("auth screens render on mobile", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/signup");
+  await expect(page.getByRole("heading", { name: "Create your account" })).toBeVisible();
+  await expect(page.getByLabel("Email")).toBeVisible();
+  await expect(page.getByLabel("Password", { exact: true })).toBeVisible();
+});

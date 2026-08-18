@@ -1,0 +1,143 @@
+import fs from "node:fs";
+import { randomUUID } from "node:crypto";
+import { expect, test } from "@playwright/test";
+import { createClient } from "@supabase/supabase-js";
+
+function loadLocalEnv() {
+  if (!fs.existsSync(".env")) {
+    return;
+  }
+
+  for (const line of fs.readFileSync(".env", "utf8").split(/\r?\n/)) {
+    if (!line || line.trim().startsWith("#")) {
+      continue;
+    }
+
+    const separatorIndex = line.indexOf("=");
+    if (separatorIndex === -1) {
+      continue;
+    }
+
+    const key = line.slice(0, separatorIndex);
+    const value = line.slice(separatorIndex + 1);
+    process.env[key] ??= value;
+  }
+}
+
+loadLocalEnv();
+
+const hasSupabaseEnv = Boolean(
+  process.env.NEXT_PUBLIC_SUPABASE_URL &&
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY &&
+    process.env.SUPABASE_SERVICE_ROLE_KEY,
+);
+
+const createdEmails = new Set<string>();
+const createdBusinessSlugs = new Set<string>();
+
+function createAdminClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
+    process.env.SUPABASE_SERVICE_ROLE_KEY ?? "",
+    {
+      auth: {
+        autoRefreshToken: false,
+        detectSessionInUrl: false,
+        persistSession: false,
+        storageKey: `phase3-e2e-admin-${randomUUID()}`,
+      },
+    },
+  );
+}
+
+function testEmail(projectName: string) {
+  const safeProject = projectName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+  const email = `phase3-e2e-onboarding-${safeProject}-${Date.now()}-${randomUUID()}@example.com`;
+  createdEmails.add(email);
+  return email;
+}
+
+async function createConfirmedUser(email: string, password: string) {
+  const admin = createAdminClient();
+  const { data, error } = await admin.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+    user_metadata: {
+      display_name: "Phase 3 E2E Owner",
+    },
+  });
+
+  expect(error).toBeNull();
+  expect(data.user?.id).toBeTruthy();
+  return data.user!.id;
+}
+
+test.describe("business onboarding", () => {
+  test.skip(!hasSupabaseEnv, "Requires configured Supabase runtime credentials.");
+
+  test.afterAll(async () => {
+    const admin = createAdminClient();
+
+    if (createdBusinessSlugs.size > 0) {
+      const { data: businesses } = await admin
+        .from("businesses")
+        .select("id")
+        .in("slug", [...createdBusinessSlugs]);
+      const businessIds = businesses?.map((business) => business.id) ?? [];
+
+      if (businessIds.length > 0) {
+        await admin.from("audit_logs").delete().in("business_id", businessIds);
+        await admin.from("businesses").delete().in("id", businessIds);
+      }
+    }
+
+    const { data } = await admin.auth.admin.listUsers({ page: 1, perPage: 200 });
+    const usersToDelete = data?.users.filter((user) =>
+      user.email ? createdEmails.has(user.email) : false,
+    );
+
+    await Promise.allSettled(
+      (usersToDelete ?? []).map((user) => admin.auth.admin.deleteUser(user.id)),
+    );
+  });
+
+  test("authenticated no-business user completes onboarding and reaches dashboard", async ({
+    page,
+  }, testInfo) => {
+    const email = testEmail(testInfo.project.name);
+    const password = `Phase3-E2E-${randomUUID()}-A1`;
+    await createConfirmedUser(email, password);
+
+    const slug = `phase3-e2e-${Date.now()}-${randomUUID().slice(0, 8)}`;
+    createdBusinessSlugs.add(slug);
+
+    await page.goto("/login");
+    await page.getByLabel("Email").fill(email);
+    await page.getByLabel("Password").fill(password);
+    await page.getByRole("button", { name: "Log in" }).click();
+
+    await expect(page).toHaveURL(/\/onboarding/);
+    await expect(page.getByRole("heading", { name: "Set up your business" })).toBeVisible();
+
+    await page.getByLabel("Business name").fill("Phase 3 E2E Bakery");
+    await page.getByLabel("Business slug").fill(slug);
+    await page.getByRole("combobox").click();
+    await page.getByRole("option", { name: "Bakery" }).click();
+    await page.getByLabel("Description").fill("E2E onboarding verification.");
+    await page.getByLabel("Phone").fill("+353 01 555 0199");
+    await page.getByLabel("Business email").fill("bakery@example.com");
+    await page.getByLabel("WhatsApp").fill("+353 01 555 0188");
+    await page.getByLabel("Instagram").fill("@phase3e2e");
+    await page.getByLabel("Address").fill("Dublin");
+    await page.getByRole("button", { name: "Create business" }).click();
+
+    await expect(page).toHaveURL(/\/dashboard/);
+    await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Phase 3 E2E Bakery" })).toBeVisible();
+    await expect(page.getByText(`Slug: ${slug}`)).toBeVisible();
+
+    await page.goto("/onboarding");
+    await expect(page).toHaveURL(/\/dashboard/);
+  });
+});
