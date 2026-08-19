@@ -68,6 +68,7 @@ Accepted decisions are recorded in `docs/DECISIONS.md`.
 - Phase 6 - Secure Customer Confirmation Links: VERIFIED.
 - Phase 7 - Fulfilment and Operational Booking Lifecycle: VERIFIED.
 - Phase 8 - Private Feedback and Operational Issues: VERIFIED.
+- Phase 9 - Business Insights and Analytics: VERIFIED.
 
 Phase 1 established a Next.js application foundation, strict TypeScript, responsive shells, design primitives, environment configuration, Supabase client/server boundaries, test infrastructure, PWA foundation, documentation foundation, and lint/build/typecheck/test verification.
 
@@ -75,7 +76,6 @@ Phase 1 established a Next.js application foundation, strict TypeScript, respons
 
 The following remain PLANNED and must not be described as implemented until repository evidence exists:
 
-- Analytics.
 - Subscriptions.
 - Staff accounts.
 - Email workflows.
@@ -227,3 +227,25 @@ Implemented and verified in Phase 8:
   denial, tenant feedback visibility, vendor mutation denial, race behavior,
   issue tenant isolation, issue resolution concurrency, audit events, and
   service-role/SECURITY DEFINER boundaries.
+
+Implemented and verified in Phase 9:
+
+- `/insights` provides authenticated, tenant-private business analytics derived
+  from persisted customers, bookings, feedback, and issue records.
+- Metric definitions are documented in `docs/ANALYTICS_DEFINITIONS.md` and in
+  the application definitions section. Booking status inclusion, returning
+  customer logic, date range behavior, on-time calculation, issue metrics, and
+  feedback metrics are explicit.
+- Value metrics use conservative wording such as recorded booking value and
+  completed booking value. They are grouped by currency and never presented as
+  revenue, cash received, profit, or cross-currency totals.
+- Date ranges support this month, last month, last 30 days, this year, and a
+  validated custom range up to five years, with previous equivalent period
+  comparison that handles zero denominators safely.
+- Aggregates are calculated by `public.get_business_insights`, a narrow
+  authenticated Supabase RPC that checks active business membership and returns
+  aggregate JSON. No analytics tables, materialized views, public reports,
+  exports, billing, AI recommendations, or forecasting were added.
+- Runtime Supabase tests verify exact metric correctness, tenant aggregate
+  isolation, cross-tenant RPC denial, currency separation, cancelled/draft value
+  exclusion, feedback metrics, issue distribution, and on-time behavior.

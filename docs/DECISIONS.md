@@ -519,8 +519,8 @@ turning private operational feedback into mutable marketing content. Tenant RLS
 keeps feedback visible only to the owning business.
 
 Consequences: Corrections or moderation workflows require a future explicit
-design rather than ad hoc updates. Future analytics may aggregate feedback but
-must not expose comments or cross-tenant data.
+design rather than ad hoc updates. Phase 9 analytics may aggregate feedback
+ratings and boolean answers, but must not expose comments or cross-tenant data.
 
 Revisit conditions: A legally required deletion/correction workflow, public
 review feature, or moderation process is accepted as future scope.
@@ -542,11 +542,39 @@ customer-facing links.
 
 Rationale: A small issue lifecycle gives vendors useful operational memory
 without introducing staff assignment, customer messaging, SLA tracking, or
-analytics complexity before those phases are designed.
+public reporting complexity before those phases are designed.
 
-Consequences: Resolved issues cannot be reopened in Phase 8. Future staff
-assignment, escalation, customer-visible support, or analytics features must
-extend this model through a migration and authorization review.
+Consequences: Resolved issues cannot be reopened in Phase 8. Phase 9 may
+aggregate issue categories and resolution rates, but future staff assignment,
+escalation, customer-visible support, or richer analytics must extend this model
+through a migration and authorization review.
 
 Revisit conditions: The product requires multi-step issue workflows, customer
 support conversations, staff ownership, or public issue status.
+
+## ADR-027 - Analytics Are Derived Tenant-Private Aggregates
+
+Status: Accepted
+
+Date: 2026-08-19
+
+Context: Phase 9 needs useful business insights without creating public reports,
+billing claims, forecasting, or a separate analytics data store.
+
+Decision: Calculate Phase 9 insights from persisted tenant records through a
+narrow authenticated PostgreSQL RPC that checks active business membership and
+returns aggregate JSON. Do not add analytics tables, materialized views, public
+reporting endpoints, exports, forecasting, AI recommendations, or
+analytics-specific roles in Phase 9.
+
+Rationale: The database can aggregate close to the data while preserving tenant
+authorization. Returning aggregate JSON avoids pulling large row sets into the
+application and avoids privileged views that could bypass RLS.
+
+Consequences: Analytics are deterministic and recomputed from current stored
+records. Future caching, exports, reporting emails, staff visibility controls,
+or billing analytics require explicit design and tenant-security review.
+
+Revisit conditions: Query volume requires caching/materialization, reporting
+exports are accepted, or analytics need role-specific visibility different from
+ordinary active business membership.

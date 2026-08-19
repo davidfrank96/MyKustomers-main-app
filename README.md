@@ -4,14 +4,15 @@ My Customers is a mobile-first SaaS application for small businesses that manage
 customers, bookings, orders, confirmations, feedback, and customer history through
 informal channels today.
 
-This repository has completed Phase 8: private feedback and operational issues. Phase 2 remains
+This repository has completed Phase 9: business insights and analytics. Phase 2 remains
 implemented with verification pending only for default-email signup confirmation
 and reset-password delivery. Supabase database, RLS, tenant isolation, grants,
 service-role boundaries, route protection, business onboarding, and owner
 business profile updates, tenant-scoped customer management, and tenant-scoped
 booking management, confirmation-link security, operational booking lifecycle
 controls, private feedback, and operational issue records have runtime
-verification evidence.
+verification evidence. Private tenant analytics are derived from stored records
+with currency-specific value grouping and documented metric definitions.
 
 ## Stack
 
@@ -67,7 +68,8 @@ require the Supabase URL, publishable key, and service-role key above, and shoul
 only be pointed at a non-production database. The runtime script also includes
 Phase 3 business onboarding, Phase 4 customer security, Phase 5 booking
 security, Phase 6 confirmation-link security, Phase 7 operational lifecycle
-security, and Phase 8 feedback/issue security tests.
+security, Phase 8 feedback/issue security tests, and Phase 9 analytics security
+tests.
 
 ## Scripts
 
@@ -114,7 +116,9 @@ public/              Icons and web manifest
 - Customer feedback links use a separate scoped token purpose, are available
   only after completion, and store private feedback without public reviews.
 - Operational issues are internal tenant records and are not customer-facing.
-- Avoid fake payment or analytics functionality before the owning phase.
+- Business insights are private tenant aggregates; they must not mix currencies
+  or use revenue/accounting terminology.
+- Avoid fake payment functionality before the owning phase.
 
 See `docs/architecture.md`, `docs/security.md`, `docs/development.md`, and
 `docs/product-boundaries.md` for the project rules that future phases should
@@ -131,6 +135,7 @@ The repository documentation is the source of truth for future implementation:
 - Security invariants: `docs/security.md`.
 - Conceptual data model: `docs/DATA_MODEL.md`.
 - Testing strategy: `docs/TESTING.md`.
+- Analytics definitions: `docs/ANALYTICS_DEFINITIONS.md`.
 
 Documentation can describe PLANNED, IMPLEMENTED, or VERIFIED work. Respect those
 labels. Documentation is not implementation evidence; inspect repository code,

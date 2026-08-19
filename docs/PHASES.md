@@ -378,29 +378,59 @@ comments outside the owning business.
 
 ## Phase 9 - Business Insights and Analytics
 
-Status: PLANNED
+Status: VERIFIED
 
 Objective: Calculate business insights from actual transactional records.
 
 Dependencies: Booking and customer data.
 
-Scope: Bookings, completed booking value, average order value, repeat customer rate, delivery performance, feedback summaries.
+Scope: Authenticated private insights page, date ranges, documented metric
+definitions, tenant-scoped aggregate RPC, customer activity, booking counts,
+currency-specific recorded/completed value, operational metrics, feedback
+metrics, issue summaries, simple previous-period comparison, and dashboard
+summary.
 
-Explicit exclusions: Fabricated analytics.
+Explicit exclusions: Fabricated analytics, public reports, exports, billing,
+payment/accounting claims, profit/tax/expense calculations, AI recommendations,
+forecasting, analytics-specific roles, materialized views, and email reports.
 
-Data-model impact: Derived queries or analytics records only after design.
+Data-model impact: Phase 9 migration
+`20260819010145_phase_9_business_insights_analytics.sql` adds targeted indexes
+and `public.get_business_insights`; follow-up migration
+`20260819011341_phase_9_fix_insights_current_time.sql` corrects the applied RPC
+variable name. No analytics tables or views were added.
 
-Security impact: Analytics must remain tenant scoped.
+Security impact: Aggregates are tenant-private data. The application resolves
+current business server-side, the RPC checks active membership, and cross-tenant
+aggregate access is denied.
 
-UI impact: Insights views.
+UI impact: `/insights` replaces the placeholder with a responsive private
+business insights page and the dashboard receives a compact monthly summary.
 
-Testing requirements: Calculations from seeded real records and cross-tenant tests.
+Testing requirements: Date-range parsing, previous-period comparison, zero
+denominator handling, documented definitions, exact runtime metric fixtures,
+currency separation, cross-tenant aggregate denial, reschedule/current-schedule
+on-time behavior, E2E insights journey, responsive coverage, full regression
+suite, build, audit, and Phase 2-8 runtime security regression.
 
-Documentation requirements: Document metric definitions.
+Documentation requirements: Update master plan, phase roadmap, product spec,
+data model, security invariants, ADRs, testing strategy, changelog, release
+checklist, analytics README, and `docs/ANALYTICS_DEFINITIONS.md`.
 
-Acceptance criteria: Analytics are based on actual stored data.
+Acceptance criteria: Analytics are based on actual stored data, definitions are
+explicit, financial terminology is conservative, currencies are never mixed,
+and aggregates cannot leak cross-tenant information.
 
-Known risks: Misleading metrics.
+Verification evidence: Migrations
+`20260819010145_phase_9_business_insights_analytics.sql` and
+`20260819011341_phase_9_fix_insights_current_time.sql`, analytics unit tests,
+static migration tests, live Supabase runtime analytics test, Playwright
+insights E2E coverage, lint, typecheck, full tests, runtime security tests,
+production build, and dependency audit.
+
+Known risks: Future reporting, export, scheduled email, analytics caching, staff
+visibility controls, and billing must preserve tenant-private aggregate
+boundaries and documented metric definitions.
 
 ## Phase 10 - Subscription Billing
 

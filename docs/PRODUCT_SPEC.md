@@ -111,6 +111,14 @@ is visible only to the owning business. Vendors can also record and resolve
 internal operational issues on bookings. Feedback is not public review content,
 and issues are not customer-facing support tickets.
 
+Phase 9 implements private business insights derived from stored customer,
+booking, feedback, and issue records. Insights are deterministic,
+tenant-scoped, and intended to help the vendor understand operational activity.
+Financially-related metrics use recorded booking value and completed booking
+value terminology, not revenue, cash, profit, tax, or accounting claims.
+Currency values are grouped by currency and never converted or summed across
+currencies.
+
 ## Customer Experience Principle
 
 Customer-facing flows should generally:

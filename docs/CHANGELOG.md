@@ -2,6 +2,25 @@
 
 This changelog records meaningful project milestones. It is not a substitute for Git history.
 
+## 2026-08-19 - Phase 9 Business Insights and Analytics
+
+Status: VERIFIED
+
+- Added Phase 9 migration for analytics-oriented indexes and
+  `public.get_business_insights`, plus a follow-up fix for the applied RPC
+  timestamp variable name.
+- Added authenticated `/insights` with tenant-private customer, booking,
+  value, operational, feedback, and issue metrics based on persisted records.
+- Added supported date ranges for this month, last month, last 30 days, this
+  year, and validated custom ranges, with previous equivalent period
+  comparisons.
+- Documented metric definitions and conservative financial terminology.
+  Recorded/completed booking value is grouped by currency and is not presented
+  as revenue, cash, profit, tax, or accounting output.
+- Added dashboard monthly insights summary without changing operational queues.
+- Added analytics domain tests, static Phase 9 migration/security tests, live
+  Supabase aggregate-isolation tests, and Playwright insights coverage.
+
 ## 2026-08-19 - Phase 8 Private Feedback and Operational Issues
 
 Status: VERIFIED

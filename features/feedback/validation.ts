@@ -78,3 +78,4 @@ export function isResolvableIssueStatus(status: string) {
 
 export type PublicFeedbackInput = z.infer<typeof publicFeedbackSchema>;
 export type BookingIssueCreateInput = z.infer<typeof bookingIssueCreateSchema>;
+export type BookingIssueCategory = (typeof issueCategories)[number];

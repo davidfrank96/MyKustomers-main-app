@@ -46,6 +46,14 @@ the configured development Supabase database and runtime-verified for feedback
 token lifecycle, public minimization, tenant isolation, issue lifecycle
 authorization, concurrency, and audit behavior.
 
+Phase 9 migration evidence exists at
+`supabase/migrations/20260819010145_phase_9_business_insights_analytics.sql`
+and follow-up fix
+`supabase/migrations/20260819011341_phase_9_fix_insights_current_time.sql`.
+The migration adds targeted indexes for analytics predicates and the
+authenticated aggregate RPC `public.get_business_insights`. It does not add
+analytics tables, views, materialized views, public reports, or stored snapshots.
+
 Detailed schema design belongs to the relevant implementation phase.
 
 ## Conceptual Entities
@@ -62,6 +70,7 @@ Detailed schema design belongs to the relevant implementation phase.
 - `feedback_links`
 - `feedback`
 - `booking_issues`
+- `analytics`
 - `subscriptions`
 - `subscription_events`
 - `email_events`
@@ -113,6 +122,9 @@ These names are conceptual and not yet necessarily final table names.
 - `booking_issues`: VERIFIED. Phase 8 fields include `id`, `business_id`,
   `booking_id`, `category`, `description`, `status`, `created_by`,
   `created_at`, `resolved_by`, and `resolved_at`.
+- `analytics`: VERIFIED as derived aggregate output from existing tenant-owned
+  records through `public.get_business_insights`. There are no persistent
+  analytics records in Phase 9.
 - `subscriptions`: PLANNED.
 - `subscription_events`: PLANNED.
 - `email_events`: PLANNED.
@@ -242,5 +254,10 @@ members of the owning business.
 Booking issues are internal operational records attached to bookings. Vendors
 can create open issues and resolve them once. Issue descriptions remain
 tenant-private and are not exposed on public customer-facing token pages.
+
+Analytics are derived from customer, booking, feedback, and issue records that
+already belong to a business. Phase 9 calculates aggregate JSON inside
+PostgreSQL through a membership-checked RPC. Value aggregates are grouped by
+booking currency; mixed-currency totals are not stored or returned.
 
 Subscriptions represent vendor subscription billing for My Customers, not payments between vendors and their customers.

@@ -18,8 +18,11 @@ RPCs, rescheduling with confirmation invalidation, database-owned operational
 timestamps, cancellation reasons, booking-change history, and operational audit
 events. Phase 8 implements private feedback links, immutable feedback
 submissions, internal operational issues, public feedback endpoint hardening,
-and issue lifecycle authorization. Runtime Supabase database/RLS verification
-succeeded for Phase 2, Phase 3, Phase 4, Phase 5, Phase 6, Phase 7, and Phase 8.
+and issue lifecycle authorization. Phase 9 implements tenant-private business
+analytics through a membership-checked aggregate RPC over existing tenant
+records without public reports or stored analytics tables. Runtime Supabase
+database/RLS verification succeeded for Phase 2, Phase 3, Phase 4, Phase 5,
+Phase 6, Phase 7, Phase 8, and Phase 9.
 Public signup and reset-password
 completion remain partial because the configured development Supabase project
 hit email/default inbox constraints.
@@ -339,3 +342,14 @@ cross-tenant mutable. Phase 8 enables RLS on `booking_issues`, allows
 authenticated members to read/create/resolve only issues for their businesses,
 denies anonymous access, blocks cross-tenant resolution, and makes resolved
 issues terminal.
+
+SEC-032 - Tenant-Private Analytics
+
+Status: VERIFIED
+
+Business insights are protected tenant data, even when returned as aggregates.
+Phase 9 resolves the current business server-side, calls
+`public.get_business_insights` with authenticated credentials, checks active
+business membership inside the RPC, avoids analytics views/tables that could
+bypass RLS, and runtime-tests cross-tenant aggregate denial and currency
+separation.

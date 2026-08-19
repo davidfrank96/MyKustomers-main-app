@@ -34,9 +34,12 @@ is real.
 
 Supabase Auth and the initial tenant schema are implemented in Phase 2. Business
 onboarding, customer management, booking management, secure confirmation links,
-operational booking lifecycle controls, private feedback, and internal booking
-issues extend that schema with tenant-owned records, RLS policies, database
-constraints, narrow RPCs, and focused runtime security tests. Client
+operational booking lifecycle controls, private feedback, internal booking
+issues, and read-only business insights extend that schema with tenant-owned
+records, RLS policies, database constraints, narrow RPCs, and focused runtime
+security tests. Phase 9 analytics are derived through an authenticated
+membership-checked aggregate RPC over existing tenant records rather than
+stored analytics tables or public reports. Client
 construction lives in `lib/supabase`, using browser, server, proxy, and
 server-only service-role helpers separately so secrets do not cross into client
 bundles.
@@ -53,7 +56,8 @@ use controlled authenticated Supabase RPCs and database trigger enforcement
 instead of direct browser-supplied status writes. Feedback links are separate
 scoped public capabilities for completed-booking feedback and store only token
 hashes. Operational issues are internal tenant records and are not exposed on
-public customer-facing pages. Tenant-owned tables must include a business
+public customer-facing pages. Analytics aggregates are protected tenant data
+and must not include records from another business. Tenant-owned tables must include a business
 ownership model and PostgreSQL RLS policies that enforce row access server-side.
 
 ## Server and Client Boundaries
@@ -70,7 +74,7 @@ Vitest covers shared utilities, domain validation, static migration/security
 checks, and opt-in runtime Supabase tenant tests. Playwright covers browser
 journeys for auth, onboarding, customers, bookings, customer confirmation, and
 the operational booking lifecycle, private feedback, and internal issue
-resolution.
+resolution, and business insights.
 
 ## Architecture Conflict Handling
 

@@ -3,9 +3,9 @@
 STATUS: PLANNED AND PARTIALLY IMPLEMENTED
 
 Phase 1 implemented foundational UI primitives and responsive shells. Full brand and product UI are still planned.
-Phases 3 through 8 add verified product workflows for onboarding, customers,
+Phases 3 through 9 add verified product workflows for onboarding, customers,
 bookings, customer confirmation links, operational booking lifecycle, private
-feedback, and operational issues.
+feedback, operational issues, and business insights.
 
 ## Design Philosophy
 
@@ -48,9 +48,12 @@ Implemented in Phase 1:
 - Business onboarding, customer management, booking management, customer
   confirmation, operational booking lifecycle, private feedback, and internal
   issue screens built on the shared primitives.
+- Authenticated business insights screen with mobile-first metric cards,
+  currency-separated value lists, text-backed comparisons, accessible simple
+  bars, and native date-range controls.
 
 Not yet implemented:
 
 - Final branding.
 - Full component coverage.
-- Analytics, billing, and staff-management interfaces.
+- Billing and staff-management interfaces.

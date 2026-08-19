@@ -588,6 +588,14 @@ export type Database = {
         };
         Returns: Json;
       };
+      get_business_insights: {
+        Args: {
+          p_business_id: string;
+          p_from: string;
+          p_to: string;
+        };
+        Returns: Json;
+      };
     };
     Enums: {
       business_member_role: "owner" | "member";

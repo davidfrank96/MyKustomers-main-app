@@ -25,6 +25,7 @@ Most items are unchecked because Phase 1.5 is not a production-readiness phase.
 - [x] Phase 6 migration definitions created.
 - [x] Phase 7 migration definitions created.
 - [x] Phase 8 migration definitions created.
+- [x] Phase 9 analytics migration definitions created.
 - [x] Application schema implemented.
 - [x] Migrations verified.
 - [ ] Backup and restore plan documented.
@@ -37,6 +38,7 @@ Most items are unchecked because Phase 1.5 is not a production-readiness phase.
 - [x] Phase 6 confirmation-link table access and RPC grants reviewed.
 - [x] Phase 7 booking-change RLS and lifecycle RPC grants reviewed.
 - [x] Phase 8 feedback and issue RLS/RPC grants reviewed.
+- [x] Phase 9 aggregate RPC grants and tenant membership checks reviewed.
 - [x] Tenant-owned tables have RLS enabled.
 - [x] RLS policies reviewed.
 - [x] Cross-tenant tests pass.
@@ -67,6 +69,8 @@ Most items are unchecked because Phase 1.5 is not a production-readiness phase.
 - [x] Private feedback and operational issue tenant isolation, public token
   purpose separation, immutable feedback, and issue resolution integrity covered
   by runtime tests.
+- [x] Tenant-private analytics aggregate isolation, cross-tenant denial, and
+  currency separation covered by runtime tests.
 
 ## Abuse Protection
 
@@ -112,6 +116,8 @@ Most items are unchecked because Phase 1.5 is not a production-readiness phase.
   lifecycle actions.
 - [x] Phase 8 public feedback view minimizes booking data and keeps submitted
   feedback private to the owning business.
+- [x] Phase 9 insights avoid public reports, exports, cross-tenant aggregates,
+  mixed-currency totals, and revenue/cash/profit/accounting claims.
 
 ## Accessibility And UX
 
@@ -120,6 +126,7 @@ Most items are unchecked because Phase 1.5 is not a production-readiness phase.
 - [x] Customer-facing confirmation flow reviewed on desktop and mobile E2E.
 - [x] Phase 7 vendor booking lifecycle flow reviewed on desktop and mobile E2E.
 - [x] Phase 8 public feedback and vendor issue lifecycle flow reviewed in E2E.
+- [x] Phase 9 insights reviewed in E2E.
 
 ## Email
 
