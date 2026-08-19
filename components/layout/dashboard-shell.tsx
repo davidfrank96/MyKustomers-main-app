@@ -1,33 +1,11 @@
 import Link from "next/link";
-import type { Route } from "next";
-import type { ComponentType, ReactNode } from "react";
-import {
-  BarChart3,
-  BriefcaseBusiness,
-  CalendarDays,
-  Home,
-  LogOut,
-  Settings,
-  Users,
-} from "lucide-react";
+import type { ReactNode } from "react";
+import { LogOut } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { DesktopNavigation, MobileNavigation } from "@/components/layout/dashboard-navigation";
 import { logoutAction } from "@/features/auth/actions";
 import type { BusinessContext, AuthenticatedUser } from "@/lib/auth/server";
-
-type NavItem = {
-  label: string;
-  href: Route;
-  icon: ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
-};
-
-const navItems: NavItem[] = [
-  { label: "Home", href: "/dashboard", icon: Home },
-  { label: "Bookings", href: "/bookings" as Route, icon: CalendarDays },
-  { label: "Customers", href: "/customers" as Route, icon: Users },
-  { label: "Insights", href: "/insights" as Route, icon: BarChart3 },
-  { label: "Business", href: "/business" as Route, icon: BriefcaseBusiness },
-];
 
 type DashboardShellProps = {
   children: ReactNode;
@@ -69,25 +47,7 @@ export function DashboardShell({
           </span>
           <span className="font-semibold">My Customers</span>
         </div>
-        <nav className="flex flex-1 flex-col gap-1 px-3 py-4" aria-label="Vendor navigation">
-          {navItems.map((item) => (
-            <Link
-              key={item.label}
-              href={item.href}
-              className="flex h-11 items-center gap-3 rounded-md px-3 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
-            >
-              <item.icon className="size-4" aria-hidden={true} />
-              {item.label}
-            </Link>
-          ))}
-          <Link
-            href={"/settings" as Route}
-            className="mt-auto flex h-11 items-center gap-3 rounded-md px-3 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
-          >
-            <Settings className="size-4" aria-hidden={true} />
-            Settings
-          </Link>
-        </nav>
+        <DesktopNavigation />
       </aside>
 
       <div className="lg:pl-64">
@@ -119,21 +79,7 @@ export function DashboardShell({
         {children}
       </div>
 
-      <nav
-        className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-border bg-card px-2 pb-[env(safe-area-inset-bottom)] lg:hidden"
-        aria-label="Mobile vendor navigation"
-      >
-        {navItems.map((item) => (
-          <Link
-            key={item.label}
-            href={item.href}
-            className="flex min-h-16 flex-col items-center justify-center gap-1 rounded-md px-1 text-xs font-medium text-muted-foreground hover:text-foreground"
-          >
-            <item.icon className="size-5" aria-hidden={true} />
-            <span>{item.label}</span>
-          </Link>
-        ))}
-      </nav>
+      <MobileNavigation />
     </div>
   );
 }

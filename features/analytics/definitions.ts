@@ -11,7 +11,7 @@ export const analyticsDefinitions = [
   {
     metric: "Returning customers",
     formula:
-      "Customers with at least one qualifying booking created during the period and at least two lifetime qualifying bookings for the same tenant-local customer record.",
+      "Customers with at least one qualifying booking created during the period and at least two lifetime qualifying bookings for the same saved customer record.",
   },
   {
     metric: "Repeat customer rate",

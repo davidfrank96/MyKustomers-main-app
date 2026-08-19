@@ -224,7 +224,7 @@ function feedbackForm(token: string) {
       </div>
     </fieldset>
     <fieldset>
-      <legend>Was the order or service completed on time?</legend>
+      <legend>Was everything completed on time?</legend>
       <div class="choice-grid two">
         <label class="choice"><input required type="radio" name="onTime" value="yes">Yes</label>
         <label class="choice"><input required type="radio" name="onTime" value="no">No</label>

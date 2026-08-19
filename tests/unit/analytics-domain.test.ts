@@ -71,7 +71,7 @@ describe("analytics domain", () => {
   it("formats percentages and currency-specific values without cross-currency claims", () => {
     expect(formatPercent(null)).toBe("No data");
     expect(formatPercent(0.25)).toBe("25%");
-    expect(formatCurrencyMinor(120_000, "NGN")).toContain("1,200");
+    expect(formatCurrencyMinor(120_000, "NGN")).toBe("₦1,200");
     expect(formatCurrencyMinor(85_000, "EUR")).toContain("850");
   });
 

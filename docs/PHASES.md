@@ -432,6 +432,60 @@ Known risks: Future reporting, export, scheduled email, analytics caching, staff
 visibility controls, and billing must preserve tenant-private aggregate
 boundaries and documented metric definitions.
 
+## Phase 9.5 - Product UX, Design, and End-to-End Experience Audit
+
+Status: VERIFIED
+
+Objective: Audit and tighten the implemented product experience before
+subscription billing work begins.
+
+Dependencies: Phases 0 through 9.
+
+Scope: Mobile-first UX audit, responsive review at 375px, 390px, 430px, 768px,
+and desktop widths, navigation hierarchy, end-to-end workflow coherence,
+empty-state usefulness, product terminology, money display, booking detail
+state hierarchy, public confirmation and feedback pages, insights
+interpretability, and canonical E2E journey coverage.
+
+Explicit exclusions: Subscription billing, customer-to-vendor payments,
+payment verification, messaging automation, exports, staff management, native
+mobile, public review publishing, schema changes, and security-model weakening.
+
+Data-model impact: None.
+
+Security impact: No security controls were weakened. Phase 9.5 preserved
+server-side authorization, RLS boundaries, public token minimization, and
+tenant-private analytics behavior.
+
+UI impact: Active authenticated navigation, clearer booking next-step
+hierarchy, safer owner/customer copy, natural NGN currency display, improved
+feedback-link recovery messaging, and tightened onboarding/dashboard/search
+language.
+
+Testing requirements: Product UX audit, responsive visual audit, canonical
+Playwright journey, lint, typecheck, unit/integration tests, runtime security
+regression, E2E suite, production build, and dependency audit.
+
+Documentation requirements: Add `docs/UX_AUDIT.md` and update master plan,
+phase roadmap, product spec, design system, testing strategy, changelog,
+release checklist, development guide, and materially affected feature docs.
+
+Acceptance criteria: A small-business owner can understand the core workflow
+from login through insights without seeing internal terminology, mobile layouts
+remain usable at the target widths, public customer pages remain simple and
+safe, money display matches expected owner input, and the canonical product
+journey has automated E2E coverage.
+
+Verification evidence: `docs/UX_AUDIT.md`, active navigation component, booking
+next-step panel, copy and money-formatting updates, strengthened booking E2E
+journey, unit formatter updates, responsive Playwright visual audit, lint,
+typecheck, full tests, runtime security regression, E2E, production build, and
+dependency audit.
+
+Known risks: Future billing, messaging, exports, staff roles, native/PWA
+enhancements, and public review features must preserve the same mobile-first
+UX baseline and security boundaries.
+
 ## Phase 10 - Subscription Billing
 
 Status: PLANNED

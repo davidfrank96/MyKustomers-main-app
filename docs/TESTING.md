@@ -44,6 +44,9 @@ Phase 1 implemented test infrastructure and smoke tests. Most domain, security, 
 - Phase 9 analytics date-range, comparison, formatting, and definition tests.
 - Static Phase 9 aggregate RPC migration/security review tests.
 - Phase 9 runtime Supabase analytics correctness and tenant isolation test.
+- Phase 9.5 UX audit, money-display regression tests, and canonical product
+  journey coverage from customer creation through booking, confirmation,
+  fulfilment, feedback, issue handling, and insights.
 - Playwright tests for unauthenticated protected-route redirect, auth screen rendering,
   login, session persistence, logout, forgot-password safe response, redirect safety,
   business onboarding, customer create/edit/archive, and booking
@@ -71,6 +74,8 @@ Phase 1 implemented test infrastructure and smoke tests. Most domain, security, 
 - E2E-042 - Vendor can create and resolve an internal booking issue. VERIFIED.
 - E2E-050 - Vendor can view tenant-private business insights from persisted
   records. VERIFIED.
+- E2E-060 - Canonical vendor-to-customer product journey works end to end and
+  feeds private insights. VERIFIED.
 
 ## Planned Security Tests
 
@@ -153,6 +158,13 @@ persisted fixtures, tenant aggregate isolation, cross-tenant RPC denial,
 currency separation, cancelled/draft value exclusion, feedback metrics, issue
 distribution, overdue calculation, on-time behavior against current schedules,
 and safe membership enforcement.
+
+The Phase 9.5 UX audit verifies the completed product surface at mobile widths
+375px, 390px, and 430px, tablet width 768px, and desktop width 1365px. It
+checks authenticated navigation, empty states, owner/customer language, booking
+state hierarchy, public confirmation and feedback pages, natural NGN display,
+and the canonical E2E journey through insights. The audit findings live in
+`docs/UX_AUDIT.md`.
 
 Default Supabase email confirmation E2E requires `E2E_SIGNUP_EMAIL` to point at
 a safe inbox. Without it, signup confirmation and reset-password completion

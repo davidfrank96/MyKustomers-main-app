@@ -122,7 +122,7 @@ export default async function CustomersPage({ searchParams }: CustomersPageProps
           title={params.status === "archived" ? "No archived customers." : "No customers yet."}
           description={
             params.q
-              ? "No tenant-scoped customer records matched this search."
+              ? "No saved customers matched this search."
               : "Add your first customer to start building a business-owned customer list."
           }
         />

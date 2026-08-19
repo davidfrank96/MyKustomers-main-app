@@ -29,3 +29,7 @@ summed across currencies.
 
 Metric formulas are documented in `docs/ANALYTICS_DEFINITIONS.md` and mirrored
 in `definitions.ts` for the in-app definitions section.
+
+Phase 9.5 keeps insights readable for business owners by avoiding internal
+tenancy terminology in visible definitions and preserving conservative recorded
+value language.

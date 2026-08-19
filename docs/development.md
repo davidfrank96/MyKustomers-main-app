@@ -75,3 +75,16 @@ PHASE2_RUNTIME_VERIFICATION=1 PHASE2_SUPABASE_TARGET=development npm run test:se
 npm run test:e2e
 npm run build
 ```
+
+## UX Audit Expectations
+
+Before billing or other expansion phases, preserve the Phase 9.5 baseline:
+
+- Review authenticated flows at 375px, 390px, 430px, 768px, and desktop widths.
+- Keep visible product copy in owner/customer language rather than internal
+  implementation terminology.
+- Keep booking money displayed as natural currency while storing values as
+  integer minor units.
+- Keep the dashboard operational first; do not replace it with a wall of
+  summary metrics.
+- Extend the canonical E2E journey when a new phase changes the core workflow.

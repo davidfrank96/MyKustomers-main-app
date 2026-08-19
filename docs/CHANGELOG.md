@@ -2,6 +2,27 @@
 
 This changelog records meaningful project milestones. It is not a substitute for Git history.
 
+## 2026-08-19 - Phase 9.5 Product UX, Design, and End-to-End Experience Audit
+
+Status: VERIFIED
+
+- Added `docs/UX_AUDIT.md` with Phase 9.5 findings, evidence, resolutions, and
+  status.
+- Added active authenticated navigation for Home, Bookings, Customers,
+  Insights, and Business across desktop and mobile.
+- Improved booking detail hierarchy with a state-specific Next step area for
+  lifecycle actions.
+- Replaced visible implementation terminology in owner/customer flows with
+  product language.
+- Updated money formatting so NGN amounts render naturally, for example
+  `₦45,000`, while preserving integer minor-unit storage.
+- Strengthened the booking E2E into a canonical journey covering customer
+  creation, booking creation, customer confirmation, fulfilment, feedback,
+  issue handling, and insights.
+- Completed responsive visual audit across mobile, tablet, and desktop
+  viewports without adding billing, payment processing, messaging automation,
+  exports, or staff management.
+
 ## 2026-08-19 - Phase 9 Business Insights and Analytics
 
 Status: VERIFIED

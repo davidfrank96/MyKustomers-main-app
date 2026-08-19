@@ -140,7 +140,7 @@ export default async function BookingsPage({ searchParams }: BookingsPageProps) 
           title="No bookings yet."
           description={
             params.q
-              ? "No tenant-scoped bookings matched this search."
+              ? "No saved bookings matched this search."
               : "Create a booking once a customer has agreed work with your business."
           }
           action={

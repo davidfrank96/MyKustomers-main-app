@@ -37,11 +37,18 @@ export function isTerminalBookingStatus(status: BookingStatus) {
 }
 
 export function getBookingStatusLabel(status: BookingStatus) {
-  return status
-    .toLowerCase()
-    .split("_")
-    .map((part) => part[0].toUpperCase() + part.slice(1))
-    .join(" ");
+  const labels: Record<BookingStatus, string> = {
+    DRAFT: "Draft",
+    AWAITING_CUSTOMER: "Awaiting customer",
+    CONFIRMED: "Confirmed",
+    IN_PROGRESS: "In progress",
+    READY: "Ready",
+    DELIVERED: "Delivered",
+    COMPLETED: "Completed",
+    CANCELLED: "Cancelled",
+  };
+
+  return labels[status];
 }
 
 export function getTransitionLabel(toStatus: BookingStatus) {
