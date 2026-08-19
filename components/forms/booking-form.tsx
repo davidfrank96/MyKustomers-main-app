@@ -49,6 +49,7 @@ type BookingFormProps = {
   initialValues?: BookingFormValues;
   mode: "create" | "edit";
   disabled?: boolean;
+  scheduledDisabled?: boolean;
 };
 
 function toLocalDateTimeValue(value?: string | null) {
@@ -87,6 +88,7 @@ export function BookingForm({
   initialValues = {},
   mode,
   disabled = false,
+  scheduledDisabled = false,
 }: BookingFormProps) {
   const [state, formAction] = useActionState(action, initialBookingActionState);
   const [scheduledLocal, setScheduledLocal] = useState(
@@ -213,10 +215,15 @@ export function BookingForm({
             type="datetime-local"
             value={scheduledLocal}
             onChange={(event) => setScheduledLocal(event.target.value)}
-            disabled={disabled}
+            disabled={disabled || scheduledDisabled}
             aria-invalid={Boolean(fieldError(state, "scheduledFor"))}
             aria-describedby={fieldError(state, "scheduledFor") ? "scheduled-error" : undefined}
           />
+          {scheduledDisabled ? (
+            <p className="text-xs leading-5 text-muted-foreground">
+              Use reschedule to change this date after customer confirmation starts.
+            </p>
+          ) : null}
           {fieldError(state, "scheduledFor") ? (
             <p id="scheduled-error" className="text-sm leading-5 text-destructive">
               {fieldError(state, "scheduledFor")}

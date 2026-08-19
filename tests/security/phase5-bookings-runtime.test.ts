@@ -352,14 +352,19 @@ if (runtimeVerificationEnabled) {
         { id: memberBooking!.id, title: "Phase 5 Member Booking Updated" },
       ]);
 
-      const { data: confirmed, error: confirmError } = await userA.client
+      const { error: directConfirmError } = await userA.client
         .from("bookings")
         .update({ status: "CONFIRMED" })
+        .eq("id", bookingA.id);
+      expect(directConfirmError).not.toBeNull();
+
+      const { data: directAwaiting, error: directAwaitingError } = await userA.client
+        .from("bookings")
+        .update({ status: "AWAITING_CUSTOMER" })
         .eq("id", bookingA.id)
-        .select("id, status")
-        .single();
-      expect(confirmError).toBeNull();
-      expect(confirmed?.status).toBe("CONFIRMED");
+        .select("id, status");
+      expect(directAwaitingError).not.toBeNull();
+      expectNoRows(directAwaiting);
 
       const { error: invalidTransitionError } = await userA.client
         .from("bookings")
@@ -367,15 +372,22 @@ if (runtimeVerificationEnabled) {
         .eq("id", bookingA.id);
       expect(invalidTransitionError).not.toBeNull();
 
+      const { error: cancelRpcError } = await userA.client.rpc("transition_booking_status", {
+        p_booking_id: bookingA.id,
+        p_to_status: "CANCELLED",
+        p_cancellation_reason: "Runtime cancellation",
+      });
+      expect(cancelRpcError).toBeNull();
+
       const { data: cancelled, error: cancelError } = await userA.client
         .from("bookings")
-        .update({ status: "CANCELLED", cancelled_at: new Date().toISOString() })
+        .select("id, status, cancelled_at, cancellation_reason")
         .eq("id", bookingA.id)
-        .select("id, status, cancelled_at")
         .single();
       expect(cancelError).toBeNull();
       expect(cancelled?.status).toBe("CANCELLED");
       expect(cancelled?.cancelled_at).toBeTruthy();
+      expect(cancelled?.cancellation_reason).toBe("Runtime cancellation");
 
       const { error: terminalUpdateError } = await userA.client
         .from("bookings")
@@ -391,8 +403,7 @@ if (runtimeVerificationEnabled) {
       expect(historyError).toBeNull();
       expect(history).toEqual([
         { from_status: null, to_status: "DRAFT" },
-        { from_status: "DRAFT", to_status: "CONFIRMED" },
-        { from_status: "CONFIRMED", to_status: "CANCELLED" },
+        { from_status: "DRAFT", to_status: "CANCELLED" },
       ]);
 
       const unsafeHistory = userA.client.from(

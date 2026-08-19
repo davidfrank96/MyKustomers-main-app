@@ -330,3 +330,223 @@ tests when the product semantics are explicit.
 
 Revisit conditions: Vendors need itemized order capture, per-item fulfilment,
 catalog integration, inventory, discounts, or item-level analytics.
+
+## ADR-019 - Confirmation Tokens Are Opaque Capabilities Stored Hash-Only
+
+Status: Accepted
+
+Date: 2026-08-19
+
+Context: Phase 6 exposes customer-facing booking confirmation links without
+requiring customer accounts. Booking references are human-readable and must not
+authorize public access.
+
+Decision: Use cryptographically random opaque tokens for confirmation links,
+store only SHA-256 token hashes, and show the raw token only once to the vendor
+after generation.
+
+Rationale: Opaque high-entropy tokens avoid enumerable public credentials.
+Hash-only storage reduces the impact of database reads or logs exposing
+confirmation link rows.
+
+Consequences: The application cannot recover an existing raw confirmation URL
+after generation. Vendors must regenerate a link if the raw URL is lost.
+Future email automation must send the raw token at creation time without
+persisting it in audit logs or database tables.
+
+Revisit conditions: A future customer-account model replaces token links, or
+the product adopts a keyed token format with a stronger documented threat model.
+
+## ADR-020 - Confirmation Evidence Uses Immutable Terms Snapshots
+
+Status: Accepted
+
+Date: 2026-08-19
+
+Context: Customers confirm the booking terms shown at a point in time. Material
+booking changes after confirmation must not silently change what the customer
+already accepted.
+
+Decision: Store a confirmation terms snapshot and SHA-256 terms hash when a
+customer confirms a booking. Material changes invalidate the current booking
+confirmation and require a new confirmation, while used links continue to show
+the immutable snapshot originally confirmed.
+
+Rationale: Snapshot evidence preserves what was confirmed and prevents mutable
+booking edits from rewriting confirmation history.
+
+Consequences: Material-field definitions must be kept consistent between
+application tests and database trigger logic. Future fields that affect customer
+terms must be added to the snapshot and material-change classifier.
+
+Revisit conditions: The product introduces negotiated revisions, multi-party
+approval, or legally versioned terms requiring a richer confirmation model.
+
+## ADR-021 - Public Confirmation Uses Server-Only RPC Boundary
+
+Status: Accepted
+
+Date: 2026-08-19
+
+Context: Public confirmation pages need to validate tokens and reveal a minimal
+booking view without granting anonymous table access to confirmation or booking
+data.
+
+Decision: Keep confirmation-link tables unavailable to `anon` and
+`authenticated` table APIs. Public page code uses server-only service-role RPCs
+for minimized lookup and atomic confirmation, plus a persistent database-backed
+rate limiter keyed by hashed request identity.
+
+Rationale: A narrow server-only boundary preserves least privilege, avoids
+public table policies for token data, and keeps GET previews non-consuming while
+POST confirmation remains atomic.
+
+Consequences: Environments without a configured service-role key cannot serve
+public confirmation flows. Future hosting and observability must avoid logging
+raw confirmation URLs or tokens.
+
+Revisit conditions: A dedicated edge function or separate public API service
+replaces the Next.js server boundary.
+
+## ADR-022 - Operational Booking Transitions Use Authenticated RPCs
+
+Status: Accepted
+
+Date: 2026-08-19
+
+Context: Phase 7 needs vendors to move bookings through fulfilment while
+preserving the Phase 5/6 integrity trigger, tenant RLS, immutable history, and
+customer confirmation requirements.
+
+Decision: Route vendor operational lifecycle changes through
+`public.transition_booking_status`, a narrow authenticated Supabase RPC. The RPC
+derives the actor from `auth.uid()`, checks active business membership, locks
+the booking row, applies the accepted transition graph, lets database trigger
+logic set operational timestamps, and records audit events. Direct
+authenticated browser status updates remain blocked.
+
+Rationale: The lifecycle graph is security-sensitive business state. A database
+transaction boundary avoids split-brain updates between booking status,
+timestamps, history, and audit logs while keeping ordinary browser clients from
+fabricating operational history.
+
+Consequences: Future workflow actions that change booking status must extend
+the RPC and tests rather than adding direct table updates from server actions or
+client code. Staff-role permissions, notifications, or automation must preserve
+the same authorization and audit boundary.
+
+Revisit conditions: A dedicated application service with explicit transactions
+replaces the Supabase RPC boundary while preserving RLS, row locking, trigger
+behavior, and equivalent runtime security tests.
+
+## ADR-023 - Rescheduling Uses Focused Booking Change History
+
+Status: Accepted
+
+Date: 2026-08-19
+
+Context: Phase 7 needs operational rescheduling before fulfilment begins.
+Generic event sourcing would add complexity beyond the current product need,
+but reschedules are material enough to require an auditable record and customer
+reconfirmation when already confirmed.
+
+Decision: Implement `public.reschedule_booking` for `DRAFT`,
+`AWAITING_CUSTOMER`, and `CONFIRMED` bookings only, and record reschedule rows
+in `public.booking_changes`. Rescheduling a confirmed booking returns it to
+`AWAITING_CUSTOMER`, clears current confirmation fields, revokes open
+confirmation links, writes `BOOKING_RESCHEDULED`, and requires a new customer
+confirmation. Non-material internal-note edits continue not to invalidate
+confirmation.
+
+Rationale: A focused `booking_changes` table captures the operational history
+users need now without implying a broad event-store model. Keeping rescheduling
+inside a database RPC preserves tenant checks and material-change invalidation
+in one transaction.
+
+Consequences: Future material fields must be classified deliberately. If
+rescheduling after work starts is later required, the product must define
+customer notification, cancellation, staff ownership, and audit semantics before
+changing the allowed status set.
+
+Revisit conditions: The product introduces full revision workflows, customer
+change approvals, staff scheduling, or broader event sourcing.
+
+## ADR-024 - Feedback Tokens Use A Dedicated Purpose Boundary
+
+Status: Accepted
+
+Date: 2026-08-19
+
+Context: Phase 8 needs customers to submit private feedback after a booking is
+completed without creating My Customers accounts. Confirmation tokens already
+exist, but confirmation and feedback authorize different actions and happen at
+different lifecycle stages.
+
+Decision: Implement feedback links as separate opaque, high-entropy,
+hash-at-rest capabilities with purpose `booking_feedback`, a default 14-day
+lifetime, one open link per booking, and server-only public lookup/submission
+RPCs. Do not reuse confirmation links or booking references for feedback access.
+
+Rationale: A distinct purpose boundary prevents a valid customer token from
+being replayed against another customer-facing action. Hash-only storage keeps
+raw feedback URLs out of tables and audit metadata.
+
+Consequences: Existing raw feedback URLs cannot be recovered after generation.
+Future notification or email automation must send the raw URL at creation time
+without persisting it, and future customer token types need their own explicit
+purpose model and tests.
+
+Revisit conditions: Customer accounts replace token links, or a broader
+capability-token service is introduced with equivalent purpose isolation and
+runtime attack tests.
+
+## ADR-025 - Feedback Remains Private And Immutable
+
+Status: Accepted
+
+Date: 2026-08-19
+
+Context: Phase 8 collects customer sentiment to help vendors improve operations,
+not to publish public reviews or create editable testimonials.
+
+Decision: Store feedback as an immutable private tenant record attached to the
+completed booking, customer, and consumed feedback link. Authenticated vendors
+can read feedback for their business, but ordinary clients cannot update or
+delete submitted feedback.
+
+Rationale: Immutability preserves the customer's submitted answer and avoids
+turning private operational feedback into mutable marketing content. Tenant RLS
+keeps feedback visible only to the owning business.
+
+Consequences: Corrections or moderation workflows require a future explicit
+design rather than ad hoc updates. Future analytics may aggregate feedback but
+must not expose comments or cross-tenant data.
+
+Revisit conditions: A legally required deletion/correction workflow, public
+review feature, or moderation process is accepted as future scope.
+
+## ADR-026 - Booking Issues Are Internal Terminal Records
+
+Status: Accepted
+
+Date: 2026-08-19
+
+Context: Vendors need to record operational problems discovered during or after
+booking fulfilment. These records are internal business notes, not customer
+support tickets or public status updates.
+
+Decision: Model booking issues as tenant-owned internal records with a bounded
+category, private description, `OPEN` or `RESOLVED` status, database-derived
+actor/timestamps, and terminal resolution. Do not expose issues on public
+customer-facing links.
+
+Rationale: A small issue lifecycle gives vendors useful operational memory
+without introducing staff assignment, customer messaging, SLA tracking, or
+analytics complexity before those phases are designed.
+
+Consequences: Resolved issues cannot be reopened in Phase 8. Future staff
+assignment, escalation, customer-visible support, or analytics features must
+extend this model through a migration and authorization review.
+
+Revisit conditions: The product requires multi-step issue workflows, customer
+support conversations, staff ownership, or public issue status.

@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { archiveCustomerAction, updateCustomerAction } from "@/features/customers/actions";
 import { getCustomerForBusiness } from "@/features/customers/queries";
+import { listFeedbackForCustomer } from "@/features/feedback/queries";
 import { getCurrentBusinessContext } from "@/lib/auth/server";
 
 type CustomerDetailPageProps = {
@@ -41,6 +42,8 @@ export default async function CustomerDetailPage({
   if (!customer) {
     notFound();
   }
+
+  const feedback = await listFeedbackForCustomer(currentBusiness.id, customer.id);
 
   const isArchived = Boolean(customer.archived_at);
   const duplicateWarning = query.duplicate === "1";
@@ -111,10 +114,43 @@ export default async function CustomerDetailPage({
         </CardContent>
       </Card>
 
-      <EmptyState
-        title="No booking history yet."
-        description="Booking history will appear here once bookings are added in a later phase."
-      />
+      <Card>
+        <CardHeader>
+          <CardTitle>Private feedback</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {feedback.length === 0 ? (
+            <EmptyState
+              title="No feedback yet."
+              description="Private feedback from completed bookings will appear here."
+            />
+          ) : (
+            <ol className="space-y-3">
+              {feedback.map((item) => (
+                <li key={item.id} className="rounded-md border border-border p-3 text-sm">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <p className="font-medium">
+                        {item.booking?.title ?? "Booking unavailable"}
+                      </p>
+                      <p className="mt-1 text-muted-foreground">
+                        {item.overall_rating}/5 · On time: {item.on_time ? "Yes" : "No"} · Met
+                        expectations: {item.met_expectations ? "Yes" : "No"}
+                      </p>
+                      {item.comment ? (
+                        <p className="mt-2 leading-6 text-muted-foreground">{item.comment}</p>
+                      ) : null}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {formatDateTime(item.submitted_at)}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          )}
+        </CardContent>
+      </Card>
     </main>
   );
 }

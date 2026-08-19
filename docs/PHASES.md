@@ -224,83 +224,157 @@ Known risks: Confirmation links, customer-visible booking state, booking items,
 and payment collection are deliberately deferred; future phases must not treat
 booking references as security credentials.
 
-## Phase 6 - Customer Confirmation
+## Phase 6 - Secure Customer Confirmation Links
 
-Status: PLANNED
+Status: VERIFIED
 
 Objective: Allow vendors to send customers secure confirmation links.
 
 Dependencies: Phase 5.
 
-Scope: Cryptographically strong tokens, hashed token storage where appropriate, expiration, consumption, revocation, customer confirmation, re-confirmation after material changes, secure public endpoints.
+Scope: Cryptographically strong opaque tokens, hash-only token storage, 24-hour
+default expiration, one-time customer confirmation by POST, revocation,
+regeneration, confirmation evidence, re-confirmation after material changes,
+secure public endpoints, persistent rate limiting, and minimized public booking
+views.
 
 Explicit exclusions: Email provider automation beyond what is required for the phase, payment collection.
 
-Data-model impact: Confirmation links and booking confirmation events.
+Data-model impact: `confirmation_links`, `booking_confirmations`,
+`confirmation_rate_limits`, `AWAITING_CUSTOMER` booking status, and current
+confirmation terms fields on `bookings`.
 
-Security impact: High. Public token endpoints, rate limiting, token storage, and scoped access.
+Security impact: High. Public token endpoints, hash-only token storage,
+server-only public lookup/confirmation RPCs, persistent rate limiting,
+one-open-link enforcement, scoped access, and material-change invalidation.
 
 UI impact: Customer-facing confirmation view.
 
-Testing requirements: Valid, expired, revoked, consumed, and tampered-token tests.
+Testing requirements: Valid, expired, revoked, consumed, regenerated, tampered,
+cross-tenant, race, public minimization, material-change invalidation,
+non-material edit, rate-limit, E2E confirmation, lint, typecheck, tests, build,
+audit, and runtime Supabase security tests.
 
 Documentation requirements: Update security, testing, data model, changelog.
 
-Acceptance criteria: Customer can confirm only the intended booking through a valid scoped link.
+Acceptance criteria: Customer can confirm only the intended booking through a
+valid scoped link, without a My Customers account, and links cannot expose
+tenant-private data or authorize unrelated bookings.
 
-Known risks: Token leakage and replay.
+Verification evidence: Migration
+`20260818230911_phase_6_secure_customer_confirmation_links.sql`,
+confirmation-link unit tests, static migration/security tests, runtime Supabase
+confirmation security tests, Playwright public confirmation journey coverage,
+lint, typecheck, full tests, production build, and dependency audit.
+
+Known risks: Future email automation must preserve raw-token non-logging,
+short-lived links, no account requirement, and material-change invalidation.
 
 ## Phase 7 - Fulfilment and Booking Lifecycle
 
-Status: PLANNED
+Status: VERIFIED
 
 Objective: Implement operational workflow.
 
-Dependencies: Phase 5 and Phase 6 as needed.
+Dependencies: Phase 5 and Phase 6.
 
-Scope: Status definitions such as DRAFT, AWAITING_CUSTOMER, CONFIRMED, IN_PROGRESS, READY, DELIVERED, COMPLETED, CANCELLED.
+Scope: Controlled vendor lifecycle transitions, rescheduling before fulfilment,
+operational timestamps, cancellation reasons, immutable status/change history,
+and dashboard/list operational queues for due today, overdue, in-progress, and
+ready bookings.
 
 Explicit exclusions: Analytics and feedback beyond lifecycle events.
 
-Data-model impact: Status history and allowed transitions.
+Data-model impact: Phase 7 migration
+`20260818234428_phase_7_fulfilment_operational_lifecycle.sql` adds
+`started_at`, `ready_at`, `delivered_at`, `cancellation_reason`,
+`booking_changes`, operational constraints, lifecycle RPCs, and updated booking
+integrity triggers.
 
-Security impact: Authorized state changes and auditability.
+Security impact: Direct authenticated status writes are blocked; vendor state
+changes route through authenticated RPCs with tenant membership checks, row
+locking, RLS-compatible grants, trigger-owned status history, and audit events.
+Anonymous users and customer confirmation tokens cannot perform vendor
+operational transitions.
 
-UI impact: Status controls and history display.
+UI impact: Booking detail includes status controls, cancellation reason input,
+rescheduling controls, operational timestamp summary, and combined status/change
+timeline. Dashboard and booking list include operational queues and filters.
 
-Testing requirements: Transition rules, invalid transitions, authorization.
+Testing requirements: Domain transition tests, static migration/security tests,
+runtime Supabase operational lifecycle tests, Playwright booking lifecycle E2E,
+lint, typecheck, full tests, build, audit, and tenant/RLS regression suite.
 
-Documentation requirements: Formal status definitions before implementation.
+Documentation requirements: Update master plan, phase roadmap, data model,
+security invariants, ADRs, testing strategy, changelog, and feature docs.
 
-Acceptance criteria: Status changes are explicit, auditable, and valid.
+Acceptance criteria: Status changes are explicit, auditable, valid, tenant-safe,
+and cannot be driven by anonymous users, cross-tenant users, or public customer
+tokens.
 
-Known risks: Inconsistent lifecycle semantics.
+Verification evidence: Migration
+`20260818234428_phase_7_fulfilment_operational_lifecycle.sql`, booking domain
+tests, static Phase 7 migration tests, runtime Supabase operational lifecycle
+tests, Playwright create-confirm-reschedule-reconfirm-complete journey coverage
+on desktop and mobile, lint, typecheck, full tests, production build, and
+dependency audit.
+
+Known risks: Future fulfilment details, staff permissions, notifications,
+feedback, and analytics must preserve the controlled lifecycle boundary rather
+than adding direct client-side status mutation paths.
 
 ## Phase 8 - Private Feedback and Issues
 
-Status: PLANNED
+Status: VERIFIED
 
 Objective: Allow customers to privately provide feedback about completed bookings and support operational issue records.
 
 Dependencies: Phase 7.
 
-Scope: Private feedback, issue records, secure customer access.
+Scope: Secure completed-booking feedback links, private feedback submission,
+vendor-visible feedback, internal operational issue records, issue resolution,
+public endpoint hardening, and tenant isolation.
 
-Explicit exclusions: Public review marketplace.
+Explicit exclusions: Public review marketplace, analytics summaries,
+notification/email automation, staff assignment, and customer accounts.
 
-Data-model impact: Feedback and issues.
+Data-model impact: Phase 8 migration
+`20260819001954_phase_8_private_feedback_issues.sql` adds `feedback_links`,
+`feedback`, `booking_issues`, issue enums, feedback RPCs, integrity triggers,
+RLS policies, grants, and audit event types.
 
-Security impact: Scoped customer links and tenant visibility.
+Security impact: Dedicated feedback token purpose, hash-only token storage,
+completed-booking eligibility, public endpoint rate limiting, no-store/noindex
+headers, immutable feedback, tenant-only vendor visibility, issue RLS, and
+least-privilege service-role RPC boundaries.
 
-UI impact: Customer feedback flow and vendor issue visibility.
+UI impact: Customer-facing `/f/[token]` feedback form, vendor feedback link
+panel, private feedback display on booking and customer detail pages, and
+operational issue create/resolve UI on booking detail pages.
 
-Testing requirements: Feedback access, completion gating, tenant isolation.
+Testing requirements: Feedback token lifecycle, wrong-purpose token attacks,
+completion gating, public minimization, immutable feedback, tenant isolation,
+vendor mutation denial, issue authorization, issue lifecycle, race behavior,
+audit events, public headers, responsive E2E, lint, typecheck, tests, build,
+audit, and runtime Supabase security tests.
 
-Documentation requirements: Update product, data, security, testing.
+Documentation requirements: Update master plan, phase roadmap, data model,
+security invariants, ADRs, testing strategy, changelog, release checklist, and
+feature docs.
 
-Acceptance criteria: Feedback is private and attached to the intended booking/business.
+Acceptance criteria: Feedback is private and attached only to the intended
+completed booking/business; operational issues are internal tenant records and
+cannot be accessed or mutated cross-tenant or publicly.
 
-Known risks: Privacy leakage.
+Verification evidence: Migration
+`20260819001954_phase_8_private_feedback_issues.sql`, feedback domain tests,
+static Phase 8 migration/security tests, runtime Supabase feedback/issue
+security tests, Playwright feedback and issue lifecycle coverage, lint,
+typecheck, full tests, production build, and dependency audit.
+
+Known risks: Future analytics, notifications, public reviews, and staff
+assignment must not broaden public token privileges or expose private feedback
+comments outside the owning business.
 
 ## Phase 9 - Business Insights and Analytics
 

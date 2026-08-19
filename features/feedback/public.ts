@@ -1,0 +1,98 @@
+import "server-only";
+import { canUseServiceRoleClient, createServiceRoleClient } from "@/lib/supabase/admin";
+import {
+  consumeFeedbackRateLimit,
+  feedbackRateLimitBucket,
+} from "@/features/feedback/rate-limit";
+import { hashFeedbackToken, isPlausibleFeedbackToken } from "@/features/feedback/token";
+import { publicFeedbackSchema } from "@/features/feedback/validation";
+import type {
+  PublicFeedbackBooking,
+  PublicFeedbackStatus,
+  PublicFeedbackView,
+} from "@/features/feedback/public-types";
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function parsePublicFeedbackView(value: unknown): PublicFeedbackView {
+  if (!isRecord(value) || typeof value.status !== "string") {
+    return { status: "unavailable" };
+  }
+
+  const status = value.status as PublicFeedbackStatus;
+
+  if (!isRecord(value.booking)) {
+    return { status };
+  }
+
+  return {
+    status,
+    booking: value.booking as PublicFeedbackBooking,
+  };
+}
+
+export async function getPublicFeedbackView(token: string): Promise<PublicFeedbackView> {
+  const bucket = await feedbackRateLimitBucket("feedback_lookup");
+  const allowed = await consumeFeedbackRateLimit("feedback_lookup", bucket);
+
+  if (!allowed) {
+    return { status: "rate_limited" };
+  }
+
+  if (!canUseServiceRoleClient() || !isPlausibleFeedbackToken(token)) {
+    return { status: "unavailable" };
+  }
+
+  const supabase = createServiceRoleClient();
+  const { data, error } = await supabase.rpc("get_feedback_public_view", {
+    p_token_hash: hashFeedbackToken(token),
+  });
+
+  if (error) {
+    return { status: "unavailable" };
+  }
+
+  return parsePublicFeedbackView(data);
+}
+
+export async function submitPublicFeedback(token: string, formData: FormData) {
+  const bucket = await feedbackRateLimitBucket("feedback_submit");
+  const allowed = await consumeFeedbackRateLimit("feedback_submit", bucket);
+
+  if (!allowed) {
+    return { status: "rate_limited" as const };
+  }
+
+  if (!canUseServiceRoleClient() || !isPlausibleFeedbackToken(token)) {
+    return { status: "unavailable" as const };
+  }
+
+  const parsed = publicFeedbackSchema.safeParse({
+    overallRating: formData.get("overallRating"),
+    onTime: formData.get("onTime"),
+    metExpectations: formData.get("metExpectations"),
+    comment: formData.get("comment"),
+  });
+
+  if (!parsed.success) {
+    return { status: "invalid_feedback" as const };
+  }
+
+  const supabase = createServiceRoleClient();
+  const { data, error } = await supabase.rpc("submit_feedback_by_token_hash", {
+    p_token_hash: hashFeedbackToken(token),
+    p_overall_rating: parsed.data.overallRating,
+    p_on_time: parsed.data.onTime,
+    p_met_expectations: parsed.data.metExpectations,
+    p_comment: parsed.data.comment ?? null,
+  });
+
+  if (error) {
+    return { status: "unavailable" as const };
+  }
+
+  const result = parsePublicFeedbackView(data);
+  return { status: result.status };
+}

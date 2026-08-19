@@ -166,6 +166,13 @@ export type Database = {
           updated_at: string;
           cancelled_at: string | null;
           completed_at: string | null;
+          started_at: string | null;
+          ready_at: string | null;
+          delivered_at: string | null;
+          cancellation_reason: string | null;
+          customer_confirmed_at: string | null;
+          confirmation_terms_hash: string | null;
+          confirmation_terms_snapshot: Json | null;
         };
         Insert: {
           id?: string;
@@ -185,6 +192,13 @@ export type Database = {
           updated_at?: string;
           cancelled_at?: string | null;
           completed_at?: string | null;
+          started_at?: string | null;
+          ready_at?: string | null;
+          delivered_at?: string | null;
+          cancellation_reason?: string | null;
+          customer_confirmed_at?: string | null;
+          confirmation_terms_hash?: string | null;
+          confirmation_terms_snapshot?: Json | null;
         };
         Update: {
           id?: string;
@@ -204,6 +218,215 @@ export type Database = {
           updated_at?: string;
           cancelled_at?: string | null;
           completed_at?: string | null;
+          started_at?: string | null;
+          ready_at?: string | null;
+          delivered_at?: string | null;
+          cancellation_reason?: string | null;
+          customer_confirmed_at?: string | null;
+          confirmation_terms_hash?: string | null;
+          confirmation_terms_snapshot?: Json | null;
+        };
+        Relationships: [];
+      };
+      booking_changes: {
+        Row: {
+          id: string;
+          business_id: string;
+          booking_id: string;
+          changed_by: string | null;
+          change_type: "reschedule";
+          previous_scheduled_for: string | null;
+          new_scheduled_for: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          business_id: string;
+          booking_id: string;
+          changed_by?: string | null;
+          change_type: "reschedule";
+          previous_scheduled_for?: string | null;
+          new_scheduled_for?: string | null;
+          created_at?: string;
+        };
+        Update: never;
+        Relationships: [];
+      };
+      confirmation_links: {
+        Row: {
+          id: string;
+          business_id: string;
+          booking_id: string;
+          token_hash: string;
+          purpose: string;
+          expires_at: string;
+          used_at: string | null;
+          revoked_at: string | null;
+          revoked_reason: string | null;
+          created_by: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          business_id: string;
+          booking_id: string;
+          token_hash: string;
+          purpose?: string;
+          expires_at: string;
+          used_at?: string | null;
+          revoked_at?: string | null;
+          revoked_reason?: string | null;
+          created_by: string;
+          created_at?: string;
+        };
+        Update: never;
+        Relationships: [];
+      };
+      booking_confirmations: {
+        Row: {
+          id: string;
+          business_id: string;
+          booking_id: string;
+          confirmation_link_id: string;
+          terms_hash: string;
+          terms_snapshot: Json;
+          confirmed_at: string;
+        };
+        Insert: {
+          id?: string;
+          business_id: string;
+          booking_id: string;
+          confirmation_link_id: string;
+          terms_hash: string;
+          terms_snapshot: Json;
+          confirmed_at?: string;
+        };
+        Update: never;
+        Relationships: [];
+      };
+      confirmation_rate_limits: {
+        Row: {
+          bucket_key: string;
+          action: string;
+          window_start: string;
+          request_count: number;
+          blocked_until: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          bucket_key: string;
+          action: string;
+          window_start?: string;
+          request_count?: number;
+          blocked_until?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          bucket_key?: string;
+          action?: string;
+          window_start?: string;
+          request_count?: number;
+          blocked_until?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      feedback_links: {
+        Row: {
+          id: string;
+          business_id: string;
+          booking_id: string;
+          token_hash: string;
+          purpose: string;
+          expires_at: string;
+          used_at: string | null;
+          revoked_at: string | null;
+          revoked_reason: string | null;
+          created_by: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          business_id: string;
+          booking_id: string;
+          token_hash: string;
+          purpose?: string;
+          expires_at: string;
+          used_at?: string | null;
+          revoked_at?: string | null;
+          revoked_reason?: string | null;
+          created_by: string;
+          created_at?: string;
+        };
+        Update: never;
+        Relationships: [];
+      };
+      feedback: {
+        Row: {
+          id: string;
+          business_id: string;
+          booking_id: string;
+          customer_id: string;
+          feedback_link_id: string;
+          overall_rating: number;
+          on_time: boolean;
+          met_expectations: boolean;
+          comment: string | null;
+          submitted_at: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          business_id: string;
+          booking_id: string;
+          customer_id: string;
+          feedback_link_id: string;
+          overall_rating: number;
+          on_time: boolean;
+          met_expectations: boolean;
+          comment?: string | null;
+          submitted_at?: string;
+          created_at?: string;
+        };
+        Update: never;
+        Relationships: [];
+      };
+      booking_issues: {
+        Row: {
+          id: string;
+          business_id: string;
+          booking_id: string;
+          category: Database["public"]["Enums"]["booking_issue_category"];
+          description: string;
+          status: Database["public"]["Enums"]["booking_issue_status"];
+          created_by: string;
+          created_at: string;
+          resolved_by: string | null;
+          resolved_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          business_id: string;
+          booking_id: string;
+          category: Database["public"]["Enums"]["booking_issue_category"];
+          description: string;
+          status?: Database["public"]["Enums"]["booking_issue_status"];
+          created_by: string;
+          created_at?: string;
+          resolved_by?: string | null;
+          resolved_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          business_id?: string;
+          booking_id?: string;
+          category?: Database["public"]["Enums"]["booking_issue_category"];
+          description?: string;
+          status?: Database["public"]["Enums"]["booking_issue_status"];
+          created_by?: string;
+          created_at?: string;
+          resolved_by?: string | null;
+          resolved_at?: string | null;
         };
         Relationships: [];
       };
@@ -266,12 +489,121 @@ export type Database = {
         };
         Returns: string;
       };
+      create_booking_confirmation_link: {
+        Args: {
+          p_booking_id: string;
+          p_token_hash: string;
+          p_expires_at?: string;
+        };
+        Returns: {
+          confirmation_link_id: string;
+          expires_at: string;
+          replaced_link_count: number;
+        }[];
+      };
+      revoke_booking_confirmation_link: {
+        Args: {
+          p_booking_id: string;
+        };
+        Returns: number;
+      };
+      get_confirmation_public_view: {
+        Args: {
+          p_token_hash: string;
+        };
+        Returns: Json;
+      };
+      confirm_booking_by_token_hash: {
+        Args: {
+          p_token_hash: string;
+        };
+        Returns: Json;
+      };
+      consume_confirmation_rate_limit: {
+        Args: {
+          p_bucket_key: string;
+          p_action: string;
+          p_max_requests: number;
+          p_window_seconds: number;
+          p_block_seconds?: number;
+        };
+        Returns: boolean;
+      };
+      transition_booking_status: {
+        Args: {
+          p_booking_id: string;
+          p_to_status: Database["public"]["Enums"]["booking_status"];
+          p_cancellation_reason?: string | null;
+        };
+        Returns: {
+          booking_id: string;
+          from_status: Database["public"]["Enums"]["booking_status"];
+          to_status: Database["public"]["Enums"]["booking_status"];
+          changed_at: string;
+        }[];
+      };
+      reschedule_booking: {
+        Args: {
+          p_booking_id: string;
+          p_scheduled_for: string;
+        };
+        Returns: {
+          booking_id: string;
+          previous_scheduled_for: string | null;
+          new_scheduled_for: string;
+          status: Database["public"]["Enums"]["booking_status"];
+        }[];
+      };
+      create_booking_feedback_link: {
+        Args: {
+          p_booking_id: string;
+          p_token_hash: string;
+          p_expires_at?: string;
+        };
+        Returns: {
+          feedback_link_id: string;
+          expires_at: string;
+          replaced_link_count: number;
+        }[];
+      };
+      revoke_booking_feedback_link: {
+        Args: {
+          p_booking_id: string;
+        };
+        Returns: number;
+      };
+      get_feedback_public_view: {
+        Args: {
+          p_token_hash: string;
+        };
+        Returns: Json;
+      };
+      submit_feedback_by_token_hash: {
+        Args: {
+          p_token_hash: string;
+          p_overall_rating: number;
+          p_on_time: boolean;
+          p_met_expectations: boolean;
+          p_comment?: string | null;
+        };
+        Returns: Json;
+      };
     };
     Enums: {
       business_member_role: "owner" | "member";
       business_member_status: "active";
+      booking_issue_category:
+        | "LATE_DELIVERY"
+        | "CUSTOMER_REQUESTED_CHANGE"
+        | "PRODUCT_DAMAGED"
+        | "COMMUNICATION_ISSUE"
+        | "PAYMENT_BALANCE_ISSUE"
+        | "NO_SHOW"
+        | "OTHER";
+      booking_issue_status: "OPEN" | "RESOLVED";
       booking_status:
         | "DRAFT"
+        | "AWAITING_CUSTOMER"
         | "CONFIRMED"
         | "IN_PROGRESS"
         | "READY"
@@ -295,7 +627,19 @@ export type Database = {
         | "BOOKING_UPDATED"
         | "BOOKING_STATUS_CHANGED"
         | "BOOKING_CANCELLED"
-        | "BOOKING_COMPLETED";
+        | "BOOKING_COMPLETED"
+        | "BOOKING_RESCHEDULED"
+        | "CONFIRMATION_LINK_CREATED"
+        | "CONFIRMATION_LINK_REVOKED"
+        | "CONFIRMATION_LINK_REGENERATED"
+        | "BOOKING_CONFIRMED_BY_CUSTOMER"
+        | "BOOKING_CONFIRMATION_INVALIDATED"
+        | "FEEDBACK_LINK_CREATED"
+        | "FEEDBACK_LINK_REVOKED"
+        | "FEEDBACK_LINK_REGENERATED"
+        | "FEEDBACK_SUBMITTED"
+        | "ISSUE_CREATED"
+        | "ISSUE_RESOLVED";
     };
     CompositeTypes: Record<string, never>;
   };

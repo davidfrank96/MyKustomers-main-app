@@ -9,6 +9,7 @@ import { createClient } from "@/lib/supabase/server";
 import type { BookingActionState } from "@/features/bookings/action-state";
 import {
   bookingCreateSchema,
+  bookingRescheduleSchema,
   bookingTransitionSchema,
   bookingUpdateSchema,
 } from "@/features/bookings/validation";
@@ -17,7 +18,6 @@ import {
   customerBelongsToBusiness,
 } from "@/features/bookings/queries";
 import {
-  isAllowedBookingTransition,
   isTerminalBookingStatus,
 } from "@/features/bookings/status";
 
@@ -207,67 +207,71 @@ export async function updateBookingAction(
 export async function transitionBookingStatusAction(
   bookingId: string,
   toStatus: string,
+  formData?: FormData,
 ) {
-  const { user, business } = await requireCurrentBusiness(`/bookings/${bookingId}`);
-  const parsed = bookingTransitionSchema.safeParse({ toStatus });
+  await requireCurrentBusiness(`/bookings/${bookingId}`);
+  const parsed = bookingTransitionSchema.safeParse({
+    toStatus,
+    cancellationReason: formData ? formValue(formData, "cancellationReason") : undefined,
+  });
 
   if (!parsed.success) {
     redirect(`/bookings/${bookingId}?message=invalid-status` as Route);
   }
 
-  const booking = await getBookingForBusiness(business.id, bookingId);
-
-  if (!booking || !isAllowedBookingTransition(booking.status, parsed.data.toStatus)) {
-    redirect(`/bookings/${bookingId}?message=invalid-transition` as Route);
-  }
-
-  const nextValues: {
-    status: typeof parsed.data.toStatus;
-    cancelled_at?: string | null;
-    completed_at?: string | null;
-  } = {
-    status: parsed.data.toStatus,
-  };
-
-  if (parsed.data.toStatus === "CANCELLED") {
-    nextValues.cancelled_at = new Date().toISOString();
-  }
-
-  if (parsed.data.toStatus === "COMPLETED") {
-    nextValues.completed_at = new Date().toISOString();
-  }
-
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("bookings")
-    .update(nextValues)
-    .eq("business_id", business.id)
-    .eq("id", bookingId)
-    .select("id")
-    .maybeSingle();
+  const { error } = await supabase.rpc("transition_booking_status", {
+    p_booking_id: bookingId,
+    p_to_status: parsed.data.toStatus,
+    p_cancellation_reason: parsed.data.cancellationReason ?? null,
+  });
 
-  if (!error && data) {
-    const eventType =
-      parsed.data.toStatus === "CANCELLED"
-        ? "BOOKING_CANCELLED"
-        : parsed.data.toStatus === "COMPLETED"
-          ? "BOOKING_COMPLETED"
-          : "BOOKING_STATUS_CHANGED";
-
-    await recordAuditEvent({
-      actorUserId: user.id,
-      businessId: business.id,
-      eventType,
-      metadata: {
-        booking_id: bookingId,
-        from_status: booking.status,
-        to_status: parsed.data.toStatus,
-      },
-    });
+  if (error) {
+    redirect(`/bookings/${bookingId}?message=invalid-transition` as Route);
   }
 
   revalidatePath("/dashboard");
   revalidatePath("/bookings");
   revalidatePath(`/bookings/${bookingId}`);
   redirect(`/bookings/${bookingId}?message=status-updated` as Route);
+}
+
+export async function rescheduleBookingAction(
+  bookingId: string,
+  _previousState: BookingActionState,
+  formData: FormData,
+): Promise<BookingActionState> {
+  await requireCurrentBusiness(`/bookings/${bookingId}`);
+  const parsed = bookingRescheduleSchema.safeParse({
+    scheduledFor: formValue(formData, "scheduledFor"),
+  });
+
+  if (!parsed.success) {
+    return validationError(parsed.error);
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("reschedule_booking", {
+    p_booking_id: bookingId,
+    p_scheduled_for: parsed.data.scheduledFor,
+  });
+
+  if (error || !data?.[0]) {
+    return {
+      status: "error",
+      message: "This booking could not be rescheduled.",
+    };
+  }
+
+  revalidatePath("/dashboard");
+  revalidatePath("/bookings");
+  revalidatePath(`/bookings/${bookingId}`);
+
+  return {
+    status: "success",
+    message:
+      data[0].status === "AWAITING_CUSTOMER"
+        ? "Booking rescheduled. Customer confirmation is required again."
+        : "Booking rescheduled.",
+  };
 }

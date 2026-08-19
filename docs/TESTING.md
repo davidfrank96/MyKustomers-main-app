@@ -32,10 +32,20 @@ Phase 1 implemented test infrastructure and smoke tests. Most domain, security, 
 - Phase 5 booking domain tests.
 - Static Phase 5 booking migration/RLS review tests.
 - Phase 5 runtime Supabase booking tenant security test.
+- Phase 6 confirmation-link domain tests.
+- Static Phase 6 confirmation migration/security review tests.
+- Phase 6 runtime Supabase confirmation-link security test.
+- Phase 7 booking lifecycle domain tests.
+- Static Phase 7 operational lifecycle migration/security review tests.
+- Phase 7 runtime Supabase operational lifecycle security test.
+- Phase 8 feedback domain tests.
+- Static Phase 8 feedback/issue migration/security review tests.
+- Phase 8 runtime Supabase feedback and issue security test.
 - Playwright tests for unauthenticated protected-route redirect, auth screen rendering,
   login, session persistence, logout, forgot-password safe response, redirect safety,
   business onboarding, customer create/edit/archive, and booking
-  create/edit/transition/cancel.
+  create/edit/customer-confirmation/reschedule/reconfirmation/complete,
+  private feedback submission, and operational issue create/resolve.
 
 ## Planned Critical Journeys
 
@@ -46,11 +56,15 @@ Phase 1 implemented test infrastructure and smoke tests. Most domain, security, 
 - E2E-011 - Business owner can update customer. VERIFIED.
 - E2E-020 - Vendor can create booking. VERIFIED.
 - E2E-021 - Booking receives human-readable reference. VERIFIED.
-- E2E-030 - Valid customer confirmation token works.
-- E2E-031 - Expired confirmation token fails.
-- E2E-032 - Revoked confirmation token fails.
-- E2E-033 - Consumed token cannot be reused where one-time use is required.
-- E2E-040 - Completed booking can request private feedback.
+- E2E-030 - Valid customer confirmation token works. VERIFIED.
+- E2E-031 - Expired confirmation token fails. VERIFIED by runtime security test.
+- E2E-032 - Revoked confirmation token fails. VERIFIED by runtime security test.
+- E2E-033 - Consumed token cannot be reused where one-time use is required. VERIFIED.
+- E2E-034 - Confirmed booking can be rescheduled and requires reconfirmation. VERIFIED.
+- E2E-035 - Confirmed booking can move through fulfilment to completion. VERIFIED.
+- E2E-040 - Completed booking can request private feedback. VERIFIED.
+- E2E-041 - Customer can submit private feedback through a scoped link. VERIFIED.
+- E2E-042 - Vendor can create and resolve an internal booking issue. VERIFIED.
 
 ## Planned Security Tests
 
@@ -59,6 +73,15 @@ Phase 1 implemented test infrastructure and smoke tests. Most domain, security, 
 - SEC-TEST-003 - Business A cannot mutate Business B resource. VERIFIED.
 - SEC-TEST-004 - Unauthenticated requests cannot access protected vendor resources. VERIFIED.
 - SEC-TEST-005 - Unauthenticated users cannot access protected tenant data. VERIFIED.
+- SEC-TEST-006 - Anonymous users and customer tokens cannot perform vendor
+  booking lifecycle operations. VERIFIED.
+- SEC-TEST-007 - Operational status history and booking changes cannot be
+  fabricated by ordinary authenticated clients. VERIFIED.
+- SEC-TEST-008 - Feedback tokens cannot be used across purposes, tenants,
+  non-completed bookings, expired/revoked/consumed states, or direct table
+  access. VERIFIED.
+- SEC-TEST-009 - Booking issues cannot be accessed or mutated anonymously,
+  publicly, or cross-tenant, and resolved issues are terminal. VERIFIED.
 
 Do not create fake implementations merely so planned tests can pass.
 
@@ -90,8 +113,32 @@ The Phase 5 runtime test verifies booking tenant read matrix, unauthorized
 create denial, booking/customer business consistency, immutable booking
 `business_id`, `customer_id`, `reference`, and `created_by`, invalid finance
 denial, member write permissions, valid and invalid lifecycle transitions,
-terminal booking locks, trigger-owned status history, anonymous denial, and
-search isolation.
+direct vendor `DRAFT -> CONFIRMED` denial, terminal booking locks,
+trigger-owned status history, anonymous denial, and search isolation.
+
+The Phase 6 runtime test verifies confirmation token lifecycle, hash-only token
+storage, public data minimization, GET lookup not consuming links, invalid token
+handling, expired and revoked links, cross-tenant revoke denial, one-time
+confirmation, confirmation evidence, snapshot/hash storage, material-change
+invalidation, used-link snapshot stability, non-material internal-note edits,
+cancellation invalidation, regeneration revocation, concurrent confirmation
+behavior, persistent rate limiting, audit events, and raw-token non-logging.
+
+The Phase 7 runtime test verifies controlled operational lifecycle transitions,
+operational timestamps, invalid transition denial, cross-tenant transition
+denial, anonymous transition denial, customer-token privilege denial,
+status-history and booking-change write denial, stale/repeated transition
+denial, reschedule confirmation invalidation, non-material edit regression,
+cancellation confirmation invalidation, terminal locks, operational audit
+events, and due/upcoming behavior.
+
+The Phase 8 runtime test verifies valid feedback link view/submission, public
+data minimization, duplicate/consumed submission behavior, invalid, expired,
+revoked, and wrong-purpose token denial, non-completed booking denial,
+cross-tenant feedback access denial, vendor feedback mutation denial, concurrent
+submission behavior, issue create/resolve authorization, issue RLS/grants,
+cross-tenant issue mutation denial, issue resolution concurrency, audit events,
+and comment/token leakage controls.
 
 Default Supabase email confirmation E2E requires `E2E_SIGNUP_EMAIL` to point at
 a safe inbox. Without it, signup confirmation and reset-password completion

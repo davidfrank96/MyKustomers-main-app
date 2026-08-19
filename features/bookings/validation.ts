@@ -4,6 +4,7 @@ import { bookingStatuses } from "@/features/bookings/status";
 
 export const bookingListFilters = [
   "all",
+  "today",
   "upcoming",
   "overdue",
   ...bookingStatuses,
@@ -87,6 +88,26 @@ export const bookingUpdateSchema = bookingFieldsSchema
 
 export const bookingTransitionSchema = z.object({
   toStatus: z.enum(bookingStatuses),
+  cancellationReason: optionalTrimmedString(500),
+});
+
+export const bookingRescheduleSchema = z.object({
+  scheduledFor: z.preprocess((value) => {
+    if (typeof value !== "string" || value.trim().length === 0) {
+      return undefined;
+    }
+
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? value : date.toISOString();
+  }, z.string().datetime("Enter a valid scheduled date.")),
+}).superRefine((value, ctx) => {
+  if (new Date(value.scheduledFor).getTime() <= Date.now()) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["scheduledFor"],
+      message: "Choose a future scheduled date.",
+    });
+  }
 });
 
 export const bookingListParamsSchema = z.object({
@@ -104,6 +125,7 @@ export const bookingListParamsSchema = z.object({
 
 export type BookingCreateInput = z.infer<typeof bookingCreateSchema>;
 export type BookingUpdateInput = z.infer<typeof bookingUpdateSchema>;
+export type BookingRescheduleInput = z.infer<typeof bookingRescheduleSchema>;
 export type BookingListParams = z.infer<typeof bookingListParamsSchema>;
 
 export function parseBookingListParams(input: Record<string, string | string[] | undefined>) {

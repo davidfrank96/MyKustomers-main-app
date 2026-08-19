@@ -18,6 +18,34 @@ fields, and lifecycle integrity triggers. The migration was applied to the
 configured development Supabase database and runtime-verified for booking tenant
 isolation and integrity.
 
+Phase 6 migration evidence exists at
+`supabase/migrations/20260818230911_phase_6_secure_customer_confirmation_links.sql`.
+The migration defines secure confirmation links, immutable confirmation
+evidence, persistent rate-limit buckets, `AWAITING_CUSTOMER` booking status,
+current confirmation terms fields, server-only public confirmation RPCs, and
+updated booking lifecycle integrity. The migration was applied to the configured
+development Supabase database and runtime-verified for token lifecycle,
+minimized public data, one-time confirmation, material-change invalidation, and
+tenant isolation.
+
+Phase 7 migration evidence exists at
+`supabase/migrations/20260818234428_phase_7_fulfilment_operational_lifecycle.sql`.
+The migration adds operational booking timestamps, cancellation reasons,
+`booking_changes`, controlled lifecycle/reschedule RPCs, operational indexes,
+and updated booking integrity triggers. The migration was applied to the
+configured development Supabase database and runtime-verified for fulfilment
+lifecycle security, rescheduling behavior, status/change integrity, audit
+events, and tenant isolation.
+
+Phase 8 migration evidence exists at
+`supabase/migrations/20260819001954_phase_8_private_feedback_issues.sql`.
+The migration adds private feedback links, immutable feedback submissions,
+operational booking issues, issue enums, integrity triggers, public feedback
+RPCs, RLS policies, grants, and audit event types. The migration was applied to
+the configured development Supabase database and runtime-verified for feedback
+token lifecycle, public minimization, tenant isolation, issue lifecycle
+authorization, concurrency, and audit behavior.
+
 Detailed schema design belongs to the relevant implementation phase.
 
 ## Conceptual Entities
@@ -31,8 +59,9 @@ Detailed schema design belongs to the relevant implementation phase.
 - `booking_status_history`
 - `booking_changes`
 - `confirmation_links`
+- `feedback_links`
 - `feedback`
-- `issues`
+- `booking_issues`
 - `subscriptions`
 - `subscription_events`
 - `email_events`
@@ -53,16 +82,37 @@ These names are conceptual and not yet necessarily final table names.
 - `bookings`: VERIFIED. Phase 5 fields include `id`, `business_id`,
   `customer_id`, immutable generated `reference`, `title`, `description`,
   `currency`, `total_amount_minor`, `deposit_amount_minor`, `scheduled_for`,
-  `status`, `internal_notes`, `created_by`, timestamps, `cancelled_at`, and
-  `completed_at`.
+  `status`, `internal_notes`, `created_by`, timestamps, `started_at`,
+  `ready_at`, `delivered_at`, `cancelled_at`, `completed_at`, and
+  `cancellation_reason`.
 - `booking_items`: PLANNED.
 - `booking_status_history`: VERIFIED. Rows are written by database trigger
   for booking creation and status transitions; browser clients have read-only
   access through tenant RLS.
-- `booking_changes`: PLANNED.
-- `confirmation_links`: PLANNED.
-- `feedback`: PLANNED.
-- `issues`: PLANNED.
+- `booking_changes`: VERIFIED. Phase 7 records focused operational change
+  history for reschedules with previous/new scheduled times, changer, and
+  tenant-owned booking relationship. Browser clients can read tenant rows but
+  cannot write or mutate them directly.
+- `confirmation_links`: VERIFIED. Phase 6 fields include `id`, `business_id`,
+  `booking_id`, `token_hash`, `purpose`, `expires_at`, `used_at`,
+  `revoked_at`, `revoked_reason`, `created_by`, and `created_at`. Raw tokens
+  are not stored.
+- `booking_confirmations`: VERIFIED. Phase 6 stores immutable confirmation
+  evidence with `business_id`, `booking_id`, `confirmation_link_id`,
+  `terms_hash`, `terms_snapshot`, and `confirmed_at`.
+- `confirmation_rate_limits`: VERIFIED. Phase 6 stores hashed public endpoint
+  rate-limit buckets without raw IP addresses.
+- `feedback_links`: VERIFIED. Phase 8 fields include `id`, `business_id`,
+  `booking_id`, `token_hash`, `purpose`, `expires_at`, `used_at`,
+  `revoked_at`, `revoked_reason`, `created_by`, and `created_at`. Raw feedback
+  tokens are not stored.
+- `feedback`: VERIFIED. Phase 8 fields include `id`, `business_id`,
+  `booking_id`, `customer_id`, `feedback_link_id`, `overall_rating`,
+  `on_time`, `met_expectations`, optional `comment`, `submitted_at`, and
+  `created_at`. Feedback is immutable after insert.
+- `booking_issues`: VERIFIED. Phase 8 fields include `id`, `business_id`,
+  `booking_id`, `category`, `description`, `status`, `created_by`,
+  `created_at`, `resolved_by`, and `resolved_at`.
 - `subscriptions`: PLANNED.
 - `subscription_events`: PLANNED.
 - `email_events`: PLANNED.
@@ -78,8 +128,9 @@ Business
 |   +-- BookingStatusHistory
 |   +-- BookingChanges
 |   +-- ConfirmationLinks
+|   +-- FeedbackLinks
 |   +-- Feedback
-|   +-- Issues
+|   +-- BookingIssues
 +-- Subscription
 ```
 
@@ -125,17 +176,71 @@ and is not stored.
 Booking currency is explicit and constrained to `NGN`, `EUR`, `GBP`, or `USD`.
 Phase 5 performs no currency conversion.
 
-Booking status is constrained to `DRAFT`, `CONFIRMED`, `IN_PROGRESS`, `READY`,
-`DELIVERED`, `COMPLETED`, or `CANCELLED`. Valid transitions are enforced by a
-database trigger. `COMPLETED` and `CANCELLED` are terminal and lock further
-booking edits.
+Booking status is constrained to `DRAFT`, `AWAITING_CUSTOMER`, `CONFIRMED`,
+`IN_PROGRESS`, `READY`, `DELIVERED`, `COMPLETED`, or `CANCELLED`. Valid
+transitions are enforced by a database trigger. `DRAFT` bookings can move to
+`AWAITING_CUSTOMER` when a confirmation link is generated. Customer confirmation
+through a valid link moves `AWAITING_CUSTOMER` to `CONFIRMED`. Authenticated
+vendor lifecycle transitions after confirmation use
+`public.transition_booking_status`, not direct browser table updates. The
+verified Phase 7 graph is:
+
+```text
+DRAFT -> AWAITING_CUSTOMER
+DRAFT -> CANCELLED
+AWAITING_CUSTOMER -> CONFIRMED by valid customer confirmation link
+AWAITING_CUSTOMER -> CANCELLED
+CONFIRMED -> AWAITING_CUSTOMER by material edit or reschedule
+CONFIRMED -> IN_PROGRESS
+CONFIRMED -> CANCELLED
+IN_PROGRESS -> READY
+IN_PROGRESS -> CANCELLED
+READY -> DELIVERED
+READY -> CANCELLED
+DELIVERED -> COMPLETED
+```
+
+`COMPLETED` and `CANCELLED` are terminal and lock further booking edits.
+Operational timestamps are set by database-controlled transitions rather than
+accepted from browser clients.
+
+Customer confirmation stores current terms on `bookings` in
+`customer_confirmed_at`, `confirmation_terms_hash`, and
+`confirmation_terms_snapshot`. Material changes to confirmed booking terms clear
+the current confirmation fields and return the booking to `AWAITING_CUSTOMER`;
+non-material internal notes do not invalidate confirmation.
+
+Booking reschedules before fulfilment use `public.reschedule_booking`.
+Rescheduling a confirmed booking is a material change: it clears the current
+confirmation fields, revokes open confirmation links, records a
+`booking_changes` row, and requires a new customer confirmation before work
+continues.
 
 Booking items remain planned. Phase 5 deliberately avoids adding line items,
 catalog semantics, inventory coupling, or item-level totals before the product
 requires them.
 
-Confirmation links are scoped access mechanisms for customer-facing booking actions.
+Confirmation links are scoped access mechanisms for customer-facing booking
+actions. Phase 6 stores only SHA-256 token hashes, enforces one open link per
+booking, supports revocation and regeneration, expires links by database time,
+and treats public GET views as non-consuming. Consumed links keep serving the
+immutable confirmation snapshot instead of current mutable booking terms.
 
-Feedback and issues are private business records, not public reviews.
+Feedback links are scoped access mechanisms for completed-booking private
+feedback. Phase 8 stores only SHA-256 token hashes, uses a dedicated
+`booking_feedback` purpose, enforces one open link per booking, supports
+revocation/regeneration, expires links by database time, and treats public GET
+views as non-consuming. Feedback links are separate from confirmation links and
+wrong-purpose tokens are denied.
+
+Feedback is a private, immutable business record attached to one completed
+booking, one tenant customer, and one consumed feedback link. Customers submit
+rating, on-time, expectations, and optional plain text comments through the
+public token flow. Feedback is not a public review and is visible only to active
+members of the owning business.
+
+Booking issues are internal operational records attached to bookings. Vendors
+can create open issues and resolve them once. Issue descriptions remain
+tenant-private and are not exposed on public customer-facing token pages.
 
 Subscriptions represent vendor subscription billing for My Customers, not payments between vendors and their customers.

@@ -22,6 +22,9 @@ Most items are unchecked because Phase 1.5 is not a production-readiness phase.
 - [x] Phase 3 migration definitions created.
 - [x] Phase 4 migration definitions created.
 - [x] Phase 5 migration definitions created.
+- [x] Phase 6 migration definitions created.
+- [x] Phase 7 migration definitions created.
+- [x] Phase 8 migration definitions created.
 - [x] Application schema implemented.
 - [x] Migrations verified.
 - [ ] Backup and restore plan documented.
@@ -31,6 +34,9 @@ Most items are unchecked because Phase 1.5 is not a production-readiness phase.
 - [x] Phase 2 RLS policy definitions created.
 - [x] Phase 4 customer RLS policy definitions created.
 - [x] Phase 5 booking RLS policy definitions created.
+- [x] Phase 6 confirmation-link table access and RPC grants reviewed.
+- [x] Phase 7 booking-change RLS and lifecycle RPC grants reviewed.
+- [x] Phase 8 feedback and issue RLS/RPC grants reviewed.
 - [x] Tenant-owned tables have RLS enabled.
 - [x] RLS policies reviewed.
 - [x] Cross-tenant tests pass.
@@ -53,11 +59,20 @@ Most items are unchecked because Phase 1.5 is not a production-readiness phase.
 - [x] Booking unauthorized create, cross-tenant mutation denial, ownership
   immutability, status transition validation, and history fabrication denial
   covered by runtime tests.
+- [x] Confirmation token lifecycle, public minimization, material-change
+  invalidation, and cross-tenant denial covered by runtime tests.
+- [x] Operational booking lifecycle, rescheduling, anonymous denial,
+  customer-token privilege denial, terminal locks, and change-history integrity
+  covered by runtime tests.
+- [x] Private feedback and operational issue tenant isolation, public token
+  purpose separation, immutable feedback, and issue resolution integrity covered
+  by runtime tests.
 
 ## Abuse Protection
 
-- [ ] Sensitive public endpoints rate limited.
-- [ ] Customer token endpoints abuse-tested.
+- [x] Sensitive public confirmation endpoints rate limited.
+- [x] Sensitive public feedback endpoints rate limited.
+- [x] Customer token endpoints abuse-tested in runtime security tests.
 - [ ] CSRF/origin strategy reviewed where applicable.
 
 ## Secrets
@@ -77,6 +92,8 @@ Most items are unchecked because Phase 1.5 is not a production-readiness phase.
 
 - [ ] CSP reviewed.
 - [ ] Security headers configured.
+- [x] Public confirmation route no-store/noindex/referrer headers configured.
+- [x] Public feedback route no-store/noindex/referrer headers configured.
 - [ ] Cookie settings reviewed.
 
 ## Dependency Audit
@@ -90,12 +107,19 @@ Most items are unchecked because Phase 1.5 is not a production-readiness phase.
 - [ ] Data retention policy prepared.
 - [x] Phase 4 customer PII tenant isolation reviewed.
 - [x] Phase 5 private booking notes remain vendor-only tenant data.
+- [x] Phase 6 public confirmation view minimizes customer and booking data.
+- [x] Phase 7 customer confirmation tokens cannot perform vendor operational
+  lifecycle actions.
+- [x] Phase 8 public feedback view minimizes booking data and keeps submitted
+  feedback private to the owning business.
 
 ## Accessibility And UX
 
 - [ ] Accessibility review completed.
 - [x] Phase 3 onboarding responsive E2E reviewed on desktop and mobile projects.
-- [ ] Customer-facing flows reviewed on mobile.
+- [x] Customer-facing confirmation flow reviewed on desktop and mobile E2E.
+- [x] Phase 7 vendor booking lifecycle flow reviewed on desktop and mobile E2E.
+- [x] Phase 8 public feedback and vendor issue lifecycle flow reviewed in E2E.
 
 ## Email
 

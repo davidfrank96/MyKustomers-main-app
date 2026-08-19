@@ -1,5 +1,6 @@
 export const bookingStatuses = [
   "DRAFT",
+  "AWAITING_CUSTOMER",
   "CONFIRMED",
   "IN_PROGRESS",
   "READY",
@@ -13,10 +14,11 @@ export type BookingStatus = (typeof bookingStatuses)[number];
 export const terminalBookingStatuses = ["COMPLETED", "CANCELLED"] as const;
 
 const allowedTransitions: Record<BookingStatus, BookingStatus[]> = {
-  DRAFT: ["CONFIRMED", "CANCELLED"],
+  DRAFT: ["CANCELLED"],
+  AWAITING_CUSTOMER: ["CANCELLED"],
   CONFIRMED: ["IN_PROGRESS", "CANCELLED"],
   IN_PROGRESS: ["READY", "CANCELLED"],
-  READY: ["DELIVERED"],
+  READY: ["DELIVERED", "CANCELLED"],
   DELIVERED: ["COMPLETED"],
   COMPLETED: [],
   CANCELLED: [],
@@ -45,12 +47,13 @@ export function getBookingStatusLabel(status: BookingStatus) {
 export function getTransitionLabel(toStatus: BookingStatus) {
   const labels: Record<BookingStatus, string> = {
     DRAFT: "Move to draft",
+    AWAITING_CUSTOMER: "Request customer confirmation",
     CONFIRMED: "Confirm booking",
     IN_PROGRESS: "Start work",
     READY: "Mark ready",
     DELIVERED: "Mark delivered",
-    COMPLETED: "Complete",
-    CANCELLED: "Cancel",
+    COMPLETED: "Complete booking",
+    CANCELLED: "Cancel booking",
   };
 
   return labels[toStatus];
@@ -70,4 +73,27 @@ export function isBookingOverdue({
   }
 
   return new Date(scheduledFor).getTime() < now.getTime();
+}
+
+export function isBookingDueToday({
+  scheduledFor,
+  now = new Date(),
+}: {
+  scheduledFor: string | null;
+  now?: Date;
+}) {
+  if (!scheduledFor) {
+    return false;
+  }
+
+  const scheduled = new Date(scheduledFor);
+  if (Number.isNaN(scheduled.getTime())) {
+    return false;
+  }
+
+  return (
+    scheduled.getFullYear() === now.getFullYear() &&
+    scheduled.getMonth() === now.getMonth() &&
+    scheduled.getDate() === now.getDate()
+  );
 }

@@ -1,6 +1,11 @@
 # Bookings Feature
 
-Phase 5 implements vendor-side booking management.
+Phase 5 implements vendor-side booking management. Phase 6 extends booking
+lifecycle behavior with secure customer confirmation before a booking can move
+to confirmed. Phase 7 adds controlled operational fulfilment transitions,
+rescheduling before fulfilment, and operational queues. Phase 8 adds completed
+booking feedback links and internal operational issues around the booking
+record.
 
 ## Owns
 
@@ -9,6 +14,10 @@ Phase 5 implements vendor-side booking management.
 - Booking validation and money parsing.
 - Booking lifecycle transition rules.
 - Booking status labels and overdue derivation.
+- Operational rescheduling and status-change server actions.
+- Dashboard operational queues for due today, overdue, in-progress, and ready
+  bookings.
+- Booking detail composition for private feedback and operational issues.
 
 ## Data
 
@@ -16,6 +25,10 @@ Primary tables:
 
 - `public.bookings`
 - `public.booking_status_history`
+- `public.booking_changes`
+- `public.feedback_links`
+- `public.feedback`
+- `public.booking_issues`
 
 Bookings belong to one business and one customer. The database enforces that the
 booking and customer share the same `business_id`.
@@ -28,29 +41,52 @@ deposit and is not stored.
 
 ## Lifecycle
 
-Allowed Phase 5 transitions:
+Allowed transitions after Phase 7:
 
 ```text
-DRAFT -> CONFIRMED
+DRAFT -> AWAITING_CUSTOMER
 DRAFT -> CANCELLED
+AWAITING_CUSTOMER -> CONFIRMED by valid customer confirmation link
+AWAITING_CUSTOMER -> CANCELLED
+CONFIRMED -> AWAITING_CUSTOMER by material edit or reschedule
 CONFIRMED -> IN_PROGRESS
 CONFIRMED -> CANCELLED
 IN_PROGRESS -> READY
 IN_PROGRESS -> CANCELLED
 READY -> DELIVERED
+READY -> CANCELLED
 DELIVERED -> COMPLETED
 ```
 
 `COMPLETED` and `CANCELLED` are terminal and lock further edits.
 
+Generating a confirmation link transitions a draft booking to
+`AWAITING_CUSTOMER`. Public GET views of the link do not consume it. Customer
+confirmation is handled by the confirmation-link feature through an atomic
+server/database operation.
+
+Vendor operational transitions use `public.transition_booking_status` through
+server actions. Direct authenticated status writes are blocked by the booking
+integrity trigger. The database owns operational timestamps for start, ready,
+delivery, completion, and cancellation.
+
+Rescheduling uses `public.reschedule_booking` while a booking is still
+`DRAFT`, `AWAITING_CUSTOMER`, or `CONFIRMED`. Rescheduling a confirmed booking
+is material: it returns the booking to `AWAITING_CUSTOMER`, clears current
+confirmation fields, revokes open confirmation links, records a
+`booking_changes` row, and requires a new customer confirmation.
+
+After a booking reaches `COMPLETED`, vendors can create a private feedback link
+through the feedback feature. Submitted feedback is immutable and private to the
+owning business. Vendors can also record internal operational issues on booking
+detail pages and resolve open issues once.
+
 ## Explicit Non-Goals
 
-- Customer-facing confirmation links.
-- Customer-facing booking tokens.
 - Payment processing.
-- Feedback.
 - Analytics expansion.
 - Booking items or catalog semantics.
+- Notifications or automated email delivery.
 
 See `docs/DATA_MODEL.md`, `docs/security.md`, and `docs/DECISIONS.md` for the
-Phase 5 data and security decisions.
+booking data and security decisions.

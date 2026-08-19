@@ -7,6 +7,7 @@ import type { BookingStatus } from "@/features/bookings/status";
 export type Booking = Database["public"]["Tables"]["bookings"]["Row"];
 export type BookingStatusHistory =
   Database["public"]["Tables"]["booking_status_history"]["Row"];
+export type BookingChange = Database["public"]["Tables"]["booking_changes"]["Row"];
 
 export type BookingCustomerSummary = {
   id: string;
@@ -31,6 +32,13 @@ export type BookingDashboardStats = {
   activeBookings: number;
   upcomingBookings: number;
   overdueBookings: number;
+  dueTodayBookings: number;
+  inProgressBookings: number;
+  readyBookings: number;
+  dueToday: BookingWithCustomer[];
+  overdue: BookingWithCustomer[];
+  inProgress: BookingWithCustomer[];
+  ready: BookingWithCustomer[];
 };
 
 function escapeSearch(value: string) {
@@ -89,6 +97,18 @@ function attachCustomers(
   })) satisfies BookingWithCustomer[];
 }
 
+function todayRange(now = new Date()) {
+  const start = new Date(now);
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(start);
+  end.setDate(start.getDate() + 1);
+
+  return {
+    start: start.toISOString(),
+    end: end.toISOString(),
+  };
+}
+
 export async function listBookingsForBusiness(
   businessId: string,
   params: BookingListParams,
@@ -104,7 +124,14 @@ export async function listBookingsForBusiness(
     .eq("business_id", businessId)
     .order("created_at", { ascending: false });
 
-  if (params.filter === "upcoming") {
+  if (params.filter === "today") {
+    const range = todayRange();
+    query = query
+      .not("scheduled_for", "is", null)
+      .gte("scheduled_for", range.start)
+      .lt("scheduled_for", range.end)
+      .not("status", "in", "(COMPLETED,CANCELLED)");
+  } else if (params.filter === "upcoming") {
     query = query
       .not("scheduled_for", "is", null)
       .gte("scheduled_for", now)
@@ -194,6 +221,25 @@ export async function listBookingStatusHistoryForBusiness(
   return data;
 }
 
+export async function listBookingChangesForBusiness(
+  businessId: string,
+  bookingId: string,
+) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("booking_changes")
+    .select("*")
+    .eq("business_id", businessId)
+    .eq("booking_id", bookingId)
+    .order("created_at", { ascending: true });
+
+  if (error || !data) {
+    return [];
+  }
+
+  return data;
+}
+
 export async function listActiveBookingCustomerOptions(businessId: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -231,8 +277,9 @@ export async function customerBelongsToBusiness(businessId: string, customerId: 
 export async function getBookingDashboardStats(businessId: string): Promise<BookingDashboardStats> {
   const supabase = await createClient();
   const now = new Date().toISOString();
+  const range = todayRange();
 
-  const [active, upcoming, overdue] = await Promise.all([
+  const [active, upcoming, overdue, dueToday, inProgress, ready] = await Promise.all([
     supabase
       .from("bookings")
       .select("id", { count: "exact", head: true })
@@ -252,11 +299,57 @@ export async function getBookingDashboardStats(businessId: string): Promise<Book
       .not("scheduled_for", "is", null)
       .lt("scheduled_for", now)
       .not("status", "in", "(DELIVERED,COMPLETED,CANCELLED)"),
+    supabase
+      .from("bookings")
+      .select("*", { count: "exact" })
+      .eq("business_id", businessId)
+      .not("scheduled_for", "is", null)
+      .gte("scheduled_for", range.start)
+      .lt("scheduled_for", range.end)
+      .not("status", "in", "(COMPLETED,CANCELLED)")
+      .order("scheduled_for", { ascending: true })
+      .limit(5),
+    supabase
+      .from("bookings")
+      .select("*", { count: "exact" })
+      .eq("business_id", businessId)
+      .eq("status", "IN_PROGRESS")
+      .order("scheduled_for", { ascending: true, nullsFirst: false })
+      .limit(5),
+    supabase
+      .from("bookings")
+      .select("*", { count: "exact" })
+      .eq("business_id", businessId)
+      .eq("status", "READY")
+      .order("scheduled_for", { ascending: true, nullsFirst: false })
+      .limit(5),
   ]);
+
+  async function withCustomers(result: typeof dueToday) {
+    const rows = result.error ? [] : result.data ?? [];
+    const customerMap = await customersById(
+      businessId,
+      rows.map((booking) => booking.customer_id),
+    );
+
+    return attachCustomers(rows, customerMap);
+  }
 
   return {
     activeBookings: active.error ? 0 : active.count ?? 0,
     upcomingBookings: upcoming.error ? 0 : upcoming.count ?? 0,
     overdueBookings: overdue.error ? 0 : overdue.count ?? 0,
+    dueTodayBookings: dueToday.error ? 0 : dueToday.count ?? 0,
+    inProgressBookings: inProgress.error ? 0 : inProgress.count ?? 0,
+    readyBookings: ready.error ? 0 : ready.count ?? 0,
+    dueToday: await withCustomers(dueToday),
+    overdue: await listBookingsForBusiness(businessId, {
+      filter: "overdue",
+      q: "",
+      page: 1,
+      limit: 5,
+    }).then((result) => result.bookings),
+    inProgress: await withCustomers(inProgress),
+    ready: await withCustomers(ready),
   };
 }

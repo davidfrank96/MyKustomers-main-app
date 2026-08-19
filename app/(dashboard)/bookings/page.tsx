@@ -37,6 +37,7 @@ function formatDate(value: string | null) {
 
 function filterLabel(filter: BookingListFilter) {
   if (filter === "all") return "All";
+  if (filter === "today") return "Today";
   if (filter === "upcoming") return "Upcoming";
   if (filter === "overdue") return "Overdue";
   return getBookingStatusLabel(filter);

@@ -4,12 +4,14 @@ My Customers is a mobile-first SaaS application for small businesses that manage
 customers, bookings, orders, confirmations, feedback, and customer history through
 informal channels today.
 
-This repository has completed Phase 5: booking engine. Phase 2 remains
+This repository has completed Phase 8: private feedback and operational issues. Phase 2 remains
 implemented with verification pending only for default-email signup confirmation
 and reset-password delivery. Supabase database, RLS, tenant isolation, grants,
 service-role boundaries, route protection, business onboarding, and owner
 business profile updates, tenant-scoped customer management, and tenant-scoped
-booking management have runtime verification evidence.
+booking management, confirmation-link security, operational booking lifecycle
+controls, private feedback, and operational issue records have runtime
+verification evidence.
 
 ## Stack
 
@@ -63,8 +65,9 @@ test aliases from this value.
 opt in to mutating Phase 2 Supabase runtime security tests. These tests also
 require the Supabase URL, publishable key, and service-role key above, and should
 only be pointed at a non-production database. The runtime script also includes
-Phase 3 business onboarding, Phase 4 customer security, and Phase 5 booking
-security tests.
+Phase 3 business onboarding, Phase 4 customer security, Phase 5 booking
+security, Phase 6 confirmation-link security, Phase 7 operational lifecycle
+security, and Phase 8 feedback/issue security tests.
 
 ## Scripts
 
@@ -104,8 +107,14 @@ public/              Icons and web manifest
   users.
 - Booking records are tenant-owned business data attached to tenant-owned
   customers; booking references are not security credentials.
-- Avoid fake payment, customer confirmation, feedback, or analytics functionality before the owning
-  phase.
+- Customer confirmation links use opaque high-entropy tokens; only token hashes
+  are stored, and booking references are not accepted as public credentials.
+- Operational booking state changes use controlled authenticated database RPCs
+  and trigger-owned history rather than direct browser-supplied status writes.
+- Customer feedback links use a separate scoped token purpose, are available
+  only after completion, and store private feedback without public reviews.
+- Operational issues are internal tenant records and are not customer-facing.
+- Avoid fake payment or analytics functionality before the owning phase.
 
 See `docs/architecture.md`, `docs/security.md`, `docs/development.md`, and
 `docs/product-boundaries.md` for the project rules that future phases should

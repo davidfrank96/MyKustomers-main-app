@@ -91,6 +91,26 @@ Booking becomes operational
 
 Material booking changes after customer confirmation must be handled explicitly and must not silently replace the terms originally confirmed.
 
+Phase 6 implements the first customer confirmation workflow. Vendors generate a
+secure link for an eligible booking, the customer reviews a minimized public
+booking view without an account, and confirmation moves the booking from
+`AWAITING_CUSTOMER` to `CONFIRMED`. Material changes after confirmation require
+a new customer confirmation; internal notes are private vendor data and do not
+affect confirmed terms.
+
+Phase 7 implements the first operational fulfilment workflow. After customer
+confirmation, the vendor can start work, mark the booking ready, mark it
+delivered, and complete it. Vendors can cancel active operational bookings with
+a reason. Vendors can reschedule before fulfilment begins; rescheduling a
+confirmed booking requires customer reconfirmation.
+
+Phase 8 implements the first private feedback and operational issue workflow.
+After a booking is completed, the vendor can generate a secure feedback link.
+The customer can submit private feedback without an account, and that feedback
+is visible only to the owning business. Vendors can also record and resolve
+internal operational issues on bookings. Feedback is not public review content,
+and issues are not customer-facing support tickets.
+
 ## Customer Experience Principle
 
 Customer-facing flows should generally:

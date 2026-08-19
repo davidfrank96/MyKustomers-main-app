@@ -65,6 +65,9 @@ Accepted decisions are recorded in `docs/DECISIONS.md`.
 - Phase 3 - Business Onboarding: VERIFIED.
 - Phase 4 - Customer Management: VERIFIED.
 - Phase 5 - Booking Engine: VERIFIED.
+- Phase 6 - Secure Customer Confirmation Links: VERIFIED.
+- Phase 7 - Fulfilment and Operational Booking Lifecycle: VERIFIED.
+- Phase 8 - Private Feedback and Operational Issues: VERIFIED.
 
 Phase 1 established a Next.js application foundation, strict TypeScript, responsive shells, design primitives, environment configuration, Supabase client/server boundaries, test infrastructure, PWA foundation, documentation foundation, and lint/build/typecheck/test verification.
 
@@ -72,8 +75,6 @@ Phase 1 established a Next.js application foundation, strict TypeScript, respons
 
 The following remain PLANNED and must not be described as implemented until repository evidence exists:
 
-- Customer confirmation.
-- Feedback.
 - Analytics.
 - Subscriptions.
 - Staff accounts.
@@ -135,10 +136,12 @@ Implemented and verified in Phase 5:
 - Booking `business_id`, `customer_id`, `reference`, and `created_by` are
   immutable after creation. Phase 5 keeps customer reassignment out of scope to
   avoid weakening the business/customer invariant.
-- Booking lifecycle transitions are constrained to `DRAFT -> CONFIRMED or
-  CANCELLED`, `CONFIRMED -> IN_PROGRESS or CANCELLED`, `IN_PROGRESS -> READY or
-  CANCELLED`, `READY -> DELIVERED`, and `DELIVERED -> COMPLETED`. `COMPLETED`
-  and `CANCELLED` are terminal.
+- Booking lifecycle transitions now route customer confirmation through Phase 6:
+  `DRAFT -> AWAITING_CUSTOMER or CANCELLED`, customer confirmation via a valid
+  scoped link moves `AWAITING_CUSTOMER -> CONFIRMED`, then vendor workflow uses
+  `CONFIRMED -> IN_PROGRESS or CANCELLED`, `IN_PROGRESS -> READY or CANCELLED`,
+  `READY -> DELIVERED`, and `DELIVERED -> COMPLETED`. `COMPLETED` and
+  `CANCELLED` are terminal.
 - Booking status history is recorded by database trigger and authenticated
   browser clients cannot insert or mutate history rows directly.
 - Booking items are deferred. Phase 5 tracks booking-level title, description,
@@ -148,3 +151,79 @@ Implemented and verified in Phase 5:
   denial, business/customer reassignment denial, invalid finance denial, valid
   and invalid transitions, terminal locks, history fabrication denial, anonymous
   denial, member permissions, and search isolation.
+
+Implemented and verified in Phase 6:
+
+- Vendors can generate, regenerate, and revoke customer confirmation links for
+  eligible bookings. Raw tokens are shown once in the vendor UI and only SHA-256
+  token hashes are stored.
+- Confirmation links are high-entropy opaque capabilities with a default
+  24-hour lifetime. Booking references and database IDs are not public
+  credentials.
+- Public `/c/[token]` pages use server-side token lookup, persistent hashed
+  rate-limit buckets, no-store/noindex headers, and minimized booking data.
+  Public GET views do not consume links.
+- Customer confirmation is a POST-backed atomic database operation that marks
+  the link used, moves the booking to `CONFIRMED`, stores an immutable terms
+  snapshot/hash, writes confirmation evidence, and records audit metadata.
+- Expired, revoked, unknown, consumed, and cross-tenant access paths return safe
+  outcomes without exposing token hashes, internal notes, audit logs, business
+  member data, or tenant IDs.
+- Material changes after customer confirmation invalidate current confirmation,
+  return the booking to `AWAITING_CUSTOMER`, clear current confirmation fields,
+  and preserve the original confirmation snapshot for already-used links.
+  Internal notes are non-material and do not invalidate confirmation.
+- Runtime Supabase tests verify token lifecycle, minimization, one-time
+  confirmation, revocation, expiration, regeneration, material-change
+  invalidation, non-material edit behavior, race behavior, rate limiting, audit
+  events, and raw-token non-logging.
+
+Implemented and verified in Phase 7:
+
+- Vendors can move customer-confirmed bookings through the operational
+  lifecycle: `CONFIRMED -> IN_PROGRESS -> READY -> DELIVERED -> COMPLETED`.
+  `CONFIRMED`, `IN_PROGRESS`, and `READY` can be cancelled by an authenticated
+  business member; `COMPLETED` and `CANCELLED` remain terminal.
+- Operational timestamps are managed by the database on lifecycle transitions:
+  `started_at`, `ready_at`, `delivered_at`, `completed_at`, and `cancelled_at`.
+  Cancellation can store a bounded reason.
+- Direct authenticated browser status writes are blocked. Status changes use
+  `public.transition_booking_status`, a narrow authenticated RPC that checks
+  tenant membership, locks the booking row, applies the transition graph, and
+  writes audit events.
+- Rescheduling before work starts uses `public.reschedule_booking`. Confirmed
+  reschedules return the booking to `AWAITING_CUSTOMER`, clear current
+  confirmation evidence, revoke open confirmation links, and record a
+  `booking_changes` row plus audit event. Non-material internal-note edits do
+  not invalidate customer confirmation.
+- Dashboard and booking list views expose operational queues for due today,
+  overdue, in-progress, and ready bookings.
+- Runtime Supabase tests verify valid and invalid transitions, cross-tenant RPC
+  denial, anonymous denial, customer-token privilege denial, status-history and
+  booking-change integrity, stale/repeated transitions, reschedule confirmation
+  invalidation, non-material edit regression, cancellation invalidation,
+  terminal locks, operational audit events, and due/upcoming behavior.
+
+Implemented and verified in Phase 8:
+
+- Vendors can generate, regenerate, and revoke private feedback links for
+  completed bookings that do not already have submitted feedback. Raw feedback
+  tokens are shown once and only SHA-256 token hashes are stored.
+- Feedback links use a dedicated `booking_feedback` purpose, separate from
+  confirmation links, with a default 14-day lifetime, one open link per
+  booking, revocation support, and server-only public lookup/submission RPCs.
+- Public `/f/[token]` pages use no-store/noindex/no-referrer headers,
+  persistent hashed rate-limit buckets, minimized booking context, and safe
+  unavailable/submitted states.
+- Feedback submission is atomic, one-time, immutable, limited to completed
+  bookings, and stores private rating, on-time, expectation, and optional plain
+  text comment data for the owning business only.
+- Vendors can create and resolve internal operational issues on bookings.
+  Issues are tenant-scoped, auditable, non-public, and resolution is terminal.
+- Booking detail and customer detail views expose private feedback and issue
+  information only to authenticated members of the owning business.
+- Runtime Supabase tests verify valid feedback submission, invalid/expired/
+  revoked/consumed links, wrong-purpose token attacks, non-completed booking
+  denial, tenant feedback visibility, vendor mutation denial, race behavior,
+  issue tenant isolation, issue resolution concurrency, audit events, and
+  service-role/SECURITY DEFINER boundaries.

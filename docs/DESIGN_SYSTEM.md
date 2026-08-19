@@ -3,6 +3,9 @@
 STATUS: PLANNED AND PARTIALLY IMPLEMENTED
 
 Phase 1 implemented foundational UI primitives and responsive shells. Full brand and product UI are still planned.
+Phases 3 through 8 add verified product workflows for onboarding, customers,
+bookings, customer confirmation links, operational booking lifecycle, private
+feedback, and operational issues.
 
 ## Design Philosophy
 
@@ -42,10 +45,12 @@ Implemented in Phase 1:
 - Mobile bottom-navigation concept in the dashboard shell.
 - Desktop sidebar concept in the dashboard shell.
 - Basic PWA metadata and manifest.
+- Business onboarding, customer management, booking management, customer
+  confirmation, operational booking lifecycle, private feedback, and internal
+  issue screens built on the shared primitives.
 
 Not yet implemented:
 
 - Final branding.
 - Full component coverage.
-- Real product workflows.
-- Customer-facing booking UI.
+- Analytics, billing, and staff-management interfaces.

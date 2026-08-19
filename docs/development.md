@@ -71,6 +71,7 @@ npm run dev
 npm run lint
 npm run typecheck
 npm run test
+PHASE2_RUNTIME_VERIFICATION=1 PHASE2_SUPABASE_TARGET=development npm run test:security:runtime
 npm run test:e2e
 npm run build
 ```

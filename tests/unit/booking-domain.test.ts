@@ -7,6 +7,7 @@ import {
 import {
   getAllowedBookingTransitions,
   isAllowedBookingTransition,
+  isBookingDueToday,
   isBookingOverdue,
 } from "@/features/bookings/status";
 import {
@@ -41,9 +42,16 @@ describe("booking domain", () => {
     expect(parsed.success).toBe(false);
   });
 
-  it("defines the Phase 5 status transition graph", () => {
-    expect(getAllowedBookingTransitions("DRAFT")).toEqual(["CONFIRMED", "CANCELLED"]);
-    expect(isAllowedBookingTransition("DRAFT", "CONFIRMED")).toBe(true);
+  it("defines the Phase 7 status transition graph", () => {
+    expect(getAllowedBookingTransitions("DRAFT")).toEqual(["CANCELLED"]);
+    expect(getAllowedBookingTransitions("AWAITING_CUSTOMER")).toEqual(["CANCELLED"]);
+    expect(getAllowedBookingTransitions("CONFIRMED")).toEqual(["IN_PROGRESS", "CANCELLED"]);
+    expect(getAllowedBookingTransitions("IN_PROGRESS")).toEqual(["READY", "CANCELLED"]);
+    expect(getAllowedBookingTransitions("READY")).toEqual(["DELIVERED", "CANCELLED"]);
+    expect(getAllowedBookingTransitions("DELIVERED")).toEqual(["COMPLETED"]);
+    expect(isAllowedBookingTransition("DRAFT", "CONFIRMED")).toBe(false);
+    expect(isAllowedBookingTransition("CONFIRMED", "DELIVERED")).toBe(false);
+    expect(isAllowedBookingTransition("READY", "COMPLETED")).toBe(false);
     expect(isAllowedBookingTransition("DRAFT", "COMPLETED")).toBe(false);
     expect(isAllowedBookingTransition("COMPLETED", "CANCELLED")).toBe(false);
   });
@@ -59,7 +67,29 @@ describe("booking domain", () => {
     expect(
       isBookingOverdue({
         scheduledFor: "2026-08-17T12:00:00.000Z",
+        status: "AWAITING_CUSTOMER",
+        now: new Date("2026-08-18T12:00:00.000Z"),
+      }),
+    ).toBe(true);
+    expect(
+      isBookingOverdue({
+        scheduledFor: "2026-08-17T12:00:00.000Z",
         status: "COMPLETED",
+        now: new Date("2026-08-18T12:00:00.000Z"),
+      }),
+    ).toBe(false);
+  });
+
+  it("derives due-today state without storing it as a status", () => {
+    expect(
+      isBookingDueToday({
+        scheduledFor: "2026-08-18T10:30:00.000Z",
+        now: new Date("2026-08-18T12:00:00.000Z"),
+      }),
+    ).toBe(true);
+    expect(
+      isBookingDueToday({
+        scheduledFor: "2026-08-19T10:30:00.000Z",
         now: new Date("2026-08-18T12:00:00.000Z"),
       }),
     ).toBe(false);
@@ -69,11 +99,11 @@ describe("booking domain", () => {
     expect(
       parseBookingListParams({
         q: "MC",
-        filter: "overdue",
+        filter: "today",
         page: "2",
         limit: "25",
       }),
-    ).toEqual({ q: "MC", filter: "overdue", page: 2, limit: 25 });
+    ).toEqual({ q: "MC", filter: "today", page: 2, limit: 25 });
     expect(isBookingReference("MC-260818-7A3F2B")).toBe(true);
     expect(isBookingReference("booking-1")).toBe(false);
   });

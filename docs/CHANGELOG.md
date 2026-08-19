@@ -2,6 +2,78 @@
 
 This changelog records meaningful project milestones. It is not a substitute for Git history.
 
+## 2026-08-19 - Phase 8 Private Feedback and Operational Issues
+
+Status: VERIFIED
+
+- Added Phase 8 migration for `feedback_links`, `feedback`, `booking_issues`,
+  issue enums, feedback RPCs, integrity triggers, RLS policies, grants, and
+  feedback/issue audit events.
+- Added vendor feedback link generation, regeneration, and revocation for
+  completed bookings without existing feedback. Raw feedback URLs are shown
+  once; only token hashes are stored.
+- Added public `/f/[token]` feedback pages with minimized booking data,
+  no-store/noindex/referrer protections, persistent hashed rate limiting, safe
+  unavailable/submitted states, and POST-backed private feedback submission.
+- Added immutable private feedback display on booking detail and customer
+  detail pages.
+- Added internal operational issue create/resolve UI on booking detail pages
+  with tenant RLS and terminal resolution semantics.
+- Added feedback domain tests, static Phase 8 migration/security tests, runtime
+  Supabase feedback/issue security tests, and Playwright coverage for feedback
+  submission and issue lifecycle.
+- Verified lint, typecheck, unit/integration tests, runtime security tests, E2E,
+  production build, and dependency audit.
+
+## 2026-08-19 - Phase 7 Fulfilment and Operational Booking Lifecycle
+
+Status: VERIFIED
+
+- Added Phase 7 migration for operational booking timestamps, cancellation
+  reasons, `booking_changes`, controlled lifecycle/reschedule RPCs, updated
+  booking integrity triggers, RLS, grants, and operational indexes.
+- Blocked direct authenticated browser status writes and routed vendor
+  lifecycle changes through `transition_booking_status` with tenant membership
+  checks, row locking, valid transition enforcement, database-managed
+  timestamps, trigger-owned status history, and audit events.
+- Added rescheduling before fulfilment through `reschedule_booking`; confirmed
+  reschedules invalidate current customer confirmation, revoke open links,
+  record focused change history, and require reconfirmation.
+- Added dashboard/list operational queues for due today, overdue, in-progress,
+  and ready bookings.
+- Added booking detail controls for start work, mark ready, mark delivered,
+  complete, cancel with reason, reschedule, operational timestamp summary, and
+  combined status/change timeline.
+- Added Phase 7 domain tests, static migration/security tests, runtime
+  Supabase operational lifecycle tests, and Playwright
+  create-confirm-reschedule-reconfirm-complete coverage on desktop and mobile.
+- Verified lint, typecheck, unit/integration tests, runtime security tests, E2E,
+  production build, and dependency audit.
+
+## 2026-08-19 - Phase 6 Secure Customer Confirmation Links
+
+Status: VERIFIED
+
+- Added Phase 6 migration for `confirmation_links`,
+  `booking_confirmations`, persistent `confirmation_rate_limits`,
+  `AWAITING_CUSTOMER` lifecycle state, booking confirmation terms fields,
+  server-only public confirmation RPCs, and updated booking integrity triggers.
+- Added vendor link generation, regeneration, and revocation UI on booking
+  detail pages. Raw confirmation URLs are shown once; only token hashes are
+  stored.
+- Added public `/c/[token]` confirmation pages with minimized booking data,
+  no-store/noindex/referrer protections, safe status messages, non-consuming
+  GET views, and POST-backed customer confirmation.
+- Added immutable confirmation terms snapshots/hashes and material-change
+  invalidation so confirmed terms are not silently rewritten.
+- Added persistent hashed rate-limit buckets for public confirmation lookup and
+  confirmation actions.
+- Added confirmation-link unit tests, static migration/security tests, runtime
+  Supabase confirmation security tests, and E2E customer confirmation coverage
+  on desktop and mobile.
+- Verified lint, typecheck, unit/integration tests, runtime security tests, E2E,
+  production build, and dependency audit.
+
 ## 2026-08-18 - Phase 5 Booking Engine
 
 Status: VERIFIED
