@@ -15,7 +15,7 @@ export default async function SignupPage() {
   return (
     <AuthForm
       title="Create your account"
-      description="Set up your platform user. Business onboarding comes next."
+      description="Create your My Customers login. You will set up your business next."
       action={signupAction}
       submitLabel="Create account"
       fields={[

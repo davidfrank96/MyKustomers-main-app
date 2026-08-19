@@ -158,7 +158,7 @@ export default async function DashboardPage() {
           <div>
             <h2 className="text-xl font-semibold leading-tight">Operational work</h2>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              Current tenant bookings that need attention.
+              Bookings that need attention now.
             </p>
           </div>
           <Button asChild variant="secondary" size="sm">

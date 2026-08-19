@@ -116,7 +116,8 @@ export function ConfirmationLinkPanel({
         <div className="space-y-2 rounded-md border border-border bg-muted p-3">
           <p className="text-sm font-medium">Copy this link now.</p>
           <p className="text-xs leading-5 text-muted-foreground">
-            The raw token is shown only immediately after generation.
+            Send this link to your customer so they can confirm the booking. This exact
+            link is shown only once.
           </p>
           <div className="flex flex-col gap-2 sm:flex-row">
             <input

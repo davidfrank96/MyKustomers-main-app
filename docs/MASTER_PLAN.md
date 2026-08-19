@@ -69,6 +69,7 @@ Accepted decisions are recorded in `docs/DECISIONS.md`.
 - Phase 7 - Fulfilment and Operational Booking Lifecycle: VERIFIED.
 - Phase 8 - Private Feedback and Operational Issues: VERIFIED.
 - Phase 9 - Business Insights and Analytics: VERIFIED.
+- Phase 9.5 - Product UX, Design, and End-to-End Experience Audit: VERIFIED.
 
 Phase 1 established a Next.js application foundation, strict TypeScript, responsive shells, design primitives, environment configuration, Supabase client/server boundaries, test infrastructure, PWA foundation, documentation foundation, and lint/build/typecheck/test verification.
 
@@ -249,3 +250,24 @@ Implemented and verified in Phase 9:
 - Runtime Supabase tests verify exact metric correctness, tenant aggregate
   isolation, cross-tenant RPC denial, currency separation, cancelled/draft value
   exclusion, feedback metrics, issue distribution, and on-time behavior.
+
+Implemented and verified in Phase 9.5:
+
+- Product UX audit completed across authentication, onboarding, dashboard,
+  customers, bookings, customer confirmation, fulfilment, feedback, operational
+  issues, insights, and business profile.
+- Authenticated navigation now has a canonical product map: Home, Bookings,
+  Customers, Insights, and Business, with active state on desktop and mobile.
+- Booking detail now surfaces a state-specific next step near the primary
+  booking summary so the owner can identify the current state and likely next
+  action quickly.
+- Vendor and customer-facing copy avoids internal database/security terminology
+  in visible flows, while security documentation and tests keep precise
+  technical language.
+- Booking money display remains integer minor-unit based and now renders
+  Nigerian Naira naturally as `₦45,000` for a `45000` owner-entered amount.
+- A canonical Playwright journey covers authenticated business setup, customer
+  creation, booking creation, customer confirmation, fulfilment, completion,
+  private feedback, internal issue handling, and insights verification.
+- Phase 9.5 did not add billing, payment processing, messaging automation,
+  exports, staff management, schema changes, or public review functionality.

@@ -127,6 +127,15 @@ Most items are unchecked because Phase 1.5 is not a production-readiness phase.
 - [x] Phase 7 vendor booking lifecycle flow reviewed on desktop and mobile E2E.
 - [x] Phase 8 public feedback and vendor issue lifecycle flow reviewed in E2E.
 - [x] Phase 9 insights reviewed in E2E.
+- [x] Phase 9.5 product UX audit completed across mobile, tablet, and desktop.
+- [x] Authenticated navigation active state reviewed for Home, Bookings,
+  Customers, Insights, and Business.
+- [x] Canonical customer-to-booking-to-confirmation-to-fulfilment-to-feedback-to-insights
+  journey covered in E2E.
+- [x] Public confirmation and feedback pages reviewed for simple customer copy
+  and safe unavailable states.
+- [x] Money and terminology reviewed to avoid payment verification, accounting,
+  and internal implementation claims.
 
 ## Email
 

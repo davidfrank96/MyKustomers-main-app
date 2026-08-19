@@ -14,6 +14,6 @@ export function safePublicFeedbackMessage(status: PublicFeedbackStatus) {
     case "booking_unavailable":
     case "unavailable":
     default:
-      return "This feedback link is no longer available.";
+      return "This feedback link is no longer available. Please contact the business for a new link.";
   }
 }

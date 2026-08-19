@@ -35,4 +35,5 @@ The public `/f/[token]` route uses server-only lookup/submission calls,
 persistent hashed rate limiting, no-store/noindex/no-referrer headers, and
 minimized booking context. Public pages do not expose internal notes, balances,
 audit data, tenant IDs, token hashes, feedback comments from other states, or
-booking issues.
+booking issues. Unavailable public states should give customers a safe next
+step, such as contacting the business for a fresh link.
