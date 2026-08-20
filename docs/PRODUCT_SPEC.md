@@ -98,6 +98,14 @@ booking view without an account, and confirmation moves the booking from
 a new customer confirmation; internal notes are private vendor data and do not
 affect confirmed terms.
 
+Confirmation requires a normalized customer-provided contact email and accepts
+an optional phone number. These values are booking confirmation evidence, not
+proof of email or phone ownership. Empty customer contact fields may be enriched
+from the submission, but an existing different value is never silently
+overwritten. A booking-confirmed email event is committed atomically and
+delivered after commit; delivery failure does not change the confirmed booking.
+Customers still do not create accounts or complete OTP verification.
+
 Phase 7 implements the first operational fulfilment workflow. After customer
 confirmation, the vendor can start work, mark the booking ready, mark it
 delivered, and complete it. Vendors can cancel active operational bookings with
@@ -134,3 +142,6 @@ The customer should not be forced to install an application.
 ## Current Exclusions
 
 V1 does not process payment between a vendor and their customer. Vendor subscription billing is separate and belongs to a later phase.
+
+PDF confirmations, progress/ready/completion emails, feedback email, and actual
+contact ownership verification or OTP are not part of the current foundation.

@@ -13,5 +13,9 @@ export function safePublicConfirmationMessage(status: PublicConfirmationStatus) 
     return "Booking confirmed.";
   }
 
+  if (status === "invalid_contact") {
+    return "Enter valid contact details before confirming.";
+  }
+
   return "This confirmation link is no longer available. Please contact the business for a new link.";
 }

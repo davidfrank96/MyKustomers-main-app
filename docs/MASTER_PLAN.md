@@ -70,6 +70,18 @@ Accepted decisions are recorded in `docs/DECISIONS.md`.
 - Phase 8 - Private Feedback and Operational Issues: VERIFIED.
 - Phase 9 - Business Insights and Analytics: VERIFIED.
 
+The customer contact and booking-confirmation email foundation is VERIFIED.
+Secure confirmation now requires a customer-provided email, preserves immutable
+contact evidence, conservatively enriches empty customer contact fields, and
+creates a durable `BOOKING_CONFIRMED` email event in the confirmation
+transaction. Development-safe delivery is implemented; production Resend
+configuration and broader lifecycle email workflows remain future work.
+
+The 2026-08-20 pre-redesign engineering quality review is VERIFIED. It
+consolidated repeated auth, query, token, and runtime-test infrastructure and
+reduced unnecessary reads without changing the accepted architecture, data
+model, security invariants, dependencies, product behavior, or phase history.
+
 Phase 1 established a Next.js application foundation, strict TypeScript, responsive shells, design primitives, environment configuration, Supabase client/server boundaries, test infrastructure, PWA foundation, documentation foundation, and lint/build/typecheck/test verification.
 
 ## Planned Functionality
@@ -78,7 +90,8 @@ The following remain PLANNED and must not be described as implemented until repo
 
 - Subscriptions.
 - Staff accounts.
-- Email workflows.
+- Booking-ready, progress, completion, feedback, and other lifecycle email
+  workflows beyond the verified booking-confirmed foundation.
 - Payment provider abstraction for vendor subscriptions.
 
 Implemented in Phase 2 and runtime verified against the configured development

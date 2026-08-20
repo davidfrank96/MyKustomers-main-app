@@ -1,24 +1,16 @@
 import { randomUUID } from "node:crypto";
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { afterAll, describe, expect, it } from "vitest";
 import type { Database } from "@/types/database";
+import { createRuntimeSecurityContext } from "@/tests/security/runtime-support";
 
-const safeTargets = new Set([
-  "local",
-  "dev",
-  "development",
-  "test",
-  "testing",
-  "staging",
-]);
-const runtimeVerificationEnabled =
-  process.env.PHASE2_RUNTIME_VERIFICATION === "1" &&
-  safeTargets.has((process.env.PHASE2_SUPABASE_TARGET ?? "").toLowerCase()) &&
-  Boolean(
-    process.env.NEXT_PUBLIC_SUPABASE_URL &&
-      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY &&
-      process.env.SUPABASE_SERVICE_ROLE_KEY,
-  );
+const runtime = createRuntimeSecurityContext({
+  suiteName: "Phase 3",
+  storagePrefix: "phase3-runtime",
+});
+const runtimeVerificationEnabled = runtime.enabled;
+const requiredEnv = runtime.requiredEnv;
+const createSupabaseClient = runtime.createSupabaseClient;
 
 type AppClient = SupabaseClient<Database>;
 type UserFixture = {
@@ -27,27 +19,6 @@ type UserFixture = {
   password: string;
   client: AppClient;
 };
-
-function requiredEnv(name: string) {
-  const value = process.env[name];
-
-  if (!value) {
-    throw new Error(`${name} is required for Phase 3 runtime verification.`);
-  }
-
-  return value;
-}
-
-function createSupabaseClient(key: string) {
-  return createClient<Database>(requiredEnv("NEXT_PUBLIC_SUPABASE_URL"), key, {
-    auth: {
-      autoRefreshToken: false,
-      detectSessionInUrl: false,
-      persistSession: false,
-      storageKey: `phase3-runtime-${randomUUID()}`,
-    },
-  });
-}
 
 if (runtimeVerificationEnabled) {
   describe("Phase 3 business onboarding runtime security", () => {

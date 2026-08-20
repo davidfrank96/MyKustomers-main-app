@@ -28,6 +28,13 @@ development Supabase database and runtime-verified for token lifecycle,
 minimized public data, one-time confirmation, material-change invalidation, and
 tenant isolation.
 
+Customer contact and confirmation-email foundation migration evidence exists at
+`supabase/migrations/20260820131919_customer_contact_confirmation_email_foundation.sql`.
+It adds immutable confirmation contact fields and the private durable
+`email_events` outbox, replaces the confirmation RPC so contact capture and
+event creation are atomic, and adds a service-role-only event claim RPC. It was
+applied to the configured development Supabase database and runtime-verified.
+
 Phase 7 migration evidence exists at
 `supabase/migrations/20260818234428_phase_7_fulfilment_operational_lifecycle.sql`.
 The migration adds operational booking timestamps, cancellation reasons,
@@ -50,7 +57,10 @@ Phase 9 migration evidence exists at
 `supabase/migrations/20260819010145_phase_9_business_insights_analytics.sql`
 and follow-up fix
 `supabase/migrations/20260819011341_phase_9_fix_insights_current_time.sql`.
-The migration adds targeted indexes for analytics predicates and the
+Targeted correction
+`supabase/migrations/20260820030000_phase_9_fix_booking_trend_buckets.sql`
+buckets completed booking trends by `completed_at` without changing tables or
+metric definitions. The Phase 9 migrations add targeted indexes for analytics predicates and the
 authenticated aggregate RPC `public.get_business_insights`. It does not add
 analytics tables, views, materialized views, public reports, or stored snapshots.
 
@@ -108,7 +118,9 @@ These names are conceptual and not yet necessarily final table names.
   are not stored.
 - `booking_confirmations`: VERIFIED. Phase 6 stores immutable confirmation
   evidence with `business_id`, `booking_id`, `confirmation_link_id`,
-  `terms_hash`, `terms_snapshot`, and `confirmed_at`.
+  `terms_hash`, `terms_snapshot`, `contact_email`, optional `contact_phone`, and
+  `confirmed_at`. Contact fields preserve what the customer submitted for that
+  confirmation even if the customer record changes later.
 - `confirmation_rate_limits`: VERIFIED. Phase 6 stores hashed public endpoint
   rate-limit buckets without raw IP addresses.
 - `feedback_links`: VERIFIED. Phase 8 fields include `id`, `business_id`,
@@ -127,7 +139,10 @@ These names are conceptual and not yet necessarily final table names.
   analytics records in Phase 9.
 - `subscriptions`: PLANNED.
 - `subscription_events`: PLANNED.
-- `email_events`: PLANNED.
+- `email_events`: VERIFIED for `BOOKING_CONFIRMED`. Events are private,
+  tenant-related durable outbox rows with recipient, status, attempt metadata,
+  provider message ID, and bounded safe failure fields. One event is allowed per
+  booking confirmation.
 
 ## Expected Relationships
 
@@ -140,6 +155,8 @@ Business
 |   +-- BookingStatusHistory
 |   +-- BookingChanges
 |   +-- ConfirmationLinks
+|   +-- BookingConfirmations
+|   +-- EmailEvents
 |   +-- FeedbackLinks
 |   +-- Feedback
 |   +-- BookingIssues

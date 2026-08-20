@@ -119,13 +119,20 @@ async function createConfirmedBusinessOwnerWithCustomer({
   });
   expect(membershipError).toBeNull();
 
-  const { error: customerError } = await admin.from("customers").insert({
-    business_id: business!.id,
-    name: customerName,
-    email: "phase5-booking-customer@example.com",
-    phone: "+353 01 555 0155",
-  });
+  const { data: customer, error: customerError } = await admin
+    .from("customers")
+    .insert({
+      business_id: business!.id,
+      name: customerName,
+      email: null,
+      phone: null,
+    })
+    .select("id")
+    .single();
   expect(customerError).toBeNull();
+  expect(customer?.id).toBeTruthy();
+
+  return { businessId: business!.id, customerId: customer!.id };
 }
 
 test.describe("booking engine", () => {
@@ -161,6 +168,7 @@ test.describe("booking engine", () => {
         const bookingIds = bookings?.map((booking) => booking.id) ?? [];
 
         if (bookingIds.length > 0) {
+          await admin.from("email_events").delete().in("booking_id", bookingIds);
           await admin.from("booking_issues").delete().in("booking_id", bookingIds);
           await admin.from("feedback").delete().in("booking_id", bookingIds);
           await admin.from("feedback_links").delete().in("booking_id", bookingIds);
@@ -200,7 +208,7 @@ test.describe("booking engine", () => {
     const updatedTitle = `${bookingTitle} Updated`;
     createdBusinessSlugs.add(slug);
 
-    await createConfirmedBusinessOwnerWithCustomer({
+    const fixture = await createConfirmedBusinessOwnerWithCustomer({
       email,
       password,
       slug,
@@ -259,15 +267,64 @@ test.describe("booking engine", () => {
     await expect(page.getByText(updatedTitle)).toBeVisible();
     await expect(page.getByText("Updated private E2E note.")).toHaveCount(0);
 
+    await page.getByLabel("Where should we send updates about this booking?").fill(
+      "customer-confirmation@example.com",
+    );
+    await page.getByLabel("Phone number (optional)").fill("+353 01 555 0155");
     await page.getByRole("button", { name: "Confirm booking" }).click();
     await expect(page).toHaveURL(/confirmed=1/);
     await expect(page.getByRole("heading", { name: "Booking confirmed" })).toBeVisible();
+    await expect(
+      page.getByText("We'll send a confirmation to c***@example.com."),
+    ).toBeVisible();
+
+    const admin = createAdminClient();
+    const [{ data: capturedCustomer }, { data: confirmationRows }, { data: emailEvents }] =
+      await Promise.all([
+        admin
+          .from("customers")
+          .select("email, phone")
+          .eq("id", fixture.customerId)
+          .single(),
+        admin
+          .from("booking_confirmations")
+          .select("contact_email, contact_phone")
+          .eq("booking_id", new URL(bookingDetailUrl).pathname.split("/").at(-1) ?? ""),
+        admin
+          .from("email_events")
+          .select("recipient_email, status, attempt_count, provider_message_id")
+          .eq("business_id", fixture.businessId),
+      ]);
+    expect(capturedCustomer).toEqual({
+      email: "customer-confirmation@example.com",
+      phone: "+353 01 555 0155",
+    });
+    expect(confirmationRows).toEqual([
+      {
+        contact_email: "customer-confirmation@example.com",
+        contact_phone: "+353 01 555 0155",
+      },
+    ]);
+    expect(emailEvents).toHaveLength(1);
+    expect(emailEvents?.[0]).toMatchObject({
+      recipient_email: "customer-confirmation@example.com",
+      status: "SENT",
+      attempt_count: 1,
+    });
+    expect(emailEvents?.[0].provider_message_id).toMatch(/^development-/);
 
     await page.goto(confirmationUrl);
     await expect(page.getByRole("heading", { name: "Booking confirmed" })).toBeVisible();
 
     await page.goto(bookingDetailUrl);
     await expect(page.locator("span").filter({ hasText: /^Confirmed$/ })).toBeVisible();
+    await expect(page.getByText("customer-confirmation@example.com")).toBeVisible();
+    await expect(page.getByText("sent", { exact: true })).toBeVisible();
+
+    await page.goto(`/customers/${fixture.customerId}`);
+    await expect(page.getByLabel("Email")).toHaveValue("customer-confirmation@example.com");
+    await expect(page.getByLabel("Phone")).toHaveValue("+353 01 555 0155");
+    await page.goto(bookingDetailUrl);
 
     await page.getByLabel("New scheduled date").fill(futureLocalDateTimePlus(2));
     await page.getByRole("button", { name: "Reschedule" }).click();
@@ -284,6 +341,10 @@ test.describe("booking engine", () => {
     expect(regeneratedConfirmationUrl).toContain("/c/");
 
     await page.goto(regeneratedConfirmationUrl);
+    await page.getByLabel("Where should we send updates about this booking?").fill(
+      "customer-confirmation@example.com",
+    );
+    await page.getByLabel("Phone number (optional)").fill("+353 01 555 0155");
     await page.getByRole("button", { name: "Confirm booking" }).click();
     await expect(page.getByRole("heading", { name: "Booking confirmed" })).toBeVisible();
 

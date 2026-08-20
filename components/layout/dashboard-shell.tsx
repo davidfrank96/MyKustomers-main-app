@@ -37,8 +37,8 @@ type DashboardShellProps = {
 
 function getInitials(user: AuthenticatedUser) {
   const name =
-    typeof user.user_metadata.display_name === "string"
-      ? user.user_metadata.display_name
+    typeof user.userMetadata.display_name === "string"
+      ? user.userMetadata.display_name
       : user.email;
 
   if (!name) {

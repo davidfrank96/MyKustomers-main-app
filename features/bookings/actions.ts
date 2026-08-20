@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { Route } from "next";
-import { getCurrentBusinessContext, requireUser } from "@/lib/auth/server";
+import { requireCurrentBusiness } from "@/lib/auth/server";
 import { recordAuditEvent } from "@/lib/security/audit";
 import { createClient } from "@/lib/supabase/server";
 import type { BookingActionState } from "@/features/bookings/action-state";
@@ -37,17 +37,6 @@ function validationError(error: {
 
 function mapBookingError() {
   return "Booking details could not be saved. Please try again.";
-}
-
-async function requireCurrentBusiness(next = "/bookings") {
-  const user = await requireUser(next);
-  const context = await getCurrentBusinessContext();
-
-  if (!context.currentBusiness) {
-    redirect("/onboarding" as Route);
-  }
-
-  return { user, business: context.currentBusiness };
 }
 
 function parseCreateForm(formData: FormData) {

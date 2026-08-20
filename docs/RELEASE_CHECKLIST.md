@@ -26,6 +26,8 @@ Most items are unchecked because Phase 1.5 is not a production-readiness phase.
 - [x] Phase 7 migration definitions created.
 - [x] Phase 8 migration definitions created.
 - [x] Phase 9 analytics migration definitions created.
+- [x] Customer contact and booking-confirmation email outbox migration created
+  and applied to development.
 - [x] Application schema implemented.
 - [x] Migrations verified.
 - [ ] Backup and restore plan documented.
@@ -39,6 +41,8 @@ Most items are unchecked because Phase 1.5 is not a production-readiness phase.
 - [x] Phase 7 booking-change RLS and lifecycle RPC grants reviewed.
 - [x] Phase 8 feedback and issue RLS/RPC grants reviewed.
 - [x] Phase 9 aggregate RPC grants and tenant membership checks reviewed.
+- [x] Confirmation contact evidence and email event grants/service-role boundary
+  reviewed.
 - [x] Tenant-owned tables have RLS enabled.
 - [x] RLS policies reviewed.
 - [x] Cross-tenant tests pass.
@@ -112,6 +116,8 @@ Most items are unchecked because Phase 1.5 is not a production-readiness phase.
 - [x] Phase 4 customer PII tenant isolation reviewed.
 - [x] Phase 5 private booking notes remain vendor-only tenant data.
 - [x] Phase 6 public confirmation view minimizes customer and booking data.
+- [x] Confirmation contact is tenant-private; consumed public views expose only
+  a masked email and audit metadata omits contact values.
 - [x] Phase 7 customer confirmation tokens cannot perform vendor operational
   lifecycle actions.
 - [x] Phase 8 public feedback view minimizes booking data and keeps submitted
@@ -131,7 +137,9 @@ Most items are unchecked because Phase 1.5 is not a production-readiness phase.
 ## Email
 
 - [ ] Resend configured.
-- [ ] Email templates reviewed.
+- [x] Provider-neutral booking-confirmed HTML/plain-text templates reviewed.
+- [x] Durable booking-confirmed event and post-commit failure behavior verified.
+- [ ] Failed-event retry worker/schedule configured.
 - [ ] Bounce/error handling planned.
 
 ## Billing

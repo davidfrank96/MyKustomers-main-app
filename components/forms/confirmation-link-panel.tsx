@@ -112,6 +112,25 @@ export function ConfirmationLinkPanel({
         </div>
       </div>
 
+      {summary.contactEmail ? (
+        <div className="grid gap-3 rounded-md border border-border bg-muted p-3 sm:grid-cols-3">
+          <div>
+            <p className="text-xs font-medium text-muted-foreground">Confirmation contact</p>
+            <p className="mt-1 break-all text-sm">{summary.contactEmail}</p>
+          </div>
+          <div>
+            <p className="text-xs font-medium text-muted-foreground">Contact phone</p>
+            <p className="mt-1 text-sm">{summary.contactPhone ?? "Not provided"}</p>
+          </div>
+          <div>
+            <p className="text-xs font-medium text-muted-foreground">Confirmation email</p>
+            <p className="mt-1 text-sm capitalize">
+              {summary.emailStatus?.toLowerCase().replace("_", " ") ?? "Not queued"}
+            </p>
+          </div>
+        </div>
+      ) : null}
+
       {generatedUrl ? (
         <div className="space-y-2 rounded-md border border-border bg-muted p-3">
           <p className="text-sm font-medium">Copy this link now.</p>

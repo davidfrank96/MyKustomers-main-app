@@ -1,9 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
-import type { Route } from "next";
-import { getCurrentBusinessContext, requireUser } from "@/lib/auth/server";
+import { requireCurrentBusiness } from "@/lib/auth/server";
 import { publicEnv } from "@/lib/config/public-env";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -12,17 +10,6 @@ import {
   hashConfirmationToken,
 } from "@/features/confirmation-links/token";
 import type { ConfirmationLinkActionState } from "@/features/confirmation-links/action-state";
-
-async function requireCurrentBusiness(next: string) {
-  await requireUser(next);
-  const context = await getCurrentBusinessContext();
-
-  if (!context.currentBusiness) {
-    redirect("/onboarding" as Route);
-  }
-
-  return context.currentBusiness;
-}
 
 export async function generateConfirmationLinkAction(
   bookingId: string,

@@ -2,9 +2,13 @@
 
 ## Status
 
-STATUS: PLANNED AND PARTIALLY IMPLEMENTED
+STATUS: IMPLEMENTED AND VERIFIED, WITH DOCUMENTED PHASE 2 EMAIL EXCEPTIONS
 
-Phase 1 implemented test infrastructure and smoke tests. Most domain, security, and journey tests remain PLANNED until corresponding features exist.
+The implemented Phase 1-9 surface has unit, static security, opt-in live
+Supabase, and browser journey coverage appropriate to each feature. Public
+signup confirmation and reset-password completion remain PARTIAL because they
+require a controlled inbox and Supabase default-email delivery; those exceptions
+do not reduce the verified tenant/RLS coverage.
 
 ## Test Categories
 
@@ -35,6 +39,9 @@ Phase 1 implemented test infrastructure and smoke tests. Most domain, security, 
 - Phase 6 confirmation-link domain tests.
 - Static Phase 6 confirmation migration/security review tests.
 - Phase 6 runtime Supabase confirmation-link security test.
+- Customer contact validation and booking-confirmed email template/provider
+  boundary unit tests.
+- Static customer-contact/email-outbox migration security tests.
 - Phase 7 booking lifecycle domain tests.
 - Static Phase 7 operational lifecycle migration/security review tests.
 - Phase 7 runtime Supabase operational lifecycle security test.
@@ -66,6 +73,9 @@ Phase 1 implemented test infrastructure and smoke tests. Most domain, security, 
 - E2E-033 - Consumed token cannot be reused where one-time use is required. VERIFIED.
 - E2E-034 - Confirmed booking can be rescheduled and requires reconfirmation. VERIFIED.
 - E2E-035 - Confirmed booking can move through fulfilment to completion. VERIFIED.
+- E2E-036 - Confirmation captures required email, optionally enriches the
+  customer, and processes one event through the no-network development adapter.
+  VERIFIED.
 - E2E-040 - Completed booking can request private feedback. VERIFIED.
 - E2E-041 - Customer can submit private feedback through a scoped link. VERIFIED.
 - E2E-042 - Vendor can create and resolve an internal booking issue. VERIFIED.
@@ -107,6 +117,11 @@ The test requires `NEXT_PUBLIC_SUPABASE_URL`,
 `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, and `SUPABASE_SERVICE_ROLE_KEY`. It is
 skipped by default to avoid mutating an unidentified database.
 
+All runtime suites use `tests/security/runtime-support.ts` for the shared
+development-target allowlist, explicit opt-in guard, isolated non-persistent
+Supabase clients, required environment checks, and no-row assertions. Feature
+fixtures and assertions stay in their phase-specific suites.
+
 The Phase 3 runtime test verifies authenticated RPC creation, unauthenticated
 RPC denial, atomic rollback on invalid input, duplicate slug collision handling,
 owner membership creation, owner update, member update denial, and cross-tenant
@@ -130,7 +145,11 @@ handling, expired and revoked links, cross-tenant revoke denial, one-time
 confirmation, confirmation evidence, snapshot/hash storage, material-change
 invalidation, used-link snapshot stability, non-material internal-note edits,
 cancellation invalidation, regeneration revocation, concurrent confirmation
-behavior, persistent rate limiting, audit events, and raw-token non-logging.
+behavior, persistent rate limiting, audit events, and raw-token non-logging. It
+also verifies invalid contact does not consume a link, conservative customer
+enrichment, immutable submitted contact, concurrent different-email winner
+consistency, exactly one email event, provider-failure persistence,
+cross-tenant/anonymous event denial, and contact-safe audit/public output.
 
 The Phase 7 runtime test verifies controlled operational lifecycle transitions,
 operational timestamps, invalid transition denial, cross-tenant transition

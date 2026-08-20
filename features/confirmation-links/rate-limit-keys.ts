@@ -1,5 +1,5 @@
-import { createHash } from "node:crypto";
+import { hashOpaqueToken } from "@/lib/security/tokens";
 
 export function hashRateLimitIdentity(identity: string) {
-  return createHash("sha256").update(identity, "utf8").digest("hex");
+  return hashOpaqueToken(identity);
 }

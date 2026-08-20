@@ -7,6 +7,21 @@ accepted ADR.
 Documentation is not implementation evidence. Planned architecture must be
 distinguished from implemented code and verified behavior.
 
+## Booking Confirmation Email Boundary
+
+The public confirmation server action validates and normalizes contact input,
+then calls the existing service-role confirmation RPC. PostgreSQL locks the
+link, booking, and customer and commits link consumption, booking transition,
+immutable confirmation/contact evidence, conservative customer enrichment,
+audit linkage, and one `BOOKING_CONFIRMED` outbox event together.
+
+External email is never sent inside that transaction. After commit,
+`lib/email/outbox.ts` atomically claims the event, renders HTML and plain text
+from the immutable terms snapshot, and calls a provider-neutral interface. The
+development adapter makes no external request; the optional Resend adapter is
+enabled only by explicit server environment configuration. Delivery failure is
+recorded on the event and never reverts the confirmed booking.
+
 My Customers is a modular monolith. The product should remain one deployable
 Next.js application until there is concrete operational pressure to split a
 module out. Microservices are intentionally avoided because Phase 1 does not
@@ -44,6 +59,12 @@ construction lives in `lib/supabase`, using browser, server, proxy, and
 server-only service-role helpers separately so secrets do not cross into client
 bundles.
 
+Authenticated server identity is derived from Supabase's validated JWT claims.
+The shared auth boundary reuses that identity for membership and current-
+business resolution so protected actions do not repeat Auth validation calls.
+Current-business enforcement is centralized in `lib/auth/server.ts`; feature
+actions remain responsible for their domain validation and mutations.
+
 ## Multi-Tenancy
 
 Platform users authenticate with Supabase Auth and belong to one or more
@@ -67,6 +88,12 @@ imports `server-only`. Client-safe values use the `NEXT_PUBLIC_` prefix and are
 validated separately. UI components should not directly perform database access;
 server actions, route handlers, or feature-level server modules should own data
 access.
+
+Feature query modules should project only the fields required by list and queue
+views. Full rows, private notes, snapshots, and other detail-only fields belong
+in authorized detail queries. Independent reads may run concurrently, while
+tenant ownership remains enforced by explicit business filters and PostgreSQL
+RLS.
 
 ## Testing Strategy
 

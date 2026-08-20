@@ -13,6 +13,8 @@ import type {
   PublicConfirmationStatus,
   PublicConfirmationView,
 } from "@/features/confirmation-links/public-types";
+import { confirmationContactSchema } from "@/features/confirmation-links/validation";
+import { deliverEmailEvent } from "@/lib/email/outbox";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -61,7 +63,22 @@ export async function getPublicConfirmationView(
   return parsePublicConfirmationView(data);
 }
 
-export async function confirmPublicBooking(token: string): Promise<PublicConfirmationView> {
+export async function confirmPublicBooking(
+  token: string,
+  contactInput: unknown,
+): Promise<
+  PublicConfirmationView & {
+    fieldErrors?: { contactEmail?: string[]; contactPhone?: string[] };
+  }
+> {
+  const contact = confirmationContactSchema.safeParse(contactInput);
+  if (!contact.success) {
+    return {
+      status: "invalid_contact",
+      fieldErrors: contact.error.flatten().fieldErrors,
+    };
+  }
+
   const bucket = await confirmationRateLimitBucket("confirm");
   const allowed = await consumeConfirmationRateLimit("confirm", bucket);
 
@@ -76,10 +93,20 @@ export async function confirmPublicBooking(token: string): Promise<PublicConfirm
   const supabase = createServiceRoleClient();
   const { data, error } = await supabase.rpc("confirm_booking_by_token_hash", {
     p_token_hash: hashConfirmationToken(token),
+    p_contact_email: contact.data.contactEmail,
+    p_contact_phone: contact.data.contactPhone ?? null,
   });
 
   if (error) {
     return { status: "unavailable" };
+  }
+
+  if (
+    isRecord(data) &&
+    data.status === "confirmed" &&
+    typeof data.email_event_id === "string"
+  ) {
+    await deliverEmailEvent(data.email_event_id);
   }
 
   const parsed = parsePublicConfirmationView(data);

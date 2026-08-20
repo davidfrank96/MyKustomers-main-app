@@ -1,13 +1,16 @@
 import "server-only";
 import type { Route } from "next";
 import { redirect } from "next/navigation";
-import type { User } from "@supabase/supabase-js";
 import { isSupabasePublicEnvConfigured } from "@/lib/config/public-env";
 import { getSafeRedirectPath } from "@/lib/security/redirects";
 import { createClient } from "@/lib/supabase/server";
 import type { BusinessMemberRole } from "@/types/database";
 
-export type AuthenticatedUser = User;
+export type AuthenticatedUser = {
+  id: string;
+  email?: string;
+  userMetadata: Record<string, unknown>;
+};
 
 export type BusinessMembership = {
   businessId: string;
@@ -42,21 +45,20 @@ export async function getAuthenticatedUser(): Promise<AuthenticatedUser | null> 
 
   const supabase = await createClient();
   const { data: claimsData, error: claimsError } = await supabase.auth.getClaims();
+  const claims = claimsData?.claims;
 
-  if (claimsError || !claimsData?.claims?.sub) {
+  if (claimsError || !claims?.sub) {
     return null;
   }
 
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
-
-  if (error || !user) {
-    return null;
-  }
-
-  return user;
+  return {
+    id: claims.sub,
+    email: typeof claims.email === "string" ? claims.email : undefined,
+    userMetadata:
+      typeof claims.user_metadata === "object" && claims.user_metadata !== null
+        ? claims.user_metadata
+        : {},
+  };
 }
 
 export async function requireUser(next = "/dashboard") {
@@ -70,8 +72,10 @@ export async function requireUser(next = "/dashboard") {
   return user;
 }
 
-export async function getBusinessMemberships(): Promise<BusinessMembership[]> {
-  const user = await getAuthenticatedUser();
+export async function getBusinessMemberships(
+  authenticatedUser?: AuthenticatedUser,
+): Promise<BusinessMembership[]> {
+  const user = authenticatedUser ?? (await getAuthenticatedUser());
 
   if (!user || !isSupabasePublicEnvConfigured()) {
     return [];
@@ -96,8 +100,10 @@ export async function getBusinessMemberships(): Promise<BusinessMembership[]> {
   }));
 }
 
-export async function getCurrentBusinessContext(): Promise<BusinessContext> {
-  const memberships = await getBusinessMemberships();
+export async function getCurrentBusinessContext(
+  authenticatedUser?: AuthenticatedUser,
+): Promise<BusinessContext> {
+  const memberships = await getBusinessMemberships(authenticatedUser);
 
   if (memberships.length === 0 || !isSupabasePublicEnvConfigured()) {
     return { memberships, currentBusiness: null };
@@ -148,12 +154,25 @@ export async function requireBusinessMembership(businessId?: string) {
 export async function requireBusinessRole(
   businessId: string,
   allowedRoles: BusinessMemberRole[],
+  authenticatedUser?: AuthenticatedUser,
 ) {
-  const membership = await requireBusinessMembership(businessId);
+  const memberships = await getBusinessMemberships(authenticatedUser);
+  const membership = memberships.find((candidate) => candidate.businessId === businessId);
 
-  if (!allowedRoles.includes(membership.role)) {
+  if (!membership || !allowedRoles.includes(membership.role)) {
     throw new AuthorizationError();
   }
 
   return membership;
+}
+
+export async function requireCurrentBusiness(next = "/dashboard") {
+  const user = await requireUser(next);
+  const context = await getCurrentBusinessContext(user);
+
+  if (!context.currentBusiness) {
+    redirect("/onboarding" as Route);
+  }
+
+  return { user, business: context.currentBusiness };
 }

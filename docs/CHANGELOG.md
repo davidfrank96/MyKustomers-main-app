@@ -2,6 +2,42 @@
 
 This changelog records meaningful project milestones. It is not a substitute for Git history.
 
+## 2026-08-20 - Customer Contact And Confirmation Email Foundation
+
+Status: VERIFIED
+
+- Required normalized customer-provided email and added optional phone to the
+  existing secure booking confirmation action without adding customer accounts.
+- Preserved submitted contact on immutable confirmation evidence and enriched
+  only empty customer contact fields.
+- Added a private durable `BOOKING_CONFIRMED` email outbox event to the atomic
+  confirmation transaction, with service-role claiming and bounded delivery
+  state/failure metadata.
+- Added provider-neutral HTML/plain-text delivery, a no-network development
+  adapter, and opt-in Resend configuration.
+- Added minimal public form and vendor detail updates plus unit, static, live
+  Supabase race/security/failure, and Playwright coverage.
+
+## 2026-08-20 - Engineering Quality and Architecture Review
+
+Status: VERIFIED
+
+- Revalidated the modular-monolith boundaries, Supabase Auth/RLS tenancy model,
+  migrations, server actions, query modules, domain types, tests, and dependency
+  surface before the page-by-page UI redesign.
+- Centralized authenticated current-business enforcement and reused validated
+  auth claims across membership checks to remove redundant Auth requests.
+- Narrowed customer and booking list projections, consolidated dashboard
+  customer hydration, and parallelized independent booking-detail reads.
+- Added shared PostgREST filter encoding, opaque-token primitives, and runtime
+  security-test setup while preserving feature-specific public token purposes.
+- Aligned the custom analytics range guard with the database's five-calendar-
+  year contract and added boundary regression coverage.
+- Added a narrow follow-up migration so booking completion trends use
+  `completed_at` buckets, matching the documented completion-date definition.
+- Made no table, RLS, lifecycle, money, analytics definition, dependency, or UI
+  design changes.
+
 ## 2026-08-19 - Phase 9 Business Insights and Analytics
 
 Status: VERIFIED

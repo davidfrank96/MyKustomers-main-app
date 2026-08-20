@@ -267,6 +267,15 @@ confirmation-link unit tests, static migration/security tests, runtime Supabase
 confirmation security tests, Playwright public confirmation journey coverage,
 lint, typecheck, full tests, production build, and dependency audit.
 
+Post-phase foundation enhancement: Migration
+`20260820131919_customer_contact_confirmation_email_foundation.sql` requires a
+normalized customer-provided email at confirmation, optionally records phone,
+preserves both on immutable confirmation evidence, enriches only empty customer
+fields, and atomically creates one durable `BOOKING_CONFIRMED` email event.
+Provider delivery happens after commit through a server-only abstraction, so
+delivery failure cannot undo confirmation. This enhancement is VERIFIED against
+the configured development Supabase database.
+
 Known risks: Future email automation must preserve raw-token non-logging,
 short-lived links, no account requirement, and material-change invalidation.
 
@@ -398,7 +407,10 @@ Data-model impact: Phase 9 migration
 `20260819010145_phase_9_business_insights_analytics.sql` adds targeted indexes
 and `public.get_business_insights`; follow-up migration
 `20260819011341_phase_9_fix_insights_current_time.sql` corrects the applied RPC
-variable name. No analytics tables or views were added.
+variable name. Follow-up migration
+`20260820030000_phase_9_fix_booking_trend_buckets.sql` aligns completed trend
+buckets with the documented `completed_at` period rule. No analytics tables or
+views were added.
 
 Security impact: Aggregates are tenant-private data. The application resolves
 current business server-side, the RPC checks active membership, and cross-tenant

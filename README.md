@@ -48,12 +48,20 @@ NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
 RESEND_API_KEY=
+TRANSACTIONAL_EMAIL_PROVIDER=development
+TRANSACTIONAL_EMAIL_FROM=
 E2E_AUTH_EMAIL=
 E2E_AUTH_PASSWORD=
 ```
 
 Client-safe values are validated separately from server-only secrets in
 `lib/config`.
+
+Booking confirmation email uses the server-only application email abstraction,
+not Supabase Auth email. `development` is the safe default and records a
+synthetic provider message ID without making an external request. Set
+`TRANSACTIONAL_EMAIL_PROVIDER=resend`, `RESEND_API_KEY`, and
+`TRANSACTIONAL_EMAIL_FROM` together to enable real delivery.
 
 `E2E_AUTH_EMAIL` and `E2E_AUTH_PASSWORD` are optional local test credentials for
 real Supabase authentication E2E tests. Do not commit real values.

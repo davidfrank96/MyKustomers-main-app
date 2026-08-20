@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { afterAll, describe, expect, it } from "vitest";
 import type { Database } from "@/types/database";
 import {
@@ -7,23 +7,18 @@ import {
   hashConfirmationToken,
 } from "@/features/confirmation-links/token";
 import { hashRateLimitIdentity } from "@/features/confirmation-links/rate-limit-keys";
+import {
+  createRuntimeSecurityContext,
+  expectNoRows,
+} from "@/tests/security/runtime-support";
 
-const safeTargets = new Set([
-  "local",
-  "dev",
-  "development",
-  "test",
-  "testing",
-  "staging",
-]);
-const runtimeVerificationEnabled =
-  process.env.PHASE2_RUNTIME_VERIFICATION === "1" &&
-  safeTargets.has((process.env.PHASE2_SUPABASE_TARGET ?? "").toLowerCase()) &&
-  Boolean(
-    process.env.NEXT_PUBLIC_SUPABASE_URL &&
-      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY &&
-      process.env.SUPABASE_SERVICE_ROLE_KEY,
-  );
+const runtime = createRuntimeSecurityContext({
+  suiteName: "Phase 6",
+  storagePrefix: "phase6-runtime",
+});
+const runtimeVerificationEnabled = runtime.enabled;
+const requiredEnv = runtime.requiredEnv;
+const createSupabaseClient = runtime.createSupabaseClient;
 
 type AppClient = SupabaseClient<Database>;
 type UserFixture = {
@@ -32,31 +27,6 @@ type UserFixture = {
   password: string;
   client: AppClient;
 };
-
-function requiredEnv(name: string) {
-  const value = process.env[name];
-
-  if (!value) {
-    throw new Error(`${name} is required for Phase 6 runtime verification.`);
-  }
-
-  return value;
-}
-
-function createSupabaseClient(key: string) {
-  return createClient<Database>(requiredEnv("NEXT_PUBLIC_SUPABASE_URL"), key, {
-    auth: {
-      autoRefreshToken: false,
-      detectSessionInUrl: false,
-      persistSession: false,
-      storageKey: `phase6-runtime-${randomUUID()}`,
-    },
-  });
-}
-
-function expectNoRows<T>(data: T[] | null) {
-  expect(data ?? []).toHaveLength(0);
-}
 
 function statusFrom(value: unknown) {
   if (typeof value === "object" && value !== null && "status" in value) {
@@ -145,15 +115,23 @@ if (runtimeVerificationEnabled) {
       return data!.id;
     }
 
-    async function createCustomer(client: AppClient, businessId: string, label: string) {
+    async function createCustomer(
+      client: AppClient,
+      businessId: string,
+      label: string,
+      contact: { email?: string | null; phone?: string | null } = {},
+    ) {
       const safeLabel = label.toLowerCase().replace(/[^a-z0-9]+/g, "-");
       const { data, error } = await client
         .from("customers")
         .insert({
           business_id: businessId,
           name: `Phase 6 ${label}`,
-          email: `${safeLabel}-${Date.now()}@example.com`,
-          phone: "+353 01 555 0101",
+          email:
+            contact.email === undefined
+              ? `${safeLabel}-${Date.now()}@example.com`
+              : contact.email,
+          phone: contact.phone === undefined ? "+353 01 555 0101" : contact.phone,
           notes: "Runtime confirmation customer",
         })
         .select("id")
@@ -216,9 +194,15 @@ if (runtimeVerificationEnabled) {
       return data;
     }
 
-    async function publicConfirm(token: string) {
+    async function publicConfirm(
+      token: string,
+      contactEmail = "phase6-confirmation@example.com",
+      contactPhone: string | null = null,
+    ) {
       const { data, error } = await service.rpc("confirm_booking_by_token_hash", {
         p_token_hash: hashConfirmationToken(token),
+        p_contact_email: contactEmail,
+        p_contact_phone: contactPhone,
       });
       expect(error).toBeNull();
       return data;
@@ -229,7 +213,12 @@ if (runtimeVerificationEnabled) {
       const userB = await createConfirmedUser("owner-b");
       const businessAId = await createBusiness(userA.id, "Business A");
       const businessBId = await createBusiness(userB.id, "Business B");
-      const customerAId = await createCustomer(userA.client, businessAId, "Customer A");
+      const customerAId = await createCustomer(
+        userA.client,
+        businessAId,
+        "Customer A",
+        { email: "existing@example.com", phone: "+353 01 555 0101" },
+      );
       const customerBId = await createCustomer(userB.client, businessBId, "Customer B");
 
       const bookingAId = await createBooking(
@@ -239,7 +228,13 @@ if (runtimeVerificationEnabled) {
         userA.id,
         "Phase 6 Valid Booking",
       );
-      await createBooking(userB.client, businessBId, customerBId, userB.id, "Phase 6 Booking B");
+      const bookingBId = await createBooking(
+        userB.client,
+        businessBId,
+        customerBId,
+        userB.id,
+        "Phase 6 Booking B",
+      );
 
       const { token: tokenA } = await generateLink(userA.client, bookingAId);
 
@@ -267,6 +262,22 @@ if (runtimeVerificationEnabled) {
         .single();
       expect(linkBeforeGetError).toBeNull();
       expect(linkBeforeGet?.used_at).toBeNull();
+
+      expect(statusFrom(await publicConfirm(tokenA, "not-an-email"))).toBe(
+        "invalid_contact",
+      );
+      const { data: linkAfterInvalid } = await service
+        .from("confirmation_links")
+        .select("used_at")
+        .eq("token_hash", hashConfirmationToken(tokenA))
+        .single();
+      expect(linkAfterInvalid?.used_at).toBeNull();
+      const { data: bookingAfterInvalid } = await service
+        .from("bookings")
+        .select("status")
+        .eq("id", bookingAId)
+        .single();
+      expect(bookingAfterInvalid?.status).toBe("AWAITING_CUSTOMER");
 
       const invalidView = await service.rpc("get_confirmation_public_view", {
         p_token_hash: hashConfirmationToken(generateConfirmationToken()),
@@ -321,19 +332,50 @@ if (runtimeVerificationEnabled) {
       );
       expect(crossTenantRevokeError).not.toBeNull();
 
-      const confirmResult = await publicConfirm(tokenA);
+      const confirmResult = await publicConfirm(
+        tokenA,
+        "new@example.com",
+        "+353 01 555 0199",
+      );
       expect(statusFrom(confirmResult)).toBe("confirmed");
 
-      const secondConfirmResult = await publicConfirm(tokenA);
+      const secondConfirmResult = await publicConfirm(tokenA, "replace@example.com");
       expect(statusFrom(secondConfirmResult)).toBe("already_confirmed");
 
       const { data: confirmationRows, error: confirmationRowsError } = await service
         .from("booking_confirmations")
-        .select("id, terms_hash, terms_snapshot")
+        .select("id, terms_hash, terms_snapshot, contact_email, contact_phone")
         .eq("booking_id", bookingAId);
       expect(confirmationRowsError).toBeNull();
       expect(confirmationRows).toHaveLength(1);
+      expect(confirmationRows?.[0]).toMatchObject({
+        contact_email: "new@example.com",
+        contact_phone: "+353 01 555 0199",
+      });
       const confirmedTermsHash = confirmationRows![0].terms_hash;
+
+      const { data: preservedCustomer } = await service
+        .from("customers")
+        .select("email, phone")
+        .eq("id", customerAId)
+        .single();
+      expect(preservedCustomer).toEqual({
+        email: "existing@example.com",
+        phone: "+353 01 555 0101",
+      });
+
+      const { data: confirmationEvents, error: confirmationEventsError } = await service
+        .from("email_events")
+        .select("id, booking_confirmation_id, recipient_email, status, attempt_count")
+        .eq("booking_id", bookingAId);
+      expect(confirmationEventsError).toBeNull();
+      expect(confirmationEvents).toHaveLength(1);
+      expect(confirmationEvents?.[0]).toMatchObject({
+        booking_confirmation_id: confirmationRows?.[0].id,
+        recipient_email: "new@example.com",
+        status: "PENDING",
+        attempt_count: 0,
+      });
 
       const { data: confirmedBooking, error: confirmedBookingError } = await service
         .from("bookings")
@@ -363,6 +405,10 @@ if (runtimeVerificationEnabled) {
       const usedViewBeforeMaterialChange = await publicView(tokenA);
       expect(statusFrom(usedViewBeforeMaterialChange)).toBe("already_confirmed");
       expect(bookingFrom(usedViewBeforeMaterialChange)?.total_amount_minor).toBe(4_500_000);
+      expect(bookingFrom(usedViewBeforeMaterialChange)?.contact_email_masked).toBe(
+        "n***@example.com",
+      );
+      expect(JSON.stringify(usedViewBeforeMaterialChange)).not.toContain("new@example.com");
 
       const { error: materialUpdateError } = await userA.client
         .from("bookings")
@@ -386,6 +432,92 @@ if (runtimeVerificationEnabled) {
 
       const { token: newToken } = await generateLink(userA.client, bookingAId);
       expect(statusFrom(await publicView(newToken))).toBe("valid");
+
+      const emptyCustomerId = await createCustomer(
+        userA.client,
+        businessAId,
+        "Empty Contact Customer",
+        { email: null, phone: null },
+      );
+      const emptyContactBookingId = await createBooking(
+        userA.client,
+        businessAId,
+        emptyCustomerId,
+        userA.id,
+        "Phase 6 Empty Contact Booking",
+      );
+      const { token: emptyContactToken } = await generateLink(
+        userA.client,
+        emptyContactBookingId,
+      );
+      expect(
+        statusFrom(
+          await publicConfirm(
+            emptyContactToken,
+            "customer@example.com",
+            "+353 01 555 0177",
+          ),
+        ),
+      ).toBe("confirmed");
+      const { data: enrichedCustomer } = await service
+        .from("customers")
+        .select("email, phone")
+        .eq("id", emptyCustomerId)
+        .single();
+      expect(enrichedCustomer).toEqual({
+        email: "customer@example.com",
+        phone: "+353 01 555 0177",
+      });
+      const { data: emptyContactConfirmation } = await service
+        .from("booking_confirmations")
+        .select("id, contact_email, contact_phone")
+        .eq("booking_id", emptyContactBookingId)
+        .single();
+      expect(emptyContactConfirmation).toMatchObject({
+        contact_email: "customer@example.com",
+        contact_phone: "+353 01 555 0177",
+      });
+      const { data: emptyContactEvents } = await service
+        .from("email_events")
+        .select("id, status")
+        .eq("booking_id", emptyContactBookingId);
+      expect(emptyContactEvents).toHaveLength(1);
+
+      const { data: claimedEvents, error: claimError } = await service.rpc(
+        "claim_email_event",
+        { p_email_event_id: emptyContactEvents![0].id },
+      );
+      expect(claimError).toBeNull();
+      expect(claimedEvents).toHaveLength(1);
+      const { error: failureUpdateError } = await service
+        .from("email_events")
+        .update({
+          status: "FAILED",
+          failure_code: "simulated_provider_failure",
+          failure_message: "The simulated provider rejected the request.",
+        })
+        .eq("id", emptyContactEvents![0].id)
+        .eq("status", "SENDING");
+      expect(failureUpdateError).toBeNull();
+      const [{ data: bookingAfterDeliveryFailure }, { data: eventAfterFailure }] =
+        await Promise.all([
+          service
+            .from("bookings")
+            .select("status")
+            .eq("id", emptyContactBookingId)
+            .single(),
+          service
+            .from("email_events")
+            .select("status, attempt_count, failure_code")
+            .eq("id", emptyContactEvents![0].id)
+            .single(),
+        ]);
+      expect(bookingAfterDeliveryFailure?.status).toBe("CONFIRMED");
+      expect(eventAfterFailure).toEqual({
+        status: "FAILED",
+        attempt_count: 1,
+        failure_code: "simulated_provider_failure",
+      });
 
       const nonMaterialBookingId = await createBooking(
         userA.client,
@@ -450,13 +582,81 @@ if (runtimeVerificationEnabled) {
         "Phase 6 Race Booking",
       );
       const { token: raceToken } = await generateLink(userA.client, raceBookingId);
-      const raceResults = await Promise.all([publicConfirm(raceToken), publicConfirm(raceToken)]);
+      const raceEmails = ["race-one@example.com", "race-two@example.com"];
+      const raceResults = await Promise.all([
+        publicConfirm(raceToken, raceEmails[0]),
+        publicConfirm(raceToken, raceEmails[1]),
+      ]);
       expect(raceResults.map(statusFrom).sort()).toEqual(["already_confirmed", "confirmed"]);
       const { data: raceConfirmations } = await service
         .from("booking_confirmations")
-        .select("id")
+        .select("id, contact_email")
         .eq("booking_id", raceBookingId);
       expect(raceConfirmations).toHaveLength(1);
+      expect(raceEmails).toContain(raceConfirmations?.[0].contact_email);
+      const { data: raceEvents } = await service
+        .from("email_events")
+        .select("id, recipient_email")
+        .eq("booking_id", raceBookingId);
+      expect(raceEvents).toHaveLength(1);
+      expect(raceEvents?.[0].recipient_email).toBe(raceConfirmations?.[0].contact_email);
+
+      const { token: businessBToken } = await generateLink(userB.client, bookingBId);
+      expect(
+        statusFrom(await publicConfirm(businessBToken, "business-b@example.com")),
+      ).toBe("confirmed");
+
+      const { data: businessBConfirmation } = await service
+        .from("booking_confirmations")
+        .select("id")
+        .eq("booking_id", bookingBId)
+        .single();
+      const { data: businessBEmailEvent } = await service
+        .from("email_events")
+        .select("id")
+        .eq("booking_id", bookingBId)
+        .single();
+
+      const { data: userAEmailEvents, error: userAEmailEventsError } = await userA.client
+        .from("email_events")
+        .select("recipient_email")
+        .eq("business_id", businessBId);
+      expect(userAEmailEventsError).not.toBeNull();
+      expectNoRows(userAEmailEvents);
+
+      const { error: userAEmailEventMutationError } = await userA.client
+        .from("email_events")
+        .update({ failure_code: "cross_tenant_mutation" })
+        .eq("id", businessBEmailEvent!.id);
+      expect(userAEmailEventMutationError).not.toBeNull();
+
+      const { data: userAConfirmationRows, error: userAConfirmationReadError } =
+        await userA.client
+          .from("booking_confirmations")
+          .select("contact_email")
+          .eq("id", businessBConfirmation!.id);
+      expect(userAConfirmationReadError).not.toBeNull();
+      expectNoRows(userAConfirmationRows);
+
+      const bookingConfirmationsAttackTable = userA.client.from(
+        "booking_confirmations",
+      ) as unknown as {
+        update(values: Record<string, unknown>): {
+          eq(column: string, value: string): PromiseLike<{ error: unknown }>;
+        };
+      };
+      const { error: userAConfirmationMutationError } =
+        await bookingConfirmationsAttackTable
+          .update({ contact_phone: "+353 01 555 0999" })
+          .eq("id", businessBConfirmation!.id);
+      expect(userAConfirmationMutationError).not.toBeNull();
+
+      const { data: anonEmailEvents, error: anonEmailEventsError } = await anon
+        .from("email_events")
+        .select("recipient_email")
+        .limit(1);
+      expect(anonEmailEventsError).not.toBeNull();
+      expectNoRows(anonEmailEvents);
 
       const rateBucket = hashRateLimitIdentity(`phase6-rate-${randomUUID()}`);
       createdRateBuckets.push(rateBucket);
@@ -487,7 +687,7 @@ if (runtimeVerificationEnabled) {
 
       const { data: auditRows, error: auditRowsError } = await service
         .from("audit_logs")
-        .select("event_type")
+        .select("event_type, metadata")
         .eq("business_id", businessAId);
       expect(auditRowsError).toBeNull();
       expect(auditRows?.map((row) => row.event_type)).toContain("CONFIRMATION_LINK_CREATED");
@@ -498,6 +698,7 @@ if (runtimeVerificationEnabled) {
         "BOOKING_CONFIRMATION_INVALIDATED",
       );
       expect(JSON.stringify(auditRows)).not.toContain(tokenA);
+      expect(JSON.stringify(auditRows)).not.toContain("new@example.com");
     }, 180_000);
 
     afterAll(async () => {
@@ -506,6 +707,7 @@ if (runtimeVerificationEnabled) {
       }
 
       if (createdBookingIds.length > 0) {
+        await service.from("email_events").delete().in("booking_id", createdBookingIds);
         await service.from("booking_confirmations").delete().in("booking_id", createdBookingIds);
         await service.from("confirmation_links").delete().in("booking_id", createdBookingIds);
         await service.from("booking_status_history").delete().in("booking_id", createdBookingIds);

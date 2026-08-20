@@ -1,18 +1,22 @@
-import { createHash, randomBytes } from "node:crypto";
+import {
+  generateOpaqueToken,
+  hashOpaqueToken,
+  isPlausibleOpaqueToken,
+} from "@/lib/security/tokens";
 
 export const feedbackTokenBytes = 32;
 export const feedbackTokenLifetimeDays = 14;
 
 export function generateFeedbackToken() {
-  return randomBytes(feedbackTokenBytes).toString("base64url");
+  return generateOpaqueToken(feedbackTokenBytes);
 }
 
 export function hashFeedbackToken(token: string) {
-  return createHash("sha256").update(token, "utf8").digest("hex");
+  return hashOpaqueToken(token);
 }
 
 export function isPlausibleFeedbackToken(token: string) {
-  return /^[A-Za-z0-9_-]{32,256}$/.test(token);
+  return isPlausibleOpaqueToken(token);
 }
 
 export function feedbackLinkExpiresAt(now = new Date()) {

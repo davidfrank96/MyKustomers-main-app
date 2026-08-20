@@ -353,3 +353,25 @@ Phase 9 resolves the current business server-side, calls
 business membership inside the RPC, avoids analytics views/tables that could
 bypass RLS, and runtime-tests cross-tenant aggregate denial and currency
 separation.
+
+SEC-033 - Confirmation Contact Is Scoped Evidence
+
+Status: VERIFIED
+
+Customer-provided email and optional phone are validated in the application and
+database and stored on immutable booking confirmation evidence. Public consumed
+link views expose only a masked email. Existing different customer contact data
+is preserved, audit metadata contains identifiers and booleans rather than
+contact values, and authenticated/anonymous roles have no direct access to
+confirmation evidence or email event tables.
+
+SEC-034 - Transactional Email Uses A Server-Only Durable Boundary
+
+Status: VERIFIED
+
+The confirmation transaction creates exactly one private email event before
+commit. Only the service role can claim or mutate events, provider credentials
+remain in server-only environment validation, and provider calls occur after
+commit. Runtime tests verify race uniqueness, cross-tenant read/mutation denial,
+anonymous denial, and that simulated delivery failure leaves the booking and
+confirmation intact.
