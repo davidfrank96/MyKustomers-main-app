@@ -98,11 +98,12 @@ without starting the broad redesign. Documentation is now an explicit same-task
 definition-of-done requirement with a change matrix, migration ledger, and
 lightweight drift tests.
 
-The 2026-08-21 main-branch reconciliation and CI quality gate is IMPLEMENTED -
-VERIFICATION PENDING. The authoritative product branch has been reconciled with
+The 2026-08-21 main-branch reconciliation and CI quality gate is VERIFIED. The
+authoritative product branch has been reconciled with
 the older Phase 9.5 UI-pass history without dropping current migrations or
-security behavior. GitHub Actions now defines core merge checks; actual remote
-workflow execution and branch integration remain verification gates.
+security behavior. GitHub Actions defines the core merge checks, pull request #2
+passed them, and GitHub reported the branch cleanly mergeable. Protected live
+Runtime Security remains a documented configuration follow-up.
 
 Phase 1 established a Next.js application foundation, strict TypeScript, responsive shells, design primitives, environment configuration, Supabase client/server boundaries, test infrastructure, PWA foundation, documentation foundation, and lint/build/typecheck/test verification.
 

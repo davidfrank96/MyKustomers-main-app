@@ -197,9 +197,9 @@ production-readiness work.
   and guarded Runtime Security jobs.
 - [x] Workflow permissions are read-only and no production migration/deployment
   step exists.
-- [ ] Required E2E GitHub secrets configured for a dedicated non-production
+- [x] Required E2E GitHub secrets configured for a dedicated non-production
   Supabase project.
 - [ ] Protected runtime-security environment and enable variable configured.
-- [ ] GitHub Actions core checks pass on the reconciliation branch.
-- [ ] Pull request reports mergeable with required checks green.
+- [x] GitHub Actions core checks pass on the reconciliation branch.
+- [x] Pull request reports mergeable with required checks green.
 - [ ] `main` branch protection requires the documented core checks.

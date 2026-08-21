@@ -1,6 +1,6 @@
 # Continuous Integration
 
-STATUS: IMPLEMENTED - VERIFICATION PENDING
+STATUS: VERIFIED
 
 GitHub Actions workflow `.github/workflows/ci.yml` validates pull requests into
 `main` and pushes to `main`. It does not deploy the application or apply any
@@ -8,18 +8,23 @@ database migration.
 
 ## Core Jobs
 
-| Check name | Commands and purpose |
-| --- | --- |
-| Quality | `npm ci`, lint, typecheck, and changed-file `git diff --check` |
-| Tests | `npm ci` and unit, integration, static security, governance, and migration convention tests through `npm run test` |
-| Build | `npm ci` and the production Next.js build |
-| Dependency Security | `npm ci` and `npm audit --audit-level=moderate` |
-| E2E | Chromium installation and the complete Playwright suite against its workflow-owned local server and dedicated non-production Supabase project |
+| Check name          | Commands and purpose                                                                                                                          |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Quality             | `npm ci`, lint, typecheck, and changed-file `git diff --check`                                                                                |
+| Tests               | `npm ci` and unit, integration, static security, governance, and migration convention tests through `npm run test`                            |
+| Build               | `npm ci` and the production Next.js build                                                                                                     |
+| Dependency Security | `npm ci` and `npm audit --audit-level=moderate`                                                                                               |
+| E2E                 | Chromium installation and the complete Playwright suite against its workflow-owned local server and dedicated non-production Supabase project |
 
 CI uses Node 22 because `package.json` requires Node 22 or newer. Official
 `actions/checkout@v4` and `actions/setup-node@v4` actions run with `contents:
 read` permission. Superseded runs for the same pull request or branch are
 cancelled.
+
+The workflow was executed on pull request #2. Quality, Tests, Build, Dependency
+Security, and E2E completed successfully after the required non-production E2E
+secrets were installed. Runtime Security remained intentionally skipped behind
+its documented protected-environment guard.
 
 The Build job needs no Supabase or service-role values. Public configuration is
 optional during compilation, and server-only functionality fails closed when a
