@@ -40,6 +40,22 @@ A customer is not normally an authenticated My Customers user. Customer records 
 
 The booking/order is the central business domain object.
 
+Permanent product rule:
+
+> Every booking belongs to a customer. A vendor may select an existing customer
+> or create a new customer inline during booking creation.
+
+New Booking offers an explicit choice between an active existing customer and a
+minimal new customer. A new customer requires a name; email and phone remain
+optional. Potential exact active-customer matches are warnings, not automatic
+merges, and the vendor must choose whether to reuse or create separately.
+
+Both modes use one authenticated database transaction. New-customer mode
+atomically creates the customer, booking, trigger-owned status history, and
+required audits; any booking failure rolls back all effects. Tenant authority is
+derived server-side, existing customers must be active and belong to the current
+business, and archived customers cannot be selected or supplied to the RPC.
+
 Conceptual relationship:
 
 ```text
@@ -74,7 +90,7 @@ Conceptual workflow:
 Vendor and customer agree externally
         |
         v
-Vendor creates booking
+Vendor selects or creates the customer and creates booking
         |
         v
 Vendor sends confirmation link

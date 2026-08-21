@@ -32,6 +32,8 @@ Use these labels strictly:
 - PLANNED: Specified but not necessarily present in code.
 - IMPLEMENTED: Repository evidence exists.
 - VERIFIED: Repository evidence exists and appropriate verification succeeded.
+- IMPLEMENTED - VERIFICATION PENDING: Implementation exists, but a required
+  verification dependency or journey remains incomplete.
 
 Rules:
 
@@ -50,19 +52,17 @@ Rules:
 - Update tests when behavior changes.
 - Keep secrets out of source control and browser bundles.
 
-## Documentation Updates
+## Documentation Definition Of Done
 
-After each implementation phase, update only documents materially affected. At
-minimum consider whether the following require updates:
+Documentation is part of definition of done. Every material feature, fix,
+migration, contract, architecture, security, dependency, test-strategy, or
+user-visible behavior change must update affected documentation in the same
+task. No separate documentation pass should normally be required.
 
-- `docs/MASTER_PLAN.md`
-- `docs/PHASES.md`
-- `docs/DATA_MODEL.md`
-- `docs/security.md`
-- `docs/DECISIONS.md`
-- `docs/TESTING.md`
-- `docs/CHANGELOG.md`
-- `README.md`
+Use the change matrix and checklist in `docs/DOCUMENTATION_GOVERNANCE.md`.
+Final reports must list updated documentation or explain why none was required.
+Do not update every document for trivial edits; update every materially affected
+claim, contract, decision, setup instruction, test expectation, and status.
 
 Useful commands:
 

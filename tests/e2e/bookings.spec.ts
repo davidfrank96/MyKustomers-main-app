@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import { randomUUID } from "node:crypto";
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import { hashRateLimitIdentity } from "../../features/confirmation-links/rate-limit-keys";
 
@@ -72,16 +72,27 @@ function futureLocalDateTimePlus(days: number) {
   return local.toISOString().slice(0, 16);
 }
 
+async function expectNoPageOverflow(page: Page) {
+  const dimensions = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }));
+
+  expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth + 1);
+}
+
 async function createConfirmedBusinessOwnerWithCustomer({
   email,
   password,
   slug,
   customerName,
+  customerEmail = null,
 }: {
   email: string;
   password: string;
   slug: string;
   customerName: string;
+  customerEmail?: string | null;
 }) {
   const admin = createAdminClient();
   const { data: userData, error: userError } = await admin.auth.admin.createUser({
@@ -124,7 +135,7 @@ async function createConfirmedBusinessOwnerWithCustomer({
     .insert({
       business_id: business!.id,
       name: customerName,
-      email: null,
+      email: customerEmail,
       phone: null,
     })
     .select("id")
@@ -410,5 +421,111 @@ test.describe("booking engine", () => {
     await expect(page).toHaveURL(/message=issue-resolved/);
     await expect(page.getByText("Issue resolved.")).toBeVisible();
     await expect(page.locator("span").filter({ hasText: /^Resolved$/ })).toBeVisible();
+  });
+
+  test("business user can create a customer inline after an exact-match warning", async ({
+    page,
+  }, testInfo) => {
+    test.setTimeout(60_000);
+
+    const email = testEmail(`${testInfo.project.name}-inline`);
+    const password = `Inline-E2E-${randomUUID()}-A1`;
+    const slug = `inline-e2e-bookings-${Date.now()}-${randomUUID().slice(0, 8)}`;
+    const existingCustomerName = `Existing Candidate ${randomUUID().slice(0, 8)}`;
+    const inlineCustomerName = `Inline Sarah ${randomUUID().slice(0, 8)}`;
+    const bookingTitle = `Inline Booking ${randomUUID().slice(0, 8)}`;
+    const duplicateEmail = `duplicate-${randomUUID().slice(0, 8)}@example.com`;
+    createdBusinessSlugs.add(slug);
+
+    const fixture = await createConfirmedBusinessOwnerWithCustomer({
+      email,
+      password,
+      slug,
+      customerName: existingCustomerName,
+      customerEmail: duplicateEmail,
+    });
+
+    await page.goto("/login");
+    await page.getByLabel("Email").fill(email);
+    await page.getByLabel("Password").fill(password);
+    await page.getByRole("button", { name: "Log in" }).click();
+    await expect(page).toHaveURL(/\/dashboard/);
+
+    await page.goto("/bookings/new");
+    await page.getByRole("button", { name: "Add new customer" }).click();
+    await page.getByLabel("Customer name").fill(inlineCustomerName);
+    await page.getByLabel("Email", { exact: true }).fill(duplicateEmail.toUpperCase());
+    await page.getByLabel("Booking title").fill(bookingTitle);
+    await page.getByLabel("Scheduled date").fill(futureLocalDateTime());
+    await page.getByLabel("Agreed total").fill("45000");
+    await page.getByLabel("Deposit recorded").fill("5000");
+    await page.getByRole("button", { name: "Create booking" }).click();
+
+    await expect(page.getByText("Possible existing customer", { exact: true })).toBeVisible();
+    await expect(page.getByText(existingCustomerName, { exact: true })).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: `Use ${existingCustomerName}` }),
+    ).toBeVisible();
+
+    const originalViewport = page.viewportSize();
+    for (const width of [320, 360, 375, 390, 430, 768, 834, 1024, 1280, 1440]) {
+      await page.setViewportSize({ width, height: width < 768 ? 900 : 1000 });
+      await expectNoPageOverflow(page);
+      await expect(page.getByLabel("Booking title")).toHaveValue(bookingTitle);
+      await expect(page.getByRole("button", { name: `Use ${existingCustomerName}` })).toBeVisible();
+      await expect(page.getByRole("button", { name: "Continue with new customer" })).toBeVisible();
+    }
+    if (originalViewport) {
+      await page.setViewportSize(originalViewport);
+    }
+
+    await page.getByRole("button", { name: "Continue with new customer" }).click();
+    await expect(page).toHaveURL(/\/bookings\/[0-9a-f-]+\?created=1/);
+    await expect(page.getByRole("heading", { name: bookingTitle })).toBeVisible();
+    const bookingDetailUrl = page.url();
+
+    const admin = createAdminClient();
+    const { data: inlineCustomers, error: inlineCustomersError } = await admin
+      .from("customers")
+      .select("id, email, phone")
+      .eq("business_id", fixture.businessId)
+      .eq("name", inlineCustomerName);
+    expect(inlineCustomersError).toBeNull();
+    expect(inlineCustomers).toEqual([
+      { id: expect.any(String), email: duplicateEmail, phone: null },
+    ]);
+    const inlineCustomerId = inlineCustomers![0].id;
+
+    await page.goto(`/customers?q=${encodeURIComponent(inlineCustomerName)}`);
+    await expect(page.getByText(inlineCustomerName)).toBeVisible();
+    await page.goto(`/bookings?q=${encodeURIComponent(bookingTitle)}`);
+    await expect(page.getByText(bookingTitle)).toBeVisible();
+
+    await page.goto(bookingDetailUrl);
+    await page.getByRole("button", { name: "Generate confirmation link" }).click();
+    const confirmationUrl = await page
+      .getByLabel("Generated confirmation link")
+      .inputValue();
+    const userAgent = (await page.evaluate(() => navigator.userAgent)).slice(0, 80);
+    createdRateLimitBuckets.add(hashRateLimitIdentity(`lookup:unknown:${userAgent}`));
+    createdRateLimitBuckets.add(hashRateLimitIdentity(`confirm:unknown:${userAgent}`));
+
+    await page.goto(confirmationUrl);
+    await page.getByLabel("Where should we send updates about this booking?").fill(
+      duplicateEmail,
+    );
+    await page.getByLabel("Phone number (optional)").fill("+353 01 555 0188");
+    await page.getByRole("button", { name: "Confirm booking" }).click();
+    await expect(page.getByRole("heading", { name: "Booking confirmed" })).toBeVisible();
+
+    const { data: confirmedInlineCustomer } = await admin
+      .from("customers")
+      .select("email, phone")
+      .eq("id", inlineCustomerId)
+      .single();
+    expect(confirmedInlineCustomer).toEqual({
+      email: duplicateEmail,
+      phone: "+353 01 555 0188",
+    });
   });
 });

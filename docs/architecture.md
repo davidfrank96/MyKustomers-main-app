@@ -7,6 +7,32 @@ accepted ADR.
 Documentation is not implementation evidence. Planned architecture must be
 distinguished from implemented code and verified behavior.
 
+## Current Snapshot
+
+My Customers is one Next.js modular monolith. Supabase Auth supplies platform
+identity; PostgreSQL and RLS enforce tenant ownership. Validated server actions
+or server-only route handlers call tenant-scoped queries and narrow RPCs for
+atomic or privileged workflows. The service-role client is isolated to explicit
+server boundaries. Public confirmation and feedback links are scoped,
+high-entropy capabilities whose hashes are stored at rest. Audit events preserve
+material activity, the durable email outbox separates transactional state from
+delivery, and an authenticated aggregate RPC provides private analytics.
+
+## Inline Customer Booking Boundary
+
+New Booking presents existing and new customer modes, but both converge on
+`public.create_booking_with_customer`. The authenticated `SECURITY DEFINER` RPC
+derives `auth.uid()` and the same first active membership used by current-
+business resolution. It accepts no business or creator authority from the
+client, uses an empty search path and qualified relations, and is executable by
+`authenticated` only.
+
+Existing mode locks and validates an active same-business customer. New mode
+normalizes and creates the customer, then creates the ordinary booking and both
+audit events in the same PostgreSQL transaction. Existing booking reference and
+status-history triggers remain authoritative. A booking failure therefore
+rolls back the inline customer and audit rows as well.
+
 ## Booking Confirmation Email Boundary
 
 The public confirmation server action validates and normalizes contact input,
@@ -101,7 +127,9 @@ Vitest covers shared utilities, domain validation, static migration/security
 checks, and opt-in runtime Supabase tenant tests. Playwright covers browser
 journeys for auth, onboarding, customers, bookings, customer confirmation, and
 the operational booking lifecycle, private feedback, and internal issue
-resolution, and business insights.
+resolution, and business insights. Booking coverage includes selecting an
+existing customer and creating a name/contact customer inline after an explicit
+exact-match warning.
 
 ## Architecture Conflict Handling
 

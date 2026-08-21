@@ -1,9 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useActionState } from "react";
+import { useActionState, useMemo, useState } from "react";
 import { useFormStatus } from "react-dom";
-import { AlertCircle, CheckCircle2, Save } from "lucide-react";
+import { AlertCircle, CheckCircle2, Plus, Save, Search, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -48,6 +47,7 @@ type BookingFormProps = {
   customers?: CustomerOption[];
   initialValues?: BookingFormValues;
   mode: "create" | "edit";
+  defaultCustomerMode?: "existing" | "new";
   disabled?: boolean;
   scheduledDisabled?: boolean;
 };
@@ -87,10 +87,29 @@ export function BookingForm({
   customers = [],
   initialValues = {},
   mode,
+  defaultCustomerMode = "existing",
   disabled = false,
   scheduledDisabled = false,
 }: BookingFormProps) {
   const [state, formAction] = useActionState(action, initialBookingActionState);
+  const [customerMode, setCustomerMode] = useState<"existing" | "new">(
+    defaultCustomerMode,
+  );
+  const [selectedCustomerId, setSelectedCustomerId] = useState(
+    initialValues.customerId ?? "",
+  );
+  const [customerSearch, setCustomerSearch] = useState("");
+  const [newCustomerName, setNewCustomerName] = useState("");
+  const [newCustomerEmail, setNewCustomerEmail] = useState("");
+  const [newCustomerPhone, setNewCustomerPhone] = useState("");
+  const [title, setTitle] = useState(initialValues.title ?? "");
+  const [description, setDescription] = useState(initialValues.description ?? "");
+  const [currency, setCurrency] = useState(initialValues.currency ?? "NGN");
+  const [totalAmount, setTotalAmount] = useState(initialValues.totalAmount ?? "");
+  const [depositAmount, setDepositAmount] = useState(
+    initialValues.depositAmount ?? "0.00",
+  );
+  const [internalNotes, setInternalNotes] = useState(initialValues.internalNotes ?? "");
   const [scheduledLocal, setScheduledLocal] = useState(
     toLocalDateTimeValue(initialValues.scheduledFor),
   );
@@ -102,9 +121,62 @@ export function BookingForm({
     const date = new Date(scheduledLocal);
     return Number.isNaN(date.getTime()) ? "" : date.toISOString();
   }, [scheduledLocal]);
+  const customerOptions = useMemo(() => {
+    const options = [...customers];
+
+    for (const candidate of state.duplicateCandidates ?? []) {
+      if (!options.some((customer) => customer.id === candidate.id)) {
+        options.push(candidate);
+      }
+    }
+
+    return options;
+  }, [customers, state.duplicateCandidates]);
+  const filteredCustomers = useMemo(() => {
+    const normalizedSearch = customerSearch.trim().toLowerCase();
+
+    if (!normalizedSearch) {
+      return customerOptions;
+    }
+
+    return customerOptions.filter((customer) =>
+      [customer.name, customer.email, customer.phone].some((value) =>
+        value?.toLowerCase().includes(normalizedSearch),
+      ),
+    );
+  }, [customerOptions, customerSearch]);
+  const duplicateWarningActive = Boolean(
+    state.duplicateCandidates?.length &&
+      state.duplicateInput &&
+      state.duplicateInput.name === newCustomerName.trim() &&
+      state.duplicateInput.email === (newCustomerEmail.trim().toLowerCase() || null) &&
+      state.duplicateInput.phone === (newCustomerPhone.trim() || null),
+  );
+
+  function chooseCustomerMode(nextMode: "existing" | "new") {
+    setCustomerMode(nextMode);
+
+    if (nextMode === "existing") {
+      setNewCustomerName("");
+      setNewCustomerEmail("");
+      setNewCustomerPhone("");
+    } else {
+      setSelectedCustomerId("");
+      setCustomerSearch("");
+    }
+  }
+
+  function selectExistingCustomer(customer: CustomerOption) {
+    setCustomerMode("existing");
+    setSelectedCustomerId(customer.id);
+    setCustomerSearch(customer.name);
+    setNewCustomerName("");
+    setNewCustomerEmail("");
+    setNewCustomerPhone("");
+  }
 
   return (
-    <form action={formAction} className="space-y-5" noValidate>
+    <form action={formAction} className="min-w-0 space-y-5" noValidate>
       {state.message ? (
         <div
           className="flex gap-2 rounded-md border border-border bg-muted px-3 py-2 text-sm"
@@ -120,37 +192,197 @@ export function BookingForm({
       ) : null}
 
       <input type="hidden" name="scheduledFor" value={scheduledForIso} />
+      {mode === "create" ? (
+        <input type="hidden" name="customerMode" value={customerMode} />
+      ) : null}
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2">
         {mode === "create" ? (
-          <div className="space-y-2 md:col-span-2">
-            <Label htmlFor="customerId">Customer</Label>
-            <Select
-              name="customerId"
-              defaultValue={initialValues.customerId ?? ""}
-              disabled={disabled}
-            >
-              <SelectTrigger
-                id="customerId"
-                aria-invalid={Boolean(fieldError(state, "customerId"))}
+          <div className="min-w-0 space-y-4 md:col-span-2">
+            <div>
+              <Label>Customer</Label>
+              <div
+                className="mt-2 grid w-full gap-1 rounded-md border border-border bg-muted p-1 sm:inline-flex sm:w-auto sm:grid-cols-none"
+                role="group"
+                aria-label="Customer selection mode"
               >
-                <SelectValue placeholder="Choose a customer" />
-              </SelectTrigger>
-              <SelectContent>
-                {customers.map((customer) => (
-                  <SelectItem key={customer.id} value={customer.id}>
-                    {customer.name}
-                    {customer.phone ? ` - ${customer.phone}` : ""}
-                    {!customer.phone && customer.email ? ` - ${customer.email}` : ""}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {fieldError(state, "customerId") ? (
-              <p className="text-sm leading-5 text-destructive">
-                {fieldError(state, "customerId")}
-              </p>
-            ) : null}
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={customerMode === "existing" ? "primary" : "ghost"}
+                  aria-pressed={customerMode === "existing"}
+                  disabled={disabled || customers.length === 0}
+                  className="w-full sm:w-auto"
+                  onClick={() => chooseCustomerMode("existing")}
+                >
+                  <UserRound className="size-4" aria-hidden="true" />
+                  Existing customer
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={customerMode === "new" ? "primary" : "ghost"}
+                  aria-pressed={customerMode === "new"}
+                  disabled={disabled}
+                  className="w-full sm:w-auto"
+                  onClick={() => chooseCustomerMode("new")}
+                >
+                  <Plus className="size-4" aria-hidden="true" />
+                  Add new customer
+                </Button>
+              </div>
+            </div>
+
+            {customerMode === "existing" ? (
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <Label htmlFor="customerSearch">Search existing customers</Label>
+                  <div className="relative">
+                    <Search
+                      className="pointer-events-none absolute left-3 top-3.5 size-4 text-muted-foreground"
+                      aria-hidden="true"
+                    />
+                    <Input
+                      id="customerSearch"
+                      value={customerSearch}
+                      onChange={(event) => setCustomerSearch(event.target.value)}
+                      placeholder="Name, email, or phone"
+                      className="pl-9"
+                      disabled={disabled}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="customerId">Customer</Label>
+                  <Select
+                    name="customerId"
+                    value={selectedCustomerId}
+                    onValueChange={setSelectedCustomerId}
+                    disabled={disabled}
+                  >
+                    <SelectTrigger
+                      id="customerId"
+                      aria-invalid={Boolean(fieldError(state, "customerId"))}
+                    >
+                      <SelectValue placeholder="Choose a customer" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {filteredCustomers.map((customer) => (
+                        <SelectItem key={customer.id} value={customer.id}>
+                          {customer.name}
+                          {customer.phone ? ` - ${customer.phone}` : ""}
+                          {!customer.phone && customer.email ? ` - ${customer.email}` : ""}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {filteredCustomers.length === 0 ? (
+                    <p className="text-xs leading-5 text-muted-foreground">
+                      No active customers match this search.
+                    </p>
+                  ) : null}
+                  {fieldError(state, "customerId") ? (
+                    <p className="text-sm leading-5 text-destructive">
+                      {fieldError(state, "customerId")}
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+            ) : (
+              <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="space-y-2 sm:col-span-2">
+                  <Label htmlFor="newCustomerName">Customer name</Label>
+                  <Input
+                    id="newCustomerName"
+                    name="newCustomerName"
+                    value={newCustomerName}
+                    onChange={(event) => setNewCustomerName(event.target.value)}
+                    required
+                    disabled={disabled}
+                    aria-invalid={Boolean(fieldError(state, "newCustomerName"))}
+                  />
+                  {fieldError(state, "newCustomerName") ? (
+                    <p className="text-sm leading-5 text-destructive">
+                      {fieldError(state, "newCustomerName")}
+                    </p>
+                  ) : null}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="newCustomerEmail">Email</Label>
+                  <Input
+                    id="newCustomerEmail"
+                    name="newCustomerEmail"
+                    type="email"
+                    autoComplete="email"
+                    value={newCustomerEmail}
+                    onChange={(event) => setNewCustomerEmail(event.target.value)}
+                    disabled={disabled}
+                    aria-invalid={Boolean(fieldError(state, "newCustomerEmail"))}
+                  />
+                  {fieldError(state, "newCustomerEmail") ? (
+                    <p className="text-sm leading-5 text-destructive">
+                      {fieldError(state, "newCustomerEmail")}
+                    </p>
+                  ) : null}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="newCustomerPhone">Phone</Label>
+                  <Input
+                    id="newCustomerPhone"
+                    name="newCustomerPhone"
+                    type="tel"
+                    autoComplete="tel"
+                    value={newCustomerPhone}
+                    onChange={(event) => setNewCustomerPhone(event.target.value)}
+                    disabled={disabled}
+                    aria-invalid={Boolean(fieldError(state, "newCustomerPhone"))}
+                  />
+                  {fieldError(state, "newCustomerPhone") ? (
+                    <p className="text-sm leading-5 text-destructive">
+                      {fieldError(state, "newCustomerPhone")}
+                    </p>
+                  ) : null}
+                </div>
+
+                {duplicateWarningActive ? (
+                  <div className="space-y-3 rounded-md border border-border bg-muted p-3 sm:col-span-2">
+                    <div>
+                      <p className="text-sm font-medium">Possible existing customer</p>
+                      <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                        An active customer has the same name, email, or phone.
+                      </p>
+                    </div>
+                    {(state.duplicateCandidates ?? []).map((customer) => (
+                      <div
+                        key={customer.id}
+                        className="flex flex-col gap-2 border-t border-border pt-3 sm:flex-row sm:items-center sm:justify-between"
+                      >
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium">{customer.name}</p>
+                          <p className="break-words text-xs text-muted-foreground">
+                            {[customer.email, customer.phone].filter(Boolean).join(" / ") ||
+                              "No contact details"}
+                          </p>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          aria-label={`Use ${customer.name}`}
+                          className="w-full sm:w-auto"
+                          onClick={() => selectExistingCustomer(customer)}
+                        >
+                          Use existing customer
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            )}
           </div>
         ) : null}
 
@@ -159,7 +391,8 @@ export function BookingForm({
           <Input
             id="title"
             name="title"
-            defaultValue={initialValues.title ?? ""}
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
             required
             disabled={disabled}
             aria-invalid={Boolean(fieldError(state, "title"))}
@@ -177,7 +410,8 @@ export function BookingForm({
           <Textarea
             id="description"
             name="description"
-            defaultValue={initialValues.description ?? ""}
+            value={description}
+            onChange={(event) => setDescription(event.target.value)}
             maxLength={5000}
             disabled={disabled}
           />
@@ -187,7 +421,8 @@ export function BookingForm({
           <Label htmlFor="currency">Currency</Label>
           <Select
             name="currency"
-            defaultValue={initialValues.currency ?? "NGN"}
+            value={currency}
+            onValueChange={setCurrency}
             disabled={disabled}
           >
             <SelectTrigger id="currency" aria-invalid={Boolean(fieldError(state, "currency"))}>
@@ -237,7 +472,8 @@ export function BookingForm({
             id="totalAmount"
             name="totalAmount"
             inputMode="decimal"
-            defaultValue={initialValues.totalAmount ?? ""}
+            value={totalAmount}
+            onChange={(event) => setTotalAmount(event.target.value)}
             required
             disabled={disabled}
             aria-invalid={Boolean(fieldError(state, "totalAmount"))}
@@ -256,7 +492,8 @@ export function BookingForm({
             id="depositAmount"
             name="depositAmount"
             inputMode="decimal"
-            defaultValue={initialValues.depositAmount ?? "0.00"}
+            value={depositAmount}
+            onChange={(event) => setDepositAmount(event.target.value)}
             required
             disabled={disabled}
             aria-invalid={Boolean(fieldError(state, "depositAmount"))}
@@ -274,7 +511,8 @@ export function BookingForm({
           <Textarea
             id="internalNotes"
             name="internalNotes"
-            defaultValue={initialValues.internalNotes ?? ""}
+            value={internalNotes}
+            onChange={(event) => setInternalNotes(event.target.value)}
             maxLength={5000}
             disabled={disabled}
           />
@@ -284,7 +522,18 @@ export function BookingForm({
         </div>
       </div>
 
-      {!disabled ? <SubmitButton label={submitLabel} /> : null}
+      {!disabled ? (
+        mode === "create" &&
+        customerMode === "new" &&
+        duplicateWarningActive ? (
+          <Button type="submit" name="duplicateAcknowledged" value="true">
+            <Save className="size-4" aria-hidden="true" />
+            Continue with new customer
+          </Button>
+        ) : (
+          <SubmitButton label={submitLabel} />
+        )
+      ) : null}
     </form>
   );
 }

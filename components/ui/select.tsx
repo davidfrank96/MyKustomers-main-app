@@ -17,14 +17,14 @@ export function SelectTrigger({
   return (
     <SelectPrimitive.Trigger
       className={cn(
-        "flex h-11 w-full items-center justify-between rounded-md border border-border bg-card px-3 text-sm shadow-sm",
+        "flex h-11 min-w-0 w-full items-center justify-between gap-2 overflow-hidden rounded-md border border-border bg-card px-3 text-sm shadow-sm [&>span:first-child]:truncate",
         className,
       )}
       {...props}
     >
       {children}
       <SelectPrimitive.Icon asChild>
-        <ChevronDown className="size-4 text-muted-foreground" aria-hidden="true" />
+        <ChevronDown className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
       </SelectPrimitive.Icon>
     </SelectPrimitive.Trigger>
   );
@@ -39,7 +39,7 @@ export function SelectContent({
     <SelectPrimitive.Portal>
       <SelectPrimitive.Content
         className={cn(
-          "z-50 min-w-40 overflow-hidden rounded-md border border-border bg-card shadow-lg",
+          "z-50 max-w-[calc(100vw-2rem)] min-w-40 overflow-hidden rounded-md border border-border bg-card shadow-lg",
           className,
         )}
         {...props}
@@ -68,7 +68,9 @@ export function SelectItem({
           <Check className="size-4" aria-hidden="true" />
         </SelectPrimitive.ItemIndicator>
       </span>
-      <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
+      <SelectPrimitive.ItemText>
+        <span className="block max-w-full break-words">{children}</span>
+      </SelectPrimitive.ItemText>
     </SelectPrimitive.Item>
   );
 }

@@ -114,7 +114,7 @@ export function FeedbackLinkPanel({
             <input
               readOnly
               value={generatedUrl}
-              className="min-h-11 flex-1 rounded-md border border-input bg-card px-3 py-2 text-sm"
+              className="min-h-11 min-w-0 flex-1 rounded-md border border-input bg-card px-3 py-2 text-sm"
               aria-label="Generated feedback link"
             />
             <Button type="button" variant="secondary" onClick={copyGeneratedUrl}>

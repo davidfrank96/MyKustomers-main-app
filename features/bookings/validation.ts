@@ -1,6 +1,11 @@
 import { z } from "zod";
 import { bookingCurrencies, parseMoneyToMinorUnits } from "@/features/bookings/money";
 import { bookingStatuses } from "@/features/bookings/status";
+import {
+  customerEmailSchema,
+  customerNameSchema,
+  customerPhoneSchema,
+} from "@/features/customers/validation";
 
 export const bookingListFilters = [
   "all",
@@ -44,7 +49,6 @@ function moneyField(label: string) {
 }
 
 const bookingFieldsSchema = z.object({
-  customerId: z.string().uuid("Choose a customer."),
   title: z
     .string()
     .trim()
@@ -67,6 +71,18 @@ const bookingFieldsSchema = z.object({
   internalNotes: optionalTrimmedString(5000),
 });
 
+const absentFormValue = z.preprocess((value) => {
+  if (value === null || value === undefined) {
+    return undefined;
+  }
+
+  if (typeof value === "string" && value.trim().length === 0) {
+    return undefined;
+  }
+
+  return value;
+}, z.undefined());
+
 function enforceDepositLimit<T extends { totalAmount: number; depositAmount: number }>(
   value: T,
   ctx: z.RefinementCtx,
@@ -80,11 +96,32 @@ function enforceDepositLimit<T extends { totalAmount: number; depositAmount: num
   }
 }
 
-export const bookingCreateSchema = bookingFieldsSchema.superRefine(enforceDepositLimit);
+const existingCustomerBookingSchema = bookingFieldsSchema.extend({
+  customerMode: z.literal("existing"),
+  customerId: z.string().uuid("Choose a customer."),
+  newCustomerName: absentFormValue,
+  newCustomerEmail: absentFormValue,
+  newCustomerPhone: absentFormValue,
+  duplicateAcknowledged: z.literal(false),
+});
 
-export const bookingUpdateSchema = bookingFieldsSchema
-  .omit({ customerId: true })
+const newCustomerBookingSchema = bookingFieldsSchema.extend({
+  customerMode: z.literal("new"),
+  customerId: absentFormValue,
+  newCustomerName: customerNameSchema,
+  newCustomerEmail: customerEmailSchema,
+  newCustomerPhone: customerPhoneSchema,
+  duplicateAcknowledged: z.boolean(),
+});
+
+export const bookingCreateSchema = z
+  .discriminatedUnion("customerMode", [
+    existingCustomerBookingSchema,
+    newCustomerBookingSchema,
+  ])
   .superRefine(enforceDepositLimit);
+
+export const bookingUpdateSchema = bookingFieldsSchema.superRefine(enforceDepositLimit);
 
 export const bookingTransitionSchema = z.object({
   toStatus: z.enum(bookingStatuses),

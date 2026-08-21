@@ -1,6 +1,7 @@
 # Release Checklist
 
-Most items are unchecked because Phase 1.5 is not a production-readiness phase.
+This checklist separates verified development evidence from remaining
+production-readiness work.
 
 ## Build
 
@@ -18,6 +19,9 @@ Most items are unchecked because Phase 1.5 is not a production-readiness phase.
 
 ## Database
 
+- [x] Repository migrations accounted for in `docs/MIGRATIONS.md`.
+- [ ] Target deployment migration history reconciled before production apply.
+
 - [x] Phase 2 migration definitions created.
 - [x] Phase 3 migration definitions created.
 - [x] Phase 4 migration definitions created.
@@ -28,11 +32,15 @@ Most items are unchecked because Phase 1.5 is not a production-readiness phase.
 - [x] Phase 9 analytics migration definitions created.
 - [x] Customer contact and booking-confirmation email outbox migration created
   and applied to development.
+- [x] Inline customer booking transaction migration created, applied to
+  development, and runtime-verified.
 - [x] Application schema implemented.
 - [x] Migrations verified.
 - [ ] Backup and restore plan documented.
 
 ## RLS
+
+- [x] Opt-in live runtime security suite passes against development.
 
 - [x] Phase 2 RLS policy definitions created.
 - [x] Phase 4 customer RLS policy definitions created.
@@ -75,6 +83,9 @@ Most items are unchecked because Phase 1.5 is not a production-readiness phase.
   by runtime tests.
 - [x] Tenant-private analytics aggregate isolation, cross-tenant denial, and
   currency separation covered by runtime tests.
+- [x] Inline booking customer modes, atomic rollback, archived/cross-tenant
+  denial, injected tenant authority rejection, and least-privilege RPC grants
+  covered by static and runtime tests.
 
 ## Abuse Protection
 
@@ -109,6 +120,17 @@ Most items are unchecked because Phase 1.5 is not a production-readiness phase.
 - [x] `npm audit --audit-level=moderate` passes locally.
 - [ ] Production dependency review completed.
 
+## Product And Documentation
+
+- [x] Core documentation reflects current implementation evidence.
+- [x] Material changes are covered by the documentation definition of done.
+- [x] Full E2E suite passes against the configured development environment.
+- [x] Responsive smoke matrix includes 320, 360, 375, 390, 430, 768, 834,
+  1024, 1280, and 1440 pixel widths.
+- [x] Major routes have no unintended horizontal document overflow.
+- [x] Public confirmation and feedback states have mobile visual checks.
+- [ ] Production browser/device acceptance completed for the release candidate.
+
 ## Privacy And Compliance
 
 - [ ] Privacy policy prepared.
@@ -133,6 +155,8 @@ Most items are unchecked because Phase 1.5 is not a production-readiness phase.
 - [x] Phase 7 vendor booking lifecycle flow reviewed on desktop and mobile E2E.
 - [x] Phase 8 public feedback and vendor issue lifecycle flow reviewed in E2E.
 - [x] Phase 9 insights reviewed in E2E.
+- [x] Existing and inline-new-customer booking creation reviewed in desktop and
+  mobile E2E, including explicit duplicate continuation and confirmation.
 
 ## Email
 

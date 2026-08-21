@@ -21,6 +21,11 @@ export type CustomerListResult = {
   totalPages: number;
 };
 
+export type PotentialDuplicateCustomer = Pick<
+  Customer,
+  "id" | "name" | "email" | "phone"
+>;
+
 export async function listCustomersForBusiness(
   businessId: string,
   params: CustomerListParams,
@@ -141,4 +146,40 @@ export async function hasPossibleDuplicateCustomer({
   }
 
   return Boolean(data?.length);
+}
+
+export async function findPotentialDuplicateCustomers({
+  businessId,
+  name,
+  email,
+  phone,
+}: {
+  businessId: string;
+  name: string;
+  email?: string;
+  phone?: string;
+}): Promise<PotentialDuplicateCustomer[]> {
+  const clauses = [
+    `name.ilike.${quotePostgrestFilterValue(escapePostgrestLikePattern(name))}`,
+    email
+      ? `email.ilike.${quotePostgrestFilterValue(escapePostgrestLikePattern(email))}`
+      : null,
+    phone ? `phone.eq.${quotePostgrestFilterValue(phone)}` : null,
+  ].filter((clause): clause is string => Boolean(clause));
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("customers")
+    .select("id, name, email, phone")
+    .eq("business_id", businessId)
+    .is("archived_at", null)
+    .or(clauses.join(","))
+    .order("name", { ascending: true })
+    .limit(5);
+
+  if (error || !data) {
+    return [];
+  }
+
+  return data;
 }

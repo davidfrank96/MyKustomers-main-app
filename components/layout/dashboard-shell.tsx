@@ -100,10 +100,12 @@ export function DashboardShell({
               <span className="font-semibold">My Customers</span>
             </Link>
           </div>
-          <div className="hidden lg:block">
-            <p className="text-sm font-medium text-muted-foreground">{workspaceLabel}</p>
+          <div className="hidden min-w-0 flex-1 lg:block">
+            <p className="truncate text-sm font-medium text-muted-foreground" title={workspaceLabel}>
+              {workspaceLabel}
+            </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex shrink-0 items-center gap-3">
             <form action={logoutAction} className="hidden sm:block">
               <Button type="submit" variant="ghost" size="sm">
                 <LogOut className="size-4" aria-hidden="true" />
@@ -127,10 +129,10 @@ export function DashboardShell({
           <Link
             key={item.label}
             href={item.href}
-            className="flex min-h-16 flex-col items-center justify-center gap-1 rounded-md px-1 text-xs font-medium text-muted-foreground hover:text-foreground"
+            className="flex min-h-16 min-w-0 flex-col items-center justify-center gap-1 rounded-md px-1 text-xs font-medium text-muted-foreground hover:text-foreground"
           >
             <item.icon className="size-5" aria-hidden={true} />
-            <span>{item.label}</span>
+            <span className="max-w-full truncate">{item.label}</span>
           </Link>
         ))}
       </nav>

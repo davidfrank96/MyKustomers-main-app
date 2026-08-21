@@ -16,28 +16,34 @@ function optionalTrimmedString(maxLength: number) {
   }, z.string().max(maxLength).optional());
 }
 
-export const customerFormSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(1, "Customer name is required.")
-    .max(160, "Customer name must be 160 characters or fewer."),
-  email: z.preprocess((value) => {
+export const customerNameSchema = z
+  .string()
+  .trim()
+  .min(1, "Customer name is required.")
+  .max(160, "Customer name must be 160 characters or fewer.");
+
+export const customerEmailSchema = z.preprocess((value) => {
     if (typeof value !== "string") {
       return undefined;
     }
 
     const trimmed = value.trim().toLowerCase();
     return trimmed.length === 0 ? undefined : trimmed;
-  }, z.string().email("Enter a valid customer email.").max(254).optional()),
-  phone: z.preprocess((value) => {
+  }, z.string().email("Enter a valid customer email.").max(254).optional());
+
+export const customerPhoneSchema = z.preprocess((value) => {
     if (typeof value !== "string") {
       return undefined;
     }
 
     const trimmed = value.trim();
     return trimmed.length === 0 ? undefined : trimmed;
-  }, z.string().min(7, "Phone must be at least 7 characters.").max(32, "Phone must be 32 characters or fewer.").regex(phonePattern, "Phone can only contain numbers, spaces, +, -, parentheses, and periods.").optional()),
+  }, z.string().min(7, "Phone must be at least 7 characters.").max(32, "Phone must be 32 characters or fewer.").regex(phonePattern, "Phone can only contain numbers, spaces, +, -, parentheses, and periods.").optional());
+
+export const customerFormSchema = z.object({
+  name: customerNameSchema,
+  email: customerEmailSchema,
+  phone: customerPhoneSchema,
   notes: optionalTrimmedString(5000),
 });
 

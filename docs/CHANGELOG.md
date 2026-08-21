@@ -2,6 +2,43 @@
 
 This changelog records meaningful project milestones. It is not a substitute for Git history.
 
+## 2026-08-21 - Responsive Alignment And Documentation Governance
+
+Status: VERIFIED
+
+- Audited all current public, auth, onboarding, vendor, confirmation, and
+  feedback routes at ten required widths from 320px through 1440px with long
+  names, contact values, descriptions, and currency amounts.
+- Fixed the inline-customer booking form's implicit grid min-content overflow at
+  320px and added maintainable shrink, wrapping, select, dialog, sheet,
+  navigation, generated-link, and analytics value constraints.
+- Added focused Playwright overflow regressions and lightweight required-doc and
+  migration-order governance tests.
+- Corrected repository, database, product, architecture, feature, email,
+  testing, design, release, and boundary documentation against current code and
+  development-schema evidence.
+- Made documentation a mandatory same-task definition-of-done requirement and
+  added a change matrix, pre-finish checklist, migration ledger, and responsive
+  QA record without starting billing, Phase 11, or the broad visual redesign.
+
+## 2026-08-20 - Inline Customer Creation During Booking
+
+Status: VERIFIED
+
+- Added explicit existing-customer and inline-new-customer modes to New Booking,
+  with practical active-customer search and minimal name/email/phone fields.
+- Added precise discriminated validation and non-blocking, tenant-scoped exact
+  name/email/phone duplicate warnings with explicit reuse or continue choices.
+- Added authenticated `public.create_booking_with_customer` so both modes use
+  one authoritative atomic booking path; inline customer creation, booking,
+  trigger history, and required audits commit or roll back together.
+- Preserved the non-null same-business customer invariant, active-only booking
+  selection, existing confirmation/contact enrichment, booking history, and
+  analytics behavior.
+- Applied the migration to development and verified static hardening, live RLS
+  and rollback attacks, concurrency, desktop/mobile browser journeys, build,
+  and dependency audit.
+
 ## 2026-08-20 - Customer Contact And Confirmation Email Foundation
 
 Status: VERIFIED

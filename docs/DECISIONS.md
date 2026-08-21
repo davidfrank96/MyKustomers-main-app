@@ -608,3 +608,39 @@ external send.
 Revisit conditions: Contact ownership verification, customer-managed contact
 updates, retry scheduling, additional lifecycle event types, or another email
 provider is accepted into scope.
+
+## ADR-029 - Booking May Create Its Required Customer Atomically
+
+Status: Accepted
+
+Date: 2026-08-20
+
+Context: Requiring vendors to leave New Booking and create a customer first
+preserved the data model but added avoidable workflow friction. Making
+`customer_id` optional or inserting customer and booking in separate requests
+would weaken the invariant or leave orphan records on partial failure.
+
+Decision: Keep every booking attached to exactly one same-business customer,
+while allowing New Booking to select an active customer or create a minimal
+customer inline. Route both modes through
+`public.create_booking_with_customer`, a narrow authenticated transaction that
+derives actor and current business, preserves existing booking triggers, and
+records customer/booking audits atomically.
+
+Exact normalized active-customer name, email, or phone matches produce a
+tenant-scoped warning. They never auto-merge or silently switch the customer.
+Archived customers remain unavailable for new bookings and require a future
+explicit restoration design.
+
+Rationale: One transaction removes the failure gap while retaining the
+booking/customer/business constraint and one authoritative booking creation
+mechanism. Explicit modes and warnings keep vendor intent visible.
+
+Consequences: The bounded active-customer picker remains current technical debt;
+paginated server search and sophisticated deduplication/merge are deferred.
+Concurrent intentional submissions are independent transactions and no broad
+idempotency framework is introduced.
+
+Revisit conditions: Customer volumes require server-paginated picker search, a
+reviewed merge/restoration workflow is accepted, or booking submission gains a
+product-level idempotency contract.

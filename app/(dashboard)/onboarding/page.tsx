@@ -23,8 +23,8 @@ export default async function OnboardingPage() {
             Set up your business
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-            Add the basic identity and contact details your workspace needs before customer
-            and booking tools are introduced.
+            Add the basic identity and contact details your workspace needs before using
+            customer and booking tools.
           </p>
         </div>
       </section>

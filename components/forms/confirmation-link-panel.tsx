@@ -114,7 +114,7 @@ export function ConfirmationLinkPanel({
 
       {summary.contactEmail ? (
         <div className="grid gap-3 rounded-md border border-border bg-muted p-3 sm:grid-cols-3">
-          <div>
+          <div className="min-w-0">
             <p className="text-xs font-medium text-muted-foreground">Confirmation contact</p>
             <p className="mt-1 break-all text-sm">{summary.contactEmail}</p>
           </div>
@@ -141,7 +141,7 @@ export function ConfirmationLinkPanel({
             <input
               readOnly
               value={generatedUrl}
-              className="min-h-11 flex-1 rounded-md border border-input bg-card px-3 py-2 text-sm"
+              className="min-h-11 min-w-0 flex-1 rounded-md border border-input bg-card px-3 py-2 text-sm"
               aria-label="Generated confirmation link"
             />
             <Button type="button" variant="secondary" onClick={copyGeneratedUrl}>

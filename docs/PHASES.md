@@ -8,6 +8,11 @@
 
 Documentation is not implementation evidence.
 
+The 2026-08-21 responsive alignment and documentation governance pass is
+cross-phase maintenance for the implemented product surface. It does not start
+Phase 10 billing or mark Phase 11's broader PWA/UX hardening and visual redesign
+as implemented.
+
 ## Phase 0 - Product Definition
 
 Status: VERIFIED
@@ -188,7 +193,8 @@ Dependencies: Phase 4.
 
 Scope: Booking creation, tenant customer association, agreed value,
 deposit/balance tracking, scheduled date, notes, lifecycle states, immutable
-booking reference, and trigger-owned status history.
+booking reference, trigger-owned status history, and verified inline customer
+creation during New Booking.
 
 Explicit exclusions: Confirmation tokens, customer-facing booking links,
 feedback, analytics expansion, billing, payment processing, and booking items.
@@ -202,7 +208,8 @@ locks, RLS, grants, and trigger-owned status history.
 
 UI impact: Booking list, search/filter/pagination controls, create form,
 detail/edit form, status controls, money summary, dashboard booking counters,
-and status history display.
+and status history display. New Booking explicitly supports searching/selecting
+an active customer or entering a minimal new customer without leaving the flow.
 
 Testing requirements: Booking creation, references, validation, authorization,
 tenant isolation, cross-tenant denial, business/customer reassignment denial,
@@ -219,6 +226,13 @@ Verification evidence: Migration
 migration/RLS tests, runtime Supabase booking security tests, E2E booking
 create/edit/transition/cancel coverage, lint, typecheck, full tests, production
 build, and dependency audit.
+
+Post-phase verification evidence: Migration
+`20260820143032_inline_customer_booking_creation.sql`, discriminated validation
+tests, static privileged-function tests, live atomicity/tenant/concurrency tests,
+and desktop/mobile Playwright booking journeys. The current customer picker
+still uses the existing bounded active-customer query; server-side paginated
+picker search remains deferred.
 
 Known risks: Confirmation links, customer-visible booking state, booking items,
 and payment collection are deliberately deferred; future phases must not treat

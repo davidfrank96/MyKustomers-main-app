@@ -24,7 +24,17 @@ Before modifying application code, read:
 8. `docs/DATA_MODEL.md` when database work is involved
 
 Documentation is not implementation evidence. Respect PLANNED, IMPLEMENTED,
-and VERIFIED labels. Do not implement Phase 2 functionality during governance or
-foundation phases unless the user explicitly starts that phase.
+VERIFIED, and IMPLEMENTED - VERIFICATION PENDING labels.
+
+Documentation is part of definition of done. Documentation updates are
+mandatory for every materially approved implementation change and must happen
+in the same task. Before declaring a task complete, inspect the change and
+update all relevant project, architecture, security, data-model, migration,
+testing, feature, and changelog documentation. Documentation must describe
+implemented evidence accurately and must not claim planned work as complete.
+
+Use `docs/DOCUMENTATION_GOVERNANCE.md` for the change matrix and pre-finish
+checklist. Final task reports must list documentation updated or explicitly
+state why no documentation change was required.
 
 <!-- END:my-customers-governance -->

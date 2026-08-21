@@ -7,9 +7,16 @@ rescheduling before fulfilment, and operational queues. Phase 8 adds completed
 booking feedback links and internal operational issues around the booking
 record.
 
+Every booking belongs to a customer, but a vendor may create that customer
+inline while creating the booking. New Booking supports explicit existing and
+new modes. Both converge on `public.create_booking_with_customer`; new mode
+atomically creates the minimal customer, booking, status history, and required
+audits, while existing mode accepts only an active same-business customer.
+
 ## Owns
 
 - Booking create/update server actions.
+- Existing-customer search/selection and minimal inline customer creation.
 - Tenant-scoped booking list, detail, search, filters, and dashboard counts.
 - Booking validation and money parsing.
 - Booking lifecycle transition rules.

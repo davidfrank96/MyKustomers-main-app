@@ -36,6 +36,19 @@ The vendor application is mobile-first. Mobile authenticated navigation is expec
 
 Customer-facing booking experiences should be significantly simpler than the vendor dashboard. They should open directly in the browser, require no account by default, and expose only the booking-specific information required for the action.
 
+Current structural rules:
+
+- Page content must not create horizontal document overflow at 320px or wider.
+- Flex and grid children containing user data must shrink with `min-width: 0`;
+  long identifiers and contact values wrap or truncate intentionally.
+- Multi-field and mode controls stack on narrow screens without resetting form
+  state or hiding primary actions.
+- Dialogs and sheets fit the dynamic viewport and allow vertical scrolling.
+- Mobile navigation preserves reachable content and safe-area padding.
+
+Required viewport and route evidence is recorded in `docs/RESPONSIVE_QA.md`.
+These rules stabilize the current design and do not start the broad redesign.
+
 ## Current Implementation Evidence
 
 Implemented in Phase 1:

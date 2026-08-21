@@ -20,7 +20,9 @@ My Customers is a mobile-first SaaS platform for small businesses and SMEs that 
 
 It converts informal customer agreements into structured business records.
 
-Businesses will eventually be able to manage customers, manage bookings/orders, send private booking confirmation links, track fulfilment, track values, deposits, and balances, collect private feedback, view customer history, view business performance, and manage subscriptions.
+Businesses can manage customers, bookings/orders, private booking confirmation,
+fulfilment, recorded values and balances, private feedback, customer history,
+and operational insights. Vendor subscription management remains planned.
 
 Customers generally do not create My Customers accounts. They interact with individual bookings through secure customer-facing links.
 
@@ -49,7 +51,8 @@ The product should remain deliberately lightweight.
 - Authorization: Server-side authorization plus PostgreSQL RLS.
 - Storage: Supabase Storage.
 - Validation: Zod.
-- Transactional email: Resend.
+- Transactional email: provider-neutral server boundary with a no-network
+  development adapter and optional Resend adapter.
 - Testing: Vitest and Playwright.
 - Deployment: Vercel initially.
 - Native mobile: Not V1.
@@ -77,10 +80,22 @@ creates a durable `BOOKING_CONFIRMED` email event in the confirmation
 transaction. Development-safe delivery is implemented; production Resend
 configuration and broader lifecycle email workflows remain future work.
 
+Inline customer creation during booking is VERIFIED. Every booking still
+belongs to exactly one tenant-owned customer, but a vendor may select an active
+customer or create a minimal name/email/phone customer inline. Both modes use
+one authenticated database transaction for booking creation; the new-customer
+mode also creates the customer and both audit events atomically.
+
 The 2026-08-20 pre-redesign engineering quality review is VERIFIED. It
 consolidated repeated auth, query, token, and runtime-test infrastructure and
 reduced unnecessary reads without changing the accepted architecture, data
 model, security invariants, dependencies, product behavior, or phase history.
+
+The 2026-08-21 responsive alignment and documentation governance maintenance
+pass stabilizes the current interface across the documented 320-1440px matrix
+without starting the broad redesign. Documentation is now an explicit same-task
+definition-of-done requirement with a change matrix, migration ledger, and
+lightweight drift tests.
 
 Phase 1 established a Next.js application foundation, strict TypeScript, responsive shells, design primitives, environment configuration, Supabase client/server boundaries, test infrastructure, PWA foundation, documentation foundation, and lint/build/typecheck/test verification.
 
@@ -164,6 +179,14 @@ Implemented and verified in Phase 5:
   denial, business/customer reassignment denial, invalid finance denial, valid
   and invalid transitions, terminal locks, history fabrication denial, anonymous
   denial, member permissions, and search isolation.
+- New Booking supports explicit existing-customer and inline-new-customer modes.
+  The server rejects contradictory payloads, cross-tenant or archived customer
+  IDs, and derives the current business and actor rather than accepting either
+  as client authority.
+- Exact active-customer name, normalized-email, or phone matches produce a
+  tenant-scoped, non-blocking warning. The vendor must explicitly use the
+  existing customer or continue with a separate customer; no automatic merge
+  or reassignment occurs.
 
 Implemented and verified in Phase 6:
 

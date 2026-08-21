@@ -31,7 +31,9 @@ describe("booking domain", () => {
 
   it("validates booking forms and rejects impossible financial state", () => {
     const parsed = bookingCreateSchema.safeParse({
+      customerMode: "existing",
       customerId: "00000000-0000-4000-8000-000000000001",
+      duplicateAcknowledged: false,
       title: "Birthday cake",
       currency: "NGN",
       totalAmount: "45000",
@@ -40,6 +42,109 @@ describe("booking domain", () => {
     });
 
     expect(parsed.success).toBe(false);
+  });
+
+  it("validates existing-customer booking input without new-customer fields", () => {
+    const parsed = bookingCreateSchema.safeParse({
+      customerMode: "existing",
+      customerId: "00000000-0000-4000-8000-000000000001",
+      newCustomerName: "",
+      newCustomerEmail: "",
+      newCustomerPhone: "",
+      duplicateAcknowledged: false,
+      title: "Birthday cake",
+      currency: "NGN",
+      totalAmount: "45000",
+      depositAmount: "5000",
+    });
+
+    expect(parsed.success).toBe(true);
+  });
+
+  it("accepts and normalizes a name-only inline customer", () => {
+    const parsed = bookingCreateSchema.safeParse({
+      customerMode: "new",
+      customerId: "",
+      newCustomerName: "  Sarah Okafor  ",
+      newCustomerEmail: "",
+      newCustomerPhone: "",
+      duplicateAcknowledged: false,
+      title: "Birthday cake",
+      currency: "NGN",
+      totalAmount: "45000",
+      depositAmount: "5000",
+    });
+
+    expect(parsed.success).toBe(true);
+    if (parsed.success && parsed.data.customerMode === "new") {
+      expect(parsed.data.newCustomerName).toBe("Sarah Okafor");
+      expect(parsed.data.newCustomerEmail).toBeUndefined();
+      expect(parsed.data.newCustomerPhone).toBeUndefined();
+    }
+  });
+
+  it("normalizes inline contact and rejects malformed contact", () => {
+    const normalized = bookingCreateSchema.safeParse({
+      customerMode: "new",
+      customerId: "",
+      newCustomerName: "Sarah",
+      newCustomerEmail: " SARAH@EXAMPLE.COM ",
+      newCustomerPhone: " +353 01 555 0101 ",
+      duplicateAcknowledged: false,
+      title: "Birthday cake",
+      currency: "NGN",
+      totalAmount: "45000",
+      depositAmount: "0",
+    });
+    const malformed = bookingCreateSchema.safeParse({
+      customerMode: "new",
+      customerId: "",
+      newCustomerName: "Sarah",
+      newCustomerEmail: "not-an-email",
+      newCustomerPhone: "<script>",
+      duplicateAcknowledged: false,
+      title: "Birthday cake",
+      currency: "NGN",
+      totalAmount: "45000",
+      depositAmount: "0",
+    });
+
+    expect(normalized.success).toBe(true);
+    if (normalized.success && normalized.data.customerMode === "new") {
+      expect(normalized.data.newCustomerEmail).toBe("sarah@example.com");
+      expect(normalized.data.newCustomerPhone).toBe("+353 01 555 0101");
+    }
+    expect(malformed.success).toBe(false);
+  });
+
+  it("rejects contradictory customer-mode payloads", () => {
+    const existingWithNewFields = bookingCreateSchema.safeParse({
+      customerMode: "existing",
+      customerId: "00000000-0000-4000-8000-000000000001",
+      newCustomerName: "Unexpected customer",
+      newCustomerEmail: "",
+      newCustomerPhone: "",
+      duplicateAcknowledged: false,
+      title: "Birthday cake",
+      currency: "NGN",
+      totalAmount: "45000",
+      depositAmount: "0",
+    });
+    const newWithExistingId = bookingCreateSchema.safeParse({
+      customerMode: "new",
+      customerId: "00000000-0000-4000-8000-000000000001",
+      newCustomerName: "Sarah",
+      newCustomerEmail: "",
+      newCustomerPhone: "",
+      duplicateAcknowledged: false,
+      title: "Birthday cake",
+      currency: "NGN",
+      totalAmount: "45000",
+      depositAmount: "0",
+    });
+
+    expect(existingWithNewFields.success).toBe(false);
+    expect(newWithExistingId.success).toBe(false);
   });
 
   it("defines the Phase 7 status transition graph", () => {

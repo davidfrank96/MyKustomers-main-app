@@ -39,7 +39,7 @@ function DetailRow({ label, value }: { label: string; value: string }) {
       <dt className="text-xs font-medium text-muted-foreground">
         {label}
       </dt>
-      <dd className="mt-1 text-base font-medium text-foreground">{value}</dd>
+      <dd className="mt-1 break-words text-base font-medium text-foreground">{value}</dd>
     </div>
   );
 }

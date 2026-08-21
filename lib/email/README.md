@@ -1,5 +1,9 @@
 # Email
 
+Supabase Auth email and My Customers transactional email are separate systems.
+Supabase Auth owns signup confirmation and password-recovery delivery. The
+application never stores or sends Auth passwords or recovery tokens.
+
 Booking-confirmed transactional email is implemented through a server-only,
 provider-neutral boundary.
 

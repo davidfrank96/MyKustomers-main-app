@@ -15,8 +15,8 @@ import {
 } from "@/features/bookings/validation";
 import {
   getBookingForBusiness,
-  customerBelongsToBusiness,
 } from "@/features/bookings/queries";
+import { findPotentialDuplicateCustomers } from "@/features/customers/queries";
 import {
   isTerminalBookingStatus,
 } from "@/features/bookings/status";
@@ -41,7 +41,12 @@ function mapBookingError() {
 
 function parseCreateForm(formData: FormData) {
   return bookingCreateSchema.safeParse({
+    customerMode: formValue(formData, "customerMode"),
     customerId: formValue(formData, "customerId"),
+    newCustomerName: formValue(formData, "newCustomerName"),
+    newCustomerEmail: formValue(formData, "newCustomerEmail"),
+    newCustomerPhone: formValue(formData, "newCustomerPhone"),
+    duplicateAcknowledged: formValue(formData, "duplicateAcknowledged") === "true",
     title: formValue(formData, "title"),
     description: formValue(formData, "description"),
     currency: formValue(formData, "currency"),
@@ -68,61 +73,78 @@ export async function createBookingAction(
   _previousState: BookingActionState,
   formData: FormData,
 ): Promise<BookingActionState> {
-  const { user, business } = await requireCurrentBusiness("/bookings/new");
+  const { business } = await requireCurrentBusiness("/bookings/new");
   const parsed = parseCreateForm(formData);
 
   if (!parsed.success) {
     return validationError(parsed.error);
   }
 
-  const customerAllowed = await customerBelongsToBusiness(
-    business.id,
-    parsed.data.customerId,
-  );
+  if (parsed.data.customerMode === "new" && !parsed.data.duplicateAcknowledged) {
+    const duplicateCandidates = await findPotentialDuplicateCustomers({
+      businessId: business.id,
+      name: parsed.data.newCustomerName,
+      email: parsed.data.newCustomerEmail,
+      phone: parsed.data.newCustomerPhone,
+    });
 
-  if (!customerAllowed) {
-    return {
-      status: "error",
-      message: "Choose an active customer from this business.",
-      fieldErrors: { customerId: ["Choose an active customer from this business."] },
-    };
+    if (duplicateCandidates.length > 0) {
+      return {
+        status: "error",
+        message: "A possible existing customer was found.",
+        duplicateCandidates,
+        duplicateInput: {
+          name: parsed.data.newCustomerName,
+          email: parsed.data.newCustomerEmail ?? null,
+          phone: parsed.data.newCustomerPhone ?? null,
+        },
+      };
+    }
   }
 
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("bookings")
-    .insert({
-      business_id: business.id,
-      customer_id: parsed.data.customerId,
-      title: parsed.data.title,
-      description: parsed.data.description ?? null,
-      currency: parsed.data.currency,
-      total_amount_minor: parsed.data.totalAmount,
-      deposit_amount_minor: parsed.data.depositAmount,
-      scheduled_for: parsed.data.scheduledFor ?? null,
-      internal_notes: parsed.data.internalNotes ?? null,
-      created_by: user.id,
-    })
-    .select("id")
-    .single();
+  const { data, error } = await supabase.rpc("create_booking_with_customer", {
+    p_customer_mode: parsed.data.customerMode,
+    p_customer_id:
+      parsed.data.customerMode === "existing" ? parsed.data.customerId : null,
+    p_new_customer_name:
+      parsed.data.customerMode === "new" ? parsed.data.newCustomerName : null,
+    p_new_customer_email:
+      parsed.data.customerMode === "new"
+        ? (parsed.data.newCustomerEmail ?? null)
+        : null,
+    p_new_customer_phone:
+      parsed.data.customerMode === "new"
+        ? (parsed.data.newCustomerPhone ?? null)
+        : null,
+    p_title: parsed.data.title,
+    p_description: parsed.data.description ?? null,
+    p_currency: parsed.data.currency,
+    p_total_amount_minor: parsed.data.totalAmount,
+    p_deposit_amount_minor: parsed.data.depositAmount,
+    p_scheduled_for: parsed.data.scheduledFor ?? null,
+    p_internal_notes: parsed.data.internalNotes ?? null,
+  });
+  const createdBooking = data?.[0];
 
-  if (error || !data) {
+  if (error || !createdBooking) {
+    if (parsed.data.customerMode === "existing") {
+      return {
+        status: "error",
+        message: "Choose an active customer from this business.",
+        fieldErrors: { customerId: ["Choose an active customer from this business."] },
+      };
+    }
+
     return {
       status: "error",
       message: mapBookingError(),
     };
   }
 
-  await recordAuditEvent({
-    actorUserId: user.id,
-    businessId: business.id,
-    eventType: "BOOKING_CREATED",
-    metadata: { booking_id: data.id },
-  });
-
   revalidatePath("/dashboard");
   revalidatePath("/bookings");
-  redirect(`/bookings/${data.id}?created=1` as Route);
+  redirect(`/bookings/${createdBooking.booking_id}?created=1` as Route);
 }
 
 export async function updateBookingAction(

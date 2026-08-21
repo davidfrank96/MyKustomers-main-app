@@ -525,6 +525,29 @@ export type Database = {
     };
     Views: Record<string, never>;
     Functions: {
+      create_booking_with_customer: {
+        Args: {
+          p_customer_mode: "existing" | "new";
+          p_customer_id: string | null;
+          p_new_customer_name: string | null;
+          p_new_customer_email: string | null;
+          p_new_customer_phone: string | null;
+          p_title: string;
+          p_description: string | null;
+          p_currency: Database["public"]["Enums"]["booking_currency"];
+          p_total_amount_minor: number;
+          p_deposit_amount_minor: number;
+          p_scheduled_for: string | null;
+          p_internal_notes: string | null;
+        };
+        Returns: {
+          booking_id: string;
+          customer_id: string;
+          customer_created: boolean;
+          reference: string;
+          status: Database["public"]["Enums"]["booking_status"];
+        }[];
+      };
       create_business_onboarding: {
         Args: {
           business_name: string;

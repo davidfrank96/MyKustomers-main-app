@@ -17,6 +17,8 @@ do not reduce the verified tenant/RLS coverage.
 - End-to-End: Critical browser journeys.
 - Security/authorization: Negative and cross-tenant access tests.
 - Regression: Tests added for fixed bugs or high-risk behavior.
+- Responsive structure: Required-width route smoke checks and focused overflow
+  assertions without pixel-perfect snapshots.
 
 ## Current Implemented Tests
 
@@ -36,6 +38,8 @@ do not reduce the verified tenant/RLS coverage.
 - Phase 5 booking domain tests.
 - Static Phase 5 booking migration/RLS review tests.
 - Phase 5 runtime Supabase booking tenant security test.
+- Inline customer booking discriminated-validation tests, static privileged-RPC
+  checks, and live transaction/tenant/concurrency coverage.
 - Phase 6 confirmation-link domain tests.
 - Static Phase 6 confirmation migration/security review tests.
 - Phase 6 runtime Supabase confirmation-link security test.
@@ -55,8 +59,16 @@ do not reduce the verified tenant/RLS coverage.
   login, session persistence, logout, forgot-password safe response, redirect safety,
   business onboarding, customer create/edit/archive, and booking
   create/edit/customer-confirmation/reschedule/reconfirmation/complete,
+  existing-customer and inline-new-customer booking creation,
   private feedback submission, operational issue create/resolve, and business
   insights.
+- Playwright route-matrix overflow checks for public/auth pages at 320, 360,
+  375, 390, 430, 768, 834, 1024, 1280, and 1440 pixels.
+- Focused New Booking checks that preserve entered values and keep the inline
+  duplicate-candidate action usable without horizontal overflow at every
+  required width.
+- Lightweight governance tests for required documentation, the repository
+  definition-of-done rule, and migration filename/order discipline.
 
 ## Planned Critical Journeys
 
@@ -67,6 +79,9 @@ do not reduce the verified tenant/RLS coverage.
 - E2E-011 - Business owner can update customer. VERIFIED.
 - E2E-020 - Vendor can create booking. VERIFIED.
 - E2E-021 - Booking receives human-readable reference. VERIFIED.
+- E2E-022 - Vendor can create a booking and its required customer inline,
+  deliberately continue after an exact-match warning, and use the ordinary
+  confirmation/contact-enrichment flow. VERIFIED.
 - E2E-030 - Valid customer confirmation token works. VERIFIED.
 - E2E-031 - Expired confirmation token fails. VERIFIED by runtime security test.
 - E2E-032 - Revoked confirmation token fails. VERIFIED by runtime security test.
@@ -100,6 +115,9 @@ do not reduce the verified tenant/RLS coverage.
   publicly, or cross-tenant, and resolved issues are terminal. VERIFIED.
 - SEC-TEST-010 - Business analytics aggregates cannot include or reveal another
   tenant's records. VERIFIED.
+- SEC-TEST-011 - Inline booking creation rejects cross-tenant/archived customers
+  and injected tenant authority, denies anonymous execution, and rolls back the
+  customer and audits if booking creation fails. VERIFIED.
 
 Do not create fake implementations merely so planned tests can pass.
 
@@ -116,6 +134,11 @@ PHASE2_RUNTIME_VERIFICATION=1 PHASE2_SUPABASE_TARGET=local npm run test:security
 The test requires `NEXT_PUBLIC_SUPABASE_URL`,
 `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, and `SUPABASE_SERVICE_ROLE_KEY`. It is
 skipped by default to avoid mutating an unidentified database.
+
+Responsive visual QA is documented in `docs/RESPONSIVE_QA.md`. The maintained
+E2E assertion compares `document.documentElement.scrollWidth` with
+`clientWidth` for representative routes; temporary screenshots are inspected
+outside committed production assets.
 
 All runtime suites use `tests/security/runtime-support.ts` for the shared
 development-target allowlist, explicit opt-in guard, isolated non-persistent
@@ -138,6 +161,14 @@ create denial, booking/customer business consistency, immutable booking
 denial, member write permissions, valid and invalid lifecycle transitions,
 direct vendor `DRAFT -> CONFIRMED` denial, terminal booking locks,
 trigger-owned status history, anonymous denial, and search isolation.
+
+The inline customer booking runtime test verifies existing-customer creation,
+new and name-only customer creation, normalization, ordinary booking reference
+and history behavior, required audit events without contact leakage, atomic
+rollback, cross-tenant and archived customer denial, rejected business-ID
+injection, tenant-isolated duplicate lookup, concurrent independent
+transactions, anonymous denial, and compatibility with confirmation contact
+enrichment on the same customer record.
 
 The Phase 6 runtime test verifies confirmation token lifecycle, hash-only token
 storage, public data minimization, GET lookup not consuming links, invalid token

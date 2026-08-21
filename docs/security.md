@@ -23,6 +23,10 @@ analytics through a membership-checked aggregate RPC over existing tenant
 records without public reports or stored analytics tables. Runtime Supabase
 database/RLS verification succeeded for Phase 2, Phase 3, Phase 4, Phase 5,
 Phase 6, Phase 7, Phase 8, and Phase 9.
+Inline customer booking creation is also runtime-verified through a narrow
+authenticated transaction that derives tenant authority server-side, rejects
+cross-tenant and archived customer IDs, and grants no execution to `anon` or
+`PUBLIC`.
 Public signup and reset-password
 completion remain partial because the configured development Supabase project
 hit email/default inbox constraints.
@@ -375,3 +379,20 @@ remain in server-only environment validation, and provider calls occur after
 commit. Runtime tests verify race uniqueness, cross-tenant read/mutation denial,
 anonymous denial, and that simulated delivery failure leaves the booking and
 confirmation intact.
+
+SEC-035 - Atomic Tenant-Safe Inline Customer Booking
+
+Status: VERIFIED
+
+Every booking must retain a non-null customer belonging to the same business.
+`public.create_booking_with_customer` derives the actor from `auth.uid()` and
+the current business from active membership, accepts no client business or
+creator authority, and validates existing customers as active and tenant-owned.
+Its empty `search_path`, qualified relations, revoked default privileges, and
+authenticated-only execute grant harden the privileged transaction boundary.
+
+New-customer mode creates the customer, booking, trigger-owned status history,
+`CUSTOMER_CREATED`, and `BOOKING_CREATED` effects in one transaction. Runtime
+tests verify rollback leaves no orphan or misleading audit, cross-tenant and
+archived IDs are denied, injected business arguments are rejected, anonymous
+execution fails, and contact values do not enter audit metadata.

@@ -77,6 +77,7 @@ function pageShell({ title, body }: { title: string; body: string }) {
       line-height: 1.1;
     }
     p { line-height: 1.65; }
+    p, dd, legend, label, button { overflow-wrap: anywhere; }
     .brand, .muted, .powered { color: var(--muted); }
     .brand { font-size: .875rem; font-weight: 600; }
     .context, .notice {
@@ -120,6 +121,7 @@ function pageShell({ title, body }: { title: string; body: string }) {
     }
     .choice-grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .choice {
+      min-width: 0;
       min-height: 3rem;
       display: flex;
       align-items: center;
@@ -144,6 +146,7 @@ function pageShell({ title, body }: { title: string; body: string }) {
       resize: vertical;
     }
     button {
+      width: 100%;
       min-height: 3rem;
       border: 0;
       border-radius: .5rem;

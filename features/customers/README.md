@@ -11,6 +11,13 @@ server-side membership checks, and PostgreSQL RLS. Ordinary UI deletion is
 implemented as archiving through `archived_at`; hard deletion is deferred to a
 future privacy/account-deletion design.
 
+A vendor may create a real customer inline from New Booking with required name
+and optional email/phone. Creation is part of the same authenticated database
+transaction as the booking and records the ordinary `CUSTOMER_CREATED` audit.
+Exact active-customer name, normalized email, or phone matches produce a
+non-blocking warning; they are never silently merged. Archived customers are
+excluded from booking search/selection and cannot be attached to a new booking.
+
 Secure booking confirmation may conservatively enrich a customer's empty email
 or phone from customer-provided contact. Existing non-empty values are
 preserved, even when the submitted booking contact differs. The submitted value
