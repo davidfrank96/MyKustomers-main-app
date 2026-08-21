@@ -47,6 +47,7 @@ function parseBusinessForm(formData: FormData) {
     email: formValue(formData, "email"),
     whatsapp: formValue(formData, "whatsapp"),
     instagram: formValue(formData, "instagram"),
+    website: formValue(formData, "website"),
     addressText: formValue(formData, "addressText"),
   });
 }
@@ -78,6 +79,7 @@ export async function createBusinessAction(
     business_whatsapp: parsed.data.whatsapp ?? null,
     business_instagram: parsed.data.instagram ?? null,
     business_address_text: parsed.data.addressText ?? null,
+    business_website: parsed.data.website ?? null,
   });
 
   if (error) {
@@ -108,7 +110,7 @@ export async function updateBusinessProfileAction(
   const supabase = await createClient();
   const { data: previousBusiness } = await supabase
     .from("businesses")
-    .select("name, slug, category, description, phone, email, whatsapp, instagram, address_text")
+    .select("name, slug, category, description, phone, email, whatsapp, instagram, website, address_text")
     .eq("id", businessId)
     .maybeSingle();
 
@@ -121,6 +123,7 @@ export async function updateBusinessProfileAction(
     email: parsed.data.email ?? null,
     whatsapp: parsed.data.whatsapp ?? null,
     instagram: parsed.data.instagram ?? null,
+    website: parsed.data.website ?? null,
     address_text: parsed.data.addressText ?? null,
   };
 

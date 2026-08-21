@@ -1,7 +1,13 @@
 import type { Metadata } from "next";
 import { CheckCircle2 } from "lucide-react";
 import { PublicConfirmationForm } from "@/components/forms/public-confirmation-form";
+import { BusinessLogo } from "@/components/shared/business-logo";
 import { formatMoneyMinor } from "@/features/bookings/money";
+import {
+  getBusinessInstagramUrl,
+  getBusinessLogoPublicUrl,
+  getSafeBusinessWebsiteUrl,
+} from "@/features/businesses/logo-public";
 import { getPublicConfirmationView } from "@/features/confirmation-links/public";
 import { confirmPublicBookingAction } from "@/features/confirmation-links/public-actions";
 import { safePublicConfirmationMessage } from "@/features/confirmation-links/messages";
@@ -70,6 +76,45 @@ function BookingSummary({ booking }: { booking: PublicConfirmationBooking }) {
   );
 }
 
+function BusinessIdentity({ booking }: { booking: PublicConfirmationBooking }) {
+  const logoUrl = getBusinessLogoPublicUrl(booking.business_logo_path);
+  const websiteUrl = getSafeBusinessWebsiteUrl(booking.business_website);
+  const instagramUrl = getBusinessInstagramUrl(booking.business_instagram);
+
+  return (
+    <div className="flex items-center gap-4">
+      <BusinessLogo name={booking.business_name} url={logoUrl} className="size-14" />
+      <div className="min-w-0">
+        <p className="break-words text-base font-semibold">{booking.business_name}</p>
+        {websiteUrl || instagramUrl ? (
+          <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+            {websiteUrl ? (
+              <a
+                href={websiteUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+              >
+                Visit website
+              </a>
+            ) : null}
+            {instagramUrl ? (
+              <a
+                href={instagramUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+              >
+                Instagram
+              </a>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 export default async function ConfirmationPage({
   params,
   searchParams,
@@ -83,10 +128,13 @@ export default async function ConfirmationPage({
   return (
     <main className="min-h-dvh bg-background px-5 py-8 text-foreground">
       <div className="mx-auto flex w-full max-w-xl flex-col">
-        <p className="text-sm font-medium text-muted-foreground">My Customers</p>
+        <p className="text-sm font-medium text-muted-foreground">My Customers secure confirmation</p>
 
         {booking ? (
           <>
+            <div className="mt-5">
+              <BusinessIdentity booking={booking} />
+            </div>
             <h1 className="mt-5 text-3xl font-semibold leading-tight">
               {confirmed ? "Booking confirmed" : "Confirm booking"}
             </h1>

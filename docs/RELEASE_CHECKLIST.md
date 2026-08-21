@@ -34,6 +34,8 @@ production-readiness work.
   and applied to development.
 - [x] Inline customer booking transaction migration created, applied to
   development, and runtime-verified.
+- [x] Business identity/storage migrations created, applied to development, and
+  runtime-verified, including the forward RPC/contact regression fix.
 - [x] Application schema implemented.
 - [x] Migrations verified.
 - [ ] Backup and restore plan documented.
@@ -62,6 +64,8 @@ production-readiness work.
 - [x] Logout implemented.
 - [x] Password recovery implemented.
 - [x] Session handling reviewed.
+- [x] Mobile account menu and Settings expose the existing logout flow and
+  protected access is removed after logout.
 
 ## Authorization
 
@@ -86,6 +90,8 @@ production-readiness work.
 - [x] Inline booking customer modes, atomic rollback, archived/cross-tenant
   denial, injected tenant authority rejection, and least-privilege RPC grants
   covered by static and runtime tests.
+- [x] Business-logo object listing/writes require active owner role; anonymous,
+  member, and cross-tenant mutation paths are runtime-covered.
 
 ## Abuse Protection
 
@@ -128,6 +134,8 @@ production-readiness work.
 - [x] Responsive smoke matrix includes 320, 360, 375, 390, 430, 768, 834,
   1024, 1280, and 1440 pixel widths.
 - [x] Major routes have no unintended horizontal document overflow.
+- [x] Account menu, Settings, business logo/website form, dashboard tiles, and
+  confirmation identity pass the required 320-1440px matrix.
 - [x] Public confirmation and feedback states have mobile visual checks.
 - [ ] Production browser/device acceptance completed for the release candidate.
 
@@ -146,6 +154,8 @@ production-readiness work.
   feedback private to the owning business.
 - [x] Phase 9 insights avoid public reports, exports, cross-tenant aggregates,
   mixed-currency totals, and revenue/cash/profit/accounting claims.
+- [x] Public logo storage contains only bounded business branding; no raw source
+  image, private contact, service credential, or general document is stored.
 
 ## Accessibility And UX
 

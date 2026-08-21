@@ -28,6 +28,10 @@ planned broad visual redesign or Phase 11 PWA/UX hardening.
 | Generated link panels | Narrow flex rows | Read-only URL inputs lacked an explicit flex shrink floor | Added `min-width: 0` | Booking lifecycle E2E and audit | IMPLEMENTED |
 | Public feedback/confirmation | 320 long content | Long values required explicit wrapping guarantees | Added `overflow-wrap`/`break-words` while preserving content | Public-route overflow matrix and visual audit | IMPLEMENTED |
 | Dialog/sheet primitives | Short mobile viewport | No explicit viewport-height scroll boundary | Added max-height/vertical scrolling | Static inspection; no current product dialog journey | IMPLEMENTED |
+| Authenticated shell/account | 320-430 | Logout and Settings were not discoverable below `sm` | Added compact header account menu; retained five primary nav items | Authenticated mobile Settings/logout E2E | VERIFIED |
+| Business identity form | 320-1440 | New logo preview/file/actions and website required bounded wrapping | Responsive preview and stacked mobile actions with shrink-safe fields | Required-width authenticated route matrix plus real upload/replace/remove | VERIFIED |
+| Dashboard metric tiles | 320-1440 | Static summaries had no data destination | Full semantic Link targets with visible focus and supported filters | Active/overdue/customers/insights browser navigation | VERIFIED |
+| Public confirmation identity | 320 mobile | Logo/fallback and external links needed to remain secondary and wrap safely | Compact identity row with bounded logo and wrapping links | Branded and fallback confirmation E2E | VERIFIED |
 
 ## Evidence
 
@@ -37,3 +41,10 @@ zero horizontal-overflow failures. Representative mobile, tablet, desktop,
 inline-customer, confirmation, feedback, and large-currency screenshots were
 visually inspected. Temporary QA artifacts are not committed. Physical-device,
 screen-reader, and production-browser acceptance remain release-hardening work.
+
+The business-identity maintenance pass additionally exercised authenticated
+Settings, Business, and Dashboard at 320, 360, 375, 390, 430, 768, 1024, and
+1440 pixels with zero horizontal-overflow assertions, plus live logo upload,
+replacement, removal, mobile logout, dashboard destination, and public
+confirmation identity journeys. It did not repeat the earlier 834/1280 matrix,
+which remains covered by the broader responsive suite.

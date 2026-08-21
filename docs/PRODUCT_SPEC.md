@@ -153,6 +153,22 @@ When a vendor enters a whole local-currency amount such as `45000`, the
 interface should display it naturally, for example `₦45,000`, without implying
 payment verification or accounting revenue.
 
+## Business Identity And Account Access
+
+Implemented and verified cross-phase maintenance gives authenticated users a
+compact account menu for mobile-accessible Settings and the existing logout
+flow without adding a sixth primary bottom-navigation item. Settings exposes
+only implemented account/session and business-profile destinations.
+
+A business may optionally store a normalized HTTP/HTTPS website, its existing
+Instagram handle, and one current logo. Logo input is raster-only and is
+server-validated, resized without distortion, converted to bounded WebP, and
+stored as a public business asset with owner-only mutations. Secure booking
+confirmation pages may display business name, logo/fallback initials, website,
+and Instagram as secondary trust links; booking review and confirmation remain
+the primary customer task. WhatsApp remains a business contact field and is not
+added as a new public confirmation link in this pass.
+
 ## Customer Experience Principle
 
 Customer-facing flows should generally:

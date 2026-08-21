@@ -673,3 +673,35 @@ protection must be configured in GitHub to make the core checks merge-blocking.
 Revisit conditions: A safe local Supabase CI architecture replaces remote test
 fixtures, GitHub changes its supported action/runtime model, or a separately
 approved production deployment pipeline is introduced.
+
+## ADR-031 - Business Logos Use One Bounded Public Object Per Tenant
+
+Status: Accepted
+
+Date: 2026-08-21
+
+Context: A business logo must appear on authenticated and customer-facing pages,
+but general media storage, raw uploads, and sensitive documents are outside this
+pass. The object must be publicly readable while mutations remain tenant-safe.
+
+Decision: Store one deterministic `{business_id}/logo.webp` object in the
+public `business-logos` bucket. Authorize object select/list, insert, update, and
+delete for active owners only through Storage RLS. Validate source MIME,
+extension, decoded format, bytes, dimensions, and animation server-side; resize
+with aspect ratio preserved, strip source metadata, encode WebP, and enforce the
+bucket's 200 KB persisted limit. Store only `logo_path` in `businesses`.
+
+Rationale: A logo-only public bucket is the simplest safe customer-display
+model. Deterministic overwrite prevents abandoned replacements, while owner
+RLS and an exact-path parser prevent cross-tenant writes or arbitrary object
+names. No service-role storage credential reaches the browser.
+
+Consequences: Public URLs are readable by anyone who has the asset URL, as
+expected for business branding. Anonymous callers cannot list the bucket or
+mutate objects. Removal clears the database reference before object cleanup; a
+cleanup failure leaves a harmless unreferenced public logo and is reported for
+retry rather than restoring a broken database reference. Future uploaded image
+features must define equivalent bounds, optimization, access, and cleanup.
+
+Revisit conditions: Multiple brand assets, private media, CDN transformations,
+or a generalized media library is accepted into scope.

@@ -18,6 +18,11 @@ high-entropy capabilities whose hashes are stored at rest. Audit events preserve
 material activity, the durable email outbox separates transactional state from
 delivery, and an authenticated aggregate RPC provides private analytics.
 
+The authenticated shell keeps five primary mobile destinations and exposes
+account/session controls through a secondary account menu. Dashboard summary
+links use ordinary semantic routes and validated list query parameters rather
+than client-only navigation state.
+
 ## Integration Architecture
 
 GitHub Actions is the repository CI boundary. Pull requests into and pushes to
@@ -56,6 +61,23 @@ from the immutable terms snapshot, and calls a provider-neutral interface. The
 development adapter makes no external request; the optional Resend adapter is
 enabled only by explicit server environment configuration. Delivery failure is
 recorded on the event and never reverts the confirmed booking.
+
+## Business Logo Storage Boundary
+
+`POST` and `DELETE /api/businesses/[businessId]/logo` authenticate the current
+user, require an active owner role, and use that user's normal Supabase client
+so Storage RLS remains authoritative. The route rejects oversized bodies before
+decoding where possible, validates raster content with Sharp, preserves aspect
+ratio, emits metadata-stripped WebP no larger than 512px/200 KB, and stores one
+deterministic object. No raw source is persisted.
+
+The `business-logos` bucket is public only for object retrieval. Authenticated
+owner policies protect exact-path listing, upload, replacement, and deletion;
+anonymous listing/writes and cross-tenant writes remain unavailable. Public
+confirmation RPCs return only `logo_path`, validated website, existing
+Instagram handle, and business name in addition to the established minimized
+booking view. These identity fields are not part of the immutable booking terms
+hash, so branding changes do not invalidate a customer's confirmed terms.
 
 My Customers is a modular monolith. The product should remain one deployable
 Next.js application until there is concrete operational pressure to split a

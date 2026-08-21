@@ -2,6 +2,7 @@ import fs from "node:fs";
 import { randomUUID } from "node:crypto";
 import { expect, test, type Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
+import sharp from "sharp";
 import { hashRateLimitIdentity } from "../../features/confirmation-links/rate-limit-keys";
 
 function loadLocalEnv() {
@@ -197,6 +198,9 @@ test.describe("booking engine", () => {
         await admin.from("bookings").delete().in("business_id", businessIds);
         await admin.from("customers").delete().in("business_id", businessIds);
         await admin.from("audit_logs").delete().in("business_id", businessIds);
+        await admin.storage
+          .from("business-logos")
+          .remove(businessIds.map((businessId) => `${businessId}/logo.webp`));
         await admin.from("businesses").delete().in("id", businessIds);
       }
     }
@@ -229,6 +233,31 @@ test.describe("booking engine", () => {
       password,
       slug,
     });
+    const admin = createAdminClient();
+    const logoPath = `${ownerFixture.businessId}/logo.webp`;
+    const logo = await sharp({
+      create: {
+        width: 640,
+        height: 320,
+        channels: 4,
+        background: { r: 19, g: 104, b: 84, alpha: 1 },
+      },
+    })
+      .webp({ quality: 80 })
+      .toBuffer();
+    const { error: logoUploadError } = await admin.storage
+      .from("business-logos")
+      .upload(logoPath, logo, { contentType: "image/webp", upsert: true });
+    expect(logoUploadError).toBeNull();
+    const { error: identityUpdateError } = await admin
+      .from("businesses")
+      .update({
+        logo_path: logoPath,
+        website: "https://phase5.example.com/booking",
+        instagram: "phase5business",
+      })
+      .eq("id", ownerFixture.businessId);
+    expect(identityUpdateError).toBeNull();
 
     await page.goto("/login");
     await page.getByLabel("Email").fill(email);
@@ -290,6 +319,17 @@ test.describe("booking engine", () => {
 
     await page.goto(confirmationUrl);
     await expect(page.getByRole("heading", { name: "Confirm booking" })).toBeVisible();
+    await expect(page.getByText("Phase 5 E2E Business", { exact: true })).toBeVisible();
+    await expect(page.getByLabel("Phase 5 E2E Business logo").locator("img")).toBeVisible();
+    await expect(page.getByRole("link", { name: "Visit website" })).toHaveAttribute(
+      "href",
+      "https://phase5.example.com/booking",
+    );
+    await expect(page.getByRole("link", { name: "Instagram" })).toHaveAttribute(
+      "href",
+      "https://www.instagram.com/phase5business/",
+    );
+    await expect(page.getByText(ownerFixture.businessId)).toHaveCount(0);
     await expect(page.getByText(updatedTitle)).toBeVisible();
     await expect(page.getByText("₦45,000")).toBeVisible();
     await expect(page.getByText("Updated private E2E note.")).toHaveCount(0);
@@ -305,7 +345,6 @@ test.describe("booking engine", () => {
       page.getByText("We'll send a confirmation to c***@example.com."),
     ).toBeVisible();
 
-    const admin = createAdminClient();
     const [{ data: capturedCustomer }, { data: confirmationRows }, { data: emailEvents }] =
       await Promise.all([
         admin
@@ -550,6 +589,8 @@ test.describe("booking engine", () => {
     createdRateLimitBuckets.add(hashRateLimitIdentity(`confirm:unknown:${userAgent}`));
 
     await page.goto(confirmationUrl);
+    await expect(page.getByLabel("Phase 5 E2E Business logo")).toBeVisible();
+    await expect(page.getByLabel("Phase 5 E2E Business logo").locator("img")).toHaveCount(0);
     await page.getByLabel("Where should we send updates about this booking?").fill(
       duplicateEmail,
     );

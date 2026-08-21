@@ -41,4 +41,9 @@ For branch integration or CI changes, read `docs/CI.md`. Do not bypass required
 checks, weaken or skip unrelated tests, expose secrets, force-push shared
 history, or apply production database migrations from pull-request CI.
 
+Any user-uploaded image feature must document and enforce accepted MIME types,
+maximum input bytes and dimensions, optimized output format/dimensions/bytes,
+bucket/path and access model, authorization, replacement cleanup, and deletion
+behavior. Do not retain raw or unbounded uploads.
+
 <!-- END:my-customers-governance -->

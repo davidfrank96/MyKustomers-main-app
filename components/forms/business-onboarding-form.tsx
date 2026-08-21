@@ -24,6 +24,7 @@ type BusinessFormValues = {
   email?: string | null;
   whatsapp?: string | null;
   instagram?: string | null;
+  website?: string | null;
   addressText?: string | null;
 };
 
@@ -237,6 +238,27 @@ export function BusinessOnboardingForm({
           {fieldError(state, "instagram") ? (
             <p id="instagram-error" className="text-sm leading-5 text-destructive">
               {fieldError(state, "instagram")}
+            </p>
+          ) : null}
+        </div>
+
+        <div className="space-y-2 md:col-span-2">
+          <Label htmlFor="website">Website</Label>
+          <Input
+            id="website"
+            name="website"
+            type="url"
+            inputMode="url"
+            placeholder="example.com"
+            defaultValue={initialValues.website ?? ""}
+            autoComplete="url"
+            disabled={disabled}
+            aria-invalid={Boolean(fieldError(state, "website"))}
+            aria-describedby={fieldError(state, "website") ? "website-error" : undefined}
+          />
+          {fieldError(state, "website") ? (
+            <p id="website-error" className="text-sm leading-5 text-destructive">
+              {fieldError(state, "website")}
             </p>
           ) : null}
         </div>

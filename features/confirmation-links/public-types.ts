@@ -11,6 +11,9 @@ export type PublicConfirmationStatus =
 
 export type PublicConfirmationBooking = {
   business_name: string;
+  business_logo_path: string | null;
+  business_website: string | null;
+  business_instagram: string | null;
   business_phone: string | null;
   business_email: string | null;
   customer_name: string;

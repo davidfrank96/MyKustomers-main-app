@@ -2,6 +2,30 @@
 
 This changelog records meaningful project milestones. It is not a substitute for Git history.
 
+## 2026-08-21 - Mobile Account, Business Identity, And Dashboard Navigation
+
+Status: VERIFIED
+
+- Kept the five-item mobile navigation and added a compact authenticated account
+  menu that reaches real Settings and the existing logout route/action.
+- Added optional normalized business websites and one owner-managed logo with a
+  dedicated route, Sharp server validation, PNG/JPEG/WebP input, 2 MB/6000px/
+  25 MP source bounds, aspect-preserving WebP output, and 512px/200 KB persisted
+  limits. Raw originals are never stored.
+- Added the public logo-only `business-logos` bucket with deterministic tenant
+  paths and owner-only Storage RLS for listing, upload, replacement, and delete.
+  Removal clears the row before cleanup so a cleanup failure cannot leave a
+  broken business reference.
+- Added safe public confirmation identity using business name, logo/fallback,
+  validated website, and the existing Instagram handle while preserving masked
+  confirmation contact and immutable booking terms.
+- Added semantic dashboard links: business profile, customers, active/today/
+  overdue booking filters, and this-month insights.
+- Applied both forward migrations to development. The initial live run found an
+  RPC overload ambiguity and masked-email regression; the second migration fixed
+  both, and all ten live security suites plus focused responsive/browser flows
+  passed without starting billing or the broad redesign.
+
 ## 2026-08-21 - Main Reconciliation And CI Quality Gate
 
 Status: VERIFIED

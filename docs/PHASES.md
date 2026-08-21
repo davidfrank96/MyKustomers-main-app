@@ -20,6 +20,15 @@ the broad redesign. Pull request #2 passed every core remote job and reported a
 clean merge state, so this maintenance pass is VERIFIED; guarded Runtime
 Security configuration remains separate follow-up governance work.
 
+The 2026-08-21 mobile account, business identity, and dashboard navigation pass
+is VERIFIED cross-phase maintenance. It preserves the five-item mobile product
+navigation, exposes Settings/logout through the authenticated account menu,
+adds owner-managed website and bounded logo identity, extends minimized public
+confirmation branding, and maps existing dashboard tiles to real destinations.
+The two forward migrations are applied to development; static, live storage/RLS,
+responsive, confirmation, and focused E2E evidence passed. Billing and the broad
+redesign remain unstarted.
+
 ## Phase 0 - Product Definition
 
 Status: VERIFIED

@@ -52,6 +52,19 @@ Rules:
 - Update tests when behavior changes.
 - Keep secrets out of source control and browser bundles.
 
+## Image Upload Governance
+
+Every future user-image feature must define accepted MIME types/extensions,
+maximum input bytes, maximum decoded dimensions/pixels, server-side content
+validation, compression, output format and dimensions, maximum persisted bytes,
+bucket/path and public/private access model, authorization, replacement cleanup,
+and deletion failure behavior. Browser `accept` attributes are hints, not a
+security boundary. Do not store raw or unbounded originals by default.
+
+The current business-logo constants live in `features/businesses/logo.ts`:
+PNG/JPEG/WebP input, 2 MB, 6000px per edge, 25 MP, metadata-stripped WebP,
+aspect-preserving resize, 512px maximum, and 200 KB persisted maximum.
+
 ## Documentation Definition Of Done
 
 Documentation is part of definition of done. Every material feature, fix,

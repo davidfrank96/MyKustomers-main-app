@@ -23,6 +23,7 @@ export type BusinessSummary = {
   name: string;
   slug: string;
   category: string;
+  logoPath: string | null;
   role: BusinessMemberRole;
 };
 
@@ -113,7 +114,7 @@ export async function getCurrentBusinessContext(
   const selectedMembership = memberships[0];
   const { data, error } = await supabase
     .from("businesses")
-    .select("id, name, slug, category")
+    .select("id, name, slug, category, logo_path")
     .eq("id", selectedMembership.businessId)
     .maybeSingle();
 
@@ -128,6 +129,7 @@ export async function getCurrentBusinessContext(
       name: data.name,
       slug: data.slug,
       category: data.category,
+      logoPath: data.logo_path,
       role: selectedMembership.role,
     },
   };

@@ -9,6 +9,7 @@ import {
 
 export const bookingListFilters = [
   "all",
+  "active",
   "today",
   "upcoming",
   "overdue",

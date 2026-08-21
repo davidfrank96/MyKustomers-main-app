@@ -40,6 +40,49 @@ describe("business validation", () => {
     }
   });
 
+  it("normalizes safe business websites and preserves explicit http", () => {
+    const domainOnly = businessProfileSchema.parse({
+      name: "Divine Cakes",
+      category: "Bakery",
+      website: "divinecakes.example/shop#menu",
+    });
+    const explicitHttp = businessProfileSchema.parse({
+      name: "Divine Cakes",
+      category: "Bakery",
+      website: "http://divinecakes.example",
+    });
+
+    expect(domainOnly.website).toBe("https://divinecakes.example/shop");
+    expect(explicitHttp.website).toBe("http://divinecakes.example/");
+  });
+
+  it("accepts an empty website and rejects unsafe, invalid, or excessive URLs", () => {
+    const empty = businessProfileSchema.parse({
+      name: "Divine Cakes",
+      category: "Bakery",
+      website: "  ",
+    });
+    expect(empty.website).toBeUndefined();
+
+    for (const website of [
+      "javascript:alert(1)",
+      "data:text/html,bad",
+      "file:///tmp/logo",
+      "https://user:password@example.com",
+      "not a website",
+      `https://example.com/${"a".repeat(2048)}`,
+    ]) {
+      expect(
+        businessProfileSchema.safeParse({
+          name: "Divine Cakes",
+          category: "Bakery",
+          website,
+        }).success,
+        website,
+      ).toBe(false);
+    }
+  });
+
   it("rejects invalid categories and unsafe contact details", () => {
     const parsed = businessProfileSchema.safeParse({
       name: "Divine Cakes",

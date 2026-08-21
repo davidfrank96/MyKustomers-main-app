@@ -33,3 +33,18 @@ in `definitions.ts` for the in-app definitions section.
 Phase 9.5 keeps insights readable for business owners by avoiding internal
 tenancy terminology in visible definitions and preserving conservative recorded
 value language.
+
+## Dashboard Navigation
+
+Dashboard summary links preserve existing query contracts:
+
+- Business identity -> `/business`.
+- Total customers -> `/customers`.
+- Active bookings -> `/bookings?filter=active`.
+- Due today -> `/bookings?filter=today`.
+- Overdue -> `/bookings?filter=overdue`.
+- Completed count/value and feedback this month -> `/insights?range=this_month`.
+
+`active` is an explicit booking-list filter for statuses other than `COMPLETED`
+and `CANCELLED`, matching the existing dashboard metric. No new metric was
+introduced.

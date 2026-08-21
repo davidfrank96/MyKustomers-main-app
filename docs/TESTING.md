@@ -32,6 +32,12 @@ do not reduce the verified tenant/RLS coverage.
 - Phase 2 runtime Supabase RLS/security test.
 - Phase 3 business validation tests.
 - Phase 3 runtime Supabase business onboarding/RLS/security test.
+- Business website normalization/safe-scheme tests and Sharp-backed PNG/JPEG/
+  WebP validation, mismatch, byte, dimension, compression, and output-policy
+  tests.
+- Static business-identity migration/route tests and live Supabase Storage tests
+  for owner replacement/removal, member/cross-tenant/anonymous denial, public
+  retrieval, and non-enumerable anonymous listing.
 - Phase 4 customer validation tests.
 - Static Phase 4 customer migration/RLS review tests.
 - Phase 4 runtime Supabase customer tenant security test.
@@ -70,6 +76,13 @@ do not reduce the verified tenant/RLS coverage.
 - Focused New Booking checks that preserve entered values and keep the inline
   duplicate-candidate action usable without horizontal overflow at every
   required width.
+- Authenticated account/settings, business-logo/profile, and dashboard routes at
+  320, 360, 375, 390, 430, 768, 1024, and 1440 pixels, including real logo
+  upload/replacement/removal, website persistence, mobile logout, and dashboard
+  tile destinations.
+- Public confirmation identity coverage for persisted logo, fallback initials,
+  safe website/Instagram links, unchanged booking/contact confirmation, and no
+  visible tenant ID.
 - Lightweight governance tests for required documentation, the repository
   definition-of-done rule, and migration filename/order discipline.
 
@@ -154,6 +167,13 @@ The Phase 3 runtime test verifies authenticated RPC creation, unauthenticated
 RPC denial, atomic rollback on invalid input, duplicate slug collision handling,
 owner membership creation, owner update, member update denial, and cross-tenant
 update denial.
+
+The business-logo runtime test verifies the exact owner path, deterministic
+upsert and delete, member and cross-tenant object denial, owner-only business
+reference updates, anonymous upload denial, public object retrieval, and no
+anonymous bucket enumeration. The first enabled run caught an onboarding RPC
+overload ambiguity and a masked-email confirmation regression; the forward
+`20260821132030` migration fixed both, after which all ten live suites passed.
 
 The Phase 4 runtime test verifies customer tenant read matrix, cross-tenant
 update/archive denial, unauthorized create denial, immutable `business_id`,
