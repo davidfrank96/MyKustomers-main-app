@@ -157,6 +157,15 @@ production-readiness work.
 - [x] Phase 9 insights reviewed in E2E.
 - [x] Existing and inline-new-customer booking creation reviewed in desktop and
   mobile E2E, including explicit duplicate continuation and confirmation.
+- [x] Phase 9.5 product UX audit completed across mobile, tablet, and desktop.
+- [x] Authenticated navigation active state reviewed for Home, Bookings,
+  Customers, Insights, and Business.
+- [x] Canonical customer-to-booking-to-confirmation-to-fulfilment-to-feedback-to-insights
+  journey covered in E2E.
+- [x] Public confirmation and feedback pages reviewed for simple customer copy
+  and safe unavailable states.
+- [x] Money and terminology reviewed to avoid payment verification, accounting,
+  and internal implementation claims.
 
 ## Email
 
@@ -178,3 +187,19 @@ production-readiness work.
 - [ ] Domain configured.
 - [ ] Production deployment smoke-tested.
 - [ ] Rollback process documented.
+
+## Repository Integration And CI
+
+- [x] Current verified functionality and all applied migration artifacts
+  preserved during main reconciliation.
+- [x] No unmerged paths or conflict markers remain locally.
+- [x] GitHub Actions defines Quality, Tests, Build, E2E, Dependency Security,
+  and guarded Runtime Security jobs.
+- [x] Workflow permissions are read-only and no production migration/deployment
+  step exists.
+- [ ] Required E2E GitHub secrets configured for a dedicated non-production
+  Supabase project.
+- [ ] Protected runtime-security environment and enable variable configured.
+- [ ] GitHub Actions core checks pass on the reconciliation branch.
+- [ ] Pull request reports mergeable with required checks green.
+- [ ] `main` branch protection requires the documented core checks.

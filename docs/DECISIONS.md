@@ -644,3 +644,32 @@ idempotency framework is introduced.
 Revisit conditions: Customer volumes require server-paginated picker search, a
 reviewed merge/restoration workflow is accepted, or booking submission gains a
 product-level idempotency contract.
+
+## ADR-030 - Main Integration Requires GitHub Actions Quality Gates
+
+Status: Accepted
+
+Date: 2026-08-21
+
+Context: Shared branches diverged while product, security, migration, and UI
+work continued independently. Repository integration needs repeatable checks
+without turning ordinary pull-request CI into a production deployment path.
+
+Decision: Run least-privilege GitHub Actions for pull requests into and pushes
+to `main`. Require separate Quality, Tests, Build, E2E, and Dependency Security
+checks. Define live runtime security behind an explicit protected non-production
+Supabase environment and enable it only when safe secrets exist. Never migrate
+production or deploy infrastructure from this workflow.
+
+Rationale: Named jobs make failures attributable, `npm ci` keeps installs
+reproducible, and protected secrets allow real browser and RLS verification
+without exposing the service role. Keeping deployment separate prevents a code
+quality workflow from gaining unnecessary write authority.
+
+Consequences: Core E2E requires dedicated Supabase CI secrets. Runtime Security
+is configuration-pending until its environment is deliberately enabled. Branch
+protection must be configured in GitHub to make the core checks merge-blocking.
+
+Revisit conditions: A safe local Supabase CI architecture replaces remote test
+fixtures, GitHub changes its supported action/runtime model, or a separately
+approved production deployment pipeline is introduced.

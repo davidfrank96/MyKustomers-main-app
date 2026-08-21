@@ -2,6 +2,23 @@
 
 This changelog records meaningful project milestones. It is not a substitute for Git history.
 
+## 2026-08-21 - Main Reconciliation And CI Quality Gate
+
+Status: IMPLEMENTED - VERIFICATION PENDING
+
+- Reconciled the current verified product branch with the older Phase 9.5 UI
+  pass using a normal merge and file-by-file conflict resolution.
+- Preserved confirmation contact capture, durable email events, inline customer
+  booking, responsive regressions, all applied migrations, and current security
+  suites while retaining compatible active navigation, product copy, money,
+  next-step, UX-audit, and canonical-journey improvements from `main`.
+- Added least-privilege GitHub Actions jobs for quality, tests, build,
+  dependency security, E2E, and guarded live runtime security.
+- Documented required secret names, branch protection, merge policy, migration
+  boundaries, and the separation between CI and deferred production deployment.
+- Remote Actions execution, PR mergeability, and final integration into `main`
+  remain required before this entry can become VERIFIED.
+
 ## 2026-08-21 - Responsive Alignment And Documentation Governance
 
 Status: VERIFIED
@@ -74,6 +91,27 @@ Status: VERIFIED
   `completed_at` buckets, matching the documented completion-date definition.
 - Made no table, RLS, lifecycle, money, analytics definition, dependency, or UI
   design changes.
+
+## 2026-08-19 - Phase 9.5 Product UX, Design, and End-to-End Experience Audit
+
+Status: VERIFIED
+
+- Added `docs/UX_AUDIT.md` with Phase 9.5 findings, evidence, resolutions, and
+  status.
+- Added active authenticated navigation for Home, Bookings, Customers,
+  Insights, and Business across desktop and mobile.
+- Improved booking detail hierarchy with a state-specific Next step area for
+  lifecycle actions.
+- Replaced visible implementation terminology in owner/customer flows with
+  product language.
+- Updated money formatting so NGN amounts render naturally, for example
+  `₦45,000`, while preserving integer minor-unit storage.
+- Strengthened the booking E2E into a canonical journey covering customer
+  creation, booking creation, customer confirmation, fulfilment, feedback,
+  issue handling, and insights.
+- Completed responsive visual audit across mobile, tablet, and desktop
+  viewports without adding billing, payment processing, messaging automation,
+  exports, or staff management.
 
 ## 2026-08-19 - Phase 9 Business Insights and Analytics
 

@@ -12,6 +12,9 @@ export default defineConfig({
   },
   webServer: {
     command: `npm run dev -- --hostname 127.0.0.1 --port ${port}`,
+    env: {
+      NEXT_PUBLIC_APP_URL: `http://127.0.0.1:${port}`,
+    },
     url: `http://127.0.0.1:${port}`,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

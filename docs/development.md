@@ -75,3 +75,30 @@ PHASE2_RUNTIME_VERIFICATION=1 PHASE2_SUPABASE_TARGET=development npm run test:se
 npm run test:e2e
 npm run build
 ```
+
+## UX Audit Expectations
+
+Before billing or other expansion phases, preserve the Phase 9.5 baseline:
+
+- Review authenticated flows at 375px, 390px, 430px, 768px, and desktop widths.
+- Keep visible product copy in owner/customer language rather than internal
+  implementation terminology.
+- Keep booking money displayed as natural currency while storing values as
+  integer minor units.
+- Keep the dashboard operational first; do not replace it with a wall of
+  summary metrics.
+- Extend the canonical E2E journey when a new phase changes the core workflow.
+
+## Branch Integration
+
+- Fetch and compare both branch tips and their merge base before reconciliation.
+- Prefer a normal merge for already-shared branches; do not rewrite remote
+  history for convenience.
+- Resolve conflicts file by file. Preserve verified domain/security behavior,
+  immutable migrations, current tests, and accurate documentation.
+- Run the complete local gate before push, then verify actual GitHub Actions and
+  pull-request mergeability before merging to `main`.
+- Do not force push `main`, bypass checks, or treat CI as a deployment pipeline.
+
+Required checks, secret configuration, and branch protection recommendations
+are documented in `docs/CI.md`.

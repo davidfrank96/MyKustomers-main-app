@@ -37,4 +37,8 @@ Use `docs/DOCUMENTATION_GOVERNANCE.md` for the change matrix and pre-finish
 checklist. Final task reports must list documentation updated or explicitly
 state why no documentation change was required.
 
+For branch integration or CI changes, read `docs/CI.md`. Do not bypass required
+checks, weaken or skip unrelated tests, expose secrets, force-push shared
+history, or apply production database migrations from pull-request CI.
+
 <!-- END:my-customers-governance -->

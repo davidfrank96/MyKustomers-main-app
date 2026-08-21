@@ -26,7 +26,7 @@ describe("booking domain", () => {
 
   it("derives balances without storing a mutable balance", () => {
     expect(deriveBalanceMinor(4_500_000, 500_000)).toBe(4_000_000);
-    expect(formatMoneyMinor(4_500_000, "NGN")).toContain("45,000");
+    expect(formatMoneyMinor(4_500_000, "NGN")).toBe("₦45,000");
   });
 
   it("validates booking forms and rejects impossible financial state", () => {

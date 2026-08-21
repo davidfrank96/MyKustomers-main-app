@@ -23,6 +23,7 @@ const requiredDocs = [
   "docs/DOCUMENTATION_GOVERNANCE.md",
   "docs/MIGRATIONS.md",
   "docs/RESPONSIVE_QA.md",
+  "docs/CI.md",
 ];
 
 describe("repository governance", () => {
@@ -46,5 +47,21 @@ describe("repository governance", () => {
 
     expect(new Set(versions).size).toBe(versions.length);
     expect(migrations).toEqual([...migrations].sort());
+  });
+
+  it("keeps the main integration quality gate explicit and non-deploying", () => {
+    const workflowPath = path.join(process.cwd(), ".github/workflows/ci.yml");
+    expect(fs.existsSync(workflowPath)).toBe(true);
+
+    const workflow = fs.readFileSync(workflowPath, "utf8");
+    for (const checkName of ["Quality", "Tests", "Build", "E2E", "Dependency Security"]) {
+      expect(workflow).toContain(`name: ${checkName}`);
+    }
+
+    expect(workflow).toContain("npm ci");
+    expect(workflow).toContain("npm audit --audit-level=moderate");
+    expect(workflow).toContain("npx playwright install --with-deps chromium");
+    expect(workflow).not.toContain("|| true");
+    expect(workflow).not.toMatch(/supabase\s+db\s+(push|reset)/);
   });
 });

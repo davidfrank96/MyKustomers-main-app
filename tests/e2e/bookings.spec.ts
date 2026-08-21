@@ -37,6 +37,7 @@ const createdEmails = new Set<string>();
 const createdBusinessSlugs = new Set<string>();
 const createdRateLimitBuckets = new Set<string>();
 const testRunStartedAt = new Date().toISOString();
+const serverActionTimeout = 15_000;
 
 function createAdminClient() {
   return createClient(
@@ -81,17 +82,17 @@ async function expectNoPageOverflow(page: Page) {
   expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth + 1);
 }
 
-async function createConfirmedBusinessOwnerWithCustomer({
+async function createConfirmedBusinessOwner({
   email,
   password,
   slug,
-  customerName,
+  customerName = null,
   customerEmail = null,
 }: {
   email: string;
   password: string;
   slug: string;
-  customerName: string;
+  customerName?: string | null;
   customerEmail?: string | null;
 }) {
   const admin = createAdminClient();
@@ -129,6 +130,10 @@ async function createConfirmedBusinessOwnerWithCustomer({
     status: "active",
   });
   expect(membershipError).toBeNull();
+
+  if (!customerName) {
+    return { businessId: business!.id, customerId: null };
+  }
 
   const { data: customer, error: customerError } = await admin
     .from("customers")
@@ -206,7 +211,7 @@ test.describe("booking engine", () => {
     );
   });
 
-  test("business user can create, confirm, reschedule, and complete a booking", async ({
+  test("canonical customer, booking, confirmation, fulfilment, feedback, and insights journey", async ({
     page,
   }, testInfo) => {
     test.setTimeout(60_000);
@@ -219,11 +224,10 @@ test.describe("booking engine", () => {
     const updatedTitle = `${bookingTitle} Updated`;
     createdBusinessSlugs.add(slug);
 
-    const fixture = await createConfirmedBusinessOwnerWithCustomer({
+    const ownerFixture = await createConfirmedBusinessOwner({
       email,
       password,
       slug,
-      customerName,
     });
 
     await page.goto("/login");
@@ -232,6 +236,17 @@ test.describe("booking engine", () => {
     await page.getByRole("button", { name: "Log in" }).click();
 
     await expect(page).toHaveURL(/\/dashboard/);
+
+    await page.goto("/customers/new");
+    await expect(page.getByRole("heading", { name: "Add customer" })).toBeVisible();
+    await page.getByLabel("Name").fill(customerName);
+    await page.getByLabel("Notes").fill("Created during the canonical product journey.");
+    await page.getByRole("button", { name: "Create customer" }).click();
+    await expect(page).toHaveURL(/\/customers\/[0-9a-f-]+\?created=1/);
+    await expect(page.getByRole("heading", { name: customerName })).toBeVisible();
+    const customerId = new URL(page.url()).pathname.split("/").at(-1);
+    expect(customerId).toBeTruthy();
+    const fixture = { businessId: ownerFixture.businessId, customerId: customerId! };
 
     await page.goto("/bookings");
     await expect(page.getByRole("heading", { name: "Bookings", exact: true })).toBeVisible();
@@ -265,7 +280,7 @@ test.describe("booking engine", () => {
     await expect(generatedLinkInput).toBeVisible();
     const confirmationUrl = await generatedLinkInput.inputValue();
     expect(confirmationUrl).toContain("/c/");
-    await expect(page.locator("span").filter({ hasText: /^Awaiting Customer$/ })).toBeVisible();
+    await expect(page.locator("span").filter({ hasText: /^Awaiting customer$/ })).toBeVisible();
 
     const userAgent = (await page.evaluate(() => navigator.userAgent)).slice(0, 80);
     createdRateLimitBuckets.add(hashRateLimitIdentity(`lookup:unknown:${userAgent}`));
@@ -276,6 +291,7 @@ test.describe("booking engine", () => {
     await page.goto(confirmationUrl);
     await expect(page.getByRole("heading", { name: "Confirm booking" })).toBeVisible();
     await expect(page.getByText(updatedTitle)).toBeVisible();
+    await expect(page.getByText("₦45,000")).toBeVisible();
     await expect(page.getByText("Updated private E2E note.")).toHaveCount(0);
 
     await page.getByLabel("Where should we send updates about this booking?").fill(
@@ -342,7 +358,7 @@ test.describe("booking engine", () => {
     await expect(
       page.getByText("Booking rescheduled. Customer confirmation is required again."),
     ).toBeVisible();
-    await expect(page.locator("span").filter({ hasText: /^Awaiting Customer$/ })).toBeVisible();
+    await expect(page.locator("span").filter({ hasText: /^Awaiting customer$/ })).toBeVisible();
     await expect(page.getByText("Booking rescheduled", { exact: true })).toBeVisible();
 
     await page.getByRole("button", { name: /Generate confirmation link|Regenerate link/ }).click();
@@ -364,20 +380,28 @@ test.describe("booking engine", () => {
 
     await page.getByRole("button", { name: "Start work" }).click();
     await expect(page).toHaveURL(/message=status-updated/);
-    await expect(page.locator("span").filter({ hasText: /^In Progress$/ })).toBeVisible();
-    await expect(page.getByText("Confirmed to In Progress")).toBeVisible();
+    await expect(page.locator("span").filter({ hasText: /^In progress$/ })).toBeVisible({
+      timeout: serverActionTimeout,
+    });
+    await expect(page.getByText("Confirmed to In progress")).toBeVisible();
 
     await page.getByRole("button", { name: "Mark ready" }).click();
-    await expect(page.locator("span").filter({ hasText: /^Ready$/ })).toBeVisible();
-    await expect(page.getByText("In Progress to Ready")).toBeVisible();
+    await expect(page.locator("span").filter({ hasText: /^Ready$/ })).toBeVisible({
+      timeout: serverActionTimeout,
+    });
+    await expect(page.getByText("In progress to Ready")).toBeVisible();
 
     await page.getByRole("button", { name: "Mark delivered" }).click();
-    await expect(page.locator("span").filter({ hasText: /^Delivered$/ })).toBeVisible();
+    await expect(page.locator("span").filter({ hasText: /^Delivered$/ })).toBeVisible({
+      timeout: serverActionTimeout,
+    });
     await expect(page.getByText("Ready to Delivered")).toBeVisible();
 
     page.once("dialog", (dialog) => dialog.accept());
     await page.getByRole("button", { name: "Complete booking" }).click();
-    await expect(page.locator("span").filter({ hasText: /^Completed$/ })).toBeVisible();
+    await expect(page.locator("span").filter({ hasText: /^Completed$/ })).toBeVisible({
+      timeout: serverActionTimeout,
+    });
     await expect(page.getByText("Delivered to Completed")).toBeVisible();
     await expect(page.getByText("Completed and cancelled bookings are locked.")).toBeVisible();
 
@@ -421,6 +445,21 @@ test.describe("booking engine", () => {
     await expect(page).toHaveURL(/message=issue-resolved/);
     await expect(page.getByText("Issue resolved.")).toBeVisible();
     await expect(page.locator("span").filter({ hasText: /^Resolved$/ })).toBeVisible();
+
+    await page.goto("/insights?range=this_month");
+    await expect(page.getByRole("heading", { name: "Insights" })).toBeVisible();
+    await expect(page.getByText("Private business insights")).toBeVisible();
+    const completedBookingsCard = page
+      .getByRole("heading", { name: "Completed bookings" })
+      .locator("../..");
+    await expect(completedBookingsCard.getByText("1", { exact: true })).toBeVisible();
+    const feedbackResponsesCard = page
+      .getByRole("heading", { name: "Feedback responses" })
+      .locator("../..");
+    await expect(feedbackResponsesCard.getByText("1", { exact: true })).toBeVisible();
+    await expect(page.getByText("₦45,000").first()).toBeVisible();
+    await expect(page.getByText("Late delivery")).toBeVisible();
+    await expect(page.getByText("Everything was handled privately.")).toHaveCount(0);
   });
 
   test("business user can create a customer inline after an exact-match warning", async ({
@@ -437,7 +476,7 @@ test.describe("booking engine", () => {
     const duplicateEmail = `duplicate-${randomUUID().slice(0, 8)}@example.com`;
     createdBusinessSlugs.add(slug);
 
-    const fixture = await createConfirmedBusinessOwnerWithCustomer({
+    const fixture = await createConfirmedBusinessOwner({
       email,
       password,
       slug,

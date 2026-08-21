@@ -68,6 +68,38 @@ function formatDateTime(value: string | null) {
   }).format(new Date(value));
 }
 
+function nextStepDescription(status: string) {
+  if (status === "DRAFT" || status === "AWAITING_CUSTOMER") {
+    return "Send a confirmation link when the customer is ready to approve the booking.";
+  }
+
+  if (status === "CONFIRMED") {
+    return "The customer has confirmed the booking. Start work when you are ready.";
+  }
+
+  if (status === "IN_PROGRESS") {
+    return "Work has started. Mark the booking ready when it is prepared for delivery or pickup.";
+  }
+
+  if (status === "READY") {
+    return "The booking is ready. Mark it delivered when the customer has received it.";
+  }
+
+  if (status === "DELIVERED") {
+    return "The booking has been delivered. Complete it when no further fulfilment work remains.";
+  }
+
+  if (status === "COMPLETED") {
+    return "This booking is complete. You can request private feedback from the customer.";
+  }
+
+  if (status === "CANCELLED") {
+    return "This booking was cancelled and is locked.";
+  }
+
+  return "Review the current booking state and choose the next action.";
+}
+
 export default async function BookingDetailPage({
   params,
   searchParams,
@@ -147,24 +179,32 @@ export default async function BookingDetailPage({
           </p>
         </div>
 
-        {allowedTransitions.length > 0 ? (
-          <div className="flex flex-wrap gap-2">
-            {allowedTransitions.map((status) => (
-              <BookingStatusForm
-                key={status}
-                action={transitionBookingStatusAction.bind(null, booking.id, status)}
-                label={getTransitionLabel(status)}
-                variant={status === "CANCELLED" ? "destructive" : "secondary"}
-                confirmMessage={
-                  status === "CANCELLED" || status === "COMPLETED"
-                    ? `Confirm ${getBookingStatusLabel(status).toLowerCase()}?`
-                    : undefined
-                }
-                cancellationReason={status === "CANCELLED"}
-              />
-            ))}
-          </div>
-        ) : null}
+        <div className="w-full rounded-lg border border-border bg-card p-4 lg:max-w-sm">
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            Next step
+          </p>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            {nextStepDescription(booking.status)}
+          </p>
+          {allowedTransitions.length > 0 ? (
+            <div className="mt-4 flex flex-wrap gap-2">
+              {allowedTransitions.map((status) => (
+                <BookingStatusForm
+                  key={status}
+                  action={transitionBookingStatusAction.bind(null, booking.id, status)}
+                  label={getTransitionLabel(status)}
+                  variant={status === "CANCELLED" ? "destructive" : "secondary"}
+                  confirmMessage={
+                    status === "CANCELLED" || status === "COMPLETED"
+                      ? `Confirm ${getBookingStatusLabel(status).toLowerCase()}?`
+                      : undefined
+                  }
+                  cancellationReason={status === "CANCELLED"}
+                />
+              ))}
+            </div>
+          ) : null}
+        </div>
       </div>
 
       {query.created === "1" ? (

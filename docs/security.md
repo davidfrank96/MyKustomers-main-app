@@ -396,3 +396,16 @@ New-customer mode creates the customer, booking, trigger-owned status history,
 tests verify rollback leaves no orphan or misleading audit, cross-tenant and
 archived IDs are denied, injected business arguments are rejected, anonymous
 execution fails, and contact values do not enter audit metadata.
+
+SEC-036 - CI Secrets And Database Targets Stay Non-Production
+
+Status: IMPLEMENTED
+
+GitHub Actions has read-only repository permission. Build and static jobs receive
+no service-role key. E2E and optional runtime-security jobs reference GitHub
+secrets by name and validate only presence; they do not echo values. The service
+role is never exposed under a `NEXT_PUBLIC_` name. Both mutating jobs must target
+a dedicated non-production Supabase project. Runtime Security additionally
+requires an explicit repository enable variable and protected environment.
+Normal CI never applies production migrations or uploads Playwright artifacts
+that could contain raw confirmation or feedback capability links.

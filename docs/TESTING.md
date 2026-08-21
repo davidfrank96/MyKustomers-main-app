@@ -55,6 +55,9 @@ do not reduce the verified tenant/RLS coverage.
 - Phase 9 analytics date-range, comparison, formatting, and definition tests.
 - Static Phase 9 aggregate RPC migration/security review tests.
 - Phase 9 runtime Supabase analytics correctness and tenant isolation test.
+- Phase 9.5 UX audit, money-display regression tests, and canonical product
+  journey coverage from customer creation through booking, confirmation,
+  fulfilment, feedback, issue handling, and insights.
 - Playwright tests for unauthenticated protected-route redirect, auth screen rendering,
   login, session persistence, logout, forgot-password safe response, redirect safety,
   business onboarding, customer create/edit/archive, and booking
@@ -96,6 +99,8 @@ do not reduce the verified tenant/RLS coverage.
 - E2E-042 - Vendor can create and resolve an internal booking issue. VERIFIED.
 - E2E-050 - Vendor can view tenant-private business insights from persisted
   records. VERIFIED.
+- E2E-060 - Canonical vendor-to-customer product journey works end to end and
+  feeds private insights. VERIFIED.
 
 ## Planned Security Tests
 
@@ -204,10 +209,35 @@ currency separation, cancelled/draft value exclusion, feedback metrics, issue
 distribution, overdue calculation, on-time behavior against current schedules,
 and safe membership enforcement.
 
+The Phase 9.5 UX audit verifies the completed product surface at mobile widths
+375px, 390px, and 430px, tablet width 768px, and desktop width 1365px. It
+checks authenticated navigation, empty states, owner/customer language, booking
+state hierarchy, public confirmation and feedback pages, natural NGN display,
+and the canonical E2E journey through insights. The audit findings live in
+`docs/UX_AUDIT.md`.
+
 Default Supabase email confirmation E2E requires `E2E_SIGNUP_EMAIL` to point at
 a safe inbox. Without it, signup confirmation and reset-password completion
 remain PARTIAL rather than using reserved domains or untrusted third-party
 inboxes.
+
+## GitHub Actions
+
+`.github/workflows/ci.yml` runs on pull requests into and pushes to `main`:
+
+- Quality: lint, typecheck, and changed-file whitespace integrity.
+- Tests: unit, integration, static security, governance, and migration naming.
+- Build: production Next.js build without privileged runtime secrets.
+- Dependency Security: moderate-and-higher npm advisory gate.
+- E2E: Chromium and all ordinary Playwright journeys using required dedicated
+  non-production Supabase secrets; controlled-inbox signup remains optional.
+- Runtime Security: the live nine-suite regression, guarded until the protected
+  `supabase-runtime-security` environment and enable variable are configured.
+
+The core E2E job validates required secret presence so missing credentials do
+not silently turn all authenticated product journeys into skips. Runtime
+Security remains explicitly configuration-pending rather than manufacturing a
+pass. Full details are in `docs/CI.md`.
 
 ## Definition of Done
 

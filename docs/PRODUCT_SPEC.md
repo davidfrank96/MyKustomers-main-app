@@ -143,6 +143,16 @@ value terminology, not revenue, cash, profit, tax, or accounting claims.
 Currency values are grouped by currency and never converted or summed across
 currencies.
 
+Phase 9.5 verifies and tightens the implemented product experience before
+billing begins. The authenticated vendor workflow should read as one coherent
+loop: set up the business, save a customer, create a booking, send a customer
+confirmation link, fulfil the booking, complete it, request private feedback,
+record operational issues when needed, and review private insights. Visible
+product copy should use owner/customer language and avoid implementation terms.
+When a vendor enters a whole local-currency amount such as `45000`, the
+interface should display it naturally, for example `₦45,000`, without implying
+payment verification or accounting revenue.
+
 ## Customer Experience Principle
 
 Customer-facing flows should generally:

@@ -18,6 +18,15 @@ high-entropy capabilities whose hashes are stored at rest. Audit events preserve
 material activity, the durable email outbox separates transactional state from
 delivery, and an authenticated aggregate RPC provides private analytics.
 
+## Integration Architecture
+
+GitHub Actions is the repository CI boundary. Pull requests into and pushes to
+`main` run independent quality, test, build, dependency, and browser jobs with
+read-only repository permission. E2E owns its local Next.js server and may use
+only a dedicated non-production Supabase project. Live runtime security is a
+separate protected-environment job. CI does not deploy the application or apply
+database migrations; those remain separately controlled future operations.
+
 ## Inline Customer Booking Boundary
 
 New Booking presents existing and new customer modes, but both converge on

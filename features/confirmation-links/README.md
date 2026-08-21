@@ -33,6 +33,8 @@ Phase 6 implements secure customer confirmation links for bookings.
   token hashes, tenant IDs, or service-role-only data.
 - Material booking-term changes after confirmation require a fresh customer
   confirmation. Internal notes are non-material.
+- Vendor UI copy should describe customer links without exposing token internals
+  in visible product language.
 
 ## Data
 

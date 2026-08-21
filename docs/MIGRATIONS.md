@@ -71,3 +71,12 @@ Production deployment is not implemented by this pass. Before production:
 There are no destructive automatic down migrations. Prefer a reviewed forward
 fix that preserves data. Rollback is an explicit operational decision using a
 tested backup or a separately reviewed compensating migration.
+
+## CI Boundary
+
+The Tests job statically validates unique chronological migration filenames
+through the governance test. Pull-request CI does not apply migrations to any
+database. Live runtime suites assume the reviewed repository migrations were
+already applied to their dedicated non-production target. Production migration
+tracking, approval, application, and rollback remain a separate controlled
+deployment process.

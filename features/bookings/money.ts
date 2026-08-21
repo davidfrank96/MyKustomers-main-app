@@ -1,11 +1,11 @@
 export const bookingCurrencies = ["NGN", "EUR", "GBP", "USD"] as const;
 export type BookingCurrency = (typeof bookingCurrencies)[number];
 
-const currencySymbols: Record<BookingCurrency, string> = {
-  NGN: "NGN",
-  EUR: "EUR",
-  GBP: "GBP",
-  USD: "USD",
+const currencyLocales: Record<BookingCurrency, string> = {
+  NGN: "en-NG",
+  EUR: "en-IE",
+  GBP: "en-GB",
+  USD: "en-US",
 };
 
 export function parseMoneyToMinorUnits(input: string) {
@@ -40,10 +40,17 @@ export function deriveBalanceMinor(totalAmountMinor: number, depositAmountMinor:
 }
 
 export function formatMoneyMinor(amountMinor: number, currency: BookingCurrency) {
-  return new Intl.NumberFormat("en", {
+  const formatted = new Intl.NumberFormat(currencyLocales[currency], {
     style: "currency",
-    currency: currencySymbols[currency],
+    currency,
+    currencyDisplay: "narrowSymbol",
     minimumFractionDigits: amountMinor % 100 === 0 ? 0 : 2,
     maximumFractionDigits: 2,
   }).format(amountMinor / 100);
+
+  if (currency === "NGN") {
+    return formatted.replace(/^NGN[\s\u00a0]?/, "₦");
+  }
+
+  return formatted;
 }

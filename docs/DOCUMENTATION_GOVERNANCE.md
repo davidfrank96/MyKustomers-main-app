@@ -84,6 +84,7 @@ Audit date: 2026-08-21.
 | `docs/DOCUMENTATION_GOVERNANCE.md` | CURRENT | Permanent documentation rule, matrix, checklist, and inventory. |
 | `docs/MIGRATIONS.md` | CURRENT | Migration ledger and immutable forward-fix process. |
 | `docs/RESPONSIVE_QA.md` | CURRENT | Responsive matrix, findings, evidence, and remaining scope. |
+| `docs/CI.md` | CURRENT | GitHub Actions jobs, secrets, merge policy, and deployment boundary. |
 | `features/auth/README.md` | CURRENT | Supabase Auth boundary and Phase 2 email exceptions. |
 | `features/businesses/README.md` | CURRENT | Business/membership/onboarding ownership. |
 | `features/customers/README.md` | CURRENT | Tenant customer, archive, inline creation, and enrichment rules. |

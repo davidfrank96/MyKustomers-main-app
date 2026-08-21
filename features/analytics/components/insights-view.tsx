@@ -342,7 +342,7 @@ export function InsightsView({ insights }: { insights: BusinessInsights }) {
       <section className="flex flex-col gap-4">
         <SectionHeader
           title="Customer activity"
-          detail="Customer metrics use tenant-local customer records and qualifying booking history."
+          detail="Customer metrics use saved customer records and qualifying booking history."
         />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <MetricCard

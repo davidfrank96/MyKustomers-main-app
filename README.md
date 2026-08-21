@@ -148,6 +148,7 @@ The repository documentation is the source of truth for future implementation:
 - Documentation governance: `docs/DOCUMENTATION_GOVERNANCE.md`.
 - Migration process and ledger: `docs/MIGRATIONS.md`.
 - Responsive verification: `docs/RESPONSIVE_QA.md`.
+- Continuous integration and merge policy: `docs/CI.md`.
 
 Documentation can describe PLANNED, IMPLEMENTED, or VERIFIED work. Respect those
 labels. Documentation is not implementation evidence; inspect repository code,
@@ -157,3 +158,11 @@ exists or has been verified.
 Documentation is part of definition of done. Material implementation work must
 update affected documentation in the same task and follow the change matrix and
 pre-finish checklist in `docs/DOCUMENTATION_GOVERNANCE.md`.
+
+## Continuous Integration
+
+GitHub Actions runs Quality, Tests, Build, Dependency Security, and E2E checks
+for pull requests into `main` and pushes to `main`. Live runtime security is
+defined separately and requires a protected non-production Supabase environment.
+See `docs/CI.md` for secrets, required checks, branch protection, and the
+explicit no-deployment/no-production-migration boundary.
