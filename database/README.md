@@ -1,16 +1,21 @@
 # Database
 
-No application tables are created in Phase 1 or Phase 1.5.
+The application schema is implemented in the configured development Supabase
+project. It includes tenant profiles, businesses and memberships, customers,
+bookings and lifecycle evidence, secure public-link records, private feedback,
+operational issues, audit events, rate-limit buckets, and the transactional
+email outbox.
 
-The planned conceptual model lives in `docs/DATA_MODEL.md`. Phase 2 Supabase
-migrations now live in `supabase/migrations/`. Documentation is not
+All repository migrations live in `supabase/migrations`. The conceptual and
+implemented model is documented in `docs/DATA_MODEL.md`; migration discipline
+and the development ledger are in `docs/MIGRATIONS.md`. Documentation is not
 implementation evidence.
 
-Future database work must be added through reviewed migrations in
-`database/migrations` or the selected Supabase migration workflow. Every
-multi-tenant table exposed through Supabase must use PostgreSQL Row Level
-Security with `business_id` ownership checks. Policies must authorize the
-specific row being accessed; frontend filtering is never authorization.
+Every database change requires a new reviewed migration. Applied migrations are
+immutable. Tenant-owned tables exposed through Supabase must use PostgreSQL Row
+Level Security with membership-based ownership checks. Policies and narrow RPCs
+must authorize the specific row being accessed; frontend filtering is never
+authorization.
 
 Do not add permissive policies, disable RLS, or expose service-role credentials
 to browser code.

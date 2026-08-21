@@ -1,6 +1,7 @@
 # Release Checklist
 
-Most items are unchecked because Phase 1.5 is not a production-readiness phase.
+This checklist separates verified development evidence from remaining
+production-readiness work.
 
 ## Build
 
@@ -18,6 +19,9 @@ Most items are unchecked because Phase 1.5 is not a production-readiness phase.
 
 ## Database
 
+- [x] Repository migrations accounted for in `docs/MIGRATIONS.md`.
+- [ ] Target deployment migration history reconciled before production apply.
+
 - [x] Phase 2 migration definitions created.
 - [x] Phase 3 migration definitions created.
 - [x] Phase 4 migration definitions created.
@@ -26,11 +30,17 @@ Most items are unchecked because Phase 1.5 is not a production-readiness phase.
 - [x] Phase 7 migration definitions created.
 - [x] Phase 8 migration definitions created.
 - [x] Phase 9 analytics migration definitions created.
+- [x] Customer contact and booking-confirmation email outbox migration created
+  and applied to development.
+- [x] Inline customer booking transaction migration created, applied to
+  development, and runtime-verified.
 - [x] Application schema implemented.
 - [x] Migrations verified.
 - [ ] Backup and restore plan documented.
 
 ## RLS
+
+- [x] Opt-in live runtime security suite passes against development.
 
 - [x] Phase 2 RLS policy definitions created.
 - [x] Phase 4 customer RLS policy definitions created.
@@ -39,6 +49,8 @@ Most items are unchecked because Phase 1.5 is not a production-readiness phase.
 - [x] Phase 7 booking-change RLS and lifecycle RPC grants reviewed.
 - [x] Phase 8 feedback and issue RLS/RPC grants reviewed.
 - [x] Phase 9 aggregate RPC grants and tenant membership checks reviewed.
+- [x] Confirmation contact evidence and email event grants/service-role boundary
+  reviewed.
 - [x] Tenant-owned tables have RLS enabled.
 - [x] RLS policies reviewed.
 - [x] Cross-tenant tests pass.
@@ -71,6 +83,9 @@ Most items are unchecked because Phase 1.5 is not a production-readiness phase.
   by runtime tests.
 - [x] Tenant-private analytics aggregate isolation, cross-tenant denial, and
   currency separation covered by runtime tests.
+- [x] Inline booking customer modes, atomic rollback, archived/cross-tenant
+  denial, injected tenant authority rejection, and least-privilege RPC grants
+  covered by static and runtime tests.
 
 ## Abuse Protection
 
@@ -105,6 +120,17 @@ Most items are unchecked because Phase 1.5 is not a production-readiness phase.
 - [x] `npm audit --audit-level=moderate` passes locally.
 - [ ] Production dependency review completed.
 
+## Product And Documentation
+
+- [x] Core documentation reflects current implementation evidence.
+- [x] Material changes are covered by the documentation definition of done.
+- [x] Full E2E suite passes against the configured development environment.
+- [x] Responsive smoke matrix includes 320, 360, 375, 390, 430, 768, 834,
+  1024, 1280, and 1440 pixel widths.
+- [x] Major routes have no unintended horizontal document overflow.
+- [x] Public confirmation and feedback states have mobile visual checks.
+- [ ] Production browser/device acceptance completed for the release candidate.
+
 ## Privacy And Compliance
 
 - [ ] Privacy policy prepared.
@@ -112,6 +138,8 @@ Most items are unchecked because Phase 1.5 is not a production-readiness phase.
 - [x] Phase 4 customer PII tenant isolation reviewed.
 - [x] Phase 5 private booking notes remain vendor-only tenant data.
 - [x] Phase 6 public confirmation view minimizes customer and booking data.
+- [x] Confirmation contact is tenant-private; consumed public views expose only
+  a masked email and audit metadata omits contact values.
 - [x] Phase 7 customer confirmation tokens cannot perform vendor operational
   lifecycle actions.
 - [x] Phase 8 public feedback view minimizes booking data and keeps submitted
@@ -127,6 +155,8 @@ Most items are unchecked because Phase 1.5 is not a production-readiness phase.
 - [x] Phase 7 vendor booking lifecycle flow reviewed on desktop and mobile E2E.
 - [x] Phase 8 public feedback and vendor issue lifecycle flow reviewed in E2E.
 - [x] Phase 9 insights reviewed in E2E.
+- [x] Existing and inline-new-customer booking creation reviewed in desktop and
+  mobile E2E, including explicit duplicate continuation and confirmation.
 - [x] Phase 9.5 product UX audit completed across mobile, tablet, and desktop.
 - [x] Authenticated navigation active state reviewed for Home, Bookings,
   Customers, Insights, and Business.
@@ -140,7 +170,9 @@ Most items are unchecked because Phase 1.5 is not a production-readiness phase.
 ## Email
 
 - [ ] Resend configured.
-- [ ] Email templates reviewed.
+- [x] Provider-neutral booking-confirmed HTML/plain-text templates reviewed.
+- [x] Durable booking-confirmed event and post-commit failure behavior verified.
+- [ ] Failed-event retry worker/schedule configured.
 - [ ] Bounce/error handling planned.
 
 ## Billing
@@ -155,3 +187,19 @@ Most items are unchecked because Phase 1.5 is not a production-readiness phase.
 - [ ] Domain configured.
 - [ ] Production deployment smoke-tested.
 - [ ] Rollback process documented.
+
+## Repository Integration And CI
+
+- [x] Current verified functionality and all applied migration artifacts
+  preserved during main reconciliation.
+- [x] No unmerged paths or conflict markers remain locally.
+- [x] GitHub Actions defines Quality, Tests, Build, E2E, Dependency Security,
+  and guarded Runtime Security jobs.
+- [x] Workflow permissions are read-only and no production migration/deployment
+  step exists.
+- [x] Required E2E GitHub secrets configured for a dedicated non-production
+  Supabase project.
+- [ ] Protected runtime-security environment and enable variable configured.
+- [x] GitHub Actions core checks pass on the reconciliation branch.
+- [x] Pull request reports mergeable with required checks green.
+- [ ] `main` branch protection requires the documented core checks.

@@ -11,6 +11,7 @@ Business creation goes through the `create_business_onboarding` Supabase RPC so
 the business row and owner membership are created atomically. The RPC derives
 ownership from `auth.uid()` and does not trust a client-submitted owner ID.
 
-Logo upload, staff invitations, customers, bookings, payments, and external
-messaging integrations remain out of scope for this feature module until their
-own phases.
+Customers, bookings, confirmations, feedback, and insights are implemented in
+their own feature modules. Logo upload, staff invitations, subscription billing,
+customer payment processing, and external messaging integrations remain outside
+the businesses module or future work.

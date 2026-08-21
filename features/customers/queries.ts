@@ -1,21 +1,30 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
+import {
+  escapePostgrestLikePattern,
+  quotePostgrestFilterValue,
+} from "@/lib/supabase/filters";
 import type { Database } from "@/types/database";
 import type { CustomerListParams } from "@/features/customers/validation";
 
 export type Customer = Database["public"]["Tables"]["customers"]["Row"];
+export type CustomerListItem = Pick<
+  Customer,
+  "id" | "name" | "email" | "phone" | "archived_at" | "created_at"
+>;
 
 export type CustomerListResult = {
-  customers: Customer[];
+  customers: CustomerListItem[];
   total: number;
   page: number;
   limit: number;
   totalPages: number;
 };
 
-function escapeLike(value: string) {
-  return value.replace(/[(),]/g, " ").replace(/[%_]/g, "\\$&").trim();
-}
+export type PotentialDuplicateCustomer = Pick<
+  Customer,
+  "id" | "name" | "email" | "phone"
+>;
 
 export async function listCustomersForBusiness(
   businessId: string,
@@ -27,7 +36,7 @@ export async function listCustomersForBusiness(
 
   let query = supabase
     .from("customers")
-    .select("*", { count: "exact" })
+    .select("id, name, email, phone, archived_at, created_at", { count: "exact" })
     .eq("business_id", businessId)
     .order("created_at", { ascending: false });
 
@@ -38,8 +47,9 @@ export async function listCustomersForBusiness(
   }
 
   if (params.q) {
-    const pattern = `%${escapeLike(params.q)}%`;
-    if (pattern !== "%%") {
+    const escapedSearch = escapePostgrestLikePattern(params.q);
+    if (escapedSearch) {
+      const pattern = quotePostgrestFilterValue(`%${escapedSearch}%`);
       query = query.or(`name.ilike.${pattern},email.ilike.${pattern},phone.ilike.${pattern}`);
     }
   }
@@ -125,8 +135,8 @@ export async function hasPossibleDuplicateCustomer({
   }
 
   const clauses = [
-    email ? `email.eq.${email}` : null,
-    phone ? `phone.eq.${phone}` : null,
+    email ? `email.eq.${quotePostgrestFilterValue(email)}` : null,
+    phone ? `phone.eq.${quotePostgrestFilterValue(phone)}` : null,
   ].filter(Boolean);
 
   const { data, error } = await query.or(clauses.join(","));
@@ -136,4 +146,40 @@ export async function hasPossibleDuplicateCustomer({
   }
 
   return Boolean(data?.length);
+}
+
+export async function findPotentialDuplicateCustomers({
+  businessId,
+  name,
+  email,
+  phone,
+}: {
+  businessId: string;
+  name: string;
+  email?: string;
+  phone?: string;
+}): Promise<PotentialDuplicateCustomer[]> {
+  const clauses = [
+    `name.ilike.${quotePostgrestFilterValue(escapePostgrestLikePattern(name))}`,
+    email
+      ? `email.ilike.${quotePostgrestFilterValue(escapePostgrestLikePattern(email))}`
+      : null,
+    phone ? `phone.eq.${quotePostgrestFilterValue(phone)}` : null,
+  ].filter((clause): clause is string => Boolean(clause));
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("customers")
+    .select("id, name, email, phone")
+    .eq("business_id", businessId)
+    .is("archived_at", null)
+    .or(clauses.join(","))
+    .order("name", { ascending: true })
+    .limit(5);
+
+  if (error || !data) {
+    return [];
+  }
+
+  return data;
 }

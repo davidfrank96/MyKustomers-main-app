@@ -290,6 +290,8 @@ export type Database = {
           confirmation_link_id: string;
           terms_hash: string;
           terms_snapshot: Json;
+          contact_email: string | null;
+          contact_phone: string | null;
           confirmed_at: string;
         };
         Insert: {
@@ -299,9 +301,57 @@ export type Database = {
           confirmation_link_id: string;
           terms_hash: string;
           terms_snapshot: Json;
+          contact_email?: string | null;
+          contact_phone?: string | null;
           confirmed_at?: string;
         };
         Update: never;
+        Relationships: [];
+      };
+      email_events: {
+        Row: {
+          id: string;
+          business_id: string;
+          booking_id: string;
+          customer_id: string;
+          booking_confirmation_id: string;
+          event_type: Database["public"]["Enums"]["email_event_type"];
+          recipient_email: string;
+          status: Database["public"]["Enums"]["email_event_status"];
+          attempt_count: number;
+          provider_message_id: string | null;
+          failure_code: string | null;
+          failure_message: string | null;
+          created_at: string;
+          sent_at: string | null;
+          last_attempt_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          business_id: string;
+          booking_id: string;
+          customer_id: string;
+          booking_confirmation_id: string;
+          event_type: Database["public"]["Enums"]["email_event_type"];
+          recipient_email: string;
+          status?: Database["public"]["Enums"]["email_event_status"];
+          attempt_count?: number;
+          provider_message_id?: string | null;
+          failure_code?: string | null;
+          failure_message?: string | null;
+          created_at?: string;
+          sent_at?: string | null;
+          last_attempt_at?: string | null;
+        };
+        Update: {
+          status?: Database["public"]["Enums"]["email_event_status"];
+          attempt_count?: number;
+          provider_message_id?: string | null;
+          failure_code?: string | null;
+          failure_message?: string | null;
+          sent_at?: string | null;
+          last_attempt_at?: string | null;
+        };
         Relationships: [];
       };
       confirmation_rate_limits: {
@@ -475,6 +525,29 @@ export type Database = {
     };
     Views: Record<string, never>;
     Functions: {
+      create_booking_with_customer: {
+        Args: {
+          p_customer_mode: "existing" | "new";
+          p_customer_id: string | null;
+          p_new_customer_name: string | null;
+          p_new_customer_email: string | null;
+          p_new_customer_phone: string | null;
+          p_title: string;
+          p_description: string | null;
+          p_currency: Database["public"]["Enums"]["booking_currency"];
+          p_total_amount_minor: number;
+          p_deposit_amount_minor: number;
+          p_scheduled_for: string | null;
+          p_internal_notes: string | null;
+        };
+        Returns: {
+          booking_id: string;
+          customer_id: string;
+          customer_created: boolean;
+          reference: string;
+          status: Database["public"]["Enums"]["booking_status"];
+        }[];
+      };
       create_business_onboarding: {
         Args: {
           business_name: string;
@@ -516,8 +589,16 @@ export type Database = {
       confirm_booking_by_token_hash: {
         Args: {
           p_token_hash: string;
+          p_contact_email: string;
+          p_contact_phone?: string | null;
         };
         Returns: Json;
+      };
+      claim_email_event: {
+        Args: {
+          p_email_event_id: string;
+        };
+        Returns: Database["public"]["Tables"]["email_events"]["Row"][];
       };
       consume_confirmation_rate_limit: {
         Args: {
@@ -619,6 +700,8 @@ export type Database = {
         | "COMPLETED"
         | "CANCELLED";
       booking_currency: "NGN" | "EUR" | "GBP" | "USD";
+      email_event_type: "BOOKING_CONFIRMED";
+      email_event_status: "PENDING" | "SENDING" | "SENT" | "FAILED";
       audit_event_type:
         | "AUTH_SIGNUP"
         | "AUTH_LOGIN"

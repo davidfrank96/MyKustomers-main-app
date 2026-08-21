@@ -7,6 +7,56 @@ accepted ADR.
 Documentation is not implementation evidence. Planned architecture must be
 distinguished from implemented code and verified behavior.
 
+## Current Snapshot
+
+My Customers is one Next.js modular monolith. Supabase Auth supplies platform
+identity; PostgreSQL and RLS enforce tenant ownership. Validated server actions
+or server-only route handlers call tenant-scoped queries and narrow RPCs for
+atomic or privileged workflows. The service-role client is isolated to explicit
+server boundaries. Public confirmation and feedback links are scoped,
+high-entropy capabilities whose hashes are stored at rest. Audit events preserve
+material activity, the durable email outbox separates transactional state from
+delivery, and an authenticated aggregate RPC provides private analytics.
+
+## Integration Architecture
+
+GitHub Actions is the repository CI boundary. Pull requests into and pushes to
+`main` run independent quality, test, build, dependency, and browser jobs with
+read-only repository permission. E2E owns its local Next.js server and may use
+only a dedicated non-production Supabase project. Live runtime security is a
+separate protected-environment job. CI does not deploy the application or apply
+database migrations; those remain separately controlled future operations.
+
+## Inline Customer Booking Boundary
+
+New Booking presents existing and new customer modes, but both converge on
+`public.create_booking_with_customer`. The authenticated `SECURITY DEFINER` RPC
+derives `auth.uid()` and the same first active membership used by current-
+business resolution. It accepts no business or creator authority from the
+client, uses an empty search path and qualified relations, and is executable by
+`authenticated` only.
+
+Existing mode locks and validates an active same-business customer. New mode
+normalizes and creates the customer, then creates the ordinary booking and both
+audit events in the same PostgreSQL transaction. Existing booking reference and
+status-history triggers remain authoritative. A booking failure therefore
+rolls back the inline customer and audit rows as well.
+
+## Booking Confirmation Email Boundary
+
+The public confirmation server action validates and normalizes contact input,
+then calls the existing service-role confirmation RPC. PostgreSQL locks the
+link, booking, and customer and commits link consumption, booking transition,
+immutable confirmation/contact evidence, conservative customer enrichment,
+audit linkage, and one `BOOKING_CONFIRMED` outbox event together.
+
+External email is never sent inside that transaction. After commit,
+`lib/email/outbox.ts` atomically claims the event, renders HTML and plain text
+from the immutable terms snapshot, and calls a provider-neutral interface. The
+development adapter makes no external request; the optional Resend adapter is
+enabled only by explicit server environment configuration. Delivery failure is
+recorded on the event and never reverts the confirmed booking.
+
 My Customers is a modular monolith. The product should remain one deployable
 Next.js application until there is concrete operational pressure to split a
 module out. Microservices are intentionally avoided because Phase 1 does not
@@ -44,6 +94,12 @@ construction lives in `lib/supabase`, using browser, server, proxy, and
 server-only service-role helpers separately so secrets do not cross into client
 bundles.
 
+Authenticated server identity is derived from Supabase's validated JWT claims.
+The shared auth boundary reuses that identity for membership and current-
+business resolution so protected actions do not repeat Auth validation calls.
+Current-business enforcement is centralized in `lib/auth/server.ts`; feature
+actions remain responsible for their domain validation and mutations.
+
 ## Multi-Tenancy
 
 Platform users authenticate with Supabase Auth and belong to one or more
@@ -68,13 +124,21 @@ validated separately. UI components should not directly perform database access;
 server actions, route handlers, or feature-level server modules should own data
 access.
 
+Feature query modules should project only the fields required by list and queue
+views. Full rows, private notes, snapshots, and other detail-only fields belong
+in authorized detail queries. Independent reads may run concurrently, while
+tenant ownership remains enforced by explicit business filters and PostgreSQL
+RLS.
+
 ## Testing Strategy
 
 Vitest covers shared utilities, domain validation, static migration/security
 checks, and opt-in runtime Supabase tenant tests. Playwright covers browser
 journeys for auth, onboarding, customers, bookings, customer confirmation, and
 the operational booking lifecycle, private feedback, and internal issue
-resolution, and business insights.
+resolution, and business insights. Booking coverage includes selecting an
+existing customer and creating a name/contact customer inline after an explicit
+exact-match warning.
 
 ## Architecture Conflict Handling
 

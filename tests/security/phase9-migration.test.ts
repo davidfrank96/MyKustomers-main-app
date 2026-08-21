@@ -10,8 +10,13 @@ const fixMigrationPath = path.join(
   process.cwd(),
   "supabase/migrations/20260819011341_phase_9_fix_insights_current_time.sql",
 );
+const trendFixMigrationPath = path.join(
+  process.cwd(),
+  "supabase/migrations/20260820030000_phase_9_fix_booking_trend_buckets.sql",
+);
 const migration = fs.readFileSync(migrationPath, "utf8");
 const fixMigration = fs.readFileSync(fixMigrationPath, "utf8");
+const trendFixMigration = fs.readFileSync(trendFixMigrationPath, "utf8");
 
 describe("Phase 9 analytics migration", () => {
   it("adds a narrow authenticated analytics RPC without public aggregate access", () => {
@@ -56,5 +61,17 @@ describe("Phase 9 analytics migration", () => {
     expect(fixMigration).toContain("v_current_time");
     expect(fixMigration).toContain("b.scheduled_for < v_current_time");
     expect(fixMigration).toContain("grant execute on function public.get_business_insights");
+  });
+
+  it("buckets completed booking trends by completion time", () => {
+    expect(trendFixMigration).toContain("pg_get_functiondef");
+    expect(trendFixMigration).toContain("full outer join");
+    expect(trendFixMigration).toContain(
+      "date_trunc(bucket_granularity, b.completed_at) as period_start",
+    );
+    expect(trendFixMigration).toContain("Expected booking trend SQL was not found");
+    expect(trendFixMigration).toContain(
+      "grant execute on function public.get_business_insights",
+    );
   });
 });

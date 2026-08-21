@@ -15,8 +15,8 @@ type DashboardShellProps = {
 
 function getInitials(user: AuthenticatedUser) {
   const name =
-    typeof user.user_metadata.display_name === "string"
-      ? user.user_metadata.display_name
+    typeof user.userMetadata.display_name === "string"
+      ? user.userMetadata.display_name
       : user.email;
 
   if (!name) {
@@ -60,10 +60,12 @@ export function DashboardShell({
               <span className="font-semibold">My Customers</span>
             </Link>
           </div>
-          <div className="hidden lg:block">
-            <p className="text-sm font-medium text-muted-foreground">{workspaceLabel}</p>
+          <div className="hidden min-w-0 flex-1 lg:block">
+            <p className="truncate text-sm font-medium text-muted-foreground" title={workspaceLabel}>
+              {workspaceLabel}
+            </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex shrink-0 items-center gap-3">
             <form action={logoutAction} className="hidden sm:block">
               <Button type="submit" variant="ghost" size="sm">
                 <LogOut className="size-4" aria-hidden="true" />

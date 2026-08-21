@@ -1,11 +1,10 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { Route } from "next";
-import { ArrowLeft, Plus } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { BookingForm } from "@/components/forms/booking-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { EmptyState } from "@/components/ui/empty-state";
 import { createBookingAction } from "@/features/bookings/actions";
 import { listActiveBookingCustomerOptions } from "@/features/bookings/queries";
 import { getCurrentBusinessContext } from "@/lib/auth/server";
@@ -38,34 +37,20 @@ export default async function NewBookingPage() {
         </p>
       </div>
 
-      {customers.length === 0 ? (
-        <EmptyState
-          title="Add a customer first."
-          description="Bookings must be attached to an active customer from this business."
-          action={
-            <Button asChild>
-              <Link href={"/customers/new" as Route}>
-                <Plus className="size-4" aria-hidden="true" />
-                Add customer
-              </Link>
-            </Button>
-          }
-        />
-      ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle>Booking details</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <BookingForm
-              action={createBookingAction}
-              submitLabel="Create booking"
-              customers={customers}
-              mode="create"
-            />
-          </CardContent>
-        </Card>
-      )}
+      <Card>
+        <CardHeader>
+          <CardTitle>Booking details</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <BookingForm
+            action={createBookingAction}
+            submitLabel="Create booking"
+            customers={customers}
+            defaultCustomerMode={customers.length === 0 ? "new" : "existing"}
+            mode="create"
+          />
+        </CardContent>
+      </Card>
     </main>
   );
 }

@@ -2,6 +2,7 @@ export type PublicConfirmationStatus =
   | "valid"
   | "already_confirmed"
   | "confirmed"
+  | "invalid_contact"
   | "unavailable"
   | "expired"
   | "revoked"
@@ -25,6 +26,7 @@ export type PublicConfirmationBooking = {
   expires_at: string;
   confirmed_at: string | null;
   terms_hash: string;
+  contact_email_masked?: string | null;
 };
 
 export type PublicConfirmationView = {

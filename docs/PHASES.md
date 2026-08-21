@@ -8,6 +8,18 @@
 
 Documentation is not implementation evidence.
 
+The 2026-08-21 responsive alignment and documentation governance pass is
+cross-phase maintenance for the implemented product surface. It does not start
+Phase 10 billing or mark Phase 11's broader PWA/UX hardening and visual redesign
+as implemented.
+
+The 2026-08-21 main-branch reconciliation and CI quality gate is cross-phase
+repository maintenance, not a product phase. It preserves the current product
+and Phase 9.5 UX evidence, adds no schema migration, does not start billing or
+the broad redesign. Pull request #2 passed every core remote job and reported a
+clean merge state, so this maintenance pass is VERIFIED; guarded Runtime
+Security configuration remains separate follow-up governance work.
+
 ## Phase 0 - Product Definition
 
 Status: VERIFIED
@@ -188,7 +200,8 @@ Dependencies: Phase 4.
 
 Scope: Booking creation, tenant customer association, agreed value,
 deposit/balance tracking, scheduled date, notes, lifecycle states, immutable
-booking reference, and trigger-owned status history.
+booking reference, trigger-owned status history, and verified inline customer
+creation during New Booking.
 
 Explicit exclusions: Confirmation tokens, customer-facing booking links,
 feedback, analytics expansion, billing, payment processing, and booking items.
@@ -202,7 +215,8 @@ locks, RLS, grants, and trigger-owned status history.
 
 UI impact: Booking list, search/filter/pagination controls, create form,
 detail/edit form, status controls, money summary, dashboard booking counters,
-and status history display.
+and status history display. New Booking explicitly supports searching/selecting
+an active customer or entering a minimal new customer without leaving the flow.
 
 Testing requirements: Booking creation, references, validation, authorization,
 tenant isolation, cross-tenant denial, business/customer reassignment denial,
@@ -219,6 +233,13 @@ Verification evidence: Migration
 migration/RLS tests, runtime Supabase booking security tests, E2E booking
 create/edit/transition/cancel coverage, lint, typecheck, full tests, production
 build, and dependency audit.
+
+Post-phase verification evidence: Migration
+`20260820143032_inline_customer_booking_creation.sql`, discriminated validation
+tests, static privileged-function tests, live atomicity/tenant/concurrency tests,
+and desktop/mobile Playwright booking journeys. The current customer picker
+still uses the existing bounded active-customer query; server-side paginated
+picker search remains deferred.
 
 Known risks: Confirmation links, customer-visible booking state, booking items,
 and payment collection are deliberately deferred; future phases must not treat
@@ -266,6 +287,15 @@ Verification evidence: Migration
 confirmation-link unit tests, static migration/security tests, runtime Supabase
 confirmation security tests, Playwright public confirmation journey coverage,
 lint, typecheck, full tests, production build, and dependency audit.
+
+Post-phase foundation enhancement: Migration
+`20260820131919_customer_contact_confirmation_email_foundation.sql` requires a
+normalized customer-provided email at confirmation, optionally records phone,
+preserves both on immutable confirmation evidence, enriches only empty customer
+fields, and atomically creates one durable `BOOKING_CONFIRMED` email event.
+Provider delivery happens after commit through a server-only abstraction, so
+delivery failure cannot undo confirmation. This enhancement is VERIFIED against
+the configured development Supabase database.
 
 Known risks: Future email automation must preserve raw-token non-logging,
 short-lived links, no account requirement, and material-change invalidation.
@@ -398,7 +428,10 @@ Data-model impact: Phase 9 migration
 `20260819010145_phase_9_business_insights_analytics.sql` adds targeted indexes
 and `public.get_business_insights`; follow-up migration
 `20260819011341_phase_9_fix_insights_current_time.sql` corrects the applied RPC
-variable name. No analytics tables or views were added.
+variable name. Follow-up migration
+`20260820030000_phase_9_fix_booking_trend_buckets.sql` aligns completed trend
+buckets with the documented `completed_at` period rule. No analytics tables or
+views were added.
 
 Security impact: Aggregates are tenant-private data. The application resolves
 current business server-side, the RPC checks active membership, and cross-tenant

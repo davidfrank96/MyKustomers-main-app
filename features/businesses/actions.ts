@@ -55,9 +55,9 @@ export async function createBusinessAction(
   _previousState: BusinessActionState,
   formData: FormData,
 ): Promise<BusinessActionState> {
-  await requireUser("/onboarding");
+  const user = await requireUser("/onboarding");
 
-  const existingContext = await getCurrentBusinessContext();
+  const existingContext = await getCurrentBusinessContext(user);
   if (existingContext.currentBusiness) {
     redirect("/dashboard" as Route);
   }
@@ -98,7 +98,7 @@ export async function updateBusinessProfileAction(
   formData: FormData,
 ): Promise<BusinessActionState> {
   const user = await requireUser("/business");
-  await requireBusinessRole(businessId, ["owner"]);
+  await requireBusinessRole(businessId, ["owner"], user);
 
   const parsed = parseBusinessForm(formData);
   if (!parsed.success) {

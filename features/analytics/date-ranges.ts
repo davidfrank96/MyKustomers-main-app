@@ -1,7 +1,5 @@
 import type { AnalyticsDateRange, AnalyticsRangePreset } from "@/features/analytics/types";
 
-const maxCustomRangeMs = 1000 * 60 * 60 * 24 * 366 * 5;
-
 function startOfUtcDay(value: Date) {
   return new Date(Date.UTC(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate()));
 }
@@ -159,7 +157,7 @@ export function parseAnalyticsRange(
       };
     }
 
-    if (to.getTime() - from.getTime() > maxCustomRangeMs) {
+    if (to > addUtcYears(from, 5)) {
       return {
         ...defaultAnalyticsRange(now),
         preset: "custom" as const,

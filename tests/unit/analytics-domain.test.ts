@@ -54,6 +54,18 @@ describe("analytics domain", () => {
       .toBe("Choose a custom range where the start date is before the end date.");
     expect(parseAnalyticsRange({ range: "custom", from: "2020-01-01", to: "2026-08-19" }, now).error)
       .toBe("Custom analytics ranges can cover up to five years.");
+    expect(
+      parseAnalyticsRange(
+        { range: "custom", from: "2020-01-01", to: "2024-12-31" },
+        now,
+      ).error,
+    ).toBeUndefined();
+    expect(
+      parseAnalyticsRange(
+        { range: "custom", from: "2020-01-01", to: "2025-01-01" },
+        now,
+      ).error,
+    ).toBe("Custom analytics ranges can cover up to five years.");
   });
 
   it("calculates the previous equivalent period without infinity edge cases", () => {

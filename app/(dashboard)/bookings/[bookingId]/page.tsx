@@ -119,14 +119,15 @@ export default async function BookingDetailPage({
     notFound();
   }
 
-  const [history, confirmationSummary, feedbackSummary, feedback, issues] = await Promise.all([
-    listBookingStatusHistoryForBusiness(currentBusiness.id, booking.id),
-    getConfirmationLinkSummaryForBooking(currentBusiness.id, booking.id),
-    getFeedbackLinkSummaryForBooking(currentBusiness.id, booking.id),
-    getFeedbackForBooking(currentBusiness.id, booking.id),
-    listBookingIssuesForBooking(currentBusiness.id, booking.id),
-  ]);
-  const changes = await listBookingChangesForBusiness(currentBusiness.id, booking.id);
+  const [history, changes, confirmationSummary, feedbackSummary, feedback, issues] =
+    await Promise.all([
+      listBookingStatusHistoryForBusiness(currentBusiness.id, booking.id),
+      listBookingChangesForBusiness(currentBusiness.id, booking.id),
+      getConfirmationLinkSummaryForBooking(currentBusiness.id, booking.id),
+      getFeedbackLinkSummaryForBooking(currentBusiness.id, booking.id),
+      getFeedbackForBooking(currentBusiness.id, booking.id),
+      listBookingIssuesForBooking(currentBusiness.id, booking.id),
+    ]);
   const timeline = [
     ...history.map((event) => ({
       id: `status-${event.id}`,

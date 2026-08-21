@@ -32,3 +32,15 @@ strategy is explicitly revised.
 Future proposals must justify movement toward any excluded area. Vendor
 subscription billing is separate from payments between a vendor and their
 customer.
+
+## Current Deferred Boundaries
+
+- Vendor subscription billing and subscription enforcement.
+- Customer-to-vendor payment processing.
+- Automatic lifecycle emails beyond the booking-confirmed outbox foundation.
+- A production retry worker, scheduled delivery, and bounce handling.
+- Sophisticated customer merge/deduplication.
+- A server-paginated customer picker for very large customer lists.
+- Customer phone or email ownership verification.
+- The broad page-by-page visual redesign and final visual identity.
+- Staff invitation and role-management workflows.

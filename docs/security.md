@@ -23,6 +23,10 @@ analytics through a membership-checked aggregate RPC over existing tenant
 records without public reports or stored analytics tables. Runtime Supabase
 database/RLS verification succeeded for Phase 2, Phase 3, Phase 4, Phase 5,
 Phase 6, Phase 7, Phase 8, and Phase 9.
+Inline customer booking creation is also runtime-verified through a narrow
+authenticated transaction that derives tenant authority server-side, rejects
+cross-tenant and archived customer IDs, and grants no execution to `anon` or
+`PUBLIC`.
 Public signup and reset-password
 completion remain partial because the configured development Supabase project
 hit email/default inbox constraints.
@@ -353,3 +357,55 @@ Phase 9 resolves the current business server-side, calls
 business membership inside the RPC, avoids analytics views/tables that could
 bypass RLS, and runtime-tests cross-tenant aggregate denial and currency
 separation.
+
+SEC-033 - Confirmation Contact Is Scoped Evidence
+
+Status: VERIFIED
+
+Customer-provided email and optional phone are validated in the application and
+database and stored on immutable booking confirmation evidence. Public consumed
+link views expose only a masked email. Existing different customer contact data
+is preserved, audit metadata contains identifiers and booleans rather than
+contact values, and authenticated/anonymous roles have no direct access to
+confirmation evidence or email event tables.
+
+SEC-034 - Transactional Email Uses A Server-Only Durable Boundary
+
+Status: VERIFIED
+
+The confirmation transaction creates exactly one private email event before
+commit. Only the service role can claim or mutate events, provider credentials
+remain in server-only environment validation, and provider calls occur after
+commit. Runtime tests verify race uniqueness, cross-tenant read/mutation denial,
+anonymous denial, and that simulated delivery failure leaves the booking and
+confirmation intact.
+
+SEC-035 - Atomic Tenant-Safe Inline Customer Booking
+
+Status: VERIFIED
+
+Every booking must retain a non-null customer belonging to the same business.
+`public.create_booking_with_customer` derives the actor from `auth.uid()` and
+the current business from active membership, accepts no client business or
+creator authority, and validates existing customers as active and tenant-owned.
+Its empty `search_path`, qualified relations, revoked default privileges, and
+authenticated-only execute grant harden the privileged transaction boundary.
+
+New-customer mode creates the customer, booking, trigger-owned status history,
+`CUSTOMER_CREATED`, and `BOOKING_CREATED` effects in one transaction. Runtime
+tests verify rollback leaves no orphan or misleading audit, cross-tenant and
+archived IDs are denied, injected business arguments are rejected, anonymous
+execution fails, and contact values do not enter audit metadata.
+
+SEC-036 - CI Secrets And Database Targets Stay Non-Production
+
+Status: IMPLEMENTED
+
+GitHub Actions has read-only repository permission. Build and static jobs receive
+no service-role key. E2E and optional runtime-security jobs reference GitHub
+secrets by name and validate only presence; they do not echo values. The service
+role is never exposed under a `NEXT_PUBLIC_` name. Both mutating jobs must target
+a dedicated non-production Supabase project. Runtime Security additionally
+requires an explicit repository enable variable and protected environment.
+Normal CI never applies production migrations or uploads Playwright artifacts
+that could contain raw confirmation or feedback capability links.

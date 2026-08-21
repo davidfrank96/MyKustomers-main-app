@@ -1,18 +1,22 @@
-import { createHash, randomBytes } from "node:crypto";
+import {
+  generateOpaqueToken,
+  hashOpaqueToken,
+  isPlausibleOpaqueToken,
+} from "@/lib/security/tokens";
 
 export const confirmationTokenBytes = 32;
 export const confirmationTokenLifetimeHours = 24;
 
 export function generateConfirmationToken() {
-  return randomBytes(confirmationTokenBytes).toString("base64url");
+  return generateOpaqueToken(confirmationTokenBytes);
 }
 
 export function hashConfirmationToken(token: string) {
-  return createHash("sha256").update(token, "utf8").digest("hex");
+  return hashOpaqueToken(token);
 }
 
 export function isPlausibleConfirmationToken(token: string) {
-  return /^[A-Za-z0-9_-]{32,256}$/.test(token);
+  return isPlausibleOpaqueToken(token);
 }
 
 export function confirmationLinkExpiresAt(now = new Date()) {

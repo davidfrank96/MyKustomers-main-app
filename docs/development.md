@@ -32,6 +32,8 @@ Use these labels strictly:
 - PLANNED: Specified but not necessarily present in code.
 - IMPLEMENTED: Repository evidence exists.
 - VERIFIED: Repository evidence exists and appropriate verification succeeded.
+- IMPLEMENTED - VERIFICATION PENDING: Implementation exists, but a required
+  verification dependency or journey remains incomplete.
 
 Rules:
 
@@ -50,19 +52,17 @@ Rules:
 - Update tests when behavior changes.
 - Keep secrets out of source control and browser bundles.
 
-## Documentation Updates
+## Documentation Definition Of Done
 
-After each implementation phase, update only documents materially affected. At
-minimum consider whether the following require updates:
+Documentation is part of definition of done. Every material feature, fix,
+migration, contract, architecture, security, dependency, test-strategy, or
+user-visible behavior change must update affected documentation in the same
+task. No separate documentation pass should normally be required.
 
-- `docs/MASTER_PLAN.md`
-- `docs/PHASES.md`
-- `docs/DATA_MODEL.md`
-- `docs/security.md`
-- `docs/DECISIONS.md`
-- `docs/TESTING.md`
-- `docs/CHANGELOG.md`
-- `README.md`
+Use the change matrix and checklist in `docs/DOCUMENTATION_GOVERNANCE.md`.
+Final reports must list updated documentation or explain why none was required.
+Do not update every document for trivial edits; update every materially affected
+claim, contract, decision, setup instruction, test expectation, and status.
 
 Useful commands:
 
@@ -88,3 +88,17 @@ Before billing or other expansion phases, preserve the Phase 9.5 baseline:
 - Keep the dashboard operational first; do not replace it with a wall of
   summary metrics.
 - Extend the canonical E2E journey when a new phase changes the core workflow.
+
+## Branch Integration
+
+- Fetch and compare both branch tips and their merge base before reconciliation.
+- Prefer a normal merge for already-shared branches; do not rewrite remote
+  history for convenience.
+- Resolve conflicts file by file. Preserve verified domain/security behavior,
+  immutable migrations, current tests, and accurate documentation.
+- Run the complete local gate before push, then verify actual GitHub Actions and
+  pull-request mergeability before merging to `main`.
+- Do not force push `main`, bypass checks, or treat CI as a deployment pipeline.
+
+Required checks, secret configuration, and branch protection recommendations
+are documented in `docs/CI.md`.

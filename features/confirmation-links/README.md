@@ -7,6 +7,9 @@ Phase 6 implements secure customer confirmation links for bookings.
 - Opaque token generation and SHA-256 hashing.
 - Vendor server actions for generating, regenerating, and revoking links.
 - Server-only public lookup and confirmation helpers for `/c/[token]`.
+- Required customer-provided email and optional phone validation.
+- Immutable confirmation contact evidence and atomic booking-confirmed event
+  creation.
 - Persistent public endpoint rate limiting.
 - Material-change classification for confirmation invalidation tests.
 - Safe public status messages.
@@ -21,6 +24,9 @@ Phase 6 implements secure customer confirmation links for bookings.
   authorization credentials.
 - Public GET lookup does not consume a link.
 - Customer confirmation is POST-backed and atomic in the database.
+- Existing different customer email/phone values are never silently replaced;
+  only empty fields are enriched.
+- External email delivery happens after commit and cannot revert confirmation.
 - Expired, revoked, consumed, unknown, and invalid tokens return safe public
   statuses.
 - Public views must not include internal notes, audit logs, business members,
@@ -37,6 +43,7 @@ Primary tables:
 - `public.confirmation_links`
 - `public.booking_confirmations`
 - `public.confirmation_rate_limits`
+- `public.email_events`
 
 Primary RPCs:
 

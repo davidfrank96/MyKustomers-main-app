@@ -40,6 +40,22 @@ A customer is not normally an authenticated My Customers user. Customer records 
 
 The booking/order is the central business domain object.
 
+Permanent product rule:
+
+> Every booking belongs to a customer. A vendor may select an existing customer
+> or create a new customer inline during booking creation.
+
+New Booking offers an explicit choice between an active existing customer and a
+minimal new customer. A new customer requires a name; email and phone remain
+optional. Potential exact active-customer matches are warnings, not automatic
+merges, and the vendor must choose whether to reuse or create separately.
+
+Both modes use one authenticated database transaction. New-customer mode
+atomically creates the customer, booking, trigger-owned status history, and
+required audits; any booking failure rolls back all effects. Tenant authority is
+derived server-side, existing customers must be active and belong to the current
+business, and archived customers cannot be selected or supplied to the RPC.
+
 Conceptual relationship:
 
 ```text
@@ -74,7 +90,7 @@ Conceptual workflow:
 Vendor and customer agree externally
         |
         v
-Vendor creates booking
+Vendor selects or creates the customer and creates booking
         |
         v
 Vendor sends confirmation link
@@ -97,6 +113,14 @@ booking view without an account, and confirmation moves the booking from
 `AWAITING_CUSTOMER` to `CONFIRMED`. Material changes after confirmation require
 a new customer confirmation; internal notes are private vendor data and do not
 affect confirmed terms.
+
+Confirmation requires a normalized customer-provided contact email and accepts
+an optional phone number. These values are booking confirmation evidence, not
+proof of email or phone ownership. Empty customer contact fields may be enriched
+from the submission, but an existing different value is never silently
+overwritten. A booking-confirmed email event is committed atomically and
+delivered after commit; delivery failure does not change the confirmed booking.
+Customers still do not create accounts or complete OTP verification.
 
 Phase 7 implements the first operational fulfilment workflow. After customer
 confirmation, the vendor can start work, mark the booking ready, mark it
@@ -144,3 +168,6 @@ The customer should not be forced to install an application.
 ## Current Exclusions
 
 V1 does not process payment between a vendor and their customer. Vendor subscription billing is separate and belongs to a later phase.
+
+PDF confirmations, progress/ready/completion emails, feedback email, and actual
+contact ownership verification or OTP are not part of the current foundation.

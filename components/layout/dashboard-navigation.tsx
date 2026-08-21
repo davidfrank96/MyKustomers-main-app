@@ -84,12 +84,12 @@ export function MobileNavigation() {
             href={item.href}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "flex min-h-16 flex-col items-center justify-center gap-1 rounded-md px-1 text-xs font-medium text-muted-foreground hover:text-foreground",
+              "flex min-h-16 min-w-0 flex-col items-center justify-center gap-1 rounded-md px-1 text-xs font-medium text-muted-foreground hover:text-foreground",
               active && "text-foreground",
             )}
           >
             <item.icon className="size-5" aria-hidden={true} />
-            <span>{item.label}</span>
+            <span className="max-w-full truncate">{item.label}</span>
           </Link>
         );
       })}

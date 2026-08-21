@@ -4,6 +4,9 @@ STATUS: PLANNED AND PARTIALLY IMPLEMENTED
 
 This document describes the planned conceptual data model and current migration evidence. Documentation is not implementation evidence.
 
+The immutable repository migration ledger and deployment discipline are
+documented in `docs/MIGRATIONS.md`.
+
 Phase 2 migration evidence exists at `supabase/migrations/20260818113552_phase_2_auth_tenancy.sql`. The Phase 2 entities were applied to the configured development Supabase database and runtime-verified during Phase 2V.
 
 Phase 3 migration evidence exists at `supabase/migrations/20260818140502_phase_3_business_onboarding.sql`. The migration was applied to the configured development Supabase database and runtime-verified for business onboarding and tenant authorization.
@@ -28,6 +31,23 @@ development Supabase database and runtime-verified for token lifecycle,
 minimized public data, one-time confirmation, material-change invalidation, and
 tenant isolation.
 
+Customer contact and confirmation-email foundation migration evidence exists at
+`supabase/migrations/20260820131919_customer_contact_confirmation_email_foundation.sql`.
+It adds immutable confirmation contact fields and the private durable
+`email_events` outbox, replaces the confirmation RPC so contact capture and
+event creation are atomic, and adds a service-role-only event claim RPC. It was
+applied to the configured development Supabase database and runtime-verified.
+
+Inline customer booking migration evidence exists at
+`supabase/migrations/20260820143032_inline_customer_booking_creation.sql`. It
+adds no tables and keeps `bookings.customer_id` required. It defines
+`public.create_booking_with_customer`, an authenticated transaction that derives
+the actor and current business, validates an active same-business existing
+customer or creates a new customer, creates the booking, and records required
+audit events atomically. The migration was applied to development and
+runtime-verified for rollback, tenant isolation, grants, history, and
+concurrency.
+
 Phase 7 migration evidence exists at
 `supabase/migrations/20260818234428_phase_7_fulfilment_operational_lifecycle.sql`.
 The migration adds operational booking timestamps, cancellation reasons,
@@ -50,7 +70,10 @@ Phase 9 migration evidence exists at
 `supabase/migrations/20260819010145_phase_9_business_insights_analytics.sql`
 and follow-up fix
 `supabase/migrations/20260819011341_phase_9_fix_insights_current_time.sql`.
-The migration adds targeted indexes for analytics predicates and the
+Targeted correction
+`supabase/migrations/20260820030000_phase_9_fix_booking_trend_buckets.sql`
+buckets completed booking trends by `completed_at` without changing tables or
+metric definitions. The Phase 9 migrations add targeted indexes for analytics predicates and the
 authenticated aggregate RPC `public.get_business_insights`. It does not add
 analytics tables, views, materialized views, public reports, or stored snapshots.
 
@@ -108,7 +131,9 @@ These names are conceptual and not yet necessarily final table names.
   are not stored.
 - `booking_confirmations`: VERIFIED. Phase 6 stores immutable confirmation
   evidence with `business_id`, `booking_id`, `confirmation_link_id`,
-  `terms_hash`, `terms_snapshot`, and `confirmed_at`.
+  `terms_hash`, `terms_snapshot`, `contact_email`, optional `contact_phone`, and
+  `confirmed_at`. Contact fields preserve what the customer submitted for that
+  confirmation even if the customer record changes later.
 - `confirmation_rate_limits`: VERIFIED. Phase 6 stores hashed public endpoint
   rate-limit buckets without raw IP addresses.
 - `feedback_links`: VERIFIED. Phase 8 fields include `id`, `business_id`,
@@ -127,7 +152,10 @@ These names are conceptual and not yet necessarily final table names.
   analytics records in Phase 9.
 - `subscriptions`: PLANNED.
 - `subscription_events`: PLANNED.
-- `email_events`: PLANNED.
+- `email_events`: VERIFIED for `BOOKING_CONFIRMED`. Events are private,
+  tenant-related durable outbox rows with recipient, status, attempt metadata,
+  provider message ID, and bounded safe failure fields. One event is allowed per
+  booking confirmation.
 
 ## Expected Relationships
 
@@ -140,6 +168,8 @@ Business
 |   +-- BookingStatusHistory
 |   +-- BookingChanges
 |   +-- ConfirmationLinks
+|   +-- BookingConfirmations
+|   +-- EmailEvents
 |   +-- FeedbackLinks
 |   +-- Feedback
 |   +-- BookingIssues
@@ -176,6 +206,14 @@ customer. Phase 5 stores `bookings.business_id` directly and enforces
 `booking.business_id == customer.business_id` with a composite foreign key to
 `customers (business_id, id)`. Booking `business_id`, `customer_id`,
 `reference`, and `created_by` are immutable after creation.
+
+Booking creation for both customer modes uses
+`public.create_booking_with_customer`. Existing mode requires an active
+same-business `customer_id` and rejects new-customer fields. New mode rejects a
+customer ID, requires a normalized customer name, accepts optional normalized
+email/phone, and commits customer, booking, status history, and audit effects in
+one transaction. Archived customers are neither returned by the picker nor
+accepted by the creation RPC; restoration remains a separate future workflow.
 
 Booking references are human-readable identifiers generated by the database.
 They are not secrets and must not be used as authorization credentials.

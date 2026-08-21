@@ -578,3 +578,98 @@ or billing analytics require explicit design and tenant-security review.
 Revisit conditions: Query volume requires caching/materialization, reporting
 exports are accepted, or analytics need role-specific visibility different from
 ordinary active business membership.
+
+## ADR-028 - Confirmation Contact And Email Delivery Are Durable Evidence
+
+Status: Accepted
+
+Date: 2026-08-20
+
+Context: Booking confirmation needs a usable communication address without
+turning customers into authenticated users or making external email part of the
+critical database transaction.
+
+Decision: Require normalized customer-provided email and allow optional phone
+on the secure confirmation action. Preserve both on immutable confirmation
+evidence. Populate only empty customer contact fields and never silently replace
+an existing different value. Atomically create one private
+`BOOKING_CONFIRMED` outbox event, then claim and deliver it after commit through
+a server-only provider-neutral boundary.
+
+Rationale: Confirmation remains race-safe and durable while contact history is
+not lost when a customer record later changes. Provider latency or failure
+cannot create a false booking failure or hold database locks open.
+
+Consequences: Submitted email is not ownership-verified. Failed events remain
+durable and claimable for a future retry worker. Production delivery requires
+explicit Resend sender configuration; the development adapter performs no
+external send.
+
+Revisit conditions: Contact ownership verification, customer-managed contact
+updates, retry scheduling, additional lifecycle event types, or another email
+provider is accepted into scope.
+
+## ADR-029 - Booking May Create Its Required Customer Atomically
+
+Status: Accepted
+
+Date: 2026-08-20
+
+Context: Requiring vendors to leave New Booking and create a customer first
+preserved the data model but added avoidable workflow friction. Making
+`customer_id` optional or inserting customer and booking in separate requests
+would weaken the invariant or leave orphan records on partial failure.
+
+Decision: Keep every booking attached to exactly one same-business customer,
+while allowing New Booking to select an active customer or create a minimal
+customer inline. Route both modes through
+`public.create_booking_with_customer`, a narrow authenticated transaction that
+derives actor and current business, preserves existing booking triggers, and
+records customer/booking audits atomically.
+
+Exact normalized active-customer name, email, or phone matches produce a
+tenant-scoped warning. They never auto-merge or silently switch the customer.
+Archived customers remain unavailable for new bookings and require a future
+explicit restoration design.
+
+Rationale: One transaction removes the failure gap while retaining the
+booking/customer/business constraint and one authoritative booking creation
+mechanism. Explicit modes and warnings keep vendor intent visible.
+
+Consequences: The bounded active-customer picker remains current technical debt;
+paginated server search and sophisticated deduplication/merge are deferred.
+Concurrent intentional submissions are independent transactions and no broad
+idempotency framework is introduced.
+
+Revisit conditions: Customer volumes require server-paginated picker search, a
+reviewed merge/restoration workflow is accepted, or booking submission gains a
+product-level idempotency contract.
+
+## ADR-030 - Main Integration Requires GitHub Actions Quality Gates
+
+Status: Accepted
+
+Date: 2026-08-21
+
+Context: Shared branches diverged while product, security, migration, and UI
+work continued independently. Repository integration needs repeatable checks
+without turning ordinary pull-request CI into a production deployment path.
+
+Decision: Run least-privilege GitHub Actions for pull requests into and pushes
+to `main`. Require separate Quality, Tests, Build, E2E, and Dependency Security
+checks. Define live runtime security behind an explicit protected non-production
+Supabase environment and enable it only when safe secrets exist. Never migrate
+production or deploy infrastructure from this workflow.
+
+Rationale: Named jobs make failures attributable, `npm ci` keeps installs
+reproducible, and protected secrets allow real browser and RLS verification
+without exposing the service role. Keeping deployment separate prevents a code
+quality workflow from gaining unnecessary write authority.
+
+Consequences: Core E2E requires dedicated Supabase CI secrets. Runtime Security
+is configuration-pending until its environment is deliberately enabled. Branch
+protection must be configured in GitHub to make the core checks merge-blocking.
+
+Revisit conditions: A safe local Supabase CI architecture replaces remote test
+fixtures, GitHub changes its supported action/runtime model, or a separately
+approved production deployment pipeline is introduced.

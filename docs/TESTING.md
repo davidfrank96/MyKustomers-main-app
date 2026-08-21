@@ -2,9 +2,13 @@
 
 ## Status
 
-STATUS: PLANNED AND PARTIALLY IMPLEMENTED
+STATUS: IMPLEMENTED AND VERIFIED, WITH DOCUMENTED PHASE 2 EMAIL EXCEPTIONS
 
-Phase 1 implemented test infrastructure and smoke tests. Most domain, security, and journey tests remain PLANNED until corresponding features exist.
+The implemented Phase 1-9 surface has unit, static security, opt-in live
+Supabase, and browser journey coverage appropriate to each feature. Public
+signup confirmation and reset-password completion remain PARTIAL because they
+require a controlled inbox and Supabase default-email delivery; those exceptions
+do not reduce the verified tenant/RLS coverage.
 
 ## Test Categories
 
@@ -13,6 +17,8 @@ Phase 1 implemented test infrastructure and smoke tests. Most domain, security, 
 - End-to-End: Critical browser journeys.
 - Security/authorization: Negative and cross-tenant access tests.
 - Regression: Tests added for fixed bugs or high-risk behavior.
+- Responsive structure: Required-width route smoke checks and focused overflow
+  assertions without pixel-perfect snapshots.
 
 ## Current Implemented Tests
 
@@ -32,9 +38,14 @@ Phase 1 implemented test infrastructure and smoke tests. Most domain, security, 
 - Phase 5 booking domain tests.
 - Static Phase 5 booking migration/RLS review tests.
 - Phase 5 runtime Supabase booking tenant security test.
+- Inline customer booking discriminated-validation tests, static privileged-RPC
+  checks, and live transaction/tenant/concurrency coverage.
 - Phase 6 confirmation-link domain tests.
 - Static Phase 6 confirmation migration/security review tests.
 - Phase 6 runtime Supabase confirmation-link security test.
+- Customer contact validation and booking-confirmed email template/provider
+  boundary unit tests.
+- Static customer-contact/email-outbox migration security tests.
 - Phase 7 booking lifecycle domain tests.
 - Static Phase 7 operational lifecycle migration/security review tests.
 - Phase 7 runtime Supabase operational lifecycle security test.
@@ -51,8 +62,16 @@ Phase 1 implemented test infrastructure and smoke tests. Most domain, security, 
   login, session persistence, logout, forgot-password safe response, redirect safety,
   business onboarding, customer create/edit/archive, and booking
   create/edit/customer-confirmation/reschedule/reconfirmation/complete,
+  existing-customer and inline-new-customer booking creation,
   private feedback submission, operational issue create/resolve, and business
   insights.
+- Playwright route-matrix overflow checks for public/auth pages at 320, 360,
+  375, 390, 430, 768, 834, 1024, 1280, and 1440 pixels.
+- Focused New Booking checks that preserve entered values and keep the inline
+  duplicate-candidate action usable without horizontal overflow at every
+  required width.
+- Lightweight governance tests for required documentation, the repository
+  definition-of-done rule, and migration filename/order discipline.
 
 ## Planned Critical Journeys
 
@@ -63,12 +82,18 @@ Phase 1 implemented test infrastructure and smoke tests. Most domain, security, 
 - E2E-011 - Business owner can update customer. VERIFIED.
 - E2E-020 - Vendor can create booking. VERIFIED.
 - E2E-021 - Booking receives human-readable reference. VERIFIED.
+- E2E-022 - Vendor can create a booking and its required customer inline,
+  deliberately continue after an exact-match warning, and use the ordinary
+  confirmation/contact-enrichment flow. VERIFIED.
 - E2E-030 - Valid customer confirmation token works. VERIFIED.
 - E2E-031 - Expired confirmation token fails. VERIFIED by runtime security test.
 - E2E-032 - Revoked confirmation token fails. VERIFIED by runtime security test.
 - E2E-033 - Consumed token cannot be reused where one-time use is required. VERIFIED.
 - E2E-034 - Confirmed booking can be rescheduled and requires reconfirmation. VERIFIED.
 - E2E-035 - Confirmed booking can move through fulfilment to completion. VERIFIED.
+- E2E-036 - Confirmation captures required email, optionally enriches the
+  customer, and processes one event through the no-network development adapter.
+  VERIFIED.
 - E2E-040 - Completed booking can request private feedback. VERIFIED.
 - E2E-041 - Customer can submit private feedback through a scoped link. VERIFIED.
 - E2E-042 - Vendor can create and resolve an internal booking issue. VERIFIED.
@@ -95,6 +120,9 @@ Phase 1 implemented test infrastructure and smoke tests. Most domain, security, 
   publicly, or cross-tenant, and resolved issues are terminal. VERIFIED.
 - SEC-TEST-010 - Business analytics aggregates cannot include or reveal another
   tenant's records. VERIFIED.
+- SEC-TEST-011 - Inline booking creation rejects cross-tenant/archived customers
+  and injected tenant authority, denies anonymous execution, and rolls back the
+  customer and audits if booking creation fails. VERIFIED.
 
 Do not create fake implementations merely so planned tests can pass.
 
@@ -111,6 +139,16 @@ PHASE2_RUNTIME_VERIFICATION=1 PHASE2_SUPABASE_TARGET=local npm run test:security
 The test requires `NEXT_PUBLIC_SUPABASE_URL`,
 `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, and `SUPABASE_SERVICE_ROLE_KEY`. It is
 skipped by default to avoid mutating an unidentified database.
+
+Responsive visual QA is documented in `docs/RESPONSIVE_QA.md`. The maintained
+E2E assertion compares `document.documentElement.scrollWidth` with
+`clientWidth` for representative routes; temporary screenshots are inspected
+outside committed production assets.
+
+All runtime suites use `tests/security/runtime-support.ts` for the shared
+development-target allowlist, explicit opt-in guard, isolated non-persistent
+Supabase clients, required environment checks, and no-row assertions. Feature
+fixtures and assertions stay in their phase-specific suites.
 
 The Phase 3 runtime test verifies authenticated RPC creation, unauthenticated
 RPC denial, atomic rollback on invalid input, duplicate slug collision handling,
@@ -129,13 +167,25 @@ denial, member write permissions, valid and invalid lifecycle transitions,
 direct vendor `DRAFT -> CONFIRMED` denial, terminal booking locks,
 trigger-owned status history, anonymous denial, and search isolation.
 
+The inline customer booking runtime test verifies existing-customer creation,
+new and name-only customer creation, normalization, ordinary booking reference
+and history behavior, required audit events without contact leakage, atomic
+rollback, cross-tenant and archived customer denial, rejected business-ID
+injection, tenant-isolated duplicate lookup, concurrent independent
+transactions, anonymous denial, and compatibility with confirmation contact
+enrichment on the same customer record.
+
 The Phase 6 runtime test verifies confirmation token lifecycle, hash-only token
 storage, public data minimization, GET lookup not consuming links, invalid token
 handling, expired and revoked links, cross-tenant revoke denial, one-time
 confirmation, confirmation evidence, snapshot/hash storage, material-change
 invalidation, used-link snapshot stability, non-material internal-note edits,
 cancellation invalidation, regeneration revocation, concurrent confirmation
-behavior, persistent rate limiting, audit events, and raw-token non-logging.
+behavior, persistent rate limiting, audit events, and raw-token non-logging. It
+also verifies invalid contact does not consume a link, conservative customer
+enrichment, immutable submitted contact, concurrent different-email winner
+consistency, exactly one email event, provider-failure persistence,
+cross-tenant/anonymous event denial, and contact-safe audit/public output.
 
 The Phase 7 runtime test verifies controlled operational lifecycle transitions,
 operational timestamps, invalid transition denial, cross-tenant transition
@@ -170,6 +220,24 @@ Default Supabase email confirmation E2E requires `E2E_SIGNUP_EMAIL` to point at
 a safe inbox. Without it, signup confirmation and reset-password completion
 remain PARTIAL rather than using reserved domains or untrusted third-party
 inboxes.
+
+## GitHub Actions
+
+`.github/workflows/ci.yml` runs on pull requests into and pushes to `main`:
+
+- Quality: lint, typecheck, and changed-file whitespace integrity.
+- Tests: unit, integration, static security, governance, and migration naming.
+- Build: production Next.js build without privileged runtime secrets.
+- Dependency Security: moderate-and-higher npm advisory gate.
+- E2E: Chromium and all ordinary Playwright journeys using required dedicated
+  non-production Supabase secrets; controlled-inbox signup remains optional.
+- Runtime Security: the live nine-suite regression, guarded until the protected
+  `supabase-runtime-security` environment and enable variable are configured.
+
+The core E2E job validates required secret presence so missing credentials do
+not silently turn all authenticated product journeys into skips. Runtime
+Security remains explicitly configuration-pending rather than manufacturing a
+pass. Full details are in `docs/CI.md`.
 
 ## Definition of Done
 

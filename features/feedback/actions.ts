@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { Route } from "next";
-import { getCurrentBusinessContext, requireUser } from "@/lib/auth/server";
+import { requireCurrentBusiness } from "@/lib/auth/server";
 import { publicEnv } from "@/lib/config/public-env";
 import { recordAuditEvent } from "@/lib/security/audit";
 import { createClient } from "@/lib/supabase/server";
@@ -20,17 +20,6 @@ import {
   generateFeedbackToken,
   hashFeedbackToken,
 } from "@/features/feedback/token";
-
-async function requireCurrentBusiness(next: string) {
-  const user = await requireUser(next);
-  const context = await getCurrentBusinessContext();
-
-  if (!context.currentBusiness) {
-    redirect("/onboarding" as Route);
-  }
-
-  return { user, business: context.currentBusiness };
-}
 
 function formValue(formData: FormData, key: string) {
   return formData.get(key);

@@ -98,9 +98,9 @@ function CurrencyMetricList({
                 key={`${title}-${metric.currency}`}
                 className="rounded-md border border-border px-3 py-2"
               >
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex min-w-0 items-start justify-between gap-3">
                   <p className="text-sm font-medium">{metric.currency}</p>
-                  <p className="text-sm font-semibold">
+                  <p className="min-w-0 break-words text-right text-sm font-semibold">
                     {formatCurrencyMinor(metric.amountMinor, metric.currency)}
                   </p>
                 </div>

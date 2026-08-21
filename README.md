@@ -40,7 +40,7 @@ The local app runs at `http://localhost:3000` by default.
 
 Tracked examples live in `.env.example`. Do not commit real secrets.
 
-Expected future values:
+Supported values:
 
 ```text
 NEXT_PUBLIC_APP_URL=
@@ -48,12 +48,20 @@ NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
 RESEND_API_KEY=
+TRANSACTIONAL_EMAIL_PROVIDER=development
+TRANSACTIONAL_EMAIL_FROM=
 E2E_AUTH_EMAIL=
 E2E_AUTH_PASSWORD=
 ```
 
 Client-safe values are validated separately from server-only secrets in
 `lib/config`.
+
+Booking confirmation email uses the server-only application email abstraction,
+not Supabase Auth email. `development` is the safe default and records a
+synthetic provider message ID without making an external request. Set
+`TRANSACTIONAL_EMAIL_PROVIDER=resend`, `RESEND_API_KEY`, and
+`TRANSACTIONAL_EMAIL_FROM` together to enable real delivery.
 
 `E2E_AUTH_EMAIL` and `E2E_AUTH_PASSWORD` are optional local test credentials for
 real Supabase authentication E2E tests. Do not commit real values.
@@ -88,9 +96,10 @@ npm run build
 ```text
 app/                 Next.js App Router route groups and route handlers
 components/          UI primitives, layout components, shared composition
-features/            Future feature modules by domain
+features/            Implemented and planned feature modules by domain
 lib/                 Configuration, service boundaries, validation, utilities
-database/            Migration location and database notes
+database/            Database notes (migrations live in supabase/migrations)
+supabase/migrations/ Immutable PostgreSQL migration source artifacts
 docs/                Architecture, development, security, product boundaries
 tests/               Unit, integration, and E2E smoke tests
 public/              Icons and web manifest
@@ -102,7 +111,7 @@ public/              Icons and web manifest
 - Mobile-first responsive application shell.
 - Server-side authorization and validation.
 - Supabase service-role secrets must never reach the browser.
-- Future tenant-owned data must be protected by PostgreSQL RLS.
+- Tenant-owned data must be protected by PostgreSQL RLS.
 - Business creation and owner membership provisioning must remain atomic and
   tenant-safe.
 - Customer records are tenant-owned business data and are not platform auth
@@ -136,8 +145,24 @@ The repository documentation is the source of truth for future implementation:
 - Conceptual data model: `docs/DATA_MODEL.md`.
 - Testing strategy: `docs/TESTING.md`.
 - Analytics definitions: `docs/ANALYTICS_DEFINITIONS.md`.
+- Documentation governance: `docs/DOCUMENTATION_GOVERNANCE.md`.
+- Migration process and ledger: `docs/MIGRATIONS.md`.
+- Responsive verification: `docs/RESPONSIVE_QA.md`.
+- Continuous integration and merge policy: `docs/CI.md`.
 
 Documentation can describe PLANNED, IMPLEMENTED, or VERIFIED work. Respect those
 labels. Documentation is not implementation evidence; inspect repository code,
 configuration, migrations, policies, and tests before reporting that something
 exists or has been verified.
+
+Documentation is part of definition of done. Material implementation work must
+update affected documentation in the same task and follow the change matrix and
+pre-finish checklist in `docs/DOCUMENTATION_GOVERNANCE.md`.
+
+## Continuous Integration
+
+GitHub Actions runs Quality, Tests, Build, Dependency Security, and E2E checks
+for pull requests into `main` and pushes to `main`. Live runtime security is
+defined separately and requires a protected non-production Supabase environment.
+See `docs/CI.md` for secrets, required checks, branch protection, and the
+explicit no-deployment/no-production-migration boundary.

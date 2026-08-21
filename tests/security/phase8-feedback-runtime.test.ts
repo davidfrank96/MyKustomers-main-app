@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { afterAll, describe, expect, it } from "vitest";
 import type { Database } from "@/types/database";
 import {
@@ -7,23 +7,18 @@ import {
   hashConfirmationToken,
 } from "@/features/confirmation-links/token";
 import { generateFeedbackToken, hashFeedbackToken } from "@/features/feedback/token";
+import {
+  createRuntimeSecurityContext,
+  expectNoRows,
+} from "@/tests/security/runtime-support";
 
-const safeTargets = new Set([
-  "local",
-  "dev",
-  "development",
-  "test",
-  "testing",
-  "staging",
-]);
-const runtimeVerificationEnabled =
-  process.env.PHASE2_RUNTIME_VERIFICATION === "1" &&
-  safeTargets.has((process.env.PHASE2_SUPABASE_TARGET ?? "").toLowerCase()) &&
-  Boolean(
-    process.env.NEXT_PUBLIC_SUPABASE_URL &&
-      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY &&
-      process.env.SUPABASE_SERVICE_ROLE_KEY,
-  );
+const runtime = createRuntimeSecurityContext({
+  suiteName: "Phase 8",
+  storagePrefix: "phase8-runtime",
+});
+const runtimeVerificationEnabled = runtime.enabled;
+const requiredEnv = runtime.requiredEnv;
+const createSupabaseClient = runtime.createSupabaseClient;
 
 type AppClient = SupabaseClient<Database>;
 type UserFixture = {
@@ -50,37 +45,12 @@ type UnsafeTable = {
   };
 };
 
-function requiredEnv(name: string) {
-  const value = process.env[name];
-
-  if (!value) {
-    throw new Error(`${name} is required for Phase 8 runtime verification.`);
-  }
-
-  return value;
-}
-
-function createSupabaseClient(key: string) {
-  return createClient<Database>(requiredEnv("NEXT_PUBLIC_SUPABASE_URL"), key, {
-    auth: {
-      autoRefreshToken: false,
-      detectSessionInUrl: false,
-      persistSession: false,
-      storageKey: `phase8-runtime-${randomUUID()}`,
-    },
-  });
-}
-
 function statusFrom(value: unknown) {
   if (typeof value === "object" && value !== null && "status" in value) {
     return (value as RpcStatus).status;
   }
 
   return null;
-}
-
-function expectNoRows<T>(data: T[] | null) {
-  expect(data ?? []).toHaveLength(0);
 }
 
 if (runtimeVerificationEnabled) {
@@ -217,6 +187,7 @@ if (runtimeVerificationEnabled) {
 
       const { data, error } = await service.rpc("confirm_booking_by_token_hash", {
         p_token_hash: hashConfirmationToken(token),
+        p_contact_email: "phase8-confirmation@example.com",
       });
       expect(error).toBeNull();
       expect(statusFrom(data)).toBe("confirmed");
@@ -403,7 +374,10 @@ if (runtimeVerificationEnabled) {
       const feedbackPurpose = await generateFeedbackLink(userA.client, completedPurpose);
       const { data: wrongPurposeConfirmation } = await service.rpc(
         "confirm_booking_by_token_hash",
-        { p_token_hash: hashFeedbackToken(feedbackPurpose.token) },
+        {
+          p_token_hash: hashFeedbackToken(feedbackPurpose.token),
+          p_contact_email: "phase8-wrong-purpose@example.com",
+        },
       );
       expect(statusFrom(wrongPurposeConfirmation)).toBe("unavailable");
 

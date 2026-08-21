@@ -1,5 +1,9 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
+import {
+  escapePostgrestLikePattern,
+  quotePostgrestFilterValue,
+} from "@/lib/supabase/filters";
 import type { Database } from "@/types/database";
 import type { BookingListParams } from "@/features/bookings/validation";
 import type { BookingStatus } from "@/features/bookings/status";
@@ -9,6 +13,23 @@ export type BookingStatusHistory =
   Database["public"]["Tables"]["booking_status_history"]["Row"];
 export type BookingChange = Database["public"]["Tables"]["booking_changes"]["Row"];
 
+const bookingListColumns =
+  "id, customer_id, reference, title, currency, total_amount_minor, deposit_amount_minor, scheduled_for, status, created_at" as const;
+
+type BookingListItem = Pick<
+  Booking,
+  | "id"
+  | "customer_id"
+  | "reference"
+  | "title"
+  | "currency"
+  | "total_amount_minor"
+  | "deposit_amount_minor"
+  | "scheduled_for"
+  | "status"
+  | "created_at"
+>;
+
 export type BookingCustomerSummary = {
   id: string;
   name: string;
@@ -16,7 +37,7 @@ export type BookingCustomerSummary = {
   phone: string | null;
 };
 
-export type BookingWithCustomer = Booking & {
+export type BookingWithCustomer = BookingListItem & {
   customer: BookingCustomerSummary | null;
 };
 
@@ -41,17 +62,18 @@ export type BookingDashboardStats = {
   ready: BookingWithCustomer[];
 };
 
-function escapeSearch(value: string) {
-  return value.replace(/[(),]/g, " ").replace(/[%_]/g, "\\$&").trim();
-}
-
 async function matchingCustomerIds(businessId: string, search: string) {
   if (!search) {
     return [];
   }
 
   const supabase = await createClient();
-  const pattern = `%${escapeSearch(search)}%`;
+  const escapedSearch = escapePostgrestLikePattern(search);
+  if (!escapedSearch) {
+    return [];
+  }
+
+  const pattern = quotePostgrestFilterValue(`%${escapedSearch}%`);
   const { data, error } = await supabase
     .from("customers")
     .select("id")
@@ -87,14 +109,14 @@ async function customersById(businessId: string, customerIds: string[]) {
   return new Map(data.map((customer) => [customer.id, customer]));
 }
 
-function attachCustomers(
-  bookings: Booking[],
+function attachCustomers<T extends { customer_id: string }>(
+  bookings: T[],
   customerMap: Map<string, BookingCustomerSummary>,
 ) {
   return bookings.map((booking) => ({
     ...booking,
     customer: customerMap.get(booking.customer_id) ?? null,
-  })) satisfies BookingWithCustomer[];
+  }));
 }
 
 function todayRange(now = new Date()) {
@@ -120,7 +142,7 @@ export async function listBookingsForBusiness(
 
   let query = supabase
     .from("bookings")
-    .select("*", { count: "exact" })
+    .select(bookingListColumns, { count: "exact" })
     .eq("business_id", businessId)
     .order("created_at", { ascending: false });
 
@@ -146,7 +168,9 @@ export async function listBookingsForBusiness(
   }
 
   if (params.q) {
-    const pattern = `%${escapeSearch(params.q)}%`;
+    const pattern = quotePostgrestFilterValue(
+      `%${escapePostgrestLikePattern(params.q)}%`,
+    );
     const customerIds = await matchingCustomerIds(businessId, params.q);
     const searchParts = [`reference.ilike.${pattern}`, `title.ilike.${pattern}`];
 
@@ -294,14 +318,16 @@ export async function getBookingDashboardStats(businessId: string): Promise<Book
       .not("status", "in", "(COMPLETED,CANCELLED)"),
     supabase
       .from("bookings")
-      .select("id", { count: "exact", head: true })
+      .select(bookingListColumns, { count: "exact" })
       .eq("business_id", businessId)
       .not("scheduled_for", "is", null)
       .lt("scheduled_for", now)
-      .not("status", "in", "(DELIVERED,COMPLETED,CANCELLED)"),
+      .not("status", "in", "(DELIVERED,COMPLETED,CANCELLED)")
+      .order("scheduled_for", { ascending: true })
+      .limit(5),
     supabase
       .from("bookings")
-      .select("*", { count: "exact" })
+      .select(bookingListColumns, { count: "exact" })
       .eq("business_id", businessId)
       .not("scheduled_for", "is", null)
       .gte("scheduled_for", range.start)
@@ -311,29 +337,34 @@ export async function getBookingDashboardStats(businessId: string): Promise<Book
       .limit(5),
     supabase
       .from("bookings")
-      .select("*", { count: "exact" })
+      .select(bookingListColumns, { count: "exact" })
       .eq("business_id", businessId)
       .eq("status", "IN_PROGRESS")
       .order("scheduled_for", { ascending: true, nullsFirst: false })
       .limit(5),
     supabase
       .from("bookings")
-      .select("*", { count: "exact" })
+      .select(bookingListColumns, { count: "exact" })
       .eq("business_id", businessId)
       .eq("status", "READY")
       .order("scheduled_for", { ascending: true, nullsFirst: false })
       .limit(5),
   ]);
 
-  async function withCustomers(result: typeof dueToday) {
-    const rows = result.error ? [] : result.data ?? [];
-    const customerMap = await customersById(
-      businessId,
-      rows.map((booking) => booking.customer_id),
-    );
-
-    return attachCustomers(rows, customerMap);
+  function queueRows(result: typeof dueToday) {
+    return result.error ? [] : result.data ?? [];
   }
+
+  const dueTodayRows = queueRows(dueToday);
+  const overdueRows = queueRows(overdue);
+  const inProgressRows = queueRows(inProgress);
+  const readyRows = queueRows(ready);
+  const customerMap = await customersById(
+    businessId,
+    [...dueTodayRows, ...overdueRows, ...inProgressRows, ...readyRows].map(
+      (booking) => booking.customer_id,
+    ),
+  );
 
   return {
     activeBookings: active.error ? 0 : active.count ?? 0,
@@ -342,14 +373,9 @@ export async function getBookingDashboardStats(businessId: string): Promise<Book
     dueTodayBookings: dueToday.error ? 0 : dueToday.count ?? 0,
     inProgressBookings: inProgress.error ? 0 : inProgress.count ?? 0,
     readyBookings: ready.error ? 0 : ready.count ?? 0,
-    dueToday: await withCustomers(dueToday),
-    overdue: await listBookingsForBusiness(businessId, {
-      filter: "overdue",
-      q: "",
-      page: 1,
-      limit: 5,
-    }).then((result) => result.bookings),
-    inProgress: await withCustomers(inProgress),
-    ready: await withCustomers(ready),
+    dueToday: attachCustomers(dueTodayRows, customerMap),
+    overdue: attachCustomers(overdueRows, customerMap),
+    inProgress: attachCustomers(inProgressRows, customerMap),
+    ready: attachCustomers(readyRows, customerMap),
   };
 }

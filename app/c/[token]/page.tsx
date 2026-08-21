@@ -1,13 +1,9 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
-import type { Route } from "next";
 import { CheckCircle2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { PublicConfirmationForm } from "@/components/forms/public-confirmation-form";
 import { formatMoneyMinor } from "@/features/bookings/money";
-import {
-  confirmPublicBooking,
-  getPublicConfirmationView,
-} from "@/features/confirmation-links/public";
+import { getPublicConfirmationView } from "@/features/confirmation-links/public";
+import { confirmPublicBookingAction } from "@/features/confirmation-links/public-actions";
 import { safePublicConfirmationMessage } from "@/features/confirmation-links/messages";
 import type { PublicConfirmationBooking } from "@/features/confirmation-links/public-types";
 
@@ -43,7 +39,7 @@ function DetailRow({ label, value }: { label: string; value: string }) {
       <dt className="text-xs font-medium text-muted-foreground">
         {label}
       </dt>
-      <dd className="mt-1 text-base font-medium text-foreground">{value}</dd>
+      <dd className="mt-1 break-words text-base font-medium text-foreground">{value}</dd>
     </div>
   );
 }
@@ -84,18 +80,6 @@ export default async function ConfirmationPage({
   const booking = view.booking;
   const confirmed = query.confirmed === "1" || view.status === "already_confirmed";
 
-  async function confirmAction() {
-    "use server";
-
-    const result = await confirmPublicBooking(token);
-
-    if (result.status === "confirmed" || result.status === "already_confirmed") {
-      redirect(`/c/${token}?confirmed=1` as Route);
-    }
-
-    redirect(`/c/${token}?attempt=failed` as Route);
-  }
-
   return (
     <main className="min-h-dvh bg-background px-5 py-8 text-foreground">
       <div className="mx-auto flex w-full max-w-xl flex-col">
@@ -121,21 +105,17 @@ export default async function ConfirmationPage({
                   <div>
                     <p className="font-medium">Confirmed</p>
                     <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                      No My Customers account is required.
+                      {booking.contact_email_masked
+                        ? `We'll send a confirmation to ${booking.contact_email_masked}.`
+                        : "No My Customers account is required."}
                     </p>
                   </div>
                 </div>
               </div>
             ) : view.status === "valid" ? (
-              <form action={confirmAction} className="mt-6 space-y-4">
-                <p className="text-sm leading-6 text-muted-foreground">
-                  By confirming, you acknowledge that these are the booking details
-                  agreed with the business.
-                </p>
-                <Button type="submit" size="lg" className="w-full">
-                  Confirm booking
-                </Button>
-              </form>
+              <PublicConfirmationForm
+                action={confirmPublicBookingAction.bind(null, token)}
+              />
             ) : (
               <p className="mt-6 rounded-lg border border-border bg-card p-4 text-sm leading-6 text-muted-foreground">
                 {safePublicConfirmationMessage(view.status)}

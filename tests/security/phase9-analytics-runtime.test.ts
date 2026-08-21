@@ -1,25 +1,17 @@
 import { randomUUID } from "node:crypto";
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { afterAll, describe, expect, it } from "vitest";
 import type { Database } from "@/types/database";
 import { hashFeedbackToken } from "@/features/feedback/token";
+import { createRuntimeSecurityContext } from "@/tests/security/runtime-support";
 
-const safeTargets = new Set([
-  "local",
-  "dev",
-  "development",
-  "test",
-  "testing",
-  "staging",
-]);
-const runtimeVerificationEnabled =
-  process.env.PHASE2_RUNTIME_VERIFICATION === "1" &&
-  safeTargets.has((process.env.PHASE2_SUPABASE_TARGET ?? "").toLowerCase()) &&
-  Boolean(
-    process.env.NEXT_PUBLIC_SUPABASE_URL &&
-      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY &&
-      process.env.SUPABASE_SERVICE_ROLE_KEY,
-  );
+const runtime = createRuntimeSecurityContext({
+  suiteName: "Phase 9",
+  storagePrefix: "phase9-runtime",
+});
+const runtimeVerificationEnabled = runtime.enabled;
+const requiredEnv = runtime.requiredEnv;
+const createSupabaseClient = runtime.createSupabaseClient;
 
 type AppClient = SupabaseClient<Database>;
 type UserFixture = {
@@ -71,28 +63,10 @@ type AnalyticsJson = {
     resolutionRate: number | null;
     categories: { category: string; count: number }[];
   };
+  trends: {
+    bookings: { periodStart: string; created: number; completed: number }[];
+  };
 };
-
-function requiredEnv(name: string) {
-  const value = process.env[name];
-
-  if (!value) {
-    throw new Error(`${name} is required for Phase 9 runtime verification.`);
-  }
-
-  return value;
-}
-
-function createSupabaseClient(key: string) {
-  return createClient<Database>(requiredEnv("NEXT_PUBLIC_SUPABASE_URL"), key, {
-    auth: {
-      autoRefreshToken: false,
-      detectSessionInUrl: false,
-      persistSession: false,
-      storageKey: `phase9-runtime-${randomUUID()}`,
-    },
-  });
-}
 
 function asAnalyticsJson(value: unknown) {
   return value as AnalyticsJson;
@@ -558,6 +532,22 @@ if (runtimeVerificationEnabled) {
         { category: "LATE_DELIVERY", count: 2 },
         { category: "COMMUNICATION_ISSUE", count: 1 },
       ]);
+
+      const { data: trendData, error: trendError } = await userA.client.rpc(
+        "get_business_insights",
+        {
+          p_business_id: businessAId,
+          p_from: "2026-08-10T00:00:00.000Z",
+          p_to: "2026-08-11T00:00:00.000Z",
+        },
+      );
+      expect(trendError).toBeNull();
+      const completionDayTrend = asAnalyticsJson(trendData).trends.bookings;
+      expect(completionDayTrend).toHaveLength(1);
+      expect(completionDayTrend[0]).toMatchObject({ created: 0, completed: 1 });
+      expect(new Date(completionDayTrend[0].periodStart).toISOString()).toBe(
+        "2026-08-10T00:00:00.000Z",
+      );
 
       const { data: crossTenantData, error: crossTenantError } =
         await userA.client.rpc("get_business_insights", {

@@ -2,6 +2,97 @@
 
 This changelog records meaningful project milestones. It is not a substitute for Git history.
 
+## 2026-08-21 - Main Reconciliation And CI Quality Gate
+
+Status: VERIFIED
+
+- Reconciled the current verified product branch with the older Phase 9.5 UI
+  pass using a normal merge and file-by-file conflict resolution.
+- Preserved confirmation contact capture, durable email events, inline customer
+  booking, responsive regressions, all applied migrations, and current security
+  suites while retaining compatible active navigation, product copy, money,
+  next-step, UX-audit, and canonical-journey improvements from `main`.
+- Added least-privilege GitHub Actions jobs for quality, tests, build,
+  dependency security, E2E, and guarded live runtime security.
+- Documented required secret names, branch protection, merge policy, migration
+  boundaries, and the separation between CI and deferred production deployment.
+- Pull request #2 reported a clean merge state and its remote Quality, Tests,
+  Build, Dependency Security, and E2E jobs passed. Runtime Security remains
+  intentionally guarded until its protected environment is configured.
+
+## 2026-08-21 - Responsive Alignment And Documentation Governance
+
+Status: VERIFIED
+
+- Audited all current public, auth, onboarding, vendor, confirmation, and
+  feedback routes at ten required widths from 320px through 1440px with long
+  names, contact values, descriptions, and currency amounts.
+- Fixed the inline-customer booking form's implicit grid min-content overflow at
+  320px and added maintainable shrink, wrapping, select, dialog, sheet,
+  navigation, generated-link, and analytics value constraints.
+- Added focused Playwright overflow regressions and lightweight required-doc and
+  migration-order governance tests.
+- Corrected repository, database, product, architecture, feature, email,
+  testing, design, release, and boundary documentation against current code and
+  development-schema evidence.
+- Made documentation a mandatory same-task definition-of-done requirement and
+  added a change matrix, pre-finish checklist, migration ledger, and responsive
+  QA record without starting billing, Phase 11, or the broad visual redesign.
+
+## 2026-08-20 - Inline Customer Creation During Booking
+
+Status: VERIFIED
+
+- Added explicit existing-customer and inline-new-customer modes to New Booking,
+  with practical active-customer search and minimal name/email/phone fields.
+- Added precise discriminated validation and non-blocking, tenant-scoped exact
+  name/email/phone duplicate warnings with explicit reuse or continue choices.
+- Added authenticated `public.create_booking_with_customer` so both modes use
+  one authoritative atomic booking path; inline customer creation, booking,
+  trigger history, and required audits commit or roll back together.
+- Preserved the non-null same-business customer invariant, active-only booking
+  selection, existing confirmation/contact enrichment, booking history, and
+  analytics behavior.
+- Applied the migration to development and verified static hardening, live RLS
+  and rollback attacks, concurrency, desktop/mobile browser journeys, build,
+  and dependency audit.
+
+## 2026-08-20 - Customer Contact And Confirmation Email Foundation
+
+Status: VERIFIED
+
+- Required normalized customer-provided email and added optional phone to the
+  existing secure booking confirmation action without adding customer accounts.
+- Preserved submitted contact on immutable confirmation evidence and enriched
+  only empty customer contact fields.
+- Added a private durable `BOOKING_CONFIRMED` email outbox event to the atomic
+  confirmation transaction, with service-role claiming and bounded delivery
+  state/failure metadata.
+- Added provider-neutral HTML/plain-text delivery, a no-network development
+  adapter, and opt-in Resend configuration.
+- Added minimal public form and vendor detail updates plus unit, static, live
+  Supabase race/security/failure, and Playwright coverage.
+
+## 2026-08-20 - Engineering Quality and Architecture Review
+
+Status: VERIFIED
+
+- Revalidated the modular-monolith boundaries, Supabase Auth/RLS tenancy model,
+  migrations, server actions, query modules, domain types, tests, and dependency
+  surface before the page-by-page UI redesign.
+- Centralized authenticated current-business enforcement and reused validated
+  auth claims across membership checks to remove redundant Auth requests.
+- Narrowed customer and booking list projections, consolidated dashboard
+  customer hydration, and parallelized independent booking-detail reads.
+- Added shared PostgREST filter encoding, opaque-token primitives, and runtime
+  security-test setup while preserving feature-specific public token purposes.
+- Aligned the custom analytics range guard with the database's five-calendar-
+  year contract and added boundary regression coverage.
+- Added a narrow follow-up migration so booking completion trends use
+  `completed_at` buckets, matching the documented completion-date definition.
+- Made no table, RLS, lifecycle, money, analytics definition, dependency, or UI
+  design changes.
+
 ## 2026-08-19 - Phase 9.5 Product UX, Design, and End-to-End Experience Audit
 
 Status: VERIFIED
