@@ -13,6 +13,12 @@ booking management, confirmation-link security, operational booking lifecycle
 controls, private feedback, and operational issue records have runtime
 verification evidence. Private tenant analytics are derived from stored records
 with currency-specific value grouping and documented metric definitions.
+Authenticated users can reach Settings and the existing logout flow from a
+compact account menu at mobile widths. Business owners can manage a normalized
+website and one compressed public logo, and secure confirmation pages show that
+public identity without exposing private business contacts. Dashboard summary
+tiles navigate to supported customer, booking-filter, business, or insights
+destinations.
 
 ## Stack
 
@@ -21,6 +27,7 @@ with currency-specific value grouping and documented metric definitions.
 - TypeScript with strict mode
 - Tailwind CSS
 - Zod
+- Sharp for bounded server-side logo processing
 - Supabase PostgreSQL, Auth, and Storage boundaries
 - Vitest
 - Playwright
@@ -128,6 +135,10 @@ public/              Icons and web manifest
 - Business insights are private tenant aggregates; they must not mix currencies
   or use revenue/accounting terminology.
 - Avoid fake payment functionality before the owning phase.
+- Every user-uploaded image feature must define and enforce input bytes,
+  dimensions, MIME/extension allowlists, server-side content validation,
+  optimization, persisted limits, access control, replacement cleanup, and
+  deletion behavior. Raw originals are not retained by default.
 
 See `docs/architecture.md`, `docs/security.md`, `docs/development.md`, and
 `docs/product-boundaries.md` for the project rules that future phases should

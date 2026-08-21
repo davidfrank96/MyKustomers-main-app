@@ -1,14 +1,17 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { Route } from "next";
+import type { ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { BusinessLogo } from "@/components/shared/business-logo";
 import { parseAnalyticsRange } from "@/features/analytics/date-ranges";
 import { formatCurrencyMinor, formatInteger } from "@/features/analytics/format";
 import { getBusinessInsights } from "@/features/analytics/queries";
 import type { BookingWithCustomer } from "@/features/bookings/queries";
 import { getBookingDashboardStats } from "@/features/bookings/queries";
+import { getBusinessLogoPublicUrl } from "@/features/businesses/logo-public";
 import { countActiveCustomersForBusiness } from "@/features/customers/queries";
 import { getCurrentBusinessContext } from "@/lib/auth/server";
 
@@ -63,6 +66,26 @@ function WorkQueue({
   );
 }
 
+function DashboardTile({
+  href,
+  label,
+  children,
+}: {
+  href: Route;
+  label: string;
+  children: ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      aria-label={label}
+      className="group block rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+    >
+      <Card className="h-full transition-colors group-hover:bg-muted/70">{children}</Card>
+    </Link>
+  );
+}
+
 export default async function DashboardPage() {
   const businessContext = await getCurrentBusinessContext();
   const currentBusiness = businessContext.currentBusiness;
@@ -84,6 +107,7 @@ export default async function DashboardPage() {
       : monthInsights.value.completed
           .map((metric) => formatCurrencyMinor(metric.amountMinor, metric.currency))
           .join(" · ");
+  const businessLogoUrl = getBusinessLogoPublicUrl(currentBusiness.logoPath);
 
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-5 py-6 sm:px-8 lg:px-10">
@@ -98,20 +122,23 @@ export default async function DashboardPage() {
       </section>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-        <Card>
+        <DashboardTile href={"/business" as Route} label="Open business profile">
           <CardHeader>
             <CardTitle>{currentBusiness.name}</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2">
-            <p className="text-sm leading-6 text-muted-foreground">
-              Category: {currentBusiness.category}
-            </p>
-            <p className="text-sm leading-6 text-muted-foreground">
-              Slug: {currentBusiness.slug}
-            </p>
+          <CardContent className="flex items-start gap-3">
+            <BusinessLogo name={currentBusiness.name} url={businessLogoUrl} />
+            <div className="min-w-0 space-y-1">
+              <p className="break-words text-sm leading-5 text-muted-foreground">
+                Category: {currentBusiness.category}
+              </p>
+              <p className="break-all text-xs leading-5 text-muted-foreground">
+                Slug: {currentBusiness.slug}
+              </p>
+            </div>
           </CardContent>
-        </Card>
-        <Card>
+        </DashboardTile>
+        <DashboardTile href={"/customers" as Route} label="View customer records">
           <CardHeader>
             <CardTitle>Total customers</CardTitle>
           </CardHeader>
@@ -120,8 +147,8 @@ export default async function DashboardPage() {
               Active customer records: {customerCount}
             </p>
           </CardContent>
-        </Card>
-        <Card>
+        </DashboardTile>
+        <DashboardTile href={"/bookings?filter=active" as Route} label="View active bookings">
           <CardHeader>
             <CardTitle>Active bookings</CardTitle>
           </CardHeader>
@@ -130,8 +157,8 @@ export default async function DashboardPage() {
               Open booking records: {bookingStats.activeBookings}
             </p>
           </CardContent>
-        </Card>
-        <Card>
+        </DashboardTile>
+        <DashboardTile href={"/bookings?filter=today" as Route} label="View bookings due today">
           <CardHeader>
             <CardTitle>Due today</CardTitle>
           </CardHeader>
@@ -140,8 +167,8 @@ export default async function DashboardPage() {
               Scheduled today: {bookingStats.dueTodayBookings}
             </p>
           </CardContent>
-        </Card>
-        <Card>
+        </DashboardTile>
+        <DashboardTile href={"/bookings?filter=overdue" as Route} label="View overdue bookings">
           <CardHeader>
             <CardTitle>Overdue</CardTitle>
           </CardHeader>
@@ -150,7 +177,7 @@ export default async function DashboardPage() {
               Past scheduled open bookings: {bookingStats.overdueBookings}
             </p>
           </CardContent>
-        </Card>
+        </DashboardTile>
       </div>
 
       <section className="flex flex-col gap-4">
@@ -202,7 +229,7 @@ export default async function DashboardPage() {
           </Button>
         </div>
         <div className="grid gap-4 md:grid-cols-3">
-          <Card>
+          <DashboardTile href={"/insights?range=this_month" as Route} label="View completed booking insights for this month">
             <CardHeader>
               <CardTitle>Completed this month</CardTitle>
             </CardHeader>
@@ -213,8 +240,8 @@ export default async function DashboardPage() {
                   : "Insights unavailable."}
               </p>
             </CardContent>
-          </Card>
-          <Card>
+          </DashboardTile>
+          <DashboardTile href={"/insights?range=this_month" as Route} label="View completed booking value insights for this month">
             <CardHeader>
               <CardTitle>Completed booking value</CardTitle>
             </CardHeader>
@@ -223,8 +250,8 @@ export default async function DashboardPage() {
                 {completedValueSummary}
               </p>
             </CardContent>
-          </Card>
-          <Card>
+          </DashboardTile>
+          <DashboardTile href={"/insights?range=this_month" as Route} label="View feedback insights for this month">
             <CardHeader>
               <CardTitle>Feedback received</CardTitle>
             </CardHeader>
@@ -235,7 +262,7 @@ export default async function DashboardPage() {
                   : "Insights unavailable."}
               </p>
             </CardContent>
-          </Card>
+          </DashboardTile>
         </div>
       </section>
     </main>

@@ -10,3 +10,9 @@ and reset-password completion remain verification-pending because they require
 a controlled inbox and successful Supabase Auth email delivery; login, logout,
 session handling, route protection, redirect safety, and tenant/RLS boundaries
 have runtime evidence.
+
+The authenticated shell exposes a compact account menu at mobile and desktop
+widths. It links to the real Settings surface and existing `/logout` route;
+that route and Settings both reuse `logoutAction`, so session clearing, audit,
+safe redirect, and protected-route denial remain centralized. Settings is not a
+sixth primary mobile navigation item.

@@ -13,6 +13,8 @@ Phase 6 implements secure customer confirmation links for bookings.
 - Persistent public endpoint rate limiting.
 - Material-change classification for confirmation invalidation tests.
 - Safe public status messages.
+- Safe public business identity presentation for current logo/fallback,
+  normalized website, and the existing Instagram handle.
 
 ## Security Rules
 
@@ -31,6 +33,10 @@ Phase 6 implements secure customer confirmation links for bookings.
   statuses.
 - Public views must not include internal notes, audit logs, business members,
   token hashes, tenant IDs, or service-role-only data.
+- Website and Instagram links are revalidated at render time, use only HTTP(S),
+  open with `noopener noreferrer`, and remain secondary to confirmation.
+- Branding fields are live public identity and are not added to immutable
+  booking terms, so logo/website changes do not invalidate confirmation.
 - Material booking-term changes after confirmation require a fresh customer
   confirmation. Internal notes are non-material.
 - Vendor UI copy should describe customer links without exposing token internals

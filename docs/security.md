@@ -176,9 +176,24 @@ written to application logs.
 
 SEC-013 - Secure Storage
 
-Status: PLANNED
+Status: VERIFIED FOR CURRENT UPLOAD SURFACE
 
 Private uploaded content must not become publicly accessible by default.
+
+The first upload surface is deliberately public business branding, not private
+content. `business-logos` contains only bounded WebP logos; direct retrieval is
+public, while list, insert, update, and delete policies require an active owner
+for the business UUID parsed from the exact `{business_id}/logo.webp` path.
+Anonymous and cross-tenant writes are runtime-denied, anonymous listing returns
+no rows, and no service-role storage secret enters browser code.
+
+The server validates source bytes, MIME, extension, decoded format, dimensions,
+animation, and output before Storage. Input is limited to 2 MB, 6000px per edge,
+and 25 megapixels; persisted output is metadata-stripped WebP at no more than
+512px and 200 KB. Originals are discarded. Replacement overwrites the one
+deterministic object. Removal clears the database reference first so cleanup
+failure cannot leave a broken reference. Future private uploads still require a
+private bucket or reviewed delivery abstraction and equivalent explicit bounds.
 
 SEC-014 - Least Privilege
 

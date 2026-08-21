@@ -56,6 +56,16 @@ not assume repository presence alone proves application.
 | `20260820030000_phase_9_fix_booking_trend_buckets.sql` | Applied; completion-bucket regression verified |
 | `20260820131919_customer_contact_confirmation_email_foundation.sql` | Applied; contact/outbox runtime verified |
 | `20260820143032_inline_customer_booking_creation.sql` | Applied; atomic inline customer/booking runtime verified |
+| `20260821125815_business_identity_logo_storage.sql` | Applied; website/logo columns, public logo bucket, owner policies, and confirmation identity inspected live |
+| `20260821132030_business_identity_runtime_fixes.sql` | Applied forward fix; removed RPC overload ambiguity, restored masked consumed-link email, all ten runtime suites passed |
+
+The configured development project's historical CLI migration table remains
+empty because this project predates enforced version tracking. These two
+migrations were applied directly through the configured development database
+URL, matching the established development process above; live columns, bucket
+configuration, policies, function grants/search paths, and runtime behavior were
+then inspected. This does not remove the production requirement to reconcile an
+explicit environment migration history before deployment.
 
 ## Production Deployment
 

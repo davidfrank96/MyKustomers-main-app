@@ -93,7 +93,7 @@ Audit date: 2026-08-21.
 | `features/feedback/README.md` | CURRENT | Private feedback and issue boundary. |
 | `features/analytics/README.md` | CURRENT | Tenant-private analytics scope and definitions. |
 | `features/billing/README.md`, `lib/billing/README.md` | CURRENT | Explicitly deferred vendor billing boundary. |
-| `features/settings/README.md` | CURRENT | Honest settings placeholder boundary. |
+| `features/settings/README.md` | CURRENT | Implemented account/session and business-settings navigation boundary. |
 | `lib/email/README.md` | CURRENT | Transactional email/outbox/provider boundary. |
 | `lib/security/README.md`, `lib/validation/README.md` | CURRENT | Shared utility ownership guidance. |
 | `components/forms/README.md`, `components/shared/README.md`, `hooks/README.md`, `types/README.md` | CURRENT | Narrow code-ownership guidance; intentionally concise. |

@@ -41,6 +41,8 @@ export type Database = {
           email: string | null;
           whatsapp: string | null;
           instagram: string | null;
+          website: string | null;
+          logo_path: string | null;
           address_text: string | null;
           onboarding_completed_at: string;
           created_by: string;
@@ -57,6 +59,8 @@ export type Database = {
           email?: string | null;
           whatsapp?: string | null;
           instagram?: string | null;
+          website?: string | null;
+          logo_path?: string | null;
           address_text?: string | null;
           onboarding_completed_at?: string;
           created_by: string;
@@ -73,6 +77,8 @@ export type Database = {
           email?: string | null;
           whatsapp?: string | null;
           instagram?: string | null;
+          website?: string | null;
+          logo_path?: string | null;
           address_text?: string | null;
           onboarding_completed_at?: string;
           created_by?: string;
@@ -559,6 +565,7 @@ export type Database = {
           business_whatsapp?: string | null;
           business_instagram?: string | null;
           business_address_text?: string | null;
+          business_website?: string | null;
         };
         Returns: string;
       };

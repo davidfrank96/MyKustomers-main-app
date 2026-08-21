@@ -48,6 +48,16 @@ audit events atomically. The migration was applied to development and
 runtime-verified for rollback, tenant isolation, grants, history, and
 concurrency.
 
+Business identity migration evidence exists at
+`supabase/migrations/20260821125815_business_identity_logo_storage.sql` with
+the forward runtime correction
+`supabase/migrations/20260821132030_business_identity_runtime_fixes.sql`.
+Together they add nullable `businesses.website` and `businesses.logo_path`, the
+public logo-only `business-logos` bucket, exact-path owner policies, onboarding
+website support, and public confirmation identity while preserving later masked
+confirmation contact. Both migrations are applied to development and the full
+live runtime security suite passes.
+
 Phase 7 migration evidence exists at
 `supabase/migrations/20260818234428_phase_7_fulfilment_operational_lifecycle.sql`.
 The migration adds operational booking timestamps, cancellation reasons,
@@ -106,7 +116,9 @@ These names are conceptual and not yet necessarily final table names.
 - `profiles`: VERIFIED.
 - `businesses`: VERIFIED. Phase 3 fields include `slug`, `category`,
   `description`, `phone`, `email`, `whatsapp`, `instagram`, `address_text`, and
-  `onboarding_completed_at`.
+  `onboarding_completed_at`; cross-phase business identity adds optional
+  normalized `website` and deterministic `logo_path` references. Binary image
+  content is not stored in PostgreSQL.
 - `business_members`: VERIFIED.
 - `audit_logs`: VERIFIED.
 - `customers`: VERIFIED. Phase 4 fields include `id`, `business_id`, `name`,

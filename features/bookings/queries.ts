@@ -146,7 +146,9 @@ export async function listBookingsForBusiness(
     .eq("business_id", businessId)
     .order("created_at", { ascending: false });
 
-  if (params.filter === "today") {
+  if (params.filter === "active") {
+    query = query.not("status", "in", "(COMPLETED,CANCELLED)");
+  } else if (params.filter === "today") {
     const range = todayRange();
     query = query
       .not("scheduled_for", "is", null)

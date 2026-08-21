@@ -2,8 +2,10 @@ import { redirect } from "next/navigation";
 import type { Route } from "next";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { BusinessLogoForm } from "@/components/forms/business-logo-form";
 import { BusinessOnboardingForm } from "@/components/forms/business-onboarding-form";
 import { updateBusinessProfileAction } from "@/features/businesses/actions";
+import { getBusinessLogoPublicUrl } from "@/features/businesses/logo-public";
 import { getCurrentBusinessProfile } from "@/features/businesses/server";
 
 export default async function BusinessPage() {
@@ -31,6 +33,20 @@ export default async function BusinessPage() {
 
       <Card>
         <CardHeader>
+          <CardTitle>Business logo</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <BusinessLogoForm
+            businessId={result.business.id}
+            businessName={result.business.name}
+            currentLogoUrl={getBusinessLogoPublicUrl(result.business.logo_path)}
+            isOwner={isOwner}
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>{isOwner ? "Profile settings" : "Profile details"}</CardTitle>
         </CardHeader>
         <CardContent>
@@ -47,6 +63,7 @@ export default async function BusinessPage() {
               email: result.business.email,
               whatsapp: result.business.whatsapp,
               instagram: result.business.instagram,
+              website: result.business.website,
               addressText: result.business.address_text,
             }}
           />

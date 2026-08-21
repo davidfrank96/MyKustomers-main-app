@@ -62,6 +62,45 @@ function optionalInstagram() {
   }, z.string().min(1).max(30).regex(instagramPattern, "Use a handle like @divinecakes.").optional());
 }
 
+function optionalWebsite() {
+  function parseUrl(value: string) {
+    try {
+      return new URL(value);
+    } catch {
+      return null;
+    }
+  }
+
+  return z.preprocess((value) => {
+    if (typeof value !== "string") {
+      return undefined;
+    }
+
+    const trimmed = value.trim();
+    if (trimmed.length === 0) {
+      return undefined;
+    }
+
+    return /^[a-z][a-z0-9+.-]*:/i.test(trimmed) ? trimmed : `https://${trimmed}`;
+  }, z.string()
+    .max(2048, "Website must be 2048 characters or fewer.")
+    .url("Enter a valid website address.")
+    .refine((value) => {
+      const url = parseUrl(value);
+      return url?.protocol === "https:" || url?.protocol === "http:";
+    }, "Website must use http or https.")
+    .refine((value) => {
+      const url = parseUrl(value);
+      return Boolean(url && !url.username && !url.password);
+    }, "Website cannot include embedded credentials.")
+    .transform((value) => {
+      const url = parseUrl(value)!;
+      url.hash = "";
+      return url.toString();
+    })
+    .optional());
+}
+
 export const businessProfileSchema = z
   .object({
     name: z
@@ -85,6 +124,7 @@ export const businessProfileSchema = z
     }, z.string().email("Enter a valid business email.").max(254).optional()),
     whatsapp: optionalPhone("WhatsApp"),
     instagram: optionalInstagram(),
+    website: optionalWebsite(),
     addressText: optionalTrimmedString(500),
   })
   .superRefine((value, ctx) => {
