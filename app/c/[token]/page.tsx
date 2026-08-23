@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { CheckCircle2 } from "lucide-react";
+import { ConfirmationOpenTracker } from "@/components/forms/confirmation-open-tracker";
 import { PublicConfirmationForm } from "@/components/forms/public-confirmation-form";
 import { BusinessLogo } from "@/components/shared/business-logo";
 import { formatMoneyMinor } from "@/features/bookings/money";
@@ -8,25 +10,35 @@ import {
   getBusinessLogoPublicUrl,
   getSafeBusinessWebsiteUrl,
 } from "@/features/businesses/logo-public";
-import { getPublicConfirmationView } from "@/features/confirmation-links/public";
+import {
+  getPublicConfirmationMetadata,
+  getPublicConfirmationView,
+} from "@/features/confirmation-links/public";
 import { confirmPublicBookingAction } from "@/features/confirmation-links/public-actions";
 import { safePublicConfirmationMessage } from "@/features/confirmation-links/messages";
+import { buildPublicConfirmationMetadata } from "@/features/confirmation-links/metadata";
+import { isSocialPreviewCrawler } from "@/features/confirmation-links/crawlers";
 import type { PublicConfirmationBooking } from "@/features/confirmation-links/public-types";
 
 export const dynamic = "force-dynamic";
-
-export const metadata: Metadata = {
-  title: "Booking Confirmation",
-  robots: {
-    index: false,
-    follow: false,
-  },
-};
 
 type ConfirmationPageProps = {
   params: Promise<{ token: string }>;
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 };
+
+export async function generateMetadata({
+  params,
+}: ConfirmationPageProps): Promise<Metadata> {
+  const { token } = await params;
+  const safeMetadata = await getPublicConfirmationMetadata(token);
+
+  return buildPublicConfirmationMetadata({
+    token,
+    businessName: safeMetadata?.businessName,
+    businessLogoPath: safeMetadata?.businessLogoPath,
+  });
+}
 
 function formatDateTime(value: string | null) {
   if (!value) {
@@ -121,6 +133,32 @@ export default async function ConfirmationPage({
 }: ConfirmationPageProps) {
   const { token } = await params;
   const query = (await searchParams) ?? {};
+  const userAgent = (await headers()).get("user-agent");
+
+  if (isSocialPreviewCrawler(userAgent)) {
+    return (
+      <main className="min-h-dvh bg-background px-5 py-8 text-foreground">
+        <div className="mx-auto flex w-full max-w-xl flex-col">
+          <p className="text-sm font-medium text-muted-foreground">
+            My Customers secure confirmation
+          </p>
+          <div className="mt-16 rounded-lg border border-border bg-card p-5">
+            <h1 className="text-2xl font-semibold leading-tight">
+              Secure order confirmation
+            </h1>
+            <p className="mt-3 text-sm leading-6 text-muted-foreground">
+              Open this secure link in your browser to review the request from the
+              business that sent it.
+            </p>
+          </div>
+          <p className="mt-8 text-center text-xs text-muted-foreground">
+            Powered by My Customers
+          </p>
+        </div>
+      </main>
+    );
+  }
+
   const view = await getPublicConfirmationView(token);
   const booking = view.booking;
   const confirmed = query.confirmed === "1" || view.status === "already_confirmed";
@@ -132,16 +170,17 @@ export default async function ConfirmationPage({
 
         {booking ? (
           <>
+            {view.status === "valid" ? <ConfirmationOpenTracker token={token} /> : null}
             <div className="mt-5">
               <BusinessIdentity booking={booking} />
             </div>
             <h1 className="mt-5 text-3xl font-semibold leading-tight">
-              {confirmed ? "Booking confirmed" : "Confirm booking"}
+              {confirmed ? "Booking confirmed" : "Review your order"}
             </h1>
             <p className="mt-3 text-base leading-7 text-muted-foreground">
               {confirmed
                 ? `Your booking has been confirmed with ${booking.business_name}.`
-                : `Review the details agreed with ${booking.business_name}.`}
+                : `${booking.business_name} has asked you to review and confirm the details below.`}
             </p>
 
             <BookingSummary booking={booking} />

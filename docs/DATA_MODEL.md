@@ -31,6 +31,18 @@ development Supabase database and runtime-verified for token lifecycle,
 minimized public data, one-time confirmation, material-change invalidation, and
 tenant isolation.
 
+Trusted confirmation sharing migration evidence exists at
+`supabase/migrations/20260823105232_trusted_confirmation_sharing.sql`. It adds
+nullable `confirmation_links.first_opened_at`, truthful share/open audit enum
+values, and the idempotent service-role-only
+`public.record_confirmation_link_open` RPC. It adds no public table grants and
+was applied to development with Phase 6 runtime verification.
+Forward migration
+`supabase/migrations/20260823111107_trusted_confirmation_open_race_fix.sql`
+allows a delayed hydration signal after the same link has atomically confirmed,
+but only when immutable confirmation evidence exists; revoked/unknown links
+remain rejected.
+
 Customer contact and confirmation-email foundation migration evidence exists at
 `supabase/migrations/20260820131919_customer_contact_confirmation_email_foundation.sql`.
 It adds immutable confirmation contact fields and the private durable

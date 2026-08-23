@@ -269,6 +269,7 @@ export type Database = {
           used_at: string | null;
           revoked_at: string | null;
           revoked_reason: string | null;
+          first_opened_at: string | null;
           created_by: string;
           created_at: string;
         };
@@ -282,6 +283,7 @@ export type Database = {
           used_at?: string | null;
           revoked_at?: string | null;
           revoked_reason?: string | null;
+          first_opened_at?: string | null;
           created_by: string;
           created_at?: string;
         };
@@ -593,6 +595,12 @@ export type Database = {
         };
         Returns: Json;
       };
+      record_confirmation_link_open: {
+        Args: {
+          p_token_hash: string;
+        };
+        Returns: boolean;
+      };
       confirm_booking_by_token_hash: {
         Args: {
           p_token_hash: string;
@@ -732,6 +740,8 @@ export type Database = {
         | "CONFIRMATION_LINK_REGENERATED"
         | "BOOKING_CONFIRMED_BY_CUSTOMER"
         | "BOOKING_CONFIRMATION_INVALIDATED"
+        | "CONFIRMATION_SHARE_INITIATED"
+        | "CONFIRMATION_OPENED"
         | "FEEDBACK_LINK_CREATED"
         | "FEEDBACK_LINK_REVOKED"
         | "FEEDBACK_LINK_REGENERATED"

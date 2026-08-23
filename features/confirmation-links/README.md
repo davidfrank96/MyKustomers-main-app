@@ -15,6 +15,8 @@ Phase 6 implements secure customer confirmation links for bookings.
 - Safe public status messages.
 - Safe public business identity presentation for current logo/fallback,
   normalized website, and the existing Instagram handle.
+- Contextual sharing utilities/UI, privacy-safe dynamic metadata, authenticated
+  share-method audits, and idempotent hydrated first-open evidence.
 
 ## Security Rules
 
@@ -41,6 +43,9 @@ Phase 6 implements secure customer confirmation links for bookings.
   confirmation. Internal notes are non-material.
 - Vendor UI copy should describe customer links without exposing token internals
   in visible product language.
+- Editable share text never controls the generated URL. Share events mean method
+  selected, not delivered/read, and Open Graph metadata receives no customer or
+  private booking fields.
 
 ## Data
 
@@ -58,6 +63,7 @@ Primary RPCs:
 - `public.get_confirmation_public_view`
 - `public.confirm_booking_by_token_hash`
 - `public.consume_confirmation_rate_limit`
+- `public.record_confirmation_link_open`
 
 Vendor generate/revoke RPCs are granted to `authenticated`. Public lookup,
 confirmation, and rate-limit RPCs are server-only service-role calls.

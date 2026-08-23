@@ -2,6 +2,7 @@ export type ConfirmationLinkActionState = {
   status: "idle" | "success" | "error";
   message?: string;
   confirmationUrl?: string;
+  confirmationLinkId?: string;
   expiresAt?: string;
 };
 

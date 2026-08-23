@@ -4,6 +4,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import sharp from "sharp";
 import { hashRateLimitIdentity } from "../../features/confirmation-links/rate-limit-keys";
+import { hashConfirmationToken } from "../../features/confirmation-links/token";
 
 function loadLocalEnv() {
   if (!fs.existsSync(".env")) {
@@ -217,8 +218,10 @@ test.describe("booking engine", () => {
 
   test("canonical customer, booking, confirmation, fulfilment, feedback, and insights journey", async ({
     page,
+    context,
   }, testInfo) => {
     test.setTimeout(60_000);
+    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
 
     const email = testEmail(testInfo.project.name);
     const password = `Phase5-E2E-${randomUUID()}-A1`;
@@ -306,19 +309,85 @@ test.describe("booking engine", () => {
     const bookingDetailUrl = page.url();
     await page.getByRole("button", { name: "Generate confirmation link" }).click();
     const generatedLinkInput = page.getByLabel("Generated confirmation link");
-    await expect(generatedLinkInput).toBeVisible();
+    await expect(generatedLinkInput).toBeAttached();
     const confirmationUrl = await generatedLinkInput.inputValue();
     expect(confirmationUrl).toContain("/c/");
     await expect(page.locator("span").filter({ hasText: /^Awaiting customer$/ })).toBeVisible();
 
+    await page.getByRole("button", { name: "Share with customer" }).click();
+    await expect(page.getByRole("heading", { name: "Share with customer" })).toBeVisible();
+    expect(await page.getByLabel("Message").inputValue()).toContain(
+      `Hi ${customerName.split(" ")[0]}, Phase 5 E2E Business`,
+    );
+    await expect(page.getByLabel("Confirmation link", { exact: true })).toHaveValue(
+      confirmationUrl,
+    );
+    await page.getByLabel("Message").fill("Please review this secure order request.");
+    await page.getByRole("button", { name: "Copy message" }).click();
+    await expect(page.getByText("Message copied", { exact: true })).toBeVisible();
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
+      `Please review this secure order request.\n\n${confirmationUrl}`,
+    );
+    await page.getByRole("button", { name: "Copy link" }).click();
+    await expect(page.getByText("Link copied", { exact: true })).toBeVisible();
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(confirmationUrl);
+    await page.getByRole("button", { name: "Close dialog" }).click();
+
+    const previewResponse = await page.request.get(confirmationUrl, {
+      headers: { "user-agent": "TelegramBot (trusted-sharing-e2e)" },
+    });
+    expect(previewResponse.ok()).toBe(true);
+    const previewHtml = await previewResponse.text();
+    expect(previewHtml).toContain("Secure order confirmation");
+    expect(previewHtml).toContain("Review your order with Phase 5 E2E Business");
+    expect(previewHtml).not.toContain(customerName);
+    expect(previewHtml).not.toContain(updatedTitle);
+    expect(previewHtml).not.toContain("₦45,000");
+    expect(previewHtml).not.toContain("Updated private E2E note.");
+    const { data: linkAfterCrawler } = await admin
+      .from("confirmation_links")
+      .select("first_opened_at")
+      .eq(
+        "token_hash",
+        hashConfirmationToken(new URL(confirmationUrl).pathname.split("/").at(-1) ?? ""),
+      )
+      .single();
+    expect(linkAfterCrawler?.first_opened_at).toBeNull();
+
     const userAgent = (await page.evaluate(() => navigator.userAgent)).slice(0, 80);
     createdRateLimitBuckets.add(hashRateLimitIdentity(`lookup:unknown:${userAgent}`));
+    createdRateLimitBuckets.add(hashRateLimitIdentity(`metadata:unknown:${userAgent}`));
     createdRateLimitBuckets.add(hashRateLimitIdentity(`confirm:unknown:${userAgent}`));
+    createdRateLimitBuckets.add(hashRateLimitIdentity(`open:unknown:${userAgent}`));
     createdRateLimitBuckets.add(hashRateLimitIdentity(`feedback_lookup:unknown:${userAgent}`));
     createdRateLimitBuckets.add(hashRateLimitIdentity(`feedback_submit:unknown:${userAgent}`));
 
     await page.goto(confirmationUrl);
-    await expect(page.getByRole("heading", { name: "Confirm booking" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Review your order" })).toBeVisible();
+    await expect(page.locator('meta[property="og:title"]')).toHaveAttribute(
+      "content",
+      "Review your order with Phase 5 E2E Business",
+    );
+    await expect(page.locator('meta[property="og:description"]')).toHaveAttribute(
+      "content",
+      "Phase 5 E2E Business has sent you an order for review and confirmation.",
+    );
+    await expect(page.locator('meta[property="og:url"]')).toHaveAttribute(
+      "content",
+      confirmationUrl,
+    );
+    await expect(page.locator('meta[property="og:type"]')).toHaveAttribute(
+      "content",
+      "website",
+    );
+    await expect(page.locator('meta[property="og:site_name"]')).toHaveAttribute(
+      "content",
+      "My Customers",
+    );
+    await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
+      "content",
+      /business-logos/,
+    );
     await expect(page.getByText("Phase 5 E2E Business", { exact: true })).toBeVisible();
     await expect(page.getByLabel("Phase 5 E2E Business logo").locator("img")).toBeVisible();
     await expect(page.getByRole("link", { name: "Visit website" })).toHaveAttribute(
@@ -386,6 +455,10 @@ test.describe("booking engine", () => {
     await expect(page.locator("span").filter({ hasText: /^Confirmed$/ })).toBeVisible();
     await expect(page.getByText("customer-confirmation@example.com")).toBeVisible();
     await expect(page.getByText("sent", { exact: true })).toBeVisible();
+    await expect(page.getByText(/Copy link selected/)).toBeVisible();
+    await expect(
+      page.getByText("First viewed").locator("..").getByText("Not available"),
+    ).toHaveCount(0);
 
     await page.goto(`/customers/${fixture.customerId}`);
     await expect(page.getByLabel("Email")).toHaveValue("customer-confirmation@example.com");
@@ -402,7 +475,7 @@ test.describe("booking engine", () => {
 
     await page.getByRole("button", { name: /Generate confirmation link|Regenerate link/ }).click();
     const regeneratedLinkInput = page.getByLabel("Generated confirmation link");
-    await expect(regeneratedLinkInput).toBeVisible();
+    await expect(regeneratedLinkInput).toBeAttached();
     const regeneratedConfirmationUrl = await regeneratedLinkInput.inputValue();
     expect(regeneratedConfirmationUrl).toContain("/c/");
 

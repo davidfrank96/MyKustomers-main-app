@@ -63,6 +63,82 @@ export async function getPublicConfirmationView(
   return parsePublicConfirmationView(data);
 }
 
+export type PublicConfirmationMetadata = {
+  businessName: string;
+  businessLogoPath: string | null;
+};
+
+export async function getPublicConfirmationMetadata(
+  token: string,
+): Promise<PublicConfirmationMetadata | null> {
+  if (!canUseServiceRoleClient() || !isPlausibleConfirmationToken(token)) {
+    return null;
+  }
+
+  const bucket = await confirmationRateLimitBucket("metadata");
+  const allowed = await consumeConfirmationRateLimit("metadata", bucket);
+  if (!allowed) {
+    return null;
+  }
+
+  const supabase = createServiceRoleClient();
+  const { data: link, error: linkError } = await supabase
+    .from("confirmation_links")
+    .select("business_id, booking_id, expires_at, revoked_at, used_at")
+    .eq("token_hash", hashConfirmationToken(token))
+    .maybeSingle();
+
+  if (
+    linkError ||
+    !link ||
+    link.revoked_at ||
+    (!link.used_at && new Date(link.expires_at).getTime() <= Date.now())
+  ) {
+    return null;
+  }
+
+  const [{ data: booking }, { data: business }] = await Promise.all([
+    supabase
+      .from("bookings")
+      .select("status")
+      .eq("id", link.booking_id)
+      .eq("business_id", link.business_id)
+      .maybeSingle(),
+    supabase
+      .from("businesses")
+      .select("name, logo_path")
+      .eq("id", link.business_id)
+      .maybeSingle(),
+  ]);
+
+  if (
+    !booking ||
+    !business ||
+    (!link.used_at && booking.status !== "AWAITING_CUSTOMER")
+  ) {
+    return null;
+  }
+
+  return {
+    businessName: business.name,
+    businessLogoPath: business.logo_path,
+  };
+}
+
+export async function recordPublicConfirmationOpen(token: string) {
+  const bucket = await confirmationRateLimitBucket("open");
+  const allowed = await consumeConfirmationRateLimit("open", bucket);
+
+  if (!allowed || !canUseServiceRoleClient() || !isPlausibleConfirmationToken(token)) {
+    return;
+  }
+
+  const supabase = createServiceRoleClient();
+  await supabase.rpc("record_confirmation_link_open", {
+    p_token_hash: hashConfirmationToken(token),
+  });
+}
+
 export async function confirmPublicBooking(
   token: string,
   contactInput: unknown,

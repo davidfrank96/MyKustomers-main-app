@@ -209,12 +209,19 @@ Implemented and verified in Phase 6:
 - Vendors can generate, regenerate, and revoke customer confirmation links for
   eligible bookings. Raw tokens are shown once in the vendor UI and only SHA-256
   token hashes are stored.
+- The one-time generated URL is shared through an editable privacy-safe message
+  with native system share, WhatsApp, Telegram, copy-message, and copy-link
+  actions. The URL remains application-controlled and no messaging provider is
+  integrated.
 - Confirmation links are high-entropy opaque capabilities with a default
   24-hour lifetime. Booking references and database IDs are not public
   credentials.
 - Public `/c/[token]` pages use server-side token lookup, persistent hashed
   rate-limit buckets, no-store/noindex headers, and minimized booking data.
   Public GET views do not consume links.
+- Dynamic confirmation metadata reads only link validity plus public business
+  name/logo. It emits canonical Open Graph/Twitter metadata and never receives
+  customer, contact, price, schedule, notes, or full booking data.
 - Customer confirmation is a POST-backed atomic database operation that marks
   the link used, moves the booking to `CONFIRMED`, stores an immutable terms
   snapshot/hash, writes confirmation evidence, and records audit metadata.
@@ -229,6 +236,9 @@ Implemented and verified in Phase 6:
   confirmation, revocation, expiration, regeneration, material-change
   invalidation, non-material edit behavior, race behavior, rate limiting, audit
   events, and raw-token non-logging.
+- Audits distinguish link creation, vendor share-method selection, first valid
+  hydrated open, and customer confirmation. Share selection does not claim
+  delivery/read status, and first-open writes are idempotent and service-only.
 
 Implemented and verified in Phase 7:
 

@@ -1,5 +1,9 @@
 import "server-only";
 import { canUseServiceRoleClient, createServiceRoleClient } from "@/lib/supabase/admin";
+import {
+  isConfirmationShareMethod,
+  type ConfirmationShareMethod,
+} from "@/features/confirmation-links/share";
 
 export type ConfirmationLinkSummary = {
   id: string;
@@ -12,6 +16,9 @@ export type ConfirmationLinkSummary = {
   contactEmail: string | null;
   contactPhone: string | null;
   emailStatus: "PENDING" | "SENDING" | "SENT" | "FAILED" | null;
+  firstOpenedAt: string | null;
+  sharedAt: string | null;
+  shareMethod: ConfirmationShareMethod | null;
 };
 
 export async function getConfirmationLinkSummaryForBooking(
@@ -30,6 +37,9 @@ export async function getConfirmationLinkSummaryForBooking(
       contactEmail: null,
       contactPhone: null,
       emailStatus: null,
+      firstOpenedAt: null,
+      sharedAt: null,
+      shareMethod: null,
     };
   }
 
@@ -37,7 +47,7 @@ export async function getConfirmationLinkSummaryForBooking(
   const [{ data: link }, { data: confirmation }, { data: emailEvent }] = await Promise.all([
     supabase
       .from("confirmation_links")
-      .select("id, created_at, expires_at, used_at, revoked_at")
+      .select("id, created_at, expires_at, used_at, revoked_at, first_opened_at")
       .eq("business_id", businessId)
       .eq("booking_id", bookingId)
       .order("created_at", { ascending: false })
@@ -74,8 +84,29 @@ export async function getConfirmationLinkSummaryForBooking(
       contactEmail: confirmation?.contact_email ?? null,
       contactPhone: confirmation?.contact_phone ?? null,
       emailStatus: emailEvent?.status ?? null,
+      firstOpenedAt: null,
+      sharedAt: null,
+      shareMethod: null,
     };
   }
+
+  const { data: shareEvent } = await supabase
+    .from("audit_logs")
+    .select("created_at, metadata")
+    .eq("business_id", businessId)
+    .eq("event_type", "CONFIRMATION_SHARE_INITIATED")
+    .contains("metadata", { confirmation_link_id: link.id })
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const shareMethod =
+    shareEvent?.metadata &&
+    typeof shareEvent.metadata === "object" &&
+    !Array.isArray(shareEvent.metadata) &&
+    "method" in shareEvent.metadata
+      ? shareEvent.metadata.method
+      : null;
 
   const now = Date.now();
   const status = link.used_at
@@ -97,5 +128,8 @@ export async function getConfirmationLinkSummaryForBooking(
     contactEmail: confirmation?.contact_email ?? null,
     contactPhone: confirmation?.contact_phone ?? null,
     emailStatus: emailEvent?.status ?? null,
+    firstOpenedAt: link.first_opened_at,
+    sharedAt: shareEvent?.created_at ?? null,
+    shareMethod: isConfirmationShareMethod(shareMethod) ? shareMethod : null,
   };
 }

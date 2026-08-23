@@ -122,6 +122,14 @@ overwritten. A booking-confirmed email event is committed atomically and
 delivered after commit; delivery failure does not change the confirmed booking.
 Customers still do not create accounts or complete OTP verification.
 
+The vendor shares a newly generated link through a contextual message rather
+than a naked URL. The message is editable while the secure URL remains
+application-controlled; supported destinations are native system share,
+WhatsApp, Telegram, copy message, and copy link. Social previews identify only
+the public business name/logo and confirmation purpose. A selected share method
+is not a delivery/read receipt, and first viewed means the customer-facing page
+hydrated and recorded its first valid open.
+
 Phase 7 implements the first operational fulfilment workflow. After customer
 confirmation, the vendor can start work, mark the booking ready, mark it
 delivered, and complete it. Vendors can cancel active operational bookings with

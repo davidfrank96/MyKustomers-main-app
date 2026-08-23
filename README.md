@@ -18,7 +18,11 @@ compact account menu at mobile widths. Business owners can manage a normalized
 website and one compressed public logo, and secure confirmation pages show that
 public identity without exposing private business contacts. Dashboard summary
 tiles navigate to supported customer, booking-filter, business, or insights
-destinations.
+destinations. Newly generated confirmation links now open a contextual,
+editable sharing flow with native share, WhatsApp, Telegram, copy-message, and
+copy-link options; generic Open Graph previews expose only approved public
+business identity, and first-open/share-method evidence makes no delivery or
+read-receipt claim.
 
 ## Stack
 
@@ -127,6 +131,9 @@ public/              Icons and web manifest
   customers; booking references are not security credentials.
 - Customer confirmation links use opaque high-entropy tokens; only token hashes
   are stored, and booking references are not accepted as public credentials.
+- Confirmation share text keeps the application-controlled URL separate from
+  editable copy. Social metadata uses only public business name/logo, and
+  social-preview crawlers do not create customer-view evidence.
 - Operational booking state changes use controlled authenticated database RPCs
   and trigger-owned history rather than direct browser-supplied status writes.
 - Customer feedback links use a separate scoped token purpose, are available

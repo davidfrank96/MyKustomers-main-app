@@ -236,7 +236,10 @@ if (runtimeVerificationEnabled) {
         "Phase 6 Booking B",
       );
 
-      const { token: tokenA } = await generateLink(userA.client, bookingAId);
+      const { token: tokenA, linkId: linkAId } = await generateLink(
+        userA.client,
+        bookingAId,
+      );
 
       const { data: awaitingA, error: awaitingAError } = await userA.client
         .from("bookings")
@@ -254,6 +257,69 @@ if (runtimeVerificationEnabled) {
       expect(JSON.stringify(validView)).not.toContain("token_hash");
       expect(JSON.stringify(validView)).not.toContain("business_members");
       expect(JSON.stringify(validView)).not.toContain("audit_logs");
+
+      const { data: firstOpenRecorded, error: firstOpenError } = await service.rpc(
+        "record_confirmation_link_open",
+        { p_token_hash: hashConfirmationToken(tokenA) },
+      );
+      expect(firstOpenError).toBeNull();
+      expect(firstOpenRecorded).toBe(true);
+      const { data: duplicateOpenRecorded, error: duplicateOpenError } =
+        await service.rpc("record_confirmation_link_open", {
+          p_token_hash: hashConfirmationToken(tokenA),
+        });
+      expect(duplicateOpenError).toBeNull();
+      expect(duplicateOpenRecorded).toBe(false);
+
+      const [{ data: openedLink }, { data: openedEvents }] = await Promise.all([
+        service
+          .from("confirmation_links")
+          .select("first_opened_at")
+          .eq("id", linkAId)
+          .single(),
+        service
+          .from("audit_logs")
+          .select("event_type, metadata")
+          .eq("business_id", businessAId)
+          .eq("event_type", "CONFIRMATION_OPENED")
+          .contains("metadata", { confirmation_link_id: linkAId }),
+      ]);
+      expect(openedLink?.first_opened_at).toBeTruthy();
+      expect(openedEvents).toHaveLength(1);
+
+      const unauthorizedOpen = await userA.client.rpc(
+        "record_confirmation_link_open",
+        { p_token_hash: hashConfirmationToken(tokenA) },
+      );
+      expect(unauthorizedOpen.error).not.toBeNull();
+
+      const delayedOpenBookingId = await createBooking(
+        userA.client,
+        businessAId,
+        customerAId,
+        userA.id,
+        "Phase 6 Delayed Open Booking",
+      );
+      const { token: delayedOpenToken, linkId: delayedOpenLinkId } =
+        await generateLink(userA.client, delayedOpenBookingId);
+      expect(statusFrom(await publicConfirm(delayedOpenToken))).toBe("confirmed");
+      const delayedOpen = await service.rpc("record_confirmation_link_open", {
+        p_token_hash: hashConfirmationToken(delayedOpenToken),
+      });
+      expect(delayedOpen.error).toBeNull();
+      expect(delayedOpen.data).toBe(true);
+      const duplicateDelayedOpen = await service.rpc(
+        "record_confirmation_link_open",
+        { p_token_hash: hashConfirmationToken(delayedOpenToken) },
+      );
+      expect(duplicateDelayedOpen.error).toBeNull();
+      expect(duplicateDelayedOpen.data).toBe(false);
+      const { data: delayedOpenedLink } = await service
+        .from("confirmation_links")
+        .select("first_opened_at")
+        .eq("id", delayedOpenLinkId)
+        .single();
+      expect(delayedOpenedLink?.first_opened_at).toBeTruthy();
 
       const { data: linkBeforeGet, error: linkBeforeGetError } = await service
         .from("confirmation_links")
@@ -395,6 +461,10 @@ if (runtimeVerificationEnabled) {
       expectNoRows(directLinkRead);
 
       const anon = createSupabaseClient(publishableKey);
+      const anonymousOpen = await anon.rpc("record_confirmation_link_open", {
+        p_token_hash: hashConfirmationToken(tokenA),
+      });
+      expect(anonymousOpen.error).not.toBeNull();
       const { data: anonRead, error: anonReadError } = await anon
         .from("confirmation_links")
         .select("token_hash")

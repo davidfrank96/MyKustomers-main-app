@@ -280,6 +280,14 @@ one-open-link enforcement, scoped access, and material-change invalidation.
 
 UI impact: Customer-facing confirmation view.
 
+Post-phase trusted-sharing enhancement: The one-time generated URL now has a
+primary contextual sharing dialog with editable message text, an immutable
+confirmation URL, native share, WhatsApp, Telegram, Copy message, and Copy link.
+Dynamic Open Graph/Twitter metadata uses only safe public business identity. A
+service-only idempotent first-open RPC and tenant-validated share audits expose
+truthful method-selected and first-viewed evidence without claiming message
+delivery or read receipts.
+
 Testing requirements: Valid, expired, revoked, consumed, regenerated, tampered,
 cross-tenant, race, public minimization, material-change invalidation,
 non-material edit, rate-limit, E2E confirmation, lint, typecheck, tests, build,
@@ -305,6 +313,11 @@ fields, and atomically creates one durable `BOOKING_CONFIRMED` email event.
 Provider delivery happens after commit through a server-only abstraction, so
 delivery failure cannot undo confirmation. This enhancement is VERIFIED against
 the configured development Supabase database.
+
+Trusted-sharing verification evidence: Migration
+`20260823105232_trusted_confirmation_sharing.sql`, share/metadata unit tests,
+dialog integration tests, static grant/security tests, live Phase 6 runtime
+coverage, and Playwright share/metadata/customer-view assertions.
 
 Known risks: Future email automation must preserve raw-token non-logging,
 short-lived links, no account requirement, and material-change invalidation.

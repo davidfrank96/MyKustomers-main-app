@@ -2,6 +2,27 @@
 
 This changelog records meaningful project milestones. It is not a substitute for Git history.
 
+## 2026-08-23 - Trusted Customer Confirmation Sharing
+
+Status: VERIFIED
+
+- Replaced naked-link-only handling with a primary contextual sharing dialog,
+  editable privacy-safe message, immutable confirmation URL, native system
+  share, WhatsApp, Telegram, Copy message, and Copy link.
+- Added dynamic canonical Open Graph/Twitter metadata using only valid-link
+  state and public business name/logo, with a generic branded image fallback;
+  customer/contact/order PII is structurally absent from metadata generation.
+- Added tenant-validated `CONFIRMATION_SHARE_INITIATED` audits and an
+  idempotent, rate-limited, post-hydration `CONFIRMATION_OPENED` signal. These
+  mean method selected and page opened, never provider delivery/read receipt.
+- Applied the forward migration to development and verified service-only RPC
+  grants, anonymous/authenticated denial, duplicate-open behavior, static and
+  live security coverage, dialog utilities, rendered metadata, and the existing
+  confirmation lifecycle.
+- Added a forward race fix so immediate customer confirmation cannot outrun the
+  hydrated first-open signal; used links qualify only when matching immutable
+  confirmation evidence exists.
+
 ## 2026-08-21 - Mobile Account, Business Identity, And Dashboard Navigation
 
 Status: VERIFIED

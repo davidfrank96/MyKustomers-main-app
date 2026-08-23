@@ -1,18 +1,22 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
-import { Check, Copy, Link2, XCircle } from "lucide-react";
+import { Link2, XCircle } from "lucide-react";
+import { CustomerConfirmationShare } from "@/components/forms/customer-confirmation-share";
 import { Button } from "@/components/ui/button";
 import type { ConfirmationLinkSummary } from "@/features/confirmation-links/queries";
 import {
   initialConfirmationLinkActionState,
   type ConfirmationLinkActionState,
 } from "@/features/confirmation-links/action-state";
+import type { ConfirmationShareMethod } from "@/features/confirmation-links/share";
 
 type ConfirmationLinkPanelProps = {
   summary: ConfirmationLinkSummary;
   canManage: boolean;
+  businessName: string;
+  customerName: string | null;
   generateAction: (
     previousState: ConfirmationLinkActionState,
     formData: FormData,
@@ -21,6 +25,10 @@ type ConfirmationLinkPanelProps = {
     previousState: ConfirmationLinkActionState,
     formData: FormData,
   ) => Promise<ConfirmationLinkActionState>;
+  recordShareAction: (
+    confirmationLinkId: string,
+    method: ConfirmationShareMethod,
+  ) => Promise<void>;
 };
 
 function formatDateTime(value: string | null) {
@@ -32,6 +40,18 @@ function formatDateTime(value: string | null) {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(value));
+}
+
+function shareMethodLabel(method: ConfirmationShareMethod) {
+  const labels: Record<ConfirmationShareMethod, string> = {
+    native_share: "System share",
+    whatsapp: "WhatsApp",
+    telegram: "Telegram",
+    copy_message: "Copy message",
+    copy_link: "Copy link",
+  };
+
+  return labels[method];
 }
 
 function SubmitButton({
@@ -59,8 +79,11 @@ function SubmitButton({
 export function ConfirmationLinkPanel({
   summary,
   canManage,
+  businessName,
+  customerName,
   generateAction,
   revokeAction,
+  recordShareAction,
 }: ConfirmationLinkPanelProps) {
   const [generateState, generateFormAction] = useActionState(
     generateAction,
@@ -70,22 +93,13 @@ export function ConfirmationLinkPanel({
     revokeAction,
     initialConfirmationLinkActionState,
   );
-  const [copied, setCopied] = useState(false);
   const active = summary.status === "active";
   const generatedUrl = generateState.confirmationUrl;
-
-  async function copyGeneratedUrl() {
-    if (!generatedUrl) {
-      return;
-    }
-
-    await navigator.clipboard.writeText(generatedUrl);
-    setCopied(true);
-  }
+  const generatedLinkId = generateState.confirmationLinkId;
 
   return (
     <div className="space-y-5">
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <div>
           <p className="text-xs font-medium text-muted-foreground">
             Status
@@ -110,6 +124,18 @@ export function ConfirmationLinkPanel({
           </p>
           <p className="mt-1 text-sm">{formatDateTime(summary.confirmedAt)}</p>
         </div>
+        <div>
+          <p className="text-xs font-medium text-muted-foreground">Last share action</p>
+          <p className="mt-1 text-sm">
+            {summary.shareMethod
+              ? `${shareMethodLabel(summary.shareMethod)} selected · ${formatDateTime(summary.sharedAt)}`
+              : "Not shared from My Customers"}
+          </p>
+        </div>
+        <div>
+          <p className="text-xs font-medium text-muted-foreground">First viewed</p>
+          <p className="mt-1 text-sm">{formatDateTime(summary.firstOpenedAt)}</p>
+        </div>
       </div>
 
       {summary.contactEmail ? (
@@ -131,29 +157,26 @@ export function ConfirmationLinkPanel({
         </div>
       ) : null}
 
-      {generatedUrl ? (
-        <div className="space-y-2 rounded-md border border-border bg-muted p-3">
-          <p className="text-sm font-medium">Copy this link now.</p>
+      {generatedUrl && generatedLinkId ? (
+        <div className="space-y-4 rounded-md border border-border bg-muted p-3">
+          <div>
+            <p className="text-sm font-medium">Your confirmation request is ready.</p>
           <p className="text-xs leading-5 text-muted-foreground">
-            Send this link to your customer so they can confirm the booking. This exact
-            link is shown only once.
+              Share it now. This exact secure link is shown only once.
           </p>
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <input
-              readOnly
-              value={generatedUrl}
-              className="min-h-11 min-w-0 flex-1 rounded-md border border-input bg-card px-3 py-2 text-sm"
-              aria-label="Generated confirmation link"
-            />
-            <Button type="button" variant="secondary" onClick={copyGeneratedUrl}>
-              {copied ? (
-                <Check className="size-4" aria-hidden="true" />
-              ) : (
-                <Copy className="size-4" aria-hidden="true" />
-              )}
-              {copied ? "Copied" : "Copy"}
-            </Button>
           </div>
+          <input
+            readOnly
+            value={generatedUrl}
+            className="sr-only"
+            aria-label="Generated confirmation link"
+          />
+          <CustomerConfirmationShare
+            businessName={businessName}
+            customerName={customerName}
+            confirmationUrl={generatedUrl}
+            recordShare={recordShareAction.bind(null, generatedLinkId)}
+          />
         </div>
       ) : null}
 

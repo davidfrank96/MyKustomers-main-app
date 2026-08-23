@@ -31,6 +31,7 @@ import {
 } from "@/features/bookings/status";
 import {
   generateConfirmationLinkAction,
+  recordConfirmationShareAction,
   revokeConfirmationLinkAction,
 } from "@/features/confirmation-links/actions";
 import { getConfirmationLinkSummaryForBooking } from "@/features/confirmation-links/queries";
@@ -317,8 +318,11 @@ export default async function BookingDetailPage({
           <ConfirmationLinkPanel
             summary={confirmationSummary}
             canManage={isConfirmationEligibleStatus(booking.status)}
+            businessName={currentBusiness.name}
+            customerName={booking.customer?.name ?? null}
             generateAction={generateConfirmationLinkAction.bind(null, booking.id)}
             revokeAction={revokeConfirmationLinkAction.bind(null, booking.id)}
+            recordShareAction={recordConfirmationShareAction.bind(null, booking.id)}
           />
         </CardContent>
       </Card>

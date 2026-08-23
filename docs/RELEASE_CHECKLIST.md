@@ -36,6 +36,8 @@ production-readiness work.
   development, and runtime-verified.
 - [x] Business identity/storage migrations created, applied to development, and
   runtime-verified, including the forward RPC/contact regression fix.
+- [x] Trusted confirmation sharing migration created, applied to development,
+  and runtime-verified with service-only first-open execution.
 - [x] Application schema implemented.
 - [x] Migrations verified.
 - [ ] Backup and restore plan documented.
@@ -79,6 +81,8 @@ production-readiness work.
   covered by runtime tests.
 - [x] Confirmation token lifecycle, public minimization, material-change
   invalidation, and cross-tenant denial covered by runtime tests.
+- [x] Share-method audits are tenant-validated; safe social metadata and
+  idempotent crawler-resistant first-open evidence are covered by tests.
 - [x] Operational booking lifecycle, rescheduling, anonymous denial,
   customer-token privilege denial, terminal locks, and change-history integrity
   covered by runtime tests.

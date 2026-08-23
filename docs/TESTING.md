@@ -49,6 +49,9 @@ do not reduce the verified tenant/RLS coverage.
 - Phase 6 confirmation-link domain tests.
 - Static Phase 6 confirmation migration/security review tests.
 - Phase 6 runtime Supabase confirmation-link security test.
+- Trusted confirmation share-message/intent and safe metadata unit tests,
+  accessible dialog/clipboard/native fallback integration tests, static RPC
+  grant checks, and live idempotent first-open/unauthorized-call coverage.
 - Customer contact validation and booking-confirmed email template/provider
   boundary unit tests.
 - Static customer-contact/email-outbox migration security tests.
@@ -83,6 +86,10 @@ do not reduce the verified tenant/RLS coverage.
 - Public confirmation identity coverage for persisted logo, fallback initials,
   safe website/Instagram links, unchanged booking/contact confirmation, and no
   visible tenant ID.
+- Canonical confirmation sharing coverage for editable contextual copy,
+  controlled URL copying, rendered Open Graph fields, hydrated first-open
+  evidence, truthful vendor share-method state, and Telegram-style preview
+  requests that receive no customer/order body or view evidence.
 - Lightweight governance tests for required documentation, the repository
   definition-of-done rule, and migration filename/order discipline.
 
@@ -202,6 +209,8 @@ confirmation, confirmation evidence, snapshot/hash storage, material-change
 invalidation, used-link snapshot stability, non-material internal-note edits,
 cancellation invalidation, regeneration revocation, concurrent confirmation
 behavior, persistent rate limiting, audit events, and raw-token non-logging. It
+also verifies idempotent first-open recording, one `CONFIRMATION_OPENED` audit,
+and denial of the first-open RPC to authenticated/anonymous clients. It
 also verifies invalid contact does not consume a link, conservative customer
 enrichment, immutable submitted contact, concurrent different-email winner
 consistency, exactly one email event, provider-failure persistence,

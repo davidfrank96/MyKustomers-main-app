@@ -62,6 +62,25 @@ development adapter makes no external request; the optional Resend adapter is
 enabled only by explicit server environment configuration. Delivery failure is
 recorded on the event and never reverts the confirmed booking.
 
+## Trusted Confirmation Sharing Boundary
+
+The generated raw confirmation URL still exists only in the successful vendor
+action result. A client dialog keeps it read-only while composing editable
+privacy-safe copy for native share, WhatsApp, Telegram, or clipboard actions.
+Each successful method selection calls a tenant-validated server action that
+records only booking/link IDs and the method; it does not claim provider
+delivery or read state.
+
+Dynamic route metadata uses a separate service-only lookup that selects only
+link validity and public business name/logo. The full customer confirmation RPC
+remains the sole source of booking review data. A post-hydration endpoint hashes
+the token server-side and calls an idempotent service-only first-open RPC, so
+ordinary social crawlers do not become customer-view evidence.
+Known messaging/social preview user agents also return a generic shell before
+the full booking lookup, preventing common preview fetchers from receiving the
+customer/order body. Token validation remains authoritative for normal browser
+access; user-agent classification is only an additional preview-privacy layer.
+
 ## Business Logo Storage Boundary
 
 `POST` and `DELETE /api/businesses/[businessId]/logo` authenticate the current

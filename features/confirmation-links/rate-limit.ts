@@ -3,14 +3,16 @@ import { headers } from "next/headers";
 import { canUseServiceRoleClient, createServiceRoleClient } from "@/lib/supabase/admin";
 import { hashRateLimitIdentity } from "@/features/confirmation-links/rate-limit-keys";
 
-type ConfirmationRateLimitAction = "lookup" | "confirm";
+type ConfirmationRateLimitAction = "lookup" | "metadata" | "confirm" | "open";
 
 const rateLimitConfig: Record<
   ConfirmationRateLimitAction,
   { maxRequests: number; windowSeconds: number; blockSeconds: number }
 > = {
   lookup: { maxRequests: 60, windowSeconds: 60, blockSeconds: 60 },
+  metadata: { maxRequests: 120, windowSeconds: 60, blockSeconds: 60 },
   confirm: { maxRequests: 10, windowSeconds: 60, blockSeconds: 120 },
+  open: { maxRequests: 60, windowSeconds: 60, blockSeconds: 60 },
 };
 
 export async function confirmationRateLimitBucket(action: ConfirmationRateLimitAction) {

@@ -126,6 +126,9 @@ technically feasible.
 Phase 6 stores only SHA-256 token hashes in `confirmation_links.token_hash`.
 Raw confirmation tokens are generated server-side, returned once to the vendor
 action result, and are not stored in database tables or audit metadata.
+The structured share UI keeps that URL in a read-only field and appends it to
+editable human copy only at share/copy time. Share intents use URL APIs and
+encoded parameters; external windows clear `opener` before navigation.
 
 SEC-008 - Expiration and Revocation
 
@@ -163,9 +166,12 @@ Status: VERIFIED
 
 Sensitive public endpoints must be protected against automated abuse.
 
-Phase 6 public confirmation lookups and confirmation submissions consume
-persistent database-backed rate-limit buckets keyed by hashed request identity.
+Phase 6 public confirmation metadata, full lookups, confirmation submissions,
+and hydrated first-open signals consume persistent database-backed rate-limit
+buckets keyed by hashed request identity.
 The implementation does not store raw IP addresses in the rate-limit table.
+Hydrated first-open recording uses its own bounded action bucket and never
+blocks the confirmation page when evidence recording fails.
 
 SEC-012 - Sensitive Logging
 
@@ -250,6 +256,16 @@ Customer-facing confirmation pages must expose only data needed for the customer
 to review the booking. Phase 6 public views omit internal notes, audit logs,
 business member data, token hashes, tenant IDs, and service-role-only data.
 
+Dynamic social metadata uses a separate minimum-data lookup limited to valid
+link state, public business name, and approved public logo path. It never
+receives customer identity, contact, address, value, schedule, booking details,
+notes, internal IDs, or full confirmation payloads. Protected confirmation data
+remains dynamically rendered and uncached.
+Known messaging/social preview user agents receive a generic server-rendered
+confirmation shell; that request never calls the full booking-view RPC. This is
+privacy minimization for platform previews, not an authorization substitute:
+the opaque token remains the customer capability for ordinary browser access.
+
 SEC-020 - Confirmation Link Consumption
 
 Status: VERIFIED
@@ -257,6 +273,12 @@ Status: VERIFIED
 Public GET requests must not consume confirmation links because link previews,
 messaging clients, and scanners can fetch URLs automatically. Phase 6 consumes a
 link only during the POST-backed confirmation action.
+
+Social metadata requests also do not create `CONFIRMATION_OPENED` evidence.
+First-open recording is triggered after browser hydration, is idempotent at the
+database row, and is callable only through the server's service-role boundary.
+It proves a valid confirmation page opened, not that a message was delivered or
+read in an external application.
 
 SEC-021 - Atomic Customer Confirmation
 
