@@ -73,13 +73,19 @@ Accepted decisions are recorded in `docs/DECISIONS.md`.
 - Phase 8 - Private Feedback and Operational Issues: VERIFIED.
 - Phase 9 - Business Insights and Analytics: VERIFIED.
 - Phase 9.5 - Product UX, Design, and End-to-End Experience Audit: VERIFIED.
+- Phase A - Confirmed Booking Integrity and Cancellation Notification: VERIFIED.
+- Phase B - Booking Amendments and Customer Reconfirmation: VERIFIED.
+- Phase C - Booking Add-ons and Customer Confirmation: VERIFIED.
 
 The customer contact and booking-confirmation email foundation is VERIFIED.
 Secure confirmation now requires a customer-provided email, preserves immutable
 contact evidence, conservatively enriches empty customer contact fields, and
 creates a durable `BOOKING_CONFIRMED` email event in the confirmation
-transaction. Development-safe delivery is implemented; production Resend
-configuration and broader lifecycle email workflows remain future work.
+transaction. Confirmed-booking cancellation creates one durable
+`BOOKING_CANCELLED` event in the same cancellation transaction, preferring the
+immutable confirmation contact over current customer email. Development-safe
+delivery is implemented; production Resend configuration and other lifecycle
+email workflows remain future work.
 
 Inline customer creation during booking is VERIFIED. Every booking still
 belongs to exactly one tenant-owned customer, but a vendor may select an active
@@ -122,7 +128,8 @@ The following remain PLANNED and must not be described as implemented until repo
 - Subscriptions.
 - Staff accounts.
 - Booking-ready, progress, completion, feedback, and other lifecycle email
-  workflows beyond the verified booking-confirmed foundation.
+  workflows beyond verified booking-confirmed, booking-cancelled, and amendment
+  request/confirmation events.
 - Payment provider abstraction for vendor subscriptions.
 
 Implemented in Phase 2 and runtime verified against the configured development
@@ -228,10 +235,69 @@ Implemented and verified in Phase 6:
 - Expired, revoked, unknown, consumed, and cross-tenant access paths return safe
   outcomes without exposing token hashes, internal notes, audit logs, business
   member data, or tenant IDs.
-- Material changes after customer confirmation invalidate current confirmation,
-  return the booking to `AWAITING_CUSTOMER`, clear current confirmation fields,
-  and preserve the original confirmation snapshot for already-used links.
+- Ordinary material changes after customer confirmation are denied at the
+  database boundary. The explicit reschedule workflow is the current exception:
+  it returns the booking to `AWAITING_CUSTOMER`, clears current confirmation
+  fields, revokes open links, and preserves original confirmation evidence.
   Internal notes are non-material and do not invalidate confirmation.
+
+Implemented and verified in Phase A:
+
+- Customer-agreed customer, title, description, currency, total, deposit, and
+  schedule fields are locked once confirmed and throughout later lifecycle
+  states; crafted direct updates fail in PostgreSQL.
+- Material edits while `AWAITING_CUSTOMER` revoke the open confirmation link and
+  require a newly generated link. Draft editing remains unchanged.
+- Confirmed cancellation requires a bounded plain-text reason, preserves the
+  immutable confirmation row/snapshot/hash/contact and status history, and
+  atomically creates at most one `BOOKING_CANCELLED` outbox event.
+- Cancellation delivery uses confirmation contact first, falls back to current
+  customer email only for legacy confirmation evidence without contact, and a
+  provider failure never rolls back cancellation.
+- Phase C add-ons create linked scope records and do not rewrite the original
+  confirmed agreement.
+
+Implemented and verified in Phase B:
+
+- `booking_amendments` stores one active pending structured proposal per booking,
+  including immutable old/proposed snapshots and hashes, changed fields, reason,
+  frozen confirmation contact, token lifecycle, and effective evidence.
+- Proposal does not mutate `bookings`. Customer confirmation uses a service-only,
+  purpose-specific, rate-limited 24-hour capability and one atomic transaction to
+  verify the base hash, update effective terms, preserve history/audit, consume
+  the request, and create one confirmation email event.
+- Amendments are limited to `CONFIRMED` and `IN_PROGRESS`; customer reassignment,
+  internal notes, `READY`/`DELIVERED`, terminal bookings, add-ons, and negotiation
+  are excluded. Vendor revoke, booking cancellation, advancement to `READY`, and
+  explicit reschedule deliberately invalidate pending requests.
+- The authoritative confirmation contact wins over a conflicting customer email.
+  Request and confirmation provider failures affect only outbox state. Analytics
+  reads the current effective booking exactly once and does not count amendments
+  as bookings.
+- Live runtime and desktop/mobile browser tests verify tenant isolation, token
+  purpose attacks, one-time races, stale-base denial, cancellation interaction,
+  direct-edit regression, safe metadata, and responsive current/proposed diffs.
+
+Implemented and verified in Phase C:
+
+- `booking_addons` stores linked new scope without changing the canonical
+  booking or any original/amendment confirmation evidence. V1 add-ons inherit
+  the parent currency and current schedule and are limited to `CONFIRMED` and
+  `IN_PROGRESS` bookings.
+- Draft and awaiting-customer add-ons are proposals only. A separate 24-hour,
+  hash-only `booking_addon_confirmation` capability confirms one structured
+  snapshot atomically; confirmed add-ons are immutable.
+- Only confirmed add-ons contribute to derived current value, deposit, balance,
+  recorded/completed value, average value, and deposit analytics. Booking count
+  remains based on parent bookings.
+- One awaiting add-on is permitted per booking. Pending amendment and add-on
+  requests cannot coexist; reschedule, cancellation, and advancement to `READY`
+  cancel pending add-ons and revoke their links.
+- Request/confirmation email events, safe metadata, trusted sharing, first-open
+  tracking, tenant RLS, wrong-purpose denial, race idempotency, failure
+  persistence, and responsive customer/vendor journeys are verified.
+- Confirmed add-on correction/cancellation, independent add-on delivery,
+  catalog/inventory, payment processing, and billing remain deferred.
 - Runtime Supabase tests verify token lifecycle, minimization, one-time
   confirmation, revocation, expiration, regeneration, material-change
   invalidation, non-material edit behavior, race behavior, rate limiting, audit

@@ -5,16 +5,24 @@ import {
   parseMoneyToMinorUnits,
 } from "@/features/bookings/money";
 import {
+  areMaterialBookingTermsLocked,
   getAllowedBookingTransitions,
+  hasCustomerConfirmedTerms,
   isAllowedBookingTransition,
   isBookingDueToday,
   isBookingOverdue,
 } from "@/features/bookings/status";
 import {
   bookingCreateSchema,
+  bookingTransitionSchema,
   isBookingReference,
   parseBookingListParams,
 } from "@/features/bookings/validation";
+import {
+  hasMaterialBookingFieldChange,
+  materialBookingFields,
+  nonMaterialBookingFields,
+} from "@/features/confirmation-links/terms";
 
 describe("booking domain", () => {
   it("parses user money input into integer minor units", () => {
@@ -150,7 +158,10 @@ describe("booking domain", () => {
   it("defines the Phase 7 status transition graph", () => {
     expect(getAllowedBookingTransitions("DRAFT")).toEqual(["CANCELLED"]);
     expect(getAllowedBookingTransitions("AWAITING_CUSTOMER")).toEqual(["CANCELLED"]);
-    expect(getAllowedBookingTransitions("CONFIRMED")).toEqual(["IN_PROGRESS", "CANCELLED"]);
+    expect(getAllowedBookingTransitions("CONFIRMED")).toEqual([
+      "IN_PROGRESS",
+      "CANCELLED",
+    ]);
     expect(getAllowedBookingTransitions("IN_PROGRESS")).toEqual(["READY", "CANCELLED"]);
     expect(getAllowedBookingTransitions("READY")).toEqual(["DELIVERED", "CANCELLED"]);
     expect(getAllowedBookingTransitions("DELIVERED")).toEqual(["COMPLETED"]);
@@ -159,6 +170,64 @@ describe("booking domain", () => {
     expect(isAllowedBookingTransition("READY", "COMPLETED")).toBe(false);
     expect(isAllowedBookingTransition("DRAFT", "COMPLETED")).toBe(false);
     expect(isAllowedBookingTransition("COMPLETED", "CANCELLED")).toBe(false);
+  });
+
+  it("classifies customer-agreed and internal booking fields centrally", () => {
+    expect(materialBookingFields).toEqual([
+      "customer_id",
+      "title",
+      "description",
+      "currency",
+      "total_amount_minor",
+      "deposit_amount_minor",
+      "scheduled_for",
+    ]);
+    expect(nonMaterialBookingFields).toEqual(["internal_notes"]);
+    expect(hasMaterialBookingFieldChange(["internal_notes"])).toBe(false);
+    expect(hasMaterialBookingFieldChange(["internal_notes", "title"])).toBe(true);
+  });
+
+  it("locks material terms after confirmation while retaining the explicit states", () => {
+    expect(areMaterialBookingTermsLocked("DRAFT")).toBe(false);
+    expect(areMaterialBookingTermsLocked("AWAITING_CUSTOMER")).toBe(false);
+    expect(areMaterialBookingTermsLocked("CONFIRMED")).toBe(true);
+    expect(areMaterialBookingTermsLocked("IN_PROGRESS")).toBe(true);
+    expect(areMaterialBookingTermsLocked("CANCELLED")).toBe(true);
+    expect(hasCustomerConfirmedTerms("CONFIRMED")).toBe(true);
+    expect(hasCustomerConfirmedTerms("DELIVERED")).toBe(true);
+    expect(hasCustomerConfirmedTerms("AWAITING_CUSTOMER")).toBe(false);
+  });
+
+  it("requires a bounded plain-text reason for customer-confirmed cancellation", () => {
+    expect(
+      bookingTransitionSchema.safeParse({
+        fromStatus: "CONFIRMED",
+        toStatus: "CANCELLED",
+        cancellationReason: "  Customer changed plans.  ",
+      }),
+    ).toMatchObject({
+      success: true,
+      data: { cancellationReason: "Customer changed plans." },
+    });
+    expect(
+      bookingTransitionSchema.safeParse({
+        fromStatus: "CONFIRMED",
+        toStatus: "CANCELLED",
+      }).success,
+    ).toBe(false);
+    expect(
+      bookingTransitionSchema.safeParse({
+        fromStatus: "CONFIRMED",
+        toStatus: "CANCELLED",
+        cancellationReason: "<strong>Cancelled</strong>",
+      }).success,
+    ).toBe(false);
+    expect(
+      bookingTransitionSchema.safeParse({
+        fromStatus: "DRAFT",
+        toStatus: "CANCELLED",
+      }).success,
+    ).toBe(true);
   });
 
   it("derives overdue state without storing it as a status", () => {

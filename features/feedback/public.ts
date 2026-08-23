@@ -1,9 +1,6 @@
 import "server-only";
 import { canUseServiceRoleClient, createServiceRoleClient } from "@/lib/supabase/admin";
-import {
-  consumeFeedbackRateLimit,
-  feedbackRateLimitBucket,
-} from "@/features/feedback/rate-limit";
+import { consumeFeedbackRateLimit } from "@/features/feedback/rate-limit";
 import { hashFeedbackToken, isPlausibleFeedbackToken } from "@/features/feedback/token";
 import { publicFeedbackSchema } from "@/features/feedback/validation";
 import type {
@@ -34,8 +31,7 @@ function parsePublicFeedbackView(value: unknown): PublicFeedbackView {
 }
 
 export async function getPublicFeedbackView(token: string): Promise<PublicFeedbackView> {
-  const bucket = await feedbackRateLimitBucket("feedback_lookup");
-  const allowed = await consumeFeedbackRateLimit("feedback_lookup", bucket);
+  const allowed = await consumeFeedbackRateLimit("feedback_lookup");
 
   if (!allowed) {
     return { status: "rate_limited" };
@@ -58,8 +54,7 @@ export async function getPublicFeedbackView(token: string): Promise<PublicFeedba
 }
 
 export async function submitPublicFeedback(token: string, formData: FormData) {
-  const bucket = await feedbackRateLimitBucket("feedback_submit");
-  const allowed = await consumeFeedbackRateLimit("feedback_submit", bucket);
+  const allowed = await consumeFeedbackRateLimit("feedback_submit");
 
   if (!allowed) {
     return { status: "rate_limited" as const };

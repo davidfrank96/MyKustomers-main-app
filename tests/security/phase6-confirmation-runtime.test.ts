@@ -484,24 +484,21 @@ if (runtimeVerificationEnabled) {
         .from("bookings")
         .update({ total_amount_minor: 4_600_000 })
         .eq("id", bookingAId);
-      expect(materialUpdateError).toBeNull();
+      expect(materialUpdateError).not.toBeNull();
 
-      const { data: invalidatedBooking, error: invalidatedBookingError } = await service
+      const { data: lockedBooking, error: lockedBookingError } = await service
         .from("bookings")
         .select("status, customer_confirmed_at, confirmation_terms_hash")
         .eq("id", bookingAId)
         .single();
-      expect(invalidatedBookingError).toBeNull();
-      expect(invalidatedBooking?.status).toBe("AWAITING_CUSTOMER");
-      expect(invalidatedBooking?.customer_confirmed_at).toBeNull();
-      expect(invalidatedBooking?.confirmation_terms_hash).toBeNull();
+      expect(lockedBookingError).toBeNull();
+      expect(lockedBooking?.status).toBe("CONFIRMED");
+      expect(lockedBooking?.customer_confirmed_at).toBeTruthy();
+      expect(lockedBooking?.confirmation_terms_hash).toBe(confirmedTermsHash);
 
       const usedViewAfterMaterialChange = await publicView(tokenA);
       expect(statusFrom(usedViewAfterMaterialChange)).toBe("already_confirmed");
       expect(bookingFrom(usedViewAfterMaterialChange)?.total_amount_minor).toBe(4_500_000);
-
-      const { token: newToken } = await generateLink(userA.client, bookingAId);
-      expect(statusFrom(await publicView(newToken))).toBe("valid");
 
       const emptyCustomerId = await createCustomer(
         userA.client,
@@ -764,9 +761,6 @@ if (runtimeVerificationEnabled) {
       expect(auditRows?.map((row) => row.event_type)).toContain("CONFIRMATION_LINK_REGENERATED");
       expect(auditRows?.map((row) => row.event_type)).toContain("CONFIRMATION_LINK_REVOKED");
       expect(auditRows?.map((row) => row.event_type)).toContain("BOOKING_CONFIRMED_BY_CUSTOMER");
-      expect(auditRows?.map((row) => row.event_type)).toContain(
-        "BOOKING_CONFIRMATION_INVALIDATED",
-      );
       expect(JSON.stringify(auditRows)).not.toContain(tokenA);
       expect(JSON.stringify(auditRows)).not.toContain("new@example.com");
     }, 180_000);

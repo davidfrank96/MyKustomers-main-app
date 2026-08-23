@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { CheckCircle2 } from "lucide-react";
-import { ConfirmationOpenTracker } from "@/components/forms/confirmation-open-tracker";
+import { PublicCapabilityOpenTracker } from "@/components/forms/public-capability-open-tracker";
 import { PublicConfirmationForm } from "@/components/forms/public-confirmation-form";
 import { BusinessLogo } from "@/components/shared/business-logo";
 import { formatMoneyMinor } from "@/features/bookings/money";
@@ -54,9 +54,7 @@ function formatDateTime(value: string | null) {
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="border-b border-border py-3 last:border-b-0">
-      <dt className="text-xs font-medium text-muted-foreground">
-        {label}
-      </dt>
+      <dt className="text-xs font-medium text-muted-foreground">{label}</dt>
       <dd className="mt-1 break-words text-base font-medium text-foreground">{value}</dd>
     </div>
   );
@@ -166,11 +164,18 @@ export default async function ConfirmationPage({
   return (
     <main className="min-h-dvh bg-background px-5 py-8 text-foreground">
       <div className="mx-auto flex w-full max-w-xl flex-col">
-        <p className="text-sm font-medium text-muted-foreground">My Customers secure confirmation</p>
+        <p className="text-sm font-medium text-muted-foreground">
+          My Customers secure confirmation
+        </p>
 
         {booking ? (
           <>
-            {view.status === "valid" ? <ConfirmationOpenTracker token={token} /> : null}
+            {view.status === "valid" ? (
+              <PublicCapabilityOpenTracker
+                endpoint="/api/confirmation/open"
+                token={token}
+              />
+            ) : null}
             <div className="mt-5">
               <BusinessIdentity booking={booking} />
             </div>
@@ -188,7 +193,10 @@ export default async function ConfirmationPage({
             {confirmed ? (
               <div className="mt-6 rounded-lg border border-border bg-card p-4">
                 <div className="flex items-start gap-3">
-                  <CheckCircle2 className="mt-0.5 size-5 text-primary" aria-hidden="true" />
+                  <CheckCircle2
+                    className="mt-0.5 size-5 text-primary"
+                    aria-hidden="true"
+                  />
                   <div>
                     <p className="font-medium">Confirmed</p>
                     <p className="mt-1 text-sm leading-6 text-muted-foreground">

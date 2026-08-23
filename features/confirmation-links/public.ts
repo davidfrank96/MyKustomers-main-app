@@ -1,9 +1,6 @@
 import "server-only";
 import { canUseServiceRoleClient, createServiceRoleClient } from "@/lib/supabase/admin";
-import {
-  confirmationRateLimitBucket,
-  consumeConfirmationRateLimit,
-} from "@/features/confirmation-links/rate-limit";
+import { consumeConfirmationRateLimit } from "@/features/confirmation-links/rate-limit";
 import {
   hashConfirmationToken,
   isPlausibleConfirmationToken,
@@ -40,8 +37,7 @@ function parsePublicConfirmationView(value: unknown): PublicConfirmationView {
 export async function getPublicConfirmationView(
   token: string,
 ): Promise<PublicConfirmationView> {
-  const bucket = await confirmationRateLimitBucket("lookup");
-  const allowed = await consumeConfirmationRateLimit("lookup", bucket);
+  const allowed = await consumeConfirmationRateLimit("lookup");
 
   if (!allowed) {
     return { status: "rate_limited" };
@@ -75,8 +71,7 @@ export async function getPublicConfirmationMetadata(
     return null;
   }
 
-  const bucket = await confirmationRateLimitBucket("metadata");
-  const allowed = await consumeConfirmationRateLimit("metadata", bucket);
+  const allowed = await consumeConfirmationRateLimit("metadata");
   if (!allowed) {
     return null;
   }
@@ -126,8 +121,7 @@ export async function getPublicConfirmationMetadata(
 }
 
 export async function recordPublicConfirmationOpen(token: string) {
-  const bucket = await confirmationRateLimitBucket("open");
-  const allowed = await consumeConfirmationRateLimit("open", bucket);
+  const allowed = await consumeConfirmationRateLimit("open");
 
   if (!allowed || !canUseServiceRoleClient() || !isPlausibleConfirmationToken(token)) {
     return;
@@ -155,8 +149,7 @@ export async function confirmPublicBooking(
     };
   }
 
-  const bucket = await confirmationRateLimitBucket("confirm");
-  const allowed = await consumeConfirmationRateLimit("confirm", bucket);
+  const allowed = await consumeConfirmationRateLimit("confirm");
 
   if (!allowed) {
     return { status: "rate_limited" };

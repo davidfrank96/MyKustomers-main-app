@@ -541,6 +541,141 @@ Known risks: Future billing, messaging, exports, staff roles, native/PWA
 enhancements, and public review features must preserve the same mobile-first
 UX baseline and security boundaries.
 
+## Phase A - Confirmed Booking Integrity and Cancellation Notification
+
+Status: VERIFIED
+
+Objective: Preserve customer-agreed booking terms as immutable historical
+evidence and notify the authoritative booking contact when a confirmed booking
+is cancelled.
+
+Scope: Database-enforced material-term lock from `CONFIRMED` onward,
+awaiting-customer link invalidation on material edits, preserved explicit
+rescheduling/reconfirmation, editable internal notes before terminal states,
+required plain-text confirmed-cancellation reasons, atomic/idempotent
+`BOOKING_CANCELLED` outbox creation, confirmation-contact-first recipient
+selection, provider-neutral HTML/text delivery, and race/security regression
+coverage.
+
+Explicit exclusions: Booking amendments, add-ons, payment/refund processing,
+billing, other lifecycle emails, and broad UI redesign.
+
+Data-model impact: `email_event_type` includes `BOOKING_CANCELLED`; outbox
+idempotency is per confirmation and event type. Booking confirmation evidence is
+never deleted or rewritten by cancellation.
+
+Security impact: Direct crafted material writes fail in PostgreSQL; lifecycle
+RPC membership checks, customer capability isolation, service-only outbox
+claims, RLS, and terminal locks remain enforced.
+
+UI impact: Confirmed material controls are disabled with a clear lock message;
+internal notes, explicit rescheduling, and current lifecycle actions remain.
+
+Testing requirements: Material mutation matrix, internal-note and reschedule
+regressions, awaiting-link invalidation, cross-tenant/anonymous cancellation
+denial, concurrent cancellation uniqueness, recipient conflict, provider
+failure persistence, confirmation/sharing regression, and desktop/mobile E2E.
+
+Acceptance criteria: One customer-confirmed agreement remains historically
+truthful after cancellation, one cancellation event targets the authoritative
+contact, and no ordinary path can rewrite agreed terms.
+
+Phase A boundary at completion: Amendments required a future reconfirmation
+workflow. Phase B supplies that workflow. Phase C supplies linked add-ons
+without rewriting the original agreement; add-ons with independent fulfilment
+become separate bookings.
+
+## Phase B - Booking Amendments and Customer Reconfirmation
+
+Status: VERIFIED
+
+Objective: Allow explicit customer-approved material changes without mutating a
+confirmed agreement before approval.
+
+Scope: Dedicated structured amendment evidence; `CONFIRMED` and `IN_PROGRESS`
+eligibility; one active pending request; required bounded plain-text reason;
+hash-only purpose-specific 24-hour token; safe public current/proposed diff;
+vendor share/revoke; stale-base validation; atomic customer confirmation;
+booking-change/audit history; request/confirmation outbox events; cancellation,
+lifecycle, reschedule, analytics, and direct-edit regressions.
+
+Explicit exclusions: Customer reassignment, explicit customer rejection/chat,
+amendments at `READY` or later, add-ons, payment processing, billing, broad UI
+redesign, and unrelated lifecycle email.
+
+Data-model impact: Adds `booking_amendments`, extends `booking_changes` for
+confirmed amendment history, and extends `email_events` with amendment subjects
+and event types. Original `booking_confirmations` remain immutable.
+
+Security impact: Public table access is denied; vendor reads are tenant-scoped;
+vendor create/revoke RPCs derive membership; public lookup/open/confirm RPCs are
+service-only; token purposes are separate; stale hashes and row locks prevent
+lost updates and duplicate application.
+
+UI impact: Booking detail adds a minimal proposed-change editor and pending
+summary. `/a/[token]` has no dashboard shell and labels every changed value
+Current and Proposed without exposing internal notes.
+
+Testing requirements: Static migration/unit tests, live tenant/purpose/race/
+stale/revoke/cancellation/email/analytics/direct-edit coverage, canonical desktop
+and mobile E2E, and 320/360/375/390/430/768/1024/1440 responsive checks.
+
+Acceptance criteria: Pending proposals never alter the booking; exactly one
+customer confirmation applies effective terms once; original and amended
+agreements remain reconstructable; security and analytics regressions stay green.
+
+Deferred boundary at completion: Phase C now implements newly added linked scope
+without rewriting the original agreement.
+
+## Phase C - Booking Add-ons and Customer Confirmation
+
+Status: VERIFIED
+
+Objective: Add genuinely new scope to an existing agreement without rewriting
+the original booking or any confirmed amendment evidence.
+
+Scope: Dedicated structured add-on records; `DRAFT`, `AWAITING_CUSTOMER`,
+`CONFIRMED`, and `CANCELLED` states; parent `CONFIRMED`/`IN_PROGRESS`
+eligibility; inherited currency and current delivery schedule; integer minor
+units; one awaiting request; separate hash-only 24-hour capability; safe public
+review and trusted sharing; atomic customer confirmation; first-open, audit,
+history, and request/confirmation outbox effects; derived effective totals and
+analytics integration.
+
+Explicit exclusions: Separate add-on delivery schedules or fulfilment states,
+catalog/inventory, customer rejection/chat, confirmed add-on correction or
+cancellation, payment processing, billing, broad UI redesign, and unrelated
+lifecycle email.
+
+Data-model impact: Adds `booking_addons` and
+`booking_addon_confirmation_links`; extends audit and email event types and
+subjects; analytics derives value from confirmed add-ons without changing
+booking count.
+
+Security impact: Parent/business/currency consistency is database-enforced;
+confirmed terms are immutable; vendor writes use membership-checked RPCs;
+public lookup/open/confirm is service-only; token purpose is distinct from
+booking, amendment, and feedback capabilities; RLS and direct-write denial
+remain active.
+
+UI impact: Booking detail adds a compact add-on editor, state/effective-value
+summary, and existing trusted-share interaction. `/x/[token]` is a focused
+customer review route with inherited schedule and no dashboard shell.
+
+Testing requirements: Static and unit coverage; live tenant, amount, purpose,
+race, mutation, parent-state, lifecycle, cancellation, email-failure, evidence,
+and multi-add-on analytics coverage; canonical desktop/mobile E2E; no-overflow
+checks at 320/360/375/390/430/768/1024/1440.
+
+Acceptance criteria: Pending add-ons never change current agreement totals;
+one customer confirmation makes structured add-on evidence immutable exactly
+once; effective totals include all and only confirmed add-ons; original and
+amendment evidence remain unchanged; tenant and purpose attacks fail.
+
+Deferred boundary: A separately scheduled or fulfilled item is a new booking.
+Changing or cancelling confirmed add-on scope requires a future explicit
+evidence-preserving workflow.
+
 ## Phase 10 - Subscription Billing
 
 Status: PLANNED

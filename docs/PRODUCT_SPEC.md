@@ -122,6 +122,50 @@ overwritten. A booking-confirmed email event is committed atomically and
 delivered after commit; delivery failure does not change the confirmed booking.
 Customers still do not create accounts or complete OTP verification.
 
+Once customer-confirmed, material booking terms cannot be silently edited.
+Customer, title, customer-facing description, currency, total, deposit, and
+schedule are agreement fields. Internal notes remain internal and editable
+until the booking becomes terminal. Explicit rescheduling is a controlled
+workflow that invalidates current confirmation and requires reconfirmation; it
+is not an ordinary edit.
+
+Cancelling a customer-confirmed booking is a lifecycle transaction with a
+required bounded plain-text reason. It preserves the original confirmation
+evidence and atomically queues one `BOOKING_CANCELLED` email to the immutable
+confirmation contact, falling back to current customer email only for legacy
+evidence without contact. Delivery failure changes only outbox state. Email
+wording never claims that My Customers issued or controls a refund.
+
+Phase B implements explicit amendments for `CONFIRMED` and `IN_PROGRESS`
+bookings. The vendor submits a structured proposed title, customer-facing
+description, currency, agreed total, deposit recorded, and/or schedule with a
+reason. The canonical booking and current agreement remain unchanged while the
+request is pending. The customer sees labeled Current and Proposed values through
+a separate secure link; atomic confirmation applies the proposal only if its base
+agreement hash still matches. Customer reassignment and internal notes are not
+amendment terms.
+
+At most one amendment may be pending per booking. Replacement, vendor revoke,
+booking cancellation, advancement to `READY`, and explicit reschedule invalidate
+the pending request. `READY`, `DELIVERED`, `COMPLETED`, and `CANCELLED` bookings
+cannot accept amendments. V1 has no rejection/chat flow; a vendor may revoke and
+replace a proposal. Analytics use the resulting current booking values once.
+
+Phase C implements linked add-ons for new scope on `CONFIRMED` and
+`IN_PROGRESS` bookings. Add-ons do not rewrite the parent booking or amendment
+evidence. They inherit the parent currency and current delivery schedule, use
+integer minor-unit amounts, and remain excluded from effective totals until a
+customer confirms their separate secure request. Confirmed add-ons are
+immutable and contribute to current value, recorded deposit, balance, and
+currency-grouped analytics without increasing booking count.
+
+Only one add-on may await customer confirmation per booking, and a pending
+amendment and pending add-on cannot coexist. Rescheduling, cancellation, or
+advancement to `READY` cancels pending add-ons and revokes their links. An item
+needing a separate delivery or fulfilment lifecycle is a new booking. Confirmed
+add-on correction/cancellation, catalog/inventory, and payment handling are not
+part of Phase C.
+
 The vendor shares a newly generated link through a contextual message rather
 than a naked URL. The message is editable while the secure URL remains
 application-controlled; supported destinations are native system share,

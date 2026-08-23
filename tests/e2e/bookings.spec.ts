@@ -5,6 +5,7 @@ import { createClient } from "@supabase/supabase-js";
 import sharp from "sharp";
 import { hashRateLimitIdentity } from "../../features/confirmation-links/rate-limit-keys";
 import { hashConfirmationToken } from "../../features/confirmation-links/token";
+import { hashAddonToken } from "../../features/addons/token";
 
 function loadLocalEnv() {
   if (!fs.existsSync(".env")) {
@@ -31,8 +32,8 @@ loadLocalEnv();
 
 const hasSupabaseEnv = Boolean(
   process.env.NEXT_PUBLIC_SUPABASE_URL &&
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY &&
-    process.env.SUPABASE_SERVICE_ROLE_KEY,
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY &&
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
 );
 
 const createdEmails = new Set<string>();
@@ -187,12 +188,20 @@ test.describe("booking engine", () => {
 
         if (bookingIds.length > 0) {
           await admin.from("email_events").delete().in("booking_id", bookingIds);
+          await admin
+            .from("booking_addon_confirmation_links")
+            .delete()
+            .in("booking_id", bookingIds);
+          await admin.from("booking_addons").delete().in("booking_id", bookingIds);
           await admin.from("booking_issues").delete().in("booking_id", bookingIds);
           await admin.from("feedback").delete().in("booking_id", bookingIds);
           await admin.from("feedback_links").delete().in("booking_id", bookingIds);
           await admin.from("booking_confirmations").delete().in("booking_id", bookingIds);
           await admin.from("confirmation_links").delete().in("booking_id", bookingIds);
-          await admin.from("booking_status_history").delete().in("booking_id", bookingIds);
+          await admin
+            .from("booking_status_history")
+            .delete()
+            .in("booking_id", bookingIds);
           await admin.from("booking_changes").delete().in("booking_id", bookingIds);
         }
 
@@ -220,7 +229,7 @@ test.describe("booking engine", () => {
     page,
     context,
   }, testInfo) => {
-    test.setTimeout(60_000);
+    test.setTimeout(180_000);
     await context.grantPermissions(["clipboard-read", "clipboard-write"]);
 
     const email = testEmail(testInfo.project.name);
@@ -229,6 +238,7 @@ test.describe("booking engine", () => {
     const customerName = `Phase 5 Customer ${randomUUID().slice(0, 8)}`;
     const bookingTitle = `Phase 5 Booking ${randomUUID().slice(0, 8)}`;
     const updatedTitle = `${bookingTitle} Updated`;
+    const amendedTitle = `${updatedTitle} Amended`;
     createdBusinessSlugs.add(slug);
 
     const ownerFixture = await createConfirmedBusinessOwner({
@@ -281,7 +291,9 @@ test.describe("booking engine", () => {
     const fixture = { businessId: ownerFixture.businessId, customerId: customerId! };
 
     await page.goto("/bookings");
-    await expect(page.getByRole("heading", { name: "Bookings", exact: true })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Bookings", exact: true }),
+    ).toBeVisible();
     await page.getByRole("link", { name: "New booking" }).first().click();
     await expect(page.getByRole("heading", { name: "New booking" })).toBeVisible();
 
@@ -295,7 +307,9 @@ test.describe("booking engine", () => {
     await page.getByLabel("Internal notes").fill("Private E2E note.");
     await page.getByRole("button", { name: "Create booking" }).click();
 
-    await expect(page).toHaveURL(/\/bookings\/[0-9a-f-]+\?created=1/);
+    await expect(page).toHaveURL(/\/bookings\/[0-9a-f-]+\?created=1/, {
+      timeout: 15_000,
+    });
     await expect(page.getByRole("heading", { name: bookingTitle })).toBeVisible();
     await expect(page.getByText(/MC-[0-9]{6}-[A-F0-9]{6}/)).toBeVisible();
     await expect(page.getByText("Booking created.")).toBeVisible();
@@ -309,13 +323,17 @@ test.describe("booking engine", () => {
     const bookingDetailUrl = page.url();
     await page.getByRole("button", { name: "Generate confirmation link" }).click();
     const generatedLinkInput = page.getByLabel("Generated confirmation link");
-    await expect(generatedLinkInput).toBeAttached();
+    await expect(generatedLinkInput).toBeAttached({ timeout: 15_000 });
     const confirmationUrl = await generatedLinkInput.inputValue();
     expect(confirmationUrl).toContain("/c/");
-    await expect(page.locator("span").filter({ hasText: /^Awaiting customer$/ })).toBeVisible();
+    await expect(
+      page.locator("span").filter({ hasText: /^Awaiting customer$/ }),
+    ).toBeVisible();
 
     await page.getByRole("button", { name: "Share with customer" }).click();
-    await expect(page.getByRole("heading", { name: "Share with customer" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Share with customer" }),
+    ).toBeVisible();
     expect(await page.getByLabel("Message").inputValue()).toContain(
       `Hi ${customerName.split(" ")[0]}, Phase 5 E2E Business`,
     );
@@ -330,11 +348,15 @@ test.describe("booking engine", () => {
     );
     await page.getByRole("button", { name: "Copy link" }).click();
     await expect(page.getByText("Link copied", { exact: true })).toBeVisible();
-    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(confirmationUrl);
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
+      confirmationUrl,
+    );
     await page.getByRole("button", { name: "Close dialog" }).click();
 
     const previewResponse = await page.request.get(confirmationUrl, {
-      headers: { "user-agent": "TelegramBot (trusted-sharing-e2e)" },
+      headers: {
+        "user-agent": `TelegramBot (trusted-sharing-e2e-${testInfo.project.name})`,
+      },
     });
     expect(previewResponse.ok()).toBe(true);
     const previewHtml = await previewResponse.text();
@@ -359,8 +381,22 @@ test.describe("booking engine", () => {
     createdRateLimitBuckets.add(hashRateLimitIdentity(`metadata:unknown:${userAgent}`));
     createdRateLimitBuckets.add(hashRateLimitIdentity(`confirm:unknown:${userAgent}`));
     createdRateLimitBuckets.add(hashRateLimitIdentity(`open:unknown:${userAgent}`));
-    createdRateLimitBuckets.add(hashRateLimitIdentity(`feedback_lookup:unknown:${userAgent}`));
-    createdRateLimitBuckets.add(hashRateLimitIdentity(`feedback_submit:unknown:${userAgent}`));
+    createdRateLimitBuckets.add(
+      hashRateLimitIdentity(`feedback_lookup:unknown:${userAgent}`),
+    );
+    createdRateLimitBuckets.add(
+      hashRateLimitIdentity(`feedback_submit:unknown:${userAgent}`),
+    );
+    for (const action of [
+      "addon_lookup",
+      "addon_metadata",
+      "addon_confirm",
+      "addon_open",
+    ]) {
+      createdRateLimitBuckets.add(
+        hashRateLimitIdentity(`${action}:unknown:${userAgent}`),
+      );
+    }
 
     await page.goto(confirmationUrl);
     await expect(page.getByRole("heading", { name: "Review your order" })).toBeVisible();
@@ -389,7 +425,9 @@ test.describe("booking engine", () => {
       /business-logos/,
     );
     await expect(page.getByText("Phase 5 E2E Business", { exact: true })).toBeVisible();
-    await expect(page.getByLabel("Phase 5 E2E Business logo").locator("img")).toBeVisible();
+    await expect(
+      page.getByLabel("Phase 5 E2E Business logo").locator("img"),
+    ).toBeVisible();
     await expect(page.getByRole("link", { name: "Visit website" })).toHaveAttribute(
       "href",
       "https://phase5.example.com/booking",
@@ -403,33 +441,36 @@ test.describe("booking engine", () => {
     await expect(page.getByText("₦45,000")).toBeVisible();
     await expect(page.getByText("Updated private E2E note.")).toHaveCount(0);
 
-    await page.getByLabel("Where should we send updates about this booking?").fill(
-      "customer-confirmation@example.com",
-    );
+    await page
+      .getByLabel("Where should we send updates about this booking?")
+      .fill("customer-confirmation@example.com");
     await page.getByLabel("Phone number (optional)").fill("+353 01 555 0155");
     await page.getByRole("button", { name: "Confirm booking" }).click();
-    await expect(page).toHaveURL(/confirmed=1/);
+    await expect(page).toHaveURL(/confirmed=1/, { timeout: 15_000 });
     await expect(page.getByRole("heading", { name: "Booking confirmed" })).toBeVisible();
     await expect(
       page.getByText("We'll send a confirmation to c***@example.com."),
     ).toBeVisible();
 
-    const [{ data: capturedCustomer }, { data: confirmationRows }, { data: emailEvents }] =
-      await Promise.all([
-        admin
-          .from("customers")
-          .select("email, phone")
-          .eq("id", fixture.customerId)
-          .single(),
-        admin
-          .from("booking_confirmations")
-          .select("contact_email, contact_phone")
-          .eq("booking_id", new URL(bookingDetailUrl).pathname.split("/").at(-1) ?? ""),
-        admin
-          .from("email_events")
-          .select("recipient_email, status, attempt_count, provider_message_id")
-          .eq("business_id", fixture.businessId),
-      ]);
+    const [
+      { data: capturedCustomer },
+      { data: confirmationRows },
+      { data: emailEvents },
+    ] = await Promise.all([
+      admin
+        .from("customers")
+        .select("email, phone")
+        .eq("id", fixture.customerId)
+        .single(),
+      admin
+        .from("booking_confirmations")
+        .select("contact_email, contact_phone")
+        .eq("booking_id", new URL(bookingDetailUrl).pathname.split("/").at(-1) ?? ""),
+      admin
+        .from("email_events")
+        .select("recipient_email, status, attempt_count, provider_message_id")
+        .eq("business_id", fixture.businessId),
+    ]);
     expect(capturedCustomer).toEqual({
       email: "customer-confirmation@example.com",
       phone: "+353 01 555 0155",
@@ -452,43 +493,274 @@ test.describe("booking engine", () => {
     await expect(page.getByRole("heading", { name: "Booking confirmed" })).toBeVisible();
 
     await page.goto(bookingDetailUrl);
-    await expect(page.locator("span").filter({ hasText: /^Confirmed$/ })).toBeVisible();
+    await expect(
+      page
+        .locator("span")
+        .filter({ hasText: /^Confirmed$/ })
+        .first(),
+    ).toBeVisible();
     await expect(page.getByText("customer-confirmation@example.com")).toBeVisible();
     await expect(page.getByText("sent", { exact: true })).toBeVisible();
     await expect(page.getByText(/Copy link selected/)).toBeVisible();
+    await expect
+      .poll(
+        async () => {
+          const { data } = await admin
+            .from("confirmation_links")
+            .select("first_opened_at")
+            .eq(
+              "token_hash",
+              hashConfirmationToken(
+                new URL(confirmationUrl).pathname.split("/").at(-1) ?? "",
+              ),
+            )
+            .single();
+          return Boolean(data?.first_opened_at);
+        },
+        { timeout: serverActionTimeout },
+      )
+      .toBe(true);
+    await page.reload();
     await expect(
       page.getByText("First viewed").locator("..").getByText("Not available"),
     ).toHaveCount(0);
 
     await page.goto(`/customers/${fixture.customerId}`);
-    await expect(page.getByLabel("Email")).toHaveValue("customer-confirmation@example.com");
+    await expect(page.getByLabel("Email")).toHaveValue(
+      "customer-confirmation@example.com",
+    );
     await expect(page.getByLabel("Phone")).toHaveValue("+353 01 555 0155");
     await page.goto(bookingDetailUrl);
+
+    await page.getByRole("button", { name: "Propose change" }).click();
+    await page
+      .getByLabel("Reason for changes")
+      .fill("Customer requested a larger scope and later date.");
+    await page.getByLabel("Proposed booking title").fill(amendedTitle);
+    await page.getByLabel("Proposed details").fill("Approved expanded E2E scope.");
+    await page.getByLabel("Proposed agreed total").fill("55000");
+    await page.getByLabel("Proposed deposit recorded").fill("7000");
+    await page.getByLabel("Proposed date and time").fill(futureLocalDateTimePlus(3));
+    await page.getByRole("button", { name: "Send changes for confirmation" }).click();
+
+    await expect(
+      page.getByText("Changes are awaiting customer confirmation."),
+    ).toBeVisible({ timeout: serverActionTimeout });
+    const amendmentLinkInput = page.getByLabel("Generated amendment link");
+    await expect(amendmentLinkInput).toBeAttached();
+    const amendmentUrl = await amendmentLinkInput.inputValue();
+    expect(amendmentUrl).toContain("/a/");
+    await expect(page.getByRole("heading", { name: updatedTitle })).toBeVisible();
+    await expect(page.getByText("₦45,000").first()).toBeVisible();
+
+    await page.getByRole("button", { name: "Share booking changes" }).click();
+    await expect(
+      page.getByRole("heading", { name: "Share booking changes" }),
+    ).toBeVisible();
+    expect(await page.getByLabel("Message").inputValue()).toContain(
+      "has proposed an update to your booking",
+    );
+    await expect(page.getByLabel("Booking change link")).toHaveValue(amendmentUrl);
+    await page.getByRole("button", { name: "Copy link" }).click();
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(amendmentUrl);
+    await page.getByRole("button", { name: "Close dialog" }).click();
+
+    const amendmentPreview = await page.request.get(amendmentUrl, {
+      headers: {
+        "user-agent": `TelegramBot (amendment-e2e-${testInfo.project.name})`,
+      },
+    });
+    const amendmentPreviewHtml = await amendmentPreview.text();
+    expect(amendmentPreviewHtml).toContain(
+      "Review an update to your booking with Phase 5 E2E Business",
+    );
+    expect(amendmentPreviewHtml).not.toContain(customerName);
+    expect(amendmentPreviewHtml).not.toContain(amendedTitle);
+    expect(amendmentPreviewHtml).not.toContain("55000");
+
+    const originalViewport = page.viewportSize();
+    await page.goto(amendmentUrl);
+    await expect(
+      page.getByRole("heading", { name: "Review booking changes" }),
+    ).toBeVisible();
+    await expect(page.getByText("Current", { exact: true }).first()).toBeVisible();
+    await expect(page.getByText("Proposed", { exact: true }).first()).toBeVisible();
+    await expect(page.getByText(amendedTitle)).toBeVisible();
+    await expect(page.getByText("₦55,000")).toBeVisible();
+    await expect(page.getByText("Updated private E2E note.")).toHaveCount(0);
+    for (const width of [320, 360, 375, 390, 430, 768, 1024, 1440]) {
+      await page.setViewportSize({ width, height: width < 768 ? 900 : 1000 });
+      await expectNoPageOverflow(page);
+      await expect(page.getByRole("button", { name: "Confirm changes" })).toBeVisible();
+    }
+    if (originalViewport) await page.setViewportSize(originalViewport);
+    await page.getByRole("button", { name: "Confirm changes" }).click();
+    await expect(page).toHaveURL(/confirmed=1/);
+    await expect(
+      page.getByRole("heading", { name: "Booking changes confirmed" }),
+    ).toBeVisible();
+
+    await page.goto(bookingDetailUrl);
+    await expect(page.getByRole("heading", { name: amendedTitle })).toBeVisible();
+    await expect(page.getByText("₦55,000").first()).toBeVisible();
+    await expect(page.getByText("Booking amendment proposed")).toBeVisible();
+    await expect(page.getByText("Booking amendment confirmed")).toBeVisible();
+    await expect(page.getByLabel("Booking title")).toBeDisabled();
+
+    const { data: originalConfirmationBeforeAddon } = await admin
+      .from("booking_confirmations")
+      .select("id, terms_hash, terms_snapshot, contact_email, confirmed_at")
+      .eq("booking_id", new URL(bookingDetailUrl).pathname.split("/").at(-1) ?? "")
+      .single();
+
+    await page.getByRole("button", { name: "Add item" }).click();
+    await expect(page.getByRole("heading", { name: "Add item" })).toBeVisible();
+    await page.getByLabel("Title", { exact: true }).fill("24 Cupcakes");
+    await page
+      .getByRole("dialog")
+      .getByLabel("Description", { exact: true })
+      .fill("Twenty-four decorated cupcakes for the same delivery.");
+    await page.getByLabel("Agreed amount").fill("18000");
+    await page.getByLabel("Deposit recorded", { exact: true }).last().fill("5000");
+    await page.getByRole("button", { name: "Save add-on draft" }).click();
+
+    await expect(
+      page.getByLabel("Booking add-ons").getByText("24 Cupcakes", { exact: true }),
+    ).toBeVisible({ timeout: serverActionTimeout });
+    await expect(page.getByText("Draft", { exact: true })).toBeVisible();
+    await expect(page.getByText("₦55,000").first()).toBeVisible();
+    await page.getByRole("button", { name: "Send for confirmation" }).click();
+    await expect(page.getByText("Add-on is awaiting customer confirmation.")).toBeVisible(
+      {
+        timeout: serverActionTimeout,
+      },
+    );
+    const addonLinkInput = page.getByLabel("Generated add-on link");
+    await expect(addonLinkInput).toBeAttached();
+    const addonUrl = await addonLinkInput.inputValue();
+    expect(addonUrl).toContain("/x/");
+    await expect(page.getByRole("heading", { name: amendedTitle })).toBeVisible();
+    await expect(page.getByText("₦55,000").first()).toBeVisible();
+
+    await page.getByRole("button", { name: "Share add-on" }).click();
+    await expect(page.getByRole("heading", { name: "Share add-on" })).toBeVisible();
+    expect(await page.getByLabel("Message").inputValue()).toContain(
+      "has added an item to your existing booking",
+    );
+    expect(await page.getByLabel("Message").inputValue()).not.toContain("₦18,000");
+    await expect(page.getByLabel("Booking add-on link")).toHaveValue(addonUrl);
+    await page.getByRole("button", { name: "Copy link" }).click();
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(addonUrl);
+    await page.getByRole("button", { name: "Close dialog" }).click();
+
+    const addonPreview = await page.request.get(addonUrl, {
+      headers: {
+        "user-agent": `TelegramBot (addon-e2e-${testInfo.project.name})`,
+      },
+    });
+    expect(addonPreview.ok()).toBe(true);
+    const addonPreviewHtml = await addonPreview.text();
+    expect(addonPreviewHtml).toContain(
+      "Review an addition to your booking with Phase 5 E2E Business",
+    );
+    expect(addonPreviewHtml).not.toContain(customerName);
+    expect(addonPreviewHtml).not.toContain("24 Cupcakes");
+    expect(addonPreviewHtml).not.toContain("18000");
+    const { data: addonLinkAfterCrawler } = await admin
+      .from("booking_addon_confirmation_links")
+      .select("first_opened_at")
+      .eq(
+        "token_hash",
+        hashAddonToken(new URL(addonUrl).pathname.split("/").at(-1) ?? ""),
+      )
+      .single();
+    expect(addonLinkAfterCrawler?.first_opened_at).toBeNull();
+
+    await page.goto(addonUrl);
+    await expect(
+      page.getByRole("heading", { name: "Review an addition to your booking" }),
+    ).toBeVisible();
+    await expect(page.getByText("24 Cupcakes", { exact: true })).toBeVisible();
+    await expect(page.getByText("₦18,000")).toBeVisible();
+    await expect(page.getByText("₦5,000")).toBeVisible();
+    await expect(page.getByText("Same delivery:")).toBeVisible();
+    await expect(page.getByText("Updated private E2E note.")).toHaveCount(0);
+    for (const width of [320, 360, 375, 390, 430, 768, 1024, 1440]) {
+      await page.setViewportSize({ width, height: width < 768 ? 900 : 1000 });
+      await expectNoPageOverflow(page);
+      await expect(page.getByRole("button", { name: "Confirm add-on" })).toBeVisible();
+    }
+    if (originalViewport) await page.setViewportSize(originalViewport);
+    await page.getByRole("button", { name: "Confirm add-on" }).click();
+    await expect(page).toHaveURL(/confirmed=1/);
+    await expect(
+      page.getByRole("heading", { name: "Booking addition confirmed" }),
+    ).toBeVisible();
+
+    const bookingId = new URL(bookingDetailUrl).pathname.split("/").at(-1) ?? "";
+    const [{ data: addonRows }, { data: originalConfirmationAfterAddon }] =
+      await Promise.all([
+        admin
+          .from("booking_addons")
+          .select("title, status, total_amount_minor, deposit_amount_minor, terms_hash")
+          .eq("booking_id", bookingId),
+        admin
+          .from("booking_confirmations")
+          .select("id, terms_hash, terms_snapshot, contact_email, confirmed_at")
+          .eq("booking_id", bookingId)
+          .single(),
+      ]);
+    expect(addonRows).toEqual([
+      {
+        title: "24 Cupcakes",
+        status: "CONFIRMED",
+        total_amount_minor: 1_800_000,
+        deposit_amount_minor: 500_000,
+        terms_hash: expect.stringMatching(/^[a-f0-9]{64}$/),
+      },
+    ]);
+    expect(originalConfirmationAfterAddon).toEqual(originalConfirmationBeforeAddon);
+
+    await page.goto(bookingDetailUrl);
+    await expect(page.getByText("Booking add-on confirmed")).toBeVisible();
+    await expect(page.getByText("₦73,000").first()).toBeVisible();
+    await expect(page.getByText("₦12,000").first()).toBeVisible();
+    await expect(page.getByText("₦61,000").first()).toBeVisible();
+    await expect(page.getByRole("button", { name: "Cancel add-on" })).toHaveCount(0);
 
     await page.getByLabel("New scheduled date").fill(futureLocalDateTimePlus(2));
     await page.getByRole("button", { name: "Reschedule" }).click();
     await expect(
       page.getByText("Booking rescheduled. Customer confirmation is required again."),
+    ).toBeVisible({ timeout: serverActionTimeout });
+    await expect(
+      page.locator("span").filter({ hasText: /^Awaiting customer$/ }),
     ).toBeVisible();
-    await expect(page.locator("span").filter({ hasText: /^Awaiting customer$/ })).toBeVisible();
     await expect(page.getByText("Booking rescheduled", { exact: true })).toBeVisible();
 
-    await page.getByRole("button", { name: /Generate confirmation link|Regenerate link/ }).click();
+    await page
+      .getByRole("button", { name: /Generate confirmation link|Regenerate link/ })
+      .click();
     const regeneratedLinkInput = page.getByLabel("Generated confirmation link");
-    await expect(regeneratedLinkInput).toBeAttached();
+    await expect(regeneratedLinkInput).toBeAttached({ timeout: 15_000 });
     const regeneratedConfirmationUrl = await regeneratedLinkInput.inputValue();
     expect(regeneratedConfirmationUrl).toContain("/c/");
 
     await page.goto(regeneratedConfirmationUrl);
-    await page.getByLabel("Where should we send updates about this booking?").fill(
-      "customer-confirmation@example.com",
-    );
+    await page
+      .getByLabel("Where should we send updates about this booking?")
+      .fill("customer-confirmation@example.com");
     await page.getByLabel("Phone number (optional)").fill("+353 01 555 0155");
     await page.getByRole("button", { name: "Confirm booking" }).click();
     await expect(page.getByRole("heading", { name: "Booking confirmed" })).toBeVisible();
 
     await page.goto(bookingDetailUrl);
-    await expect(page.locator("span").filter({ hasText: /^Confirmed$/ })).toBeVisible();
+    await expect(
+      page
+        .locator("span")
+        .filter({ hasText: /^Confirmed$/ })
+        .first(),
+    ).toBeVisible();
 
     await page.getByRole("button", { name: "Start work" }).click();
     await expect(page).toHaveURL(/message=status-updated/);
@@ -515,7 +787,9 @@ test.describe("booking engine", () => {
       timeout: serverActionTimeout,
     });
     await expect(page.getByText("Delivered to Completed")).toBeVisible();
-    await expect(page.getByText("Completed and cancelled bookings are locked.")).toBeVisible();
+    await expect(
+      page.getByText("Completed and cancelled bookings are locked."),
+    ).toBeVisible();
 
     await page.getByRole("button", { name: "Request feedback" }).click();
     const feedbackLinkInput = page.getByLabel("Generated feedback link");
@@ -528,17 +802,21 @@ test.describe("booking engine", () => {
     expect(feedbackResponse?.headers()["referrer-policy"]).toBe("no-referrer");
     expect(feedbackResponse?.headers()["x-robots-tag"]).toContain("noindex");
     await expect(page.getByRole("heading", { name: "Private feedback" })).toBeVisible();
-    await expect(page.getByText(updatedTitle)).toBeVisible();
+    await expect(page.getByText(amendedTitle)).toBeVisible();
     await expect(page.getByText("Updated private E2E note.")).toHaveCount(0);
     await expect(page.getByText("Balance remaining")).toHaveCount(0);
 
     await page.locator('input[name="overallRating"][value="5"]').check();
     await page.locator('input[name="onTime"][value="yes"]').check();
     await page.locator('input[name="metExpectations"][value="yes"]').check();
-    await page.getByLabel("What could we do better?").fill("Everything was handled privately.");
+    await page
+      .getByLabel("What could we do better?")
+      .fill("Everything was handled privately.");
     await page.getByRole("button", { name: "Submit private feedback" }).click();
     await expect(page).toHaveURL(/submitted=1/);
-    await expect(page.getByRole("heading", { name: "Thank you for your feedback" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Thank you for your feedback" }),
+    ).toBeVisible();
     await expect(page.getByText("It is not posted publicly.")).toBeVisible();
 
     await page.goto(bookingDetailUrl);
@@ -547,7 +825,9 @@ test.describe("booking engine", () => {
     await expect(page.getByRole("button", { name: "Request feedback" })).toHaveCount(0);
 
     await page.getByLabel("Category").selectOption("LATE_DELIVERY");
-    await page.getByLabel("Issue description").fill("Delivery finished after the agreed time.");
+    await page
+      .getByLabel("Issue description")
+      .fill("Delivery finished after the agreed time.");
     await page.getByRole("button", { name: "Create issue" }).click();
     await expect(page.getByText("Issue created.")).toBeVisible();
     await expect(page.locator("li").filter({ hasText: "Late delivery" })).toBeVisible();
@@ -569,7 +849,7 @@ test.describe("booking engine", () => {
       .getByRole("heading", { name: "Feedback responses" })
       .locator("../..");
     await expect(feedbackResponsesCard.getByText("1", { exact: true })).toBeVisible();
-    await expect(page.getByText("₦45,000").first()).toBeVisible();
+    await expect(page.getByText("₦73,000").first()).toBeVisible();
     await expect(page.getByText("Late delivery")).toBeVisible();
     await expect(page.getByText("Everything was handled privately.")).toHaveCount(0);
   });
@@ -612,7 +892,9 @@ test.describe("booking engine", () => {
     await page.getByLabel("Deposit recorded").fill("5000");
     await page.getByRole("button", { name: "Create booking" }).click();
 
-    await expect(page.getByText("Possible existing customer", { exact: true })).toBeVisible();
+    await expect(
+      page.getByText("Possible existing customer", { exact: true }),
+    ).toBeVisible();
     await expect(page.getByText(existingCustomerName, { exact: true })).toBeVisible();
     await expect(
       page.getByRole("button", { name: `Use ${existingCustomerName}` }),
@@ -623,8 +905,12 @@ test.describe("booking engine", () => {
       await page.setViewportSize({ width, height: width < 768 ? 900 : 1000 });
       await expectNoPageOverflow(page);
       await expect(page.getByLabel("Booking title")).toHaveValue(bookingTitle);
-      await expect(page.getByRole("button", { name: `Use ${existingCustomerName}` })).toBeVisible();
-      await expect(page.getByRole("button", { name: "Continue with new customer" })).toBeVisible();
+      await expect(
+        page.getByRole("button", { name: `Use ${existingCustomerName}` }),
+      ).toBeVisible();
+      await expect(
+        page.getByRole("button", { name: "Continue with new customer" }),
+      ).toBeVisible();
     }
     if (originalViewport) {
       await page.setViewportSize(originalViewport);
@@ -663,10 +949,12 @@ test.describe("booking engine", () => {
 
     await page.goto(confirmationUrl);
     await expect(page.getByLabel("Phase 5 E2E Business logo")).toBeVisible();
-    await expect(page.getByLabel("Phase 5 E2E Business logo").locator("img")).toHaveCount(0);
-    await page.getByLabel("Where should we send updates about this booking?").fill(
-      duplicateEmail,
+    await expect(page.getByLabel("Phase 5 E2E Business logo").locator("img")).toHaveCount(
+      0,
     );
+    await page
+      .getByLabel("Where should we send updates about this booking?")
+      .fill(duplicateEmail);
     await page.getByLabel("Phone number (optional)").fill("+353 01 555 0188");
     await page.getByRole("button", { name: "Confirm booking" }).click();
     await expect(page.getByRole("heading", { name: "Booking confirmed" })).toBeVisible();
@@ -680,5 +968,136 @@ test.describe("booking engine", () => {
       email: duplicateEmail,
       phone: "+353 01 555 0188",
     });
+  });
+
+  test("confirmed terms lock while cancellation preserves evidence and sends one notice", async ({
+    page,
+  }, testInfo) => {
+    test.setTimeout(120_000);
+
+    const email = testEmail(`${testInfo.project.name}-cancellation`);
+    const password = `Cancellation-E2E-${randomUUID()}-A1`;
+    const slug = `cancellation-e2e-${Date.now()}-${randomUUID().slice(0, 8)}`;
+    const customerName = `Cancellation Customer ${randomUUID().slice(0, 8)}`;
+    const bookingTitle = `Cancellation Booking ${randomUUID().slice(0, 8)}`;
+    const staleCustomerEmail = `old-${randomUUID().slice(0, 8)}@example.com`;
+    const confirmationEmail = `new-${randomUUID().slice(0, 8)}@example.com`;
+    const cancellationReason = "Business is unable to fulfil this booking.";
+    createdBusinessSlugs.add(slug);
+
+    const fixture = await createConfirmedBusinessOwner({
+      email,
+      password,
+      slug,
+      customerName,
+      customerEmail: staleCustomerEmail,
+    });
+
+    await page.goto("/login");
+    await page.getByLabel("Email").fill(email);
+    await page.getByLabel("Password").fill(password);
+    await page.getByRole("button", { name: "Log in" }).click();
+    await expect(page).toHaveURL(/\/dashboard/);
+
+    await page.goto("/bookings/new");
+    await page.locator("#customerId").click();
+    await page.locator('[role="option"]').filter({ hasText: customerName }).click();
+    await page.getByLabel("Booking title").fill(bookingTitle);
+    await page.getByLabel("Description").fill("Customer-confirmed cancellation E2E.");
+    await page.getByLabel("Scheduled date").fill(futureLocalDateTime());
+    await page.getByLabel("Agreed total").fill("500");
+    await page.getByLabel("Deposit recorded").fill("100");
+    await page.getByLabel("Internal notes").fill("Private note before confirmation.");
+    await page.getByRole("button", { name: "Create booking" }).click();
+    await expect(page).toHaveURL(/\/bookings\/[0-9a-f-]+\?created=1/, {
+      timeout: 15_000,
+    });
+    const bookingUrl = page.url();
+    const bookingId = new URL(bookingUrl).pathname.split("/").at(-1)!;
+
+    await page.getByRole("button", { name: "Generate confirmation link" }).click();
+    const confirmationUrl = await page
+      .getByLabel("Generated confirmation link")
+      .inputValue();
+    const userAgent = (await page.evaluate(() => navigator.userAgent)).slice(0, 80);
+    createdRateLimitBuckets.add(hashRateLimitIdentity(`lookup:unknown:${userAgent}`));
+    createdRateLimitBuckets.add(hashRateLimitIdentity(`confirm:unknown:${userAgent}`));
+
+    await page.goto(confirmationUrl);
+    await page
+      .getByLabel("Where should we send updates about this booking?")
+      .fill(confirmationEmail);
+    await page.getByRole("button", { name: "Confirm booking" }).click();
+    await expect(page.getByRole("heading", { name: "Booking confirmed" })).toBeVisible({
+      timeout: 15_000,
+    });
+
+    await page.goto(bookingUrl);
+    await expect(page.locator("span").filter({ hasText: /^Confirmed$/ })).toBeVisible();
+    await expect(page.getByLabel("Booking title")).toBeDisabled();
+    await expect(page.getByLabel("Description", { exact: true })).toBeDisabled();
+    await expect(page.getByLabel("Currency")).toBeDisabled();
+    await expect(page.getByLabel("Agreed total")).toBeDisabled();
+    await expect(page.getByLabel("Deposit recorded")).toBeDisabled();
+    await expect(page.getByLabel("Internal notes")).toBeEnabled();
+    await expect(
+      page.getByText("Customer-confirmed booking details are locked.", {
+        exact: false,
+      }),
+    ).toBeVisible();
+
+    await page
+      .getByLabel("Internal notes")
+      .fill("Updated private note after confirmation.");
+    await page.getByRole("button", { name: "Save internal notes" }).click();
+    await expect(page.getByText("Internal notes updated.")).toBeVisible({
+      timeout: 15_000,
+    });
+
+    const reasonInput = page.getByLabel("Cancellation reason");
+    await expect(reasonInput).toHaveAttribute("required", "");
+    await reasonInput.fill(cancellationReason);
+    page.once("dialog", (dialog) => dialog.accept());
+    await page.getByRole("button", { name: "Cancel booking" }).click();
+    await expect(page.locator("span").filter({ hasText: /^Cancelled$/ })).toBeVisible({
+      timeout: serverActionTimeout,
+    });
+    await expect(
+      page.getByText(`Cancellation reason: ${cancellationReason}`),
+    ).toBeVisible();
+    await expect(page.getByText("Confirmed to Cancelled")).toBeVisible();
+    await expect(
+      page.getByText("Completed and cancelled bookings are locked."),
+    ).toBeVisible();
+
+    const admin = createAdminClient();
+    const [{ data: customer }, { data: confirmations }, { data: cancellationEvents }] =
+      await Promise.all([
+        admin.from("customers").select("email").eq("id", fixture.customerId!).single(),
+        admin
+          .from("booking_confirmations")
+          .select("contact_email, terms_hash, terms_snapshot")
+          .eq("booking_id", bookingId),
+        admin
+          .from("email_events")
+          .select(
+            "recipient_email, event_type, status, attempt_count, provider_message_id",
+          )
+          .eq("booking_id", bookingId)
+          .eq("event_type", "BOOKING_CANCELLED"),
+      ]);
+    expect(customer?.email).toBe(staleCustomerEmail);
+    expect(confirmations).toHaveLength(1);
+    expect(confirmations?.[0].contact_email).toBe(confirmationEmail);
+    expect(confirmations?.[0].terms_hash).toBeTruthy();
+    expect(confirmations?.[0].terms_snapshot).toBeTruthy();
+    expect(cancellationEvents).toHaveLength(1);
+    expect(cancellationEvents?.[0]).toMatchObject({
+      recipient_email: confirmationEmail,
+      event_type: "BOOKING_CANCELLED",
+      status: "SENT",
+      attempt_count: 1,
+    });
+    expect(cancellationEvents?.[0].provider_message_id).toMatch(/^development-/);
   });
 });

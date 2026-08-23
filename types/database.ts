@@ -1,10 +1,5 @@
 export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[];
+  string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export type Database = {
   public: {
@@ -240,9 +235,13 @@ export type Database = {
           business_id: string;
           booking_id: string;
           changed_by: string | null;
-          change_type: "reschedule";
+          change_type: "reschedule" | "amendment";
+          amendment_id: string | null;
           previous_scheduled_for: string | null;
           new_scheduled_for: string | null;
+          old_terms: Json | null;
+          new_terms: Json | null;
+          changed_fields: string[] | null;
           created_at: string;
         };
         Insert: {
@@ -250,9 +249,149 @@ export type Database = {
           business_id: string;
           booking_id: string;
           changed_by?: string | null;
-          change_type: "reschedule";
+          change_type: "reschedule" | "amendment";
+          amendment_id?: string | null;
           previous_scheduled_for?: string | null;
           new_scheduled_for?: string | null;
+          old_terms?: Json | null;
+          new_terms?: Json | null;
+          changed_fields?: string[] | null;
+          created_at?: string;
+        };
+        Update: never;
+        Relationships: [];
+      };
+      booking_amendments: {
+        Row: {
+          id: string;
+          business_id: string;
+          booking_id: string;
+          status: Database["public"]["Enums"]["booking_amendment_status"];
+          purpose: string;
+          token_hash: string;
+          expires_at: string;
+          reason: string;
+          base_terms_hash: string;
+          old_terms: Json;
+          proposed_terms: Json;
+          proposed_terms_hash: string;
+          changed_fields: string[];
+          contact_email: string;
+          contact_phone: string | null;
+          proposed_by: string;
+          created_at: string;
+          submitted_at: string;
+          first_opened_at: string | null;
+          confirmed_at: string | null;
+          revoked_at: string | null;
+          revoked_reason: string | null;
+          effective_terms: Json | null;
+          effective_terms_hash: string | null;
+        };
+        Insert: {
+          id?: string;
+          business_id: string;
+          booking_id: string;
+          status?: Database["public"]["Enums"]["booking_amendment_status"];
+          purpose?: string;
+          token_hash: string;
+          expires_at: string;
+          reason: string;
+          base_terms_hash: string;
+          old_terms: Json;
+          proposed_terms: Json;
+          proposed_terms_hash: string;
+          changed_fields: string[];
+          contact_email: string;
+          contact_phone?: string | null;
+          proposed_by: string;
+          created_at?: string;
+          submitted_at?: string;
+          first_opened_at?: string | null;
+          confirmed_at?: string | null;
+          revoked_at?: string | null;
+          revoked_reason?: string | null;
+          effective_terms?: Json | null;
+          effective_terms_hash?: string | null;
+        };
+        Update: never;
+        Relationships: [];
+      };
+      booking_addons: {
+        Row: {
+          id: string;
+          business_id: string;
+          booking_id: string;
+          created_by: string;
+          title: string;
+          description: string | null;
+          currency: Database["public"]["Enums"]["booking_currency"];
+          total_amount_minor: number;
+          deposit_amount_minor: number;
+          status: Database["public"]["Enums"]["booking_addon_status"];
+          created_at: string;
+          submitted_at: string | null;
+          confirmed_at: string | null;
+          cancelled_at: string | null;
+          cancellation_reason: string | null;
+          terms_snapshot: Json | null;
+          terms_hash: string | null;
+          confirmation_contact_email: string | null;
+          confirmation_contact_phone: string | null;
+        };
+        Insert: {
+          id?: string;
+          business_id: string;
+          booking_id: string;
+          created_by: string;
+          title: string;
+          description?: string | null;
+          currency: Database["public"]["Enums"]["booking_currency"];
+          total_amount_minor: number;
+          deposit_amount_minor?: number;
+          status?: Database["public"]["Enums"]["booking_addon_status"];
+          created_at?: string;
+          submitted_at?: string | null;
+          confirmed_at?: string | null;
+          cancelled_at?: string | null;
+          cancellation_reason?: string | null;
+          terms_snapshot?: Json | null;
+          terms_hash?: string | null;
+          confirmation_contact_email?: string | null;
+          confirmation_contact_phone?: string | null;
+        };
+        Update: never;
+        Relationships: [];
+      };
+      booking_addon_confirmation_links: {
+        Row: {
+          id: string;
+          business_id: string;
+          booking_id: string;
+          booking_addon_id: string;
+          token_hash: string;
+          purpose: string;
+          expires_at: string;
+          used_at: string | null;
+          revoked_at: string | null;
+          revoked_reason: string | null;
+          first_opened_at: string | null;
+          created_by: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          business_id: string;
+          booking_id: string;
+          booking_addon_id: string;
+          token_hash: string;
+          purpose?: string;
+          expires_at: string;
+          used_at?: string | null;
+          revoked_at?: string | null;
+          revoked_reason?: string | null;
+          first_opened_at?: string | null;
+          created_by: string;
           created_at?: string;
         };
         Update: never;
@@ -322,7 +461,10 @@ export type Database = {
           business_id: string;
           booking_id: string;
           customer_id: string;
-          booking_confirmation_id: string;
+          booking_confirmation_id: string | null;
+          booking_amendment_id: string | null;
+          booking_addon_id: string | null;
+          booking_addon_confirmation_link_id: string | null;
           event_type: Database["public"]["Enums"]["email_event_type"];
           recipient_email: string;
           status: Database["public"]["Enums"]["email_event_status"];
@@ -339,7 +481,10 @@ export type Database = {
           business_id: string;
           booking_id: string;
           customer_id: string;
-          booking_confirmation_id: string;
+          booking_confirmation_id?: string | null;
+          booking_amendment_id?: string | null;
+          booking_addon_id?: string | null;
+          booking_addon_confirmation_link_id?: string | null;
           event_type: Database["public"]["Enums"]["email_event_type"];
           recipient_email: string;
           status?: Database["public"]["Enums"]["email_event_status"];
@@ -636,6 +781,7 @@ export type Database = {
           from_status: Database["public"]["Enums"]["booking_status"];
           to_status: Database["public"]["Enums"]["booking_status"];
           changed_at: string;
+          email_event_id: string | null;
         }[];
       };
       reschedule_booking: {
@@ -649,6 +795,85 @@ export type Database = {
           new_scheduled_for: string;
           status: Database["public"]["Enums"]["booking_status"];
         }[];
+      };
+      create_booking_amendment: {
+        Args: {
+          p_booking_id: string;
+          p_reason: string;
+          p_title: string;
+          p_description: string | null;
+          p_currency: Database["public"]["Enums"]["booking_currency"];
+          p_total_amount_minor: number;
+          p_deposit_amount_minor: number;
+          p_scheduled_for: string | null;
+          p_token_hash: string;
+          p_expires_at?: string;
+        };
+        Returns: {
+          amendment_id: string;
+          expires_at: string;
+          replaced_amendment_count: number;
+          email_event_id: string;
+        }[];
+      };
+      revoke_booking_amendment: {
+        Args: { p_amendment_id: string };
+        Returns: boolean;
+      };
+      get_booking_amendment_public_view: {
+        Args: { p_token_hash: string };
+        Returns: Json;
+      };
+      record_booking_amendment_open: {
+        Args: { p_token_hash: string };
+        Returns: boolean;
+      };
+      confirm_booking_amendment_by_token_hash: {
+        Args: { p_token_hash: string };
+        Returns: Json;
+      };
+      create_booking_addon: {
+        Args: {
+          p_booking_id: string;
+          p_title: string;
+          p_description: string | null;
+          p_total_amount_minor: number;
+          p_deposit_amount_minor: number;
+        };
+        Returns: {
+          booking_addon_id: string;
+          currency: Database["public"]["Enums"]["booking_currency"];
+        }[];
+      };
+      submit_booking_addon: {
+        Args: {
+          p_booking_addon_id: string;
+          p_token_hash: string;
+          p_expires_at?: string;
+        };
+        Returns: {
+          booking_addon_id: string;
+          confirmation_link_id: string;
+          expires_at: string;
+          replaced_link_count: number;
+          email_event_id: string;
+        }[];
+      };
+      cancel_booking_addon: {
+        Args: { p_booking_addon_id: string };
+        Returns: boolean;
+      };
+      get_booking_addon_public_view: {
+        Args: { p_token_hash: string };
+        Returns: Json;
+      };
+      record_booking_addon_open: {
+        Args: { p_token_hash: string };
+        Returns: boolean;
+      };
+      confirm_booking_addon_by_token_hash: {
+        Args: { p_token_hash: string };
+        Returns: Json;
       };
       create_booking_feedback_link: {
         Args: {
@@ -715,7 +940,15 @@ export type Database = {
         | "COMPLETED"
         | "CANCELLED";
       booking_currency: "NGN" | "EUR" | "GBP" | "USD";
-      email_event_type: "BOOKING_CONFIRMED";
+      booking_amendment_status: "PENDING_CUSTOMER" | "CONFIRMED" | "REVOKED";
+      booking_addon_status: "DRAFT" | "AWAITING_CUSTOMER" | "CONFIRMED" | "CANCELLED";
+      email_event_type:
+        | "BOOKING_CONFIRMED"
+        | "BOOKING_CANCELLED"
+        | "BOOKING_AMENDMENT_REQUESTED"
+        | "BOOKING_AMENDMENT_CONFIRMED"
+        | "BOOKING_ADDON_REQUESTED"
+        | "BOOKING_ADDON_CONFIRMED";
       email_event_status: "PENDING" | "SENDING" | "SENT" | "FAILED";
       audit_event_type:
         | "AUTH_SIGNUP"
@@ -742,6 +975,17 @@ export type Database = {
         | "BOOKING_CONFIRMATION_INVALIDATED"
         | "CONFIRMATION_SHARE_INITIATED"
         | "CONFIRMATION_OPENED"
+        | "BOOKING_AMENDMENT_SUBMITTED"
+        | "BOOKING_AMENDMENT_REVOKED"
+        | "BOOKING_AMENDMENT_CONFIRMED"
+        | "BOOKING_AMENDMENT_SHARE_INITIATED"
+        | "BOOKING_AMENDMENT_OPENED"
+        | "BOOKING_ADDON_CREATED"
+        | "BOOKING_ADDON_SUBMITTED"
+        | "BOOKING_ADDON_SHARE_INITIATED"
+        | "BOOKING_ADDON_OPENED"
+        | "BOOKING_ADDON_CONFIRMED"
+        | "BOOKING_ADDON_CANCELLED"
         | "FEEDBACK_LINK_CREATED"
         | "FEEDBACK_LINK_REVOKED"
         | "FEEDBACK_LINK_REGENERATED"

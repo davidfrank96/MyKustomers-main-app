@@ -111,6 +111,8 @@ Detailed schema design belongs to the relevant implementation phase.
 - `booking_items`
 - `booking_status_history`
 - `booking_changes`
+- `booking_addons`
+- `booking_addon_confirmation_links`
 - `confirmation_links`
 - `feedback_links`
 - `feedback`
@@ -145,10 +147,25 @@ These names are conceptual and not yet necessarily final table names.
 - `booking_status_history`: VERIFIED. Rows are written by database trigger
   for booking creation and status transitions; browser clients have read-only
   access through tenant RLS.
-- `booking_changes`: VERIFIED. Phase 7 records focused operational change
-  history for reschedules with previous/new scheduled times, changer, and
-  tenant-owned booking relationship. Browser clients can read tenant rows but
-  cannot write or mutate them directly.
+- `booking_changes`: VERIFIED. Phase 7 records reschedules with previous/new
+  schedule. Phase B also records each applied amendment with `amendment_id`,
+  immutable old/new terms, and changed fields. Browser clients can read tenant
+  rows but cannot write or mutate them directly.
+- `booking_amendments`: VERIFIED. Stores tenant/booking ownership, pending/
+  confirmed/revoked status, purpose-specific token hash and expiry, reason,
+  base/proposed/effective hashes, immutable old/proposed/effective JSON terms,
+  changed fields, frozen confirmation contact, proposer, open/submission/
+  confirmation/revocation timestamps, and revocation reason. A partial unique
+  index permits at most one pending amendment per booking.
+- `booking_addons`: VERIFIED. Stores tenant/parent ownership, creator, title,
+  description, inherited currency, integer minor-unit total/deposit, minimal
+  state, frozen terms snapshot/hash, confirmation contact, and lifecycle
+  timestamps. Parent/business/currency consistency is trigger-enforced; a
+  partial unique index permits at most one awaiting add-on per booking.
+- `booking_addon_confirmation_links`: VERIFIED. Stores add-on/booking/business
+  ownership, purpose, SHA-256 token hash, expiry, first-open, use, revocation,
+  creator, and timestamps. Raw tokens are never stored and one open link is
+  allowed per add-on.
 - `confirmation_links`: VERIFIED. Phase 6 fields include `id`, `business_id`,
   `booking_id`, `token_hash`, `purpose`, `expires_at`, `used_at`,
   `revoked_at`, `revoked_reason`, `created_by`, and `created_at`. Raw tokens
@@ -176,10 +193,13 @@ These names are conceptual and not yet necessarily final table names.
   analytics records in Phase 9.
 - `subscriptions`: PLANNED.
 - `subscription_events`: PLANNED.
-- `email_events`: VERIFIED for `BOOKING_CONFIRMED`. Events are private,
+- `email_events`: VERIFIED for `BOOKING_CONFIRMED`, `BOOKING_CANCELLED`,
+  `BOOKING_AMENDMENT_REQUESTED`, `BOOKING_AMENDMENT_CONFIRMED`,
+  `BOOKING_ADDON_REQUESTED`, and `BOOKING_ADDON_CONFIRMED`. Events are private,
   tenant-related durable outbox rows with recipient, status, attempt metadata,
-  provider message ID, and bounded safe failure fields. One event is allowed per
-  booking confirmation.
+  provider message ID, and bounded safe failure fields. Domain-specific unique
+  keys allow one logical event per confirmation, amendment, add-on link, or
+  confirmed add-on as appropriate.
 
 ## Expected Relationships
 
@@ -191,6 +211,9 @@ Business
 |   +-- BookingItems
 |   +-- BookingStatusHistory
 |   +-- BookingChanges
+|   +-- BookingAmendments
+|   +-- BookingAddons
+|   |   +-- BookingAddonConfirmationLinks
 |   +-- ConfirmationLinks
 |   +-- BookingConfirmations
 |   +-- EmailEvents
@@ -250,6 +273,15 @@ and is not stored.
 Booking currency is explicit and constrained to `NGN`, `EUR`, `GBP`, or `USD`.
 Phase 5 performs no currency conversion.
 
+Current agreed value is the canonical booking total plus all `CONFIRMED` add-on
+totals. Current deposit recorded is the canonical booking deposit plus all
+`CONFIRMED` add-on deposits. Current balance is their difference. Draft,
+awaiting-customer, and cancelled add-ons contribute zero; amendments contribute
+through the canonical booking exactly once after confirmation. A confirmed
+add-on remains immutable evidence after parent cancellation, while cancelled
+bookings are excluded from recorded/completed analytics according to
+`docs/ANALYTICS_DEFINITIONS.md`.
+
 Booking status is constrained to `DRAFT`, `AWAITING_CUSTOMER`, `CONFIRMED`,
 `IN_PROGRESS`, `READY`, `DELIVERED`, `COMPLETED`, or `CANCELLED`. Valid
 transitions are enforced by a database trigger. `DRAFT` bookings can move to
@@ -264,7 +296,7 @@ DRAFT -> AWAITING_CUSTOMER
 DRAFT -> CANCELLED
 AWAITING_CUSTOMER -> CONFIRMED by valid customer confirmation link
 AWAITING_CUSTOMER -> CANCELLED
-CONFIRMED -> AWAITING_CUSTOMER by material edit or reschedule
+CONFIRMED -> AWAITING_CUSTOMER by explicit reschedule
 CONFIRMED -> IN_PROGRESS
 CONFIRMED -> CANCELLED
 IN_PROGRESS -> READY
@@ -280,9 +312,10 @@ accepted from browser clients.
 
 Customer confirmation stores current terms on `bookings` in
 `customer_confirmed_at`, `confirmation_terms_hash`, and
-`confirmation_terms_snapshot`. Material changes to confirmed booking terms clear
-the current confirmation fields and return the booking to `AWAITING_CUSTOMER`;
-non-material internal notes do not invalidate confirmation.
+`confirmation_terms_snapshot`. Direct material changes to confirmed booking
+terms are denied. The material set is customer, title, customer-facing
+description, currency, total, deposit, and schedule. Non-material internal
+notes do not invalidate confirmation.
 
 Booking reschedules before fulfilment use `public.reschedule_booking`.
 Rescheduling a confirmed booking is a material change: it clears the current
@@ -290,9 +323,42 @@ confirmation fields, revokes open confirmation links, records a
 `booking_changes` row, and requires a new customer confirmation before work
 continues.
 
-Booking items remain planned. Phase 5 deliberately avoids adding line items,
-catalog semantics, inventory coupling, or item-level totals before the product
-requires them.
+General amendments use `public.create_booking_amendment` and do not update the
+booking. Only `CONFIRMED` and `IN_PROGRESS` bookings qualify. The proposal is
+based on `bookings.confirmation_terms_hash`; customer confirmation through
+`public.confirm_booking_amendment_by_token_hash` locks both rows, compares the
+base hash, enables the transaction-scoped amendment exception in the integrity
+trigger, applies the structured proposal, updates the current effective snapshot
+and hash, writes one amendment `booking_changes` row/audit/email event, and marks
+the amendment confirmed. Original booking-confirmation rows are not rewritten.
+
+Schedule-only explicit reschedule remains the established pre-work workflow and
+returns a confirmed booking to `AWAITING_CUSTOMER` for ordinary confirmation.
+It revokes a pending general amendment so the two paths cannot conflict.
+
+Confirmed/later cancellation requires a bounded plain-text reason where the
+existing transition graph permits cancellation. The transaction preserves
+`booking_confirmations`, confirmed timestamps, terms snapshot/hash, contact
+evidence, and trigger-owned history. It inserts at most one
+`BOOKING_CANCELLED` email event for the latest confirmation. Recipient selection
+prefers `booking_confirmations.contact_email`; only legacy evidence without a
+contact may fall back to `customers.email`. Draft/awaiting cancellations do not
+create customer email events because no current customer agreement exists.
+
+Booking add-ons are linked new-scope records rather than edits to original or
+amendment evidence. `public.create_booking_addon` derives parent ownership and
+currency from the eligible booking. `public.submit_booking_addon` freezes
+structured terms and current confirmation contact while leaving the booking
+unchanged. `public.confirm_booking_addon_by_token_hash` atomically locks the
+link, add-on, and parent; verifies purpose, expiry, lifecycle, and state; marks
+the add-on confirmed; consumes the link; and creates one audit/outbox effect.
+
+Only confirmed add-ons contribute to derived effective booking totals and
+analytics. Draft, awaiting, and cancelled add-ons contribute zero. Multiple
+confirmed add-ons sum onto the current canonical booking terms, while booking
+count remains one. V1 stores no add-on schedule because all add-ons share the
+parent's current delivery. Catalog semantics, inventory coupling, separate
+fulfilment, and confirmed add-on correction/cancellation remain deferred.
 
 Confirmation links are scoped access mechanisms for customer-facing booking
 actions. Phase 6 stores only SHA-256 token hashes, enforces one open link per

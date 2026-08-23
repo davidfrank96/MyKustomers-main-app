@@ -5,6 +5,12 @@ import { hashRateLimitIdentity } from "@/features/confirmation-links/rate-limit-
 
 type ConfirmationRateLimitAction = "lookup" | "metadata" | "confirm" | "open";
 
+export type PublicCapabilityRateLimit = {
+  maxRequests: number;
+  windowSeconds: number;
+  blockSeconds: number;
+};
+
 const rateLimitConfig: Record<
   ConfirmationRateLimitAction,
   { maxRequests: number; windowSeconds: number; blockSeconds: number }
@@ -15,7 +21,7 @@ const rateLimitConfig: Record<
   open: { maxRequests: 60, windowSeconds: 60, blockSeconds: 60 },
 };
 
-export async function confirmationRateLimitBucket(action: ConfirmationRateLimitAction) {
+async function publicCapabilityRateLimitBucket(action: string) {
   const requestHeaders = await headers();
   const forwardedFor = requestHeaders.get("x-forwarded-for")?.split(",")[0]?.trim();
   const realIp = requestHeaders.get("x-real-ip")?.trim();
@@ -25,15 +31,15 @@ export async function confirmationRateLimitBucket(action: ConfirmationRateLimitA
   return hashRateLimitIdentity(identity);
 }
 
-export async function consumeConfirmationRateLimit(
-  action: ConfirmationRateLimitAction,
-  bucketKey: string,
+export async function consumePublicCapabilityRateLimit(
+  action: string,
+  config: PublicCapabilityRateLimit,
 ) {
   if (!canUseServiceRoleClient()) {
     return false;
   }
 
-  const config = rateLimitConfig[action];
+  const bucketKey = await publicCapabilityRateLimitBucket(action);
   const supabase = createServiceRoleClient();
   const { data, error } = await supabase.rpc("consume_confirmation_rate_limit", {
     p_bucket_key: bucketKey,
@@ -48,4 +54,8 @@ export async function consumeConfirmationRateLimit(
   }
 
   return data === true;
+}
+
+export function consumeConfirmationRateLimit(action: ConfirmationRateLimitAction) {
+  return consumePublicCapabilityRateLimit(action, rateLimitConfig[action]);
 }

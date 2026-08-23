@@ -446,3 +446,86 @@ a dedicated non-production Supabase project. Runtime Security additionally
 requires an explicit repository enable variable and protected environment.
 Normal CI never applies production migrations or uploads Playwright artifacts
 that could contain raw confirmation or feedback capability links.
+
+SEC-037 - Confirmed Terms And Cancellation Are Database-Enforced
+
+Status: VERIFIED
+
+Material customer-agreed fields are classified once in the application domain
+and enforced by the booking integrity trigger. Crafted PostgREST updates to
+customer, title, description, currency, total, deposit, or schedule fail from
+`CONFIRMED` onward. Explicit rescheduling is transaction-scoped and limited to
+schedule; internal notes remain non-material. Awaiting-customer material edits
+revoke the active confirmation link.
+
+Cancellation remains an authenticated membership-checked RPC. Customer/public
+capabilities and cross-tenant users cannot call it. The row lock makes
+concurrent cancellation canonical: one transition, reason, history row, audit,
+and `BOOKING_CANCELLED` event. Confirmation evidence is not deleted or rewritten.
+The outbox remains inaccessible to browser roles, recipient selection prefers
+immutable confirmation contact, and provider secrets/delivery remain
+service-only and post-commit.
+
+SEC-038 - Booking Amendments Use A Purpose-Separated Atomic Capability
+
+Status: VERIFIED
+
+Phase B preserves the confirmed-term lock. The only general mutation exception
+is set transaction-locally inside the service-only customer confirmation RPC
+after it locks amendment and booking, validates the
+`booking_amendment_confirmation` purpose, pending status, expiry/revocation,
+eligible lifecycle state, and exact base agreement hash. Customer IDs and
+internal notes are never accepted by the amendment RPC.
+
+Raw amendment tokens use the shared 32-byte opaque-token primitive and are never
+persisted or logged; only SHA-256 hashes are stored. Original confirmation,
+amendment, and feedback functions query separate purpose-owned tables. Public
+lookup/open/confirm functions are service-role-only behind persistent server
+rate limits. Public output contains safe business identity, booking reference,
+reason, and customer-agreed Current/Proposed fields; preview metadata receives
+only public business identity and purpose.
+
+`booking_amendments` has RLS enabled, no anonymous grants, tenant-scoped
+authenticated SELECT, and no direct authenticated writes. Create/revoke RPCs
+require active membership. One pending row per booking, row locks, base-hash
+comparison, and email uniqueness prevent parallel or stale application.
+Cancellation and incompatible lifecycle/reschedule actions revoke pending
+capabilities.
+
+SEC-039 - Booking Add-ons Are Tenant-Bound Purpose-Separated Evidence
+
+Status: VERIFIED
+
+`booking_addons` and `booking_addon_confirmation_links` have RLS enabled, no
+anonymous table grants, tenant-scoped authenticated reads, and no authenticated
+direct writes. Vendor create/submit/cancel RPCs derive active membership and
+lock the parent; a trigger independently enforces matching business and currency.
+Only `CONFIRMED` and `IN_PROGRESS` parents qualify, amount bounds use safe integer
+minor units, and confirmed add-ons cannot be edited or cancelled.
+
+Raw add-on tokens use the shared 32-byte opaque-token primitive and only SHA-256
+hashes are stored. Purpose is `booking_addon_confirmation`; original booking,
+amendment, feedback, and add-on tokens are rejected across every other purpose
+boundary. Public view/open/confirm RPCs are service-role-only behind persistent
+rate limits. Metadata contains only safe business identity and purpose; full
+terms appear only after valid lookup and exclude internal notes and tenant IDs.
+
+Confirmation locks link, add-on, and parent rows, consumes one valid link once,
+marks one immutable add-on confirmed, and creates one audit and confirmation
+email event. Request regeneration revokes the prior capability. Email failure
+changes only outbox state. Parent reschedule, cancellation, and advancement to
+`READY` revoke/cancel pending add-ons, while confirmed evidence survives parent
+cancellation. Runtime tests verify cross-tenant and anonymous denial, direct
+service/authenticated mutation denial, wrong-purpose attacks, confirmation races,
+parent-state transitions, original evidence preservation, and analytics scope.
+
+SEC-040 - Customer Agreement Requests Are Exclusive
+
+Status: VERIFIED
+
+Original confirmation/reconfirmation is state-separated from amendments and
+add-ons. A booking permits at most one pending amendment and one awaiting add-on,
+and database checks prevent those two request types from coexisting. Reschedule,
+cancellation, and advancement to `READY` deliberately revoke or cancel pending
+capabilities under row lock. Regeneration replaces only the same request purpose.
+Draft add-ons have no customer capability and do not affect effective terms.

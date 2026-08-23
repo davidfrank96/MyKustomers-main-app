@@ -1,14 +1,7 @@
 "use client";
 
 import { useState, useSyncExternalStore } from "react";
-import {
-  Check,
-  Copy,
-  ExternalLink,
-  MessageCircle,
-  Send,
-  Share2,
-} from "lucide-react";
+import { Check, Copy, ExternalLink, MessageCircle, Send, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -40,6 +33,13 @@ type CustomerConfirmationShareProps = {
   customerName: string | null;
   confirmationUrl: string;
   recordShare: (method: ConfirmationShareMethod) => Promise<void>;
+  initialMessage?: string;
+  shareTitle?: string;
+  triggerLabel?: string;
+  dialogTitle?: string;
+  dialogDescription?: string;
+  linkLabel?: string;
+  idPrefix?: string;
 };
 
 async function writeToClipboard(value: string) {
@@ -81,11 +81,20 @@ export function CustomerConfirmationShare({
   customerName,
   confirmationUrl,
   recordShare,
+  initialMessage: initialMessageOverride,
+  shareTitle,
+  triggerLabel = "Share with customer",
+  dialogTitle = "Share with customer",
+  dialogDescription = "Send a clear request so your customer knows who it is from and what to do.",
+  linkLabel = "Confirmation link",
+  idPrefix = "confirmation",
 }: CustomerConfirmationShareProps) {
-  const initialMessage = buildCustomerConfirmationMessageText({
-    businessName,
-    customerName,
-  });
+  const initialMessage =
+    initialMessageOverride ??
+    buildCustomerConfirmationMessageText({
+      businessName,
+      customerName,
+    });
   const [message, setMessage] = useState(initialMessage);
   const nativeShareAvailable = useSyncExternalStore(
     () => () => undefined,
@@ -151,7 +160,7 @@ export function CustomerConfirmationShare({
 
     try {
       await navigator.share({
-        title: buildCustomerConfirmationShareTitle(businessName),
+        title: shareTitle ?? buildCustomerConfirmationShareTitle(businessName),
         text: message.trim(),
         url: confirmationUrl,
       });
@@ -173,24 +182,25 @@ export function CustomerConfirmationShare({
         <DialogTrigger asChild>
           <Button type="button" className="w-full sm:w-auto">
             <Share2 className="size-4" aria-hidden="true" />
-            Share with customer
+            {triggerLabel}
           </Button>
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Share with customer</DialogTitle>
-            <DialogDescription>
-              Send a clear request so your customer knows who it is from and what to do.
-            </DialogDescription>
+            <DialogTitle>{dialogTitle}</DialogTitle>
+            <DialogDescription>{dialogDescription}</DialogDescription>
           </DialogHeader>
 
           <div className="mt-5 space-y-5">
             <div className="space-y-2">
-              <label htmlFor="confirmation-share-message" className="text-sm font-medium">
+              <label
+                htmlFor={`${idPrefix}-share-message`}
+                className="text-sm font-medium"
+              >
                 Message
               </label>
               <Textarea
-                id="confirmation-share-message"
+                id={`${idPrefix}-share-message`}
                 value={message}
                 maxLength={1200}
                 onChange={(event) => setMessage(event.target.value)}
@@ -203,11 +213,11 @@ export function CustomerConfirmationShare({
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="confirmation-share-link" className="text-sm font-medium">
-                Confirmation link
+              <label htmlFor={`${idPrefix}-share-link`} className="text-sm font-medium">
+                {linkLabel}
               </label>
               <input
-                id="confirmation-share-link"
+                id={`${idPrefix}-share-link`}
                 readOnly
                 value={confirmationUrl}
                 className="min-h-11 w-full min-w-0 rounded-md border border-input bg-muted px-3 py-2 text-sm text-muted-foreground"

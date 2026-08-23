@@ -1,7 +1,5 @@
 import "server-only";
-import { headers } from "next/headers";
-import { canUseServiceRoleClient, createServiceRoleClient } from "@/lib/supabase/admin";
-import { hashRateLimitIdentity } from "@/features/confirmation-links/rate-limit-keys";
+import { consumePublicCapabilityRateLimit } from "@/features/confirmation-links/rate-limit";
 
 type FeedbackRateLimitAction = "feedback_lookup" | "feedback_submit";
 
@@ -13,37 +11,6 @@ const rateLimitConfig: Record<
   feedback_submit: { maxRequests: 10, windowSeconds: 60, blockSeconds: 120 },
 };
 
-export async function feedbackRateLimitBucket(action: FeedbackRateLimitAction) {
-  const requestHeaders = await headers();
-  const forwardedFor = requestHeaders.get("x-forwarded-for")?.split(",")[0]?.trim();
-  const realIp = requestHeaders.get("x-real-ip")?.trim();
-  const userAgent = requestHeaders.get("user-agent")?.slice(0, 80) ?? "unknown";
-  const identity = `${action}:${forwardedFor || realIp || "unknown"}:${userAgent}`;
-
-  return hashRateLimitIdentity(identity);
-}
-
-export async function consumeFeedbackRateLimit(
-  action: FeedbackRateLimitAction,
-  bucketKey: string,
-) {
-  if (!canUseServiceRoleClient()) {
-    return false;
-  }
-
-  const config = rateLimitConfig[action];
-  const supabase = createServiceRoleClient();
-  const { data, error } = await supabase.rpc("consume_confirmation_rate_limit", {
-    p_bucket_key: bucketKey,
-    p_action: action,
-    p_max_requests: config.maxRequests,
-    p_window_seconds: config.windowSeconds,
-    p_block_seconds: config.blockSeconds,
-  });
-
-  if (error) {
-    return false;
-  }
-
-  return data === true;
+export function consumeFeedbackRateLimit(action: FeedbackRateLimitAction) {
+  return consumePublicCapabilityRateLimit(action, rateLimitConfig[action]);
 }

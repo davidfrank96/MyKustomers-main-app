@@ -2,23 +2,31 @@ import type { Metadata } from "next";
 import { getBusinessLogoPublicUrl } from "@/features/businesses/logo-public";
 import { publicEnv } from "@/lib/config/public-env";
 
-type ConfirmationMetadataInput = {
+type PublicCapabilityMetadataInput = {
   token: string;
   businessName?: string | null;
   businessLogoPath?: string | null;
+  routePrefix: "/c" | "/a" | "/x";
+  title: (businessName: string) => string;
+  description: (businessName: string) => string;
+  imageAlt: string;
 };
 
-export function buildPublicConfirmationMetadata({
+export function buildPublicCapabilityMetadata({
   token,
   businessName,
   businessLogoPath,
-}: ConfirmationMetadataInput): Metadata {
+  routePrefix,
+  title: buildTitle,
+  description: buildDescription,
+  imageAlt,
+}: PublicCapabilityMetadataInput): Metadata {
   const safeBusinessName =
     businessName?.replace(/[\u0000-\u001f\u007f]+/g, " ").trim() || "your business";
-  const title = `Review your order with ${safeBusinessName}`;
-  const description = `${safeBusinessName} has sent you an order for review and confirmation.`;
+  const title = buildTitle(safeBusinessName);
+  const description = buildDescription(safeBusinessName);
   const baseUrl = publicEnv.NEXT_PUBLIC_APP_URL.replace(/\/$/, "");
-  const canonicalUrl = `${baseUrl}/c/${encodeURIComponent(token)}`;
+  const canonicalUrl = `${baseUrl}${routePrefix}/${encodeURIComponent(token)}`;
   const businessLogoUrl = getBusinessLogoPublicUrl(businessLogoPath);
   const imageUrl = businessLogoUrl ?? `${baseUrl}/confirmation-preview.png`;
 
@@ -37,7 +45,7 @@ export function buildPublicConfirmationMetadata({
       url: canonicalUrl,
       siteName: "My Customers",
       type: "website",
-      images: [{ url: imageUrl, alt: "My Customers secure order confirmation" }],
+      images: [{ url: imageUrl, alt: imageAlt }],
     },
     twitter: {
       card: "summary_large_image",
@@ -46,4 +54,20 @@ export function buildPublicConfirmationMetadata({
       images: [imageUrl],
     },
   };
+}
+
+export function buildPublicConfirmationMetadata(
+  input: Omit<
+    PublicCapabilityMetadataInput,
+    "routePrefix" | "title" | "description" | "imageAlt"
+  >,
+): Metadata {
+  return buildPublicCapabilityMetadata({
+    ...input,
+    routePrefix: "/c",
+    title: (businessName) => `Review your order with ${businessName}`,
+    description: (businessName) =>
+      `${businessName} has sent you an order for review and confirmation.`,
+    imageAlt: "My Customers secure order confirmation",
+  });
 }

@@ -113,6 +113,8 @@ The app uses Next.js App Router route groups:
 - `(dashboard)` for the authenticated vendor workspace.
 - `api` for server route handlers.
 - `/c/[token]` for public customer booking confirmation links.
+- `/a/[token]` for public customer amendment confirmation links.
+- `/x/[token]` for public customer add-on confirmation links.
 - `/f/[token]` for public private-feedback links.
 
 Feature folders hold domain code for auth, businesses, customers, bookings,
@@ -195,3 +197,69 @@ ARCHITECTURE CONFLICT
 
 Then explain the accepted decision, conflict discovered, why it matters,
 recommended alternatives, and impact of each alternative.
+
+## Confirmed Agreement Integrity
+
+### Permanent booking invariants
+
+1. Every booking belongs to exactly one business and one customer from that business.
+2. Customer-confirmed material terms are immutable outside narrow database-owned workflows.
+3. Amendments change existing confirmed scope only after customer approval.
+4. Add-ons represent new scope and never rewrite original confirmation evidence.
+5. Pending customer agreement requests do not alter effective terms.
+6. Only confirmed add-ons affect current agreed value, deposit, and balance.
+7. Independently delivered work requires a separate booking.
+8. Cancellation preserves original confirmation, amendment, add-on, and history evidence.
+9. Public capabilities are purpose-separated, opaque, expiring, hash-only at rest, and one-time.
+10. External email failure never rolls back committed booking-domain state.
+
+### Customer agreement request matrix
+
+| Existing unresolved request          | Original confirmation                        | Amendment                                  | Add-on                                                            | Reschedule                                               |
+| ------------------------------------ | -------------------------------------------- | ------------------------------------------ | ----------------------------------------------------------------- | -------------------------------------------------------- |
+| Original confirmation/reconfirmation | Replace/regenerate the scoped link           | Blocked by booking state                   | Blocked by booking state                                          | Replaces the schedule and requires a new link            |
+| Amendment                            | Not eligible in the same booking state       | Replaces/revokes the prior amendment       | Blocked                                                           | Revokes the amendment, then requires reconfirmation      |
+| Add-on                               | Not eligible in the same booking state       | Blocked                                    | Reissues the same add-on link; another awaiting add-on is blocked | Cancels the pending add-on, then requires reconfirmation |
+| None                                 | Allowed only for `DRAFT`/`AWAITING_CUSTOMER` | Allowed only for `CONFIRMED`/`IN_PROGRESS` | Allowed only for `CONFIRMED`/`IN_PROGRESS`                        | Allowed only before operational work starts              |
+
+`DRAFT` add-ons are vendor workspace records, not unresolved customer requests.
+The database remains authoritative for this matrix through booking-state checks,
+partial uniqueness, row locks, and parent-change cleanup triggers.
+
+The booking integrity trigger is the database authority for customer-agreed
+terms. From `CONFIRMED` through later lifecycle states, direct changes to
+customer, title, customer-facing description, currency, total, deposit, or
+schedule fail. Internal notes remain a non-material tenant field until terminal
+lock. Material edits while `AWAITING_CUSTOMER` revoke the open link.
+
+`public.reschedule_booking` is an explicit workflow, not an ordinary update. It
+sets a transaction-local permission, updates only schedule, returns a confirmed
+booking to `AWAITING_CUSTOMER`, clears current confirmation fields, revokes open
+links, and records focused change/audit history. Add-ons
+must add explicit records rather than weakening this boundary.
+
+Phase B general amendments are a separate aggregate, not a temporary booking
+status. `public.create_booking_amendment` freezes current/proposed structured
+terms and the latest confirmation contact while leaving `bookings` unchanged.
+The `/a/[token]` server boundary hashes the distinct capability before invoking
+service-only public view/open/confirm RPCs. Confirmation locks amendment and
+booking rows, verifies the current effective hash, sets a transaction-local
+integrity-trigger exception, applies only allowed material fields, and writes
+effective evidence/history/audit/outbox state atomically. Vendor table reads are
+tenant-RLS scoped; vendor create/revoke RPCs derive membership. Cancellation,
+advancement to `READY`, and explicit reschedule revoke pending amendments.
+
+Phase C add-ons are a second child aggregate for new scope, not another booking
+mutation path. Vendor RPCs derive tenant and parent authority and persist a
+structured draft. Submission freezes terms/contact and creates an independent
+`/x/[token]` capability; the server hashes the raw token before service-only
+view/open/confirm RPCs. Atomic confirmation changes only add-on/link/audit/outbox
+state. Confirmed add-ons are immutable and are joined only for derived current
+totals and analytics. Pending add-ons and amendments are mutually exclusive;
+parent schedule/lifecycle triggers revoke pending add-on capabilities.
+
+`public.transition_booking_status` locks the booking before cancellation,
+validates active membership and reason, writes status/history/audit state, and
+inserts one `BOOKING_CANCELLED` outbox event before commit. Provider delivery is
+post-commit through the existing service-only email boundary, so failure changes
+delivery state but never cancellation truth.
