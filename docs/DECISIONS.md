@@ -705,3 +705,117 @@ features must define equivalent bounds, optimization, access, and cleanup.
 
 Revisit conditions: Multiple brand assets, private media, CDN transformations,
 or a generalized media library is accepted into scope.
+
+## ADR-032 - Confirmed Booking Terms Are Historical Evidence
+
+Status: Accepted
+
+Date: 2026-08-23
+
+Context: The previous trigger allowed an ordinary material edit to a confirmed
+booking to invalidate confirmation and return the booking to
+`AWAITING_CUSTOMER`. That protected current state but still allowed the agreed
+record to be silently rewritten. Cancellation also lacked a durable customer
+notification event.
+
+Decision: Deny ordinary changes to customer, title, customer-facing
+description, currency, total, deposit, and schedule from `CONFIRMED` onward at
+the database boundary. Keep `public.reschedule_booking` as the explicit current
+exception that invalidates confirmation and requires reconfirmation. Keep
+internal notes editable before terminal states. Confirmed cancellation requires
+a bounded plain-text reason, preserves immutable confirmation evidence, and
+atomically creates one `BOOKING_CANCELLED` outbox event using confirmation
+contact before any customer-record fallback.
+
+Rationale: The confirmation snapshot must describe what the customer agreed,
+while the booking row must not imply those same terms were later edited in
+place. Cancellation is a new historical lifecycle fact, not a rewrite of the
+agreement. Durable event creation separates database truth from external
+provider availability.
+
+Consequences: Ordinary confirmed-term edits fail instead of initiating
+reconfirmation. Explicit rescheduling remains available before work starts.
+Provider failure leaves the booking cancelled and the event retryable. Draft
+and awaiting-customer cancellations do not send a cancellation email because no
+current confirmed agreement exists.
+
+Revisit conditions: An explicit amendment model is implemented with customer
+reconfirmation, or linked add-ons are introduced without rewriting the original
+agreement. Add-ons with independent fulfilment schedules remain separate
+bookings.
+
+## ADR-033 - General Material Changes Use A Dedicated Customer-Approved Amendment
+
+Status: Accepted
+
+Date: 2026-08-23
+
+Context: Phase A permanently prevents ordinary rewrites of customer-confirmed
+terms. `booking_changes` preserves completed reschedule history but cannot
+safely represent a pending structured proposal, separate capability lifecycle,
+stale-base concurrency, or customer approval evidence.
+
+Decision: Add `booking_amendments` as the pending/evidence aggregate and extend
+`booking_changes` only for the applied history row. A proposal freezes complete
+old/proposed terms, changed fields, hashes, reason, and authoritative booking
+contact while leaving `bookings` unchanged. V1 permits one pending request only
+for `CONFIRMED` or `IN_PROGRESS`, excludes customer reassignment and internal
+notes, and supports vendor revoke but no customer decline/chat. A distinct
+24-hour hash-only token is confirmed through a service-only atomic RPC that
+checks the current effective hash before applying terms through a transaction-
+local trigger exception.
+
+Reschedule decision: Keep existing reschedule as the specialized date-only,
+pre-work reconfirmation workflow. It returns confirmed bookings to
+`AWAITING_CUSTOMER` and revokes any pending general amendment. A general
+amendment can include schedule with other fields and does not change booking
+status. Cancellation and advancement to `READY` also revoke pending amendments.
+
+Consequences: Original confirmation and every proposed/effective amendment can
+be reconstructed; analytics use current canonical values once; the outbox gains
+request/confirmed subjects. Because raw tokens are never persisted, a failed
+request email cannot later reconstruct its link; the vendor revokes/replaces the
+request to issue a new link. Confirmation email retry data is fully durable.
+
+Add-on boundary: Phase C implements linked new scope without rewriting original
+or amendment evidence.
+
+Revisit conditions: Product requirements introduce customer negotiation,
+multiple simultaneous proposals, amendments after `READY`, customer
+reassignment, or independently scheduled add-on fulfilment.
+
+## ADR-034 - New Booking Scope Uses Linked Customer-Confirmed Add-ons
+
+Status: Accepted
+
+Date: 2026-08-23
+
+Context: General amendments safely change existing agreed scope, but using them
+for additional products or services would erase the distinction between changed
+terms and newly purchased scope. Rewriting booking totals would also weaken the
+confirmed-agreement evidence model.
+
+Decision: Store new scope in `booking_addons`, separate from `bookings`,
+`booking_confirmations`, and `booking_amendments`. Limit V1 creation to
+`CONFIRMED` and `IN_PROGRESS`; inherit parent currency and current schedule;
+use integer minor units and a minimal DRAFT/AWAITING_CUSTOMER/CONFIRMED/CANCELLED
+state machine. Confirm through a distinct 24-hour hash-only capability. Pending
+add-ons never affect totals; all confirmed add-ons contribute to derived current
+value and analytics without increasing booking count. Confirmed add-ons are
+immutable.
+
+Interaction decision: Permit one awaiting add-on per booking and never alongside
+a pending amendment. Reschedule, cancellation, and advancement to `READY`
+cancel pending add-ons and revoke open links. Confirmed add-ons survive parent
+cancellation as historical evidence. A separately scheduled or fulfilled item
+is a new booking.
+
+Consequences: Original and amendment agreement evidence remains reconstructable;
+the current financial view is a derivation rather than a rewritten booking row;
+request/confirmation email and audit events remain add-on-specific. Confirmed
+add-on correction/cancellation requires a future explicit evidence-preserving
+workflow rather than direct mutation.
+
+Revisit conditions: Customer rejection/chat, independently delivered additions,
+catalog/inventory, or explicit confirmed add-on correction/cancellation enters
+accepted scope.

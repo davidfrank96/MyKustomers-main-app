@@ -7,6 +7,10 @@ rescheduling before fulfilment, and operational queues. Phase 8 adds completed
 booking feedback links and internal operational issues around the booking
 record. Phase 9.5 tightens booking UX with natural currency display, consistent
 status labels, and a state-specific next-step area on booking detail pages.
+Phase B adds explicit customer-approved amendments without reopening ordinary
+confirmed booking edits.
+Phase C adds customer-confirmed linked add-ons for new scope while preserving
+the parent booking and amendment evidence.
 
 Every booking belongs to a customer, but a vendor may create that customer
 inline while creating the booking. New Booking supports explicit existing and
@@ -34,6 +38,9 @@ Primary tables:
 - `public.bookings`
 - `public.booking_status_history`
 - `public.booking_changes`
+- `public.booking_amendments`
+- `public.booking_addons`
+- `public.booking_addon_confirmation_links`
 - `public.feedback_links`
 - `public.feedback`
 - `public.booking_issues`
@@ -57,7 +64,7 @@ DRAFT -> AWAITING_CUSTOMER
 DRAFT -> CANCELLED
 AWAITING_CUSTOMER -> CONFIRMED by valid customer confirmation link
 AWAITING_CUSTOMER -> CANCELLED
-CONFIRMED -> AWAITING_CUSTOMER by material edit or reschedule
+CONFIRMED -> AWAITING_CUSTOMER by explicit reschedule
 CONFIRMED -> IN_PROGRESS
 CONFIRMED -> CANCELLED
 IN_PROGRESS -> READY
@@ -68,6 +75,12 @@ DELIVERED -> COMPLETED
 ```
 
 `COMPLETED` and `CANCELLED` are terminal and lock further edits.
+
+Once customer-confirmed, customer, title, customer-facing description,
+currency, total, deposit, and schedule cannot be changed through ordinary
+updates. Internal notes remain editable before terminal states. Material edits
+while awaiting customer revoke the open confirmation link and require a new
+one.
 
 Generating a confirmation link transitions a draft booking to
 `AWAITING_CUSTOMER`. Public GET views of the link do not consume it. Customer
@@ -85,6 +98,29 @@ is material: it returns the booking to `AWAITING_CUSTOMER`, clears current
 confirmation fields, revokes open confirmation links, records a
 `booking_changes` row, and requires a new customer confirmation.
 
+Confirmed cancellation remains a controlled lifecycle transition. It requires
+a bounded plain-text reason, preserves immutable confirmation evidence and
+history, and atomically queues one `BOOKING_CANCELLED` event. Provider delivery
+occurs after commit and cannot roll back the cancellation.
+
+General amendments are available only in `CONFIRMED` and `IN_PROGRESS`. The
+vendor submits customer-agreed proposed fields and a reason through
+`public.create_booking_amendment`; the booking remains unchanged until the
+purpose-specific customer link is confirmed. One pending request is allowed.
+Atomic confirmation checks the base terms hash, applies allowed fields through a
+narrow trigger exception, updates current effective evidence, and records
+amendment history/audit/email state. Vendor revoke, cancellation, advancement to
+`READY`, and reschedule invalidate pending requests. Customer reassignment,
+internal notes, rejection/chat, and amendments after `IN_PROGRESS` are excluded.
+
+Add-ons are also available only in `CONFIRMED` and `IN_PROGRESS`, but represent
+new linked scope rather than changes to existing terms. They inherit parent
+currency and current delivery schedule. Draft/awaiting/cancelled add-ons do not
+affect totals; confirmed add-ons are immutable and contribute to derived current
+value/deposit/balance. One add-on may await confirmation, never alongside a
+pending amendment. Reschedule, cancellation, and advancement to `READY` cancel
+pending add-ons; confirmed evidence is preserved.
+
 After a booking reaches `COMPLETED`, vendors can create a private feedback link
 through the feedback feature. Submitted feedback is immutable and private to the
 owning business. Vendors can also record internal operational issues on booking
@@ -93,9 +129,10 @@ detail pages and resolve open issues once.
 ## Explicit Non-Goals
 
 - Payment processing.
-- Analytics expansion.
-- Booking items or catalog semantics.
-- Notifications or automated email delivery.
+- Catalog/inventory-backed booking items.
+- Lifecycle emails other than booking confirmation, confirmed cancellation, and
+  amendment request/confirmation and add-on request/confirmation.
+- Confirmed add-on correction/cancellation and independent add-on fulfilment.
 
 See `docs/DATA_MODEL.md`, `docs/security.md`, and `docs/DECISIONS.md` for the
 booking data and security decisions.

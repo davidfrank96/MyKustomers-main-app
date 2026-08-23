@@ -3,6 +3,8 @@ import { notFound, redirect } from "next/navigation";
 import type { Route } from "next";
 import { ArrowLeft } from "lucide-react";
 import { BookingForm } from "@/components/forms/booking-form";
+import { BookingAmendmentPanel } from "@/components/forms/booking-amendment-panel";
+import { BookingAddonPanel } from "@/components/forms/booking-addon-panel";
 import { BookingIssueForm } from "@/components/forms/booking-issue-form";
 import { BookingRescheduleForm } from "@/components/forms/booking-reschedule-form";
 import { BookingStatusForm } from "@/components/forms/booking-status-form";
@@ -15,8 +17,9 @@ import {
   rescheduleBookingAction,
   transitionBookingStatusAction,
   updateBookingAction,
+  updateBookingInternalNotesAction,
 } from "@/features/bookings/actions";
-import { formatMoneyMinor, deriveBalanceMinor, minorUnitsToInput } from "@/features/bookings/money";
+import { formatMoneyMinor, minorUnitsToInput } from "@/features/bookings/money";
 import {
   getBookingForBusiness,
   listBookingChangesForBusiness,
@@ -26,11 +29,14 @@ import {
   getAllowedBookingTransitions,
   getBookingStatusLabel,
   getTransitionLabel,
+  areMaterialBookingTermsLocked,
+  hasCustomerConfirmedTerms,
   isBookingOverdue,
   isTerminalBookingStatus,
 } from "@/features/bookings/status";
 import {
   generateConfirmationLinkAction,
+  recordConfirmationShareAction,
   revokeConfirmationLinkAction,
 } from "@/features/confirmation-links/actions";
 import { getConfirmationLinkSummaryForBooking } from "@/features/confirmation-links/queries";
@@ -51,6 +57,23 @@ import {
   issueCategoryLabels,
 } from "@/features/feedback/validation";
 import { getCurrentBusinessContext } from "@/lib/auth/server";
+import {
+  createBookingAmendmentAction,
+  recordAmendmentShareAction,
+  revokeBookingAmendmentAction,
+} from "@/features/amendments/actions";
+import { getBookingAmendmentSummary } from "@/features/amendments/queries";
+import {
+  amendmentFieldLabels,
+  isAmendableBookingStatus,
+} from "@/features/amendments/terms";
+import {
+  cancelBookingAddonAction,
+  createBookingAddonAction,
+  recordAddonShareAction,
+  submitBookingAddonAction,
+} from "@/features/addons/actions";
+import { getBookingAddonSummary } from "@/features/addons/queries";
 
 type BookingDetailPageProps = {
   params: Promise<{ bookingId: string }>;
@@ -119,15 +142,25 @@ export default async function BookingDetailPage({
     notFound();
   }
 
-  const [history, changes, confirmationSummary, feedbackSummary, feedback, issues] =
-    await Promise.all([
-      listBookingStatusHistoryForBusiness(currentBusiness.id, booking.id),
-      listBookingChangesForBusiness(currentBusiness.id, booking.id),
-      getConfirmationLinkSummaryForBooking(currentBusiness.id, booking.id),
-      getFeedbackLinkSummaryForBooking(currentBusiness.id, booking.id),
-      getFeedbackForBooking(currentBusiness.id, booking.id),
-      listBookingIssuesForBooking(currentBusiness.id, booking.id),
-    ]);
+  const [
+    history,
+    changes,
+    confirmationSummary,
+    amendmentSummary,
+    addonSummary,
+    feedbackSummary,
+    feedback,
+    issues,
+  ] = await Promise.all([
+    listBookingStatusHistoryForBusiness(currentBusiness.id, booking.id),
+    listBookingChangesForBusiness(currentBusiness.id, booking.id),
+    getConfirmationLinkSummaryForBooking(currentBusiness.id, booking.id),
+    getBookingAmendmentSummary(currentBusiness.id, booking.id),
+    getBookingAddonSummary(currentBusiness.id, booking.id, booking),
+    getFeedbackLinkSummaryForBooking(currentBusiness.id, booking.id),
+    getFeedbackForBooking(currentBusiness.id, booking.id),
+    listBookingIssuesForBooking(currentBusiness.id, booking.id),
+  ]);
   const timeline = [
     ...history.map((event) => ({
       id: `status-${event.id}`,
@@ -140,19 +173,91 @@ export default async function BookingDetailPage({
     ...changes.map((change) => ({
       id: `change-${change.id}`,
       occurredAt: change.created_at,
-      title: "Booking rescheduled",
-      detail: `${formatDateTime(change.previous_scheduled_for)} to ${formatDateTime(change.new_scheduled_for)}`,
+      title:
+        change.change_type === "amendment"
+          ? "Booking amendment confirmed"
+          : "Booking rescheduled",
+      detail:
+        change.change_type === "amendment"
+          ? (change.changed_fields ?? [])
+              .map((field) =>
+                field in amendmentFieldLabels
+                  ? amendmentFieldLabels[field as keyof typeof amendmentFieldLabels]
+                  : field,
+              )
+              .join(", ")
+          : `${formatDateTime(change.previous_scheduled_for)} to ${formatDateTime(change.new_scheduled_for)}`,
     })),
+    ...amendmentSummary.history.flatMap((amendment) => [
+      {
+        id: `amendment-proposed-${amendment.id}`,
+        occurredAt: amendment.submitted_at,
+        title: "Booking amendment proposed",
+        detail: amendment.reason,
+      },
+      ...(amendment.status === "REVOKED" && amendment.revoked_at
+        ? [
+            {
+              id: `amendment-revoked-${amendment.id}`,
+              occurredAt: amendment.revoked_at,
+              title: "Booking amendment revoked",
+              detail: "The proposed changes did not alter the booking.",
+            },
+          ]
+        : []),
+    ]),
+    ...addonSummary.items.flatMap((addon) => [
+      {
+        id: `addon-created-${addon.id}`,
+        occurredAt: addon.created_at,
+        title: "Booking add-on created",
+        detail: addon.title,
+      },
+      ...(addon.submitted_at
+        ? [
+            {
+              id: `addon-submitted-${addon.id}`,
+              occurredAt: addon.submitted_at,
+              title: "Booking add-on submitted",
+              detail: "Sent for customer confirmation.",
+            },
+          ]
+        : []),
+      ...(addon.confirmed_at
+        ? [
+            {
+              id: `addon-confirmed-${addon.id}`,
+              occurredAt: addon.confirmed_at,
+              title: "Booking add-on confirmed",
+              detail: addon.title,
+            },
+          ]
+        : []),
+      ...(addon.cancelled_at
+        ? [
+            {
+              id: `addon-cancelled-${addon.id}`,
+              occurredAt: addon.cancelled_at,
+              title: "Booking add-on cancelled",
+              detail: "The add-on did not change the original booking.",
+            },
+          ]
+        : []),
+    ]),
   ].sort((a, b) => new Date(a.occurredAt).getTime() - new Date(b.occurredAt).getTime());
-  const rescheduleEligible = ["DRAFT", "AWAITING_CUSTOMER", "CONFIRMED"].includes(booking.status);
+  const rescheduleEligible = ["DRAFT", "AWAITING_CUSTOMER", "CONFIRMED"].includes(
+    booking.status,
+  );
   const scheduleControlled = booking.status !== "DRAFT";
-  const balance = deriveBalanceMinor(booking.total_amount_minor, booking.deposit_amount_minor);
+  const balance = addonSummary.balanceAmountMinor;
   const overdue = isBookingOverdue({
     scheduledFor: booking.scheduled_for,
     status: booking.status,
   });
   const allowedTransitions = getAllowedBookingTransitions(booking.status);
   const locked = isTerminalBookingStatus(booking.status);
+  const materialLocked = areMaterialBookingTermsLocked(booking.status);
+  const cancellationReasonRequired = hasCustomerConfirmedTerms(booking.status);
   const canRequestFeedback = isFeedbackEligibleStatus(booking.status) && !feedback;
 
   return (
@@ -175,7 +280,8 @@ export default async function BookingDetailPage({
             {booking.title}
           </h1>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
-            {booking.customer?.name ?? "Customer unavailable"} · Scheduled {formatDateTime(booking.scheduled_for)}
+            {booking.customer?.name ?? "Customer unavailable"} · Scheduled{" "}
+            {formatDateTime(booking.scheduled_for)}
           </p>
         </div>
 
@@ -200,6 +306,9 @@ export default async function BookingDetailPage({
                       : undefined
                   }
                   cancellationReason={status === "CANCELLED"}
+                  cancellationReasonRequired={
+                    status === "CANCELLED" && cancellationReasonRequired
+                  }
                 />
               ))}
             </div>
@@ -246,21 +355,21 @@ export default async function BookingDetailPage({
       <div className="grid gap-4 lg:grid-cols-3">
         <Card>
           <CardHeader>
-            <CardTitle>Agreed total</CardTitle>
+            <CardTitle>Current agreed value</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-xl font-semibold">
-              {formatMoneyMinor(booking.total_amount_minor, booking.currency)}
+              {formatMoneyMinor(addonSummary.totalAmountMinor, booking.currency)}
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Deposit recorded</CardTitle>
+            <CardTitle>Current deposit recorded</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-xl font-semibold">
-              {formatMoneyMinor(booking.deposit_amount_minor, booking.currency)}
+              {formatMoneyMinor(addonSummary.depositAmountMinor, booking.currency)}
             </p>
           </CardContent>
         </Card>
@@ -269,7 +378,9 @@ export default async function BookingDetailPage({
             <CardTitle>Balance remaining</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-xl font-semibold">{formatMoneyMinor(balance, booking.currency)}</p>
+            <p className="text-xl font-semibold">
+              {formatMoneyMinor(balance, booking.currency)}
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -317,8 +428,67 @@ export default async function BookingDetailPage({
           <ConfirmationLinkPanel
             summary={confirmationSummary}
             canManage={isConfirmationEligibleStatus(booking.status)}
+            businessName={currentBusiness.name}
+            customerName={booking.customer?.name ?? null}
             generateAction={generateConfirmationLinkAction.bind(null, booking.id)}
             revokeAction={revokeConfirmationLinkAction.bind(null, booking.id)}
+            recordShareAction={recordConfirmationShareAction.bind(null, booking.id)}
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Booking changes</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <BookingAmendmentPanel
+            summary={amendmentSummary}
+            canPropose={
+              isAmendableBookingStatus(booking.status) && !addonSummary.hasAwaitingAddon
+            }
+            businessName={currentBusiness.name}
+            customerName={booking.customer?.name ?? null}
+            initialValues={{
+              title: booking.title,
+              description: booking.description,
+              currency: booking.currency,
+              totalAmount: minorUnitsToInput(booking.total_amount_minor),
+              depositAmount: minorUnitsToInput(booking.deposit_amount_minor),
+              scheduledFor: booking.scheduled_for,
+            }}
+            createAction={createBookingAmendmentAction.bind(null, booking.id)}
+            revokeAction={revokeBookingAmendmentAction.bind(
+              null,
+              booking.id,
+              amendmentSummary.latest?.id ?? "",
+            )}
+            recordShareAction={recordAmendmentShareAction.bind(null, booking.id)}
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Booking add-ons</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <BookingAddonPanel
+            summary={addonSummary}
+            canCreate={isAmendableBookingStatus(booking.status)}
+            requestBlocked={
+              amendmentSummary.displayStatus === "pending" ||
+              addonSummary.hasAwaitingAddon
+            }
+            currency={booking.currency}
+            originalTotalAmountMinor={booking.total_amount_minor}
+            originalDepositAmountMinor={booking.deposit_amount_minor}
+            businessName={currentBusiness.name}
+            customerName={booking.customer?.name ?? null}
+            createAction={createBookingAddonAction.bind(null, booking.id)}
+            submitAction={submitBookingAddonAction.bind(null, booking.id)}
+            cancelAction={cancelBookingAddonAction.bind(null, booking.id)}
+            recordShareAction={recordAddonShareAction.bind(null, booking.id)}
           />
         </CardContent>
       </Card>
@@ -332,7 +502,9 @@ export default async function BookingDetailPage({
             <div className="space-y-4">
               <div className="grid gap-3 sm:grid-cols-3">
                 <div>
-                  <p className="text-xs font-medium text-muted-foreground">Overall rating</p>
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Overall rating
+                  </p>
                   <p className="mt-1 text-sm font-medium">{feedback.overall_rating}/5</p>
                 </div>
                 <div>
@@ -340,8 +512,12 @@ export default async function BookingDetailPage({
                   <p className="mt-1 text-sm">{feedback.on_time ? "Yes" : "No"}</p>
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-muted-foreground">Met expectations</p>
-                  <p className="mt-1 text-sm">{feedback.met_expectations ? "Yes" : "No"}</p>
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Met expectations
+                  </p>
+                  <p className="mt-1 text-sm">
+                    {feedback.met_expectations ? "Yes" : "No"}
+                  </p>
                 </div>
               </div>
               {feedback.comment ? (
@@ -376,11 +552,16 @@ export default async function BookingDetailPage({
           ) : (
             <ol className="space-y-3">
               {issues.map((issue) => (
-                <li key={issue.id} className="rounded-md border border-border p-3 text-sm">
+                <li
+                  key={issue.id}
+                  className="rounded-md border border-border p-3 text-sm"
+                >
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
-                        <p className="font-medium">{issueCategoryLabels[issue.category]}</p>
+                        <p className="font-medium">
+                          {issueCategoryLabels[issue.category]}
+                        </p>
                         <Badge variant={issue.status === "OPEN" ? "accent" : "outline"}>
                           {issue.status === "OPEN" ? "Open" : "Resolved"}
                         </Badge>
@@ -437,15 +618,25 @@ export default async function BookingDetailPage({
 
       <Card>
         <CardHeader>
-          <CardTitle>{locked ? "Booking details" : "Edit booking"}</CardTitle>
+          <CardTitle>
+            {locked
+              ? "Booking details"
+              : materialLocked
+                ? "Customer-confirmed details"
+                : "Edit booking"}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <BookingForm
-            action={updateBookingAction.bind(null, booking.id)}
-            submitLabel="Save booking"
+            action={(materialLocked
+              ? updateBookingInternalNotesAction
+              : updateBookingAction
+            ).bind(null, booking.id)}
+            submitLabel={materialLocked ? "Save internal notes" : "Save booking"}
             mode="edit"
             disabled={locked}
             scheduledDisabled={scheduleControlled}
+            materialDisabled={materialLocked}
             initialValues={{
               title: booking.title,
               description: booking.description,
@@ -459,6 +650,12 @@ export default async function BookingDetailPage({
           {locked ? (
             <p className="mt-5 rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground">
               Completed and cancelled bookings are locked.
+            </p>
+          ) : materialLocked ? (
+            <p className="mt-5 rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground">
+              Customer-confirmed booking details are locked. Use Booking changes for
+              customer-approved material changes, or Reschedule for the existing date-only
+              reconfirmation workflow.
             </p>
           ) : null}
         </CardContent>
@@ -474,7 +671,10 @@ export default async function BookingDetailPage({
           ) : (
             <ol className="space-y-3">
               {timeline.map((event) => (
-                <li key={event.id} className="rounded-md border border-border p-3 text-sm">
+                <li
+                  key={event.id}
+                  className="rounded-md border border-border p-3 text-sm"
+                >
                   <p className="font-medium">{event.title}</p>
                   <p className="mt-1 text-muted-foreground">{event.detail}</p>
                   <p className="mt-1 text-muted-foreground">

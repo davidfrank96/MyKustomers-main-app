@@ -9,17 +9,19 @@ import { createClient } from "@/lib/supabase/server";
 import type { BookingActionState } from "@/features/bookings/action-state";
 import {
   bookingCreateSchema,
+  bookingInternalNotesSchema,
   bookingRescheduleSchema,
   bookingTransitionSchema,
   bookingUpdateSchema,
 } from "@/features/bookings/validation";
-import {
-  getBookingForBusiness,
-} from "@/features/bookings/queries";
+import { getBookingForBusiness } from "@/features/bookings/queries";
 import { findPotentialDuplicateCustomers } from "@/features/customers/queries";
 import {
+  areMaterialBookingTermsLocked,
   isTerminalBookingStatus,
 } from "@/features/bookings/status";
+import { hasMaterialBookingFieldChange } from "@/features/confirmation-links/terms";
+import { deliverEmailEvent } from "@/lib/email/outbox";
 
 function formValue(formData: FormData, key: string) {
   return formData.get(key);
@@ -110,13 +112,9 @@ export async function createBookingAction(
     p_new_customer_name:
       parsed.data.customerMode === "new" ? parsed.data.newCustomerName : null,
     p_new_customer_email:
-      parsed.data.customerMode === "new"
-        ? (parsed.data.newCustomerEmail ?? null)
-        : null,
+      parsed.data.customerMode === "new" ? (parsed.data.newCustomerEmail ?? null) : null,
     p_new_customer_phone:
-      parsed.data.customerMode === "new"
-        ? (parsed.data.newCustomerPhone ?? null)
-        : null,
+      parsed.data.customerMode === "new" ? (parsed.data.newCustomerPhone ?? null) : null,
     p_title: parsed.data.title,
     p_description: parsed.data.description ?? null,
     p_currency: parsed.data.currency,
@@ -178,6 +176,22 @@ export async function updateBookingAction(
     internal_notes: parsed.data.internalNotes ?? null,
   };
 
+  const changedFields = Object.entries(nextBooking)
+    .filter(
+      ([key, value]) => existingBooking[key as keyof typeof existingBooking] !== value,
+    )
+    .map(([key]) => key);
+
+  if (
+    areMaterialBookingTermsLocked(existingBooking.status) &&
+    hasMaterialBookingFieldChange(changedFields)
+  ) {
+    return {
+      status: "error",
+      message: "Customer-confirmed booking details are locked.",
+    };
+  }
+
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("bookings")
@@ -193,10 +207,6 @@ export async function updateBookingAction(
       message: mapBookingError(),
     };
   }
-
-  const changedFields = Object.entries(nextBooking)
-    .filter(([key, value]) => existingBooking[key as keyof typeof existingBooking] !== value)
-    .map(([key]) => key);
 
   await recordAuditEvent({
     actorUserId: user.id,
@@ -215,13 +225,77 @@ export async function updateBookingAction(
   };
 }
 
+export async function updateBookingInternalNotesAction(
+  bookingId: string,
+  _previousState: BookingActionState,
+  formData: FormData,
+): Promise<BookingActionState> {
+  const { user, business } = await requireCurrentBusiness(`/bookings/${bookingId}`);
+  const existingBooking = await getBookingForBusiness(business.id, bookingId);
+
+  if (!existingBooking || isTerminalBookingStatus(existingBooking.status)) {
+    return {
+      status: "error",
+      message: "This booking cannot be edited.",
+    };
+  }
+
+  const parsed = bookingInternalNotesSchema.safeParse({
+    internalNotes: formValue(formData, "internalNotes"),
+  });
+
+  if (!parsed.success) {
+    return validationError(parsed.error);
+  }
+
+  const internalNotes = parsed.data.internalNotes ?? null;
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("bookings")
+    .update({ internal_notes: internalNotes })
+    .eq("business_id", business.id)
+    .eq("id", bookingId)
+    .select("id")
+    .maybeSingle();
+
+  if (error || !data) {
+    return {
+      status: "error",
+      message: mapBookingError(),
+    };
+  }
+
+  if (existingBooking.internal_notes !== internalNotes) {
+    await recordAuditEvent({
+      actorUserId: user.id,
+      businessId: business.id,
+      eventType: "BOOKING_UPDATED",
+      metadata: { booking_id: bookingId, changed_fields: ["internal_notes"] },
+    });
+  }
+
+  revalidatePath(`/bookings/${bookingId}`);
+
+  return {
+    status: "success",
+    message: "Internal notes updated.",
+  };
+}
+
 export async function transitionBookingStatusAction(
   bookingId: string,
   toStatus: string,
   formData?: FormData,
 ) {
-  await requireCurrentBusiness(`/bookings/${bookingId}`);
+  const { business } = await requireCurrentBusiness(`/bookings/${bookingId}`);
+  const booking = await getBookingForBusiness(business.id, bookingId);
+
+  if (!booking) {
+    redirect(`/bookings/${bookingId}?message=invalid-transition` as Route);
+  }
+
   const parsed = bookingTransitionSchema.safeParse({
+    fromStatus: booking.status,
     toStatus,
     cancellationReason: formData ? formValue(formData, "cancellationReason") : undefined,
   });
@@ -231,7 +305,7 @@ export async function transitionBookingStatusAction(
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.rpc("transition_booking_status", {
+  const { data, error } = await supabase.rpc("transition_booking_status", {
     p_booking_id: bookingId,
     p_to_status: parsed.data.toStatus,
     p_cancellation_reason: parsed.data.cancellationReason ?? null,
@@ -239,6 +313,11 @@ export async function transitionBookingStatusAction(
 
   if (error) {
     redirect(`/bookings/${bookingId}?message=invalid-transition` as Route);
+  }
+
+  const emailEventId = data?.[0]?.email_event_id;
+  if (emailEventId) {
+    await deliverEmailEvent(emailEventId);
   }
 
   revalidatePath("/dashboard");

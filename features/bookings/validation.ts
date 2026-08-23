@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { bookingCurrencies, parseMoneyToMinorUnits } from "@/features/bookings/money";
-import { bookingStatuses } from "@/features/bookings/status";
+import { bookingStatuses, hasCustomerConfirmedTerms } from "@/features/bookings/status";
 import {
   customerEmailSchema,
   customerNameSchema,
@@ -124,29 +124,54 @@ export const bookingCreateSchema = z
 
 export const bookingUpdateSchema = bookingFieldsSchema.superRefine(enforceDepositLimit);
 
-export const bookingTransitionSchema = z.object({
-  toStatus: z.enum(bookingStatuses),
-  cancellationReason: optionalTrimmedString(500),
+export const bookingInternalNotesSchema = z.object({
+  internalNotes: optionalTrimmedString(5000),
 });
 
-export const bookingRescheduleSchema = z.object({
-  scheduledFor: z.preprocess((value) => {
-    if (typeof value !== "string" || value.trim().length === 0) {
-      return undefined;
+export const bookingTransitionSchema = z
+  .object({
+    fromStatus: z.enum(bookingStatuses).optional(),
+    toStatus: z.enum(bookingStatuses),
+    cancellationReason: optionalTrimmedString(500).refine(
+      (value) => !value || !/<\s*\/?\s*[a-z][^>]*>/i.test(value),
+      "Cancellation reason must be plain text.",
+    ),
+  })
+  .superRefine((value, ctx) => {
+    if (
+      value.toStatus === "CANCELLED" &&
+      value.fromStatus &&
+      hasCustomerConfirmedTerms(value.fromStatus) &&
+      !value.cancellationReason
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["cancellationReason"],
+        message: "Cancellation reason is required.",
+      });
     }
+  });
 
-    const date = new Date(value);
-    return Number.isNaN(date.getTime()) ? value : date.toISOString();
-  }, z.string().datetime("Enter a valid scheduled date.")),
-}).superRefine((value, ctx) => {
-  if (new Date(value.scheduledFor).getTime() <= Date.now()) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      path: ["scheduledFor"],
-      message: "Choose a future scheduled date.",
-    });
-  }
-});
+export const bookingRescheduleSchema = z
+  .object({
+    scheduledFor: z.preprocess((value) => {
+      if (typeof value !== "string" || value.trim().length === 0) {
+        return undefined;
+      }
+
+      const date = new Date(value);
+      return Number.isNaN(date.getTime()) ? value : date.toISOString();
+    }, z.string().datetime("Enter a valid scheduled date.")),
+  })
+  .superRefine((value, ctx) => {
+    if (new Date(value.scheduledFor).getTime() <= Date.now()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["scheduledFor"],
+        message: "Choose a future scheduled date.",
+      });
+    }
+  });
 
 export const bookingListParamsSchema = z.object({
   q: z
@@ -154,10 +179,16 @@ export const bookingListParamsSchema = z.object({
     .transform((value) => value.slice(0, 80)),
   filter: z.enum(bookingListFilters).catch("all"),
   page: z
-    .preprocess((value) => Number.parseInt(String(value ?? "1"), 10), z.number().int().min(1))
+    .preprocess(
+      (value) => Number.parseInt(String(value ?? "1"), 10),
+      z.number().int().min(1),
+    )
     .catch(1),
   limit: z
-    .preprocess((value) => Number.parseInt(String(value ?? "10"), 10), z.number().int().min(1).max(25))
+    .preprocess(
+      (value) => Number.parseInt(String(value ?? "10"), 10),
+      z.number().int().min(1).max(25),
+    )
     .catch(10),
 });
 
@@ -166,7 +197,9 @@ export type BookingUpdateInput = z.infer<typeof bookingUpdateSchema>;
 export type BookingRescheduleInput = z.infer<typeof bookingRescheduleSchema>;
 export type BookingListParams = z.infer<typeof bookingListParamsSchema>;
 
-export function parseBookingListParams(input: Record<string, string | string[] | undefined>) {
+export function parseBookingListParams(
+  input: Record<string, string | string[] | undefined>,
+) {
   return bookingListParamsSchema.parse({
     q: typeof input.q === "string" ? input.q : "",
     filter: typeof input.filter === "string" ? input.filter : "all",

@@ -49,9 +49,18 @@ do not reduce the verified tenant/RLS coverage.
 - Phase 6 confirmation-link domain tests.
 - Static Phase 6 confirmation migration/security review tests.
 - Phase 6 runtime Supabase confirmation-link security test.
+- Trusted confirmation share-message/intent and safe metadata unit tests,
+  accessible dialog/clipboard/native fallback integration tests, static RPC
+  grant checks, and live idempotent first-open/unauthorized-call coverage.
 - Customer contact validation and booking-confirmed email template/provider
   boundary unit tests.
 - Static customer-contact/email-outbox migration security tests.
+- Confirmed-term material classification, cancellation reason, recipient
+  priority, safe HTML/plain-text cancellation template, and outbox idempotency
+  unit/static tests.
+- Booking add-on validation, effective-total derivation, token/hash/expiry,
+  privacy-safe sharing, request/confirmation email wording, static migration
+  hardening, and live tenant/purpose/race/lifecycle/analytics coverage.
 - Phase 7 booking lifecycle domain tests.
 - Static Phase 7 operational lifecycle migration/security review tests.
 - Phase 7 runtime Supabase operational lifecycle security test.
@@ -83,6 +92,10 @@ do not reduce the verified tenant/RLS coverage.
 - Public confirmation identity coverage for persisted logo, fallback initials,
   safe website/Instagram links, unchanged booking/contact confirmation, and no
   visible tenant ID.
+- Canonical confirmation sharing coverage for editable contextual copy,
+  controlled URL copying, rendered Open Graph fields, hydrated first-open
+  evidence, truthful vendor share-method state, and Telegram-style preview
+  requests that receive no customer/order body or view evidence.
 - Lightweight governance tests for required documentation, the repository
   definition-of-done rule, and migration filename/order discipline.
 
@@ -103,8 +116,21 @@ do not reduce the verified tenant/RLS coverage.
 - E2E-032 - Revoked confirmation token fails. VERIFIED by runtime security test.
 - E2E-033 - Consumed token cannot be reused where one-time use is required. VERIFIED.
 - E2E-034 - Confirmed booking can be rescheduled and requires reconfirmation. VERIFIED.
-- E2E-035 - Confirmed booking can move through fulfilment to completion. VERIFIED.
-- E2E-036 - Confirmation captures required email, optionally enriches the
+- E2E-035 - Pending amendment leaves canonical terms unchanged, then customer
+  Current/Proposed confirmation applies it on desktop and mobile. VERIFIED.
+- E2E-036 - Public amendment diff has no horizontal overflow at 320, 360, 375,
+  390, 430, 768, 1024, and 1440 pixels. VERIFIED.
+- E2E-036A - Vendor can create and submit new linked scope, customer can confirm
+  it through `/x/[token]`, and original confirmation evidence remains unchanged.
+  VERIFIED.
+- E2E-036B - Public add-on review has no horizontal overflow at 320, 360, 375,
+  390, 430, 768, 1024, and 1440 pixels. VERIFIED.
+- E2E-036C - One booking preserves its 45,000 original confirmation, applies a
+  55,000 confirmed amendment, adds an independently evidenced 18,000 confirmed
+  add-on, reports 73,000 current agreed value with booking count one, then
+  cancels without rewriting any agreement layer. VERIFIED by live runtime test.
+- E2E-037 - Confirmed booking can move through fulfilment to completion. VERIFIED.
+- E2E-038 - Confirmation captures required email, optionally enriches the
   customer, and processes one event through the no-network development adapter.
   VERIFIED.
 - E2E-040 - Completed booking can request private feedback. VERIFIED.
@@ -202,6 +228,8 @@ confirmation, confirmation evidence, snapshot/hash storage, material-change
 invalidation, used-link snapshot stability, non-material internal-note edits,
 cancellation invalidation, regeneration revocation, concurrent confirmation
 behavior, persistent rate limiting, audit events, and raw-token non-logging. It
+also verifies idempotent first-open recording, one `CONFIRMATION_OPENED` audit,
+and denial of the first-open RPC to authenticated/anonymous clients. It
 also verifies invalid contact does not consume a link, conservative customer
 enrichment, immutable submitted contact, concurrent different-email winner
 consistency, exactly one email event, provider-failure persistence,
@@ -214,6 +242,16 @@ status-history and booking-change write denial, stale/repeated transition
 denial, reschedule confirmation invalidation, non-material edit regression,
 cancellation confirmation invalidation, terminal locks, operational audit
 events, and due/upcoming behavior.
+
+The confirmed-booking integrity runtime test verifies crafted direct updates to
+title, description, total, deposit, customer, and schedule are denied after
+confirmation; internal notes remain editable; explicit rescheduling remains
+valid; awaiting-customer material edits revoke open links; cross-tenant and
+anonymous/customer-capability cancellation fail; confirmation evidence survives
+cancellation; conflicting customer email loses to confirmation contact; two
+concurrent cancellations produce one reason/history/audit/email event; and a
+simulated provider failure leaves the booking `CANCELLED` with a retryable
+`FAILED` event.
 
 The Phase 8 runtime test verifies valid feedback link view/submission, public
 data minimization, duplicate/consumed submission behavior, invalid, expired,
@@ -228,6 +266,27 @@ persisted fixtures, tenant aggregate isolation, cross-tenant RPC denial,
 currency separation, cancelled/draft value exclusion, feedback metrics, issue
 distribution, overdue calculation, on-time behavior against current schedules,
 and safe membership enforcement.
+
+The booking-amendments runtime test verifies structured old/proposed evidence,
+no canonical mutation while pending, confirmation-contact recipient priority,
+one-active replacement, tenant read/create/revoke denial, anonymous service-RPC
+denial, confirmation/amendment/feedback purpose separation, safe public view,
+concurrent idempotent confirmation, one applied history/audit/email effect,
+direct material-edit regression, request/confirmation provider-failure
+persistence, original confirmation preservation, updated effective analytics
+without double counting, vendor revoke, cancellation revocation, stale-base
+denial, and expiry. Static and unit tests cover RLS/grants/search paths,
+constraints, validation, share privacy, template escaping, and payment wording.
+
+The booking-addons runtime test verifies amount and parent/currency constraints,
+draft/pending exclusion, inherited schedule/contact, tenant authorization,
+one-awaiting and amendment-conflict rules, regenerated-link revocation,
+confirmation/amendment/feedback/original purpose separation, safe view/open,
+concurrent confirmation idempotency, direct mutation denial, confirmed
+immutability, request/confirmation provider-failure persistence, multiple
+confirmed add-on totals/deposits with unchanged booking count, pending cleanup on
+reschedule/READY/cancellation, and preservation of confirmed add-on plus original
+confirmation evidence after parent cancellation.
 
 The Phase 9.5 UX audit verifies the completed product surface at mobile widths
 375px, 390px, and 430px, tablet width 768px, and desktop width 1365px. It
@@ -251,7 +310,7 @@ inboxes.
 - Dependency Security: moderate-and-higher npm advisory gate.
 - E2E: Chromium and all ordinary Playwright journeys using required dedicated
   non-production Supabase secrets; controlled-inbox signup remains optional.
-- Runtime Security: the live nine-suite regression, guarded until the protected
+- Runtime Security: the live runtime regression suite, guarded until the protected
   `supabase-runtime-security` environment and enable variable are configured.
 
 The core E2E job validates required secret presence so missing credentials do

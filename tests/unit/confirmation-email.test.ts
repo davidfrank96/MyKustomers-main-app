@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { confirmationContactSchema } from "@/features/confirmation-links/validation";
 import { bookingConfirmedEmail } from "@/lib/email/templates/booking-confirmed";
+import {
+  bookingCancelledEmail,
+  selectCancellationRecipient,
+} from "@/lib/email/templates/booking-cancelled";
 import { sendWithProviderBoundary } from "@/lib/email/send";
 import type { TransactionalEmailProvider } from "@/lib/email/types";
 
@@ -43,9 +47,7 @@ describe("confirmation contact and email", () => {
       balanceAmountMinor: 40_000,
     });
 
-    expect(email.subject).toBe(
-      "Booking confirmed - Example & Co - MC-260820-ABC123",
-    );
+    expect(email.subject).toBe("Booking confirmed - Example & Co - MC-260820-ABC123");
     expect(email.idempotencyKey).toBe("email-event/event-id");
     expect(email.text).toContain("Balance remaining");
     expect(email.html).toContain("Birthday &lt;Cake&gt;");
@@ -73,5 +75,51 @@ describe("confirmation contact and email", () => {
       code: "provider_exception",
       message: "The transactional email provider request failed.",
     });
+  });
+
+  it("prefers immutable confirmation contact for cancellation delivery", () => {
+    expect(
+      selectCancellationRecipient({
+        confirmationContactEmail: " New@Example.com ",
+        customerEmail: "old@example.com",
+      }),
+    ).toBe("new@example.com");
+    expect(
+      selectCancellationRecipient({
+        confirmationContactEmail: null,
+        customerEmail: " fallback@example.com ",
+      }),
+    ).toBe("fallback@example.com");
+    expect(
+      selectCancellationRecipient({
+        confirmationContactEmail: null,
+        customerEmail: null,
+      }),
+    ).toBeNull();
+  });
+
+  it("renders safe cancellation content without refund promises or private data", () => {
+    const email = bookingCancelledEmail({
+      emailEventId: "cancel-event-id",
+      recipientEmail: "new@example.com",
+      businessName: "Example & Co",
+      bookingTitle: "Birthday <Cake>",
+      bookingReference: "MC-260823-ABC123",
+      scheduledFor: "2026-08-25T12:00:00.000Z",
+      cancellationReason: "Customer requested <script>alert(1)</script> cancellation",
+      cancelledAt: "2026-08-23T12:00:00.000Z",
+    });
+
+    expect(email.subject).toBe("Booking cancelled - Example & Co - MC-260823-ABC123");
+    expect(email.idempotencyKey).toBe("email-event/cancel-event-id");
+    expect(email.text).toContain(
+      "contact the business regarding payment or refund arrangements",
+    );
+    expect(email.text).not.toContain("refund issued");
+    expect(email.html).toContain("Birthday &lt;Cake&gt;");
+    expect(email.html).toContain("&lt;script&gt;alert(1)&lt;/script&gt;");
+    expect(email.html).not.toContain("internal_notes");
+    expect(email.html).not.toContain("tenant");
+    expect(email.html).not.toContain("token");
   });
 });

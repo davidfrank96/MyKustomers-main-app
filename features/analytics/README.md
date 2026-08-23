@@ -30,6 +30,11 @@ summed across currencies.
 Metric formulas are documented in `docs/ANALYTICS_DEFINITIONS.md` and mirrored
 in `definitions.ts` for the in-app definitions section.
 
+Phase C effective value includes all confirmed add-on totals and recorded
+deposits on the parent booking. Draft, awaiting, and cancelled add-ons are
+excluded, currencies remain inherited/grouped, and add-ons never increase the
+booking count denominator.
+
 Phase 9.5 keeps insights readable for business owners by avoiding internal
 tenancy terminology in visible definitions and preserving conservative recorded
 value language.

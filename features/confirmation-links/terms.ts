@@ -1,6 +1,7 @@
 import type { Booking } from "@/features/bookings/queries";
 
 export const materialBookingFields = [
+  "customer_id",
   "title",
   "description",
   "currency",
@@ -9,7 +10,9 @@ export const materialBookingFields = [
   "scheduled_for",
 ] as const satisfies readonly (keyof Booking)[];
 
-export const nonMaterialBookingFields = ["internal_notes"] as const satisfies readonly (keyof Booking)[];
+export const nonMaterialBookingFields = [
+  "internal_notes",
+] as const satisfies readonly (keyof Booking)[];
 
 export type MaterialBookingField = (typeof materialBookingFields)[number];
 

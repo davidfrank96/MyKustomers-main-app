@@ -2,6 +2,114 @@
 
 This changelog records meaningful project milestones. It is not a substitute for Git history.
 
+## 2026-08-23 - Booking Integrity Consolidation
+
+Status: VERIFIED
+
+- Audited the combined confirmation, reschedule, cancellation, amendment,
+  add-on, sharing, outbox, analytics, authorization, RLS, and history model
+  against the live development schema.
+- Documented permanent booking invariants and the explicit customer agreement
+  request matrix without changing product semantics.
+- Consolidated repeated public capability rate limiting, first-open request
+  handling/client tracking, metadata security defaults, and effective-total
+  calculation while retaining purpose-specific domain wrappers and RPCs.
+- Added a live integrity scenario covering original 45,000 confirmation,
+  confirmed 55,000 amendment, confirmed 18,000 add-on, 73,000 effective value,
+  booking count one, and cancellation with all evidence preserved.
+- Added a forward migration that removes four exact duplicate B-tree indexes;
+  no table, policy, function, grant, or product contract changed.
+
+## 2026-08-23 - Booking Add-ons And Customer Confirmation
+
+Status: VERIFIED
+
+- Added tenant-owned `booking_addons` and purpose-specific confirmation links
+  for new scope without mutating original booking or amendment evidence.
+- Enforced parent/business/currency consistency, safe integer minor amounts,
+  `CONFIRMED`/`IN_PROGRESS` eligibility, one awaiting request, immutable
+  confirmed terms, inherited delivery schedule, and pending amendment/add-on
+  exclusion at the database boundary.
+- Added vendor draft/submit/reissue/cancel/share UI and `/x/[token]` customer
+  review with safe metadata, first-open tracking, responsive layouts, and atomic
+  one-time confirmation.
+- Extended audit/history and the durable outbox with add-on request/confirmed
+  events. Provider failure does not roll back pending or confirmed domain state.
+- Derived effective booking totals and analytics from all confirmed add-ons only;
+  pending/cancelled add-ons contribute zero and parent booking count stays one.
+- Applied the main migration and two forward fixes for parent/currency trigger
+  integrity and regenerated-request email idempotency. Static, live runtime, and
+  canonical desktop/mobile E2E verification pass.
+- Deferred confirmed add-on correction/cancellation, independent delivery,
+  catalog/inventory, payment processing, billing, and broad redesign.
+
+## 2026-08-23 - Booking Amendments And Customer Reconfirmation
+
+Status: VERIFIED
+
+- Added a tenant-owned `booking_amendments` aggregate with immutable structured
+  old/proposed/effective terms, base/proposed hashes, changed fields, required
+  reason, frozen confirmation contact, one-active policy, and full token state.
+- Kept canonical booking terms unchanged while pending. A separate 24-hour
+  hash-only capability and service-only atomic confirmation RPC apply allowed
+  fields only after stale-base, lifecycle, revocation, expiry, and purpose checks.
+- Added minimal vendor proposal/pending/revoke/share UI and `/a/[token]` customer
+  Current/Proposed diff with safe business-only metadata and first-open tracking.
+- Extended booking history, audit events, and the existing outbox with amendment
+  request/confirmed email. Provider failure does not change proposal or approval
+  truth; cancellation uses current amended terms while original evidence remains.
+- Kept reschedule as the specialized date-only pre-work reconfirmation path;
+  reschedule, cancellation, and advancement to `READY` revoke pending amendments.
+- Applied the main migration and three forward live-found fixes for PL/pgSQL
+  parameter resolution and inferable email idempotency. Static, live tenant/
+  purpose/race/stale/revoke/cancellation/analytics tests and canonical desktop/
+  mobile responsive E2E pass.
+- Deferred add-ons, customer negotiation/rejection, billing, payment processing,
+  broad UI redesign, and unrelated lifecycle email.
+
+## 2026-08-23 - Confirmed Booking Integrity And Cancellation Notification
+
+Status: VERIFIED
+
+- Locked customer-agreed customer, title, description, currency, total,
+  deposit, and schedule fields at the database boundary from confirmation
+  onward while preserving draft edits, internal notes, and explicit reschedule
+  reconfirmation.
+- Revoked open confirmation links when material terms change while awaiting the
+  customer, preserving the historical confirmation/link model.
+- Required bounded plain-text reasons for customer-confirmed cancellation and
+  preserved confirmation row, contact, snapshot/hash, confirmed timestamp,
+  status history, and audit evidence after cancellation.
+- Added atomic/idempotent `BOOKING_CANCELLED` outbox events, immutable
+  confirmation-contact-first recipient selection, safe HTML/text templates,
+  neutral payment/refund guidance, and post-commit provider failure semantics.
+- Applied the forward migration and a forward RPC column-qualification fix to
+  development. Live crafted-update, cross-tenant, capability, recipient,
+  provider-failure, and concurrent cancellation scenarios pass.
+- Kept amendments, add-ons, payment processing, billing, other lifecycle email,
+  and broad UI redesign out of scope.
+
+## 2026-08-23 - Trusted Customer Confirmation Sharing
+
+Status: VERIFIED
+
+- Replaced naked-link-only handling with a primary contextual sharing dialog,
+  editable privacy-safe message, immutable confirmation URL, native system
+  share, WhatsApp, Telegram, Copy message, and Copy link.
+- Added dynamic canonical Open Graph/Twitter metadata using only valid-link
+  state and public business name/logo, with a generic branded image fallback;
+  customer/contact/order PII is structurally absent from metadata generation.
+- Added tenant-validated `CONFIRMATION_SHARE_INITIATED` audits and an
+  idempotent, rate-limited, post-hydration `CONFIRMATION_OPENED` signal. These
+  mean method selected and page opened, never provider delivery/read receipt.
+- Applied the forward migration to development and verified service-only RPC
+  grants, anonymous/authenticated denial, duplicate-open behavior, static and
+  live security coverage, dialog utilities, rendered metadata, and the existing
+  confirmation lifecycle.
+- Added a forward race fix so immediate customer confirmation cannot outrun the
+  hydrated first-open signal; used links qualify only when matching immutable
+  confirmation evidence exists.
+
 ## 2026-08-21 - Mobile Account, Business Identity, And Dashboard Navigation
 
 Status: VERIFIED

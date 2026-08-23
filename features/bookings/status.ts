@@ -12,6 +12,12 @@ export const bookingStatuses = [
 export type BookingStatus = (typeof bookingStatuses)[number];
 
 export const terminalBookingStatuses = ["COMPLETED", "CANCELLED"] as const;
+export const customerConfirmedBookingStatuses = [
+  "CONFIRMED",
+  "IN_PROGRESS",
+  "READY",
+  "DELIVERED",
+] as const;
 
 const allowedTransitions: Record<BookingStatus, BookingStatus[]> = {
   DRAFT: ["CANCELLED"],
@@ -33,7 +39,19 @@ export function isAllowedBookingTransition(from: BookingStatus, to: BookingStatu
 }
 
 export function isTerminalBookingStatus(status: BookingStatus) {
-  return terminalBookingStatuses.includes(status as (typeof terminalBookingStatuses)[number]);
+  return terminalBookingStatuses.includes(
+    status as (typeof terminalBookingStatuses)[number],
+  );
+}
+
+export function hasCustomerConfirmedTerms(status: BookingStatus) {
+  return customerConfirmedBookingStatuses.includes(
+    status as (typeof customerConfirmedBookingStatuses)[number],
+  );
+}
+
+export function areMaterialBookingTermsLocked(status: BookingStatus) {
+  return status !== "DRAFT" && status !== "AWAITING_CUSTOMER";
 }
 
 export function getBookingStatusLabel(status: BookingStatus) {

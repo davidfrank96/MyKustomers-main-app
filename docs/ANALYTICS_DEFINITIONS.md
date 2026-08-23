@@ -36,6 +36,11 @@ not in recorded or completed value.
 `COMPLETED` bookings drive completed count, completed booking value, on-time
 rate, and fulfilment duration.
 
+Only `CONFIRMED` booking add-ons contribute value. `DRAFT`,
+`AWAITING_CUSTOMER`, and `CANCELLED` add-ons contribute zero. Confirmed add-ons
+inherit the parent booking currency and are attributed to the parent booking's
+existing metric period; they never create another booking count.
+
 ## Financial Terminology
 
 My Customers does not process vendor/customer payments. Values are recorded
@@ -62,16 +67,17 @@ GBP, and USD into one total and does not perform foreign-exchange conversion.
   the selected period.
 - Active bookings: current bookings whose status is not `COMPLETED` or
   `CANCELLED`, independent of period.
-- Recorded booking value: sum of `total_amount_minor` for non-`DRAFT`,
-  non-`CANCELLED` bookings created during the selected period, grouped by
-  currency.
-- Completed booking value: sum of `total_amount_minor` for `COMPLETED`
-  bookings with `completed_at` during the selected period, grouped by currency.
+- Recorded booking value: sum of each qualifying booking's
+  `total_amount_minor` plus all confirmed add-on totals, for non-`DRAFT`,
+  non-`CANCELLED` bookings created during the selected period, grouped by currency.
+- Completed booking value: sum of each completed booking's
+  `total_amount_minor` plus all confirmed add-on totals, for bookings with
+  `completed_at` during the selected period, grouped by currency.
 - Average booking value: recorded booking value divided by recorded booking
   count for the same currency.
-- Recorded deposits: sum of `deposit_amount_minor` for non-`DRAFT`,
-  non-`CANCELLED` bookings created during the selected period, grouped by
-  currency.
+- Recorded deposits: sum of each qualifying booking's `deposit_amount_minor`
+  plus all confirmed add-on deposits, for non-`DRAFT`, non-`CANCELLED` bookings
+  created during the selected period, grouped by currency.
 - On-time rate: completed bookings with `delivered_at <= scheduled_for` divided
   by completed bookings with both `scheduled_for` and `delivered_at`. The period
   is based on `completed_at`. Rescheduled bookings use the current agreed

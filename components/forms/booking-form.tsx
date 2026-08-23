@@ -50,6 +50,7 @@ type BookingFormProps = {
   defaultCustomerMode?: "existing" | "new";
   disabled?: boolean;
   scheduledDisabled?: boolean;
+  materialDisabled?: boolean;
 };
 
 function toLocalDateTimeValue(value?: string | null) {
@@ -90,6 +91,7 @@ export function BookingForm({
   defaultCustomerMode = "existing",
   disabled = false,
   scheduledDisabled = false,
+  materialDisabled = false,
 }: BookingFormProps) {
   const [state, formAction] = useActionState(action, initialBookingActionState);
   const [customerMode, setCustomerMode] = useState<"existing" | "new">(
@@ -147,10 +149,10 @@ export function BookingForm({
   }, [customerOptions, customerSearch]);
   const duplicateWarningActive = Boolean(
     state.duplicateCandidates?.length &&
-      state.duplicateInput &&
-      state.duplicateInput.name === newCustomerName.trim() &&
-      state.duplicateInput.email === (newCustomerEmail.trim().toLowerCase() || null) &&
-      state.duplicateInput.phone === (newCustomerPhone.trim() || null),
+    state.duplicateInput &&
+    state.duplicateInput.name === newCustomerName.trim() &&
+    state.duplicateInput.email === (newCustomerEmail.trim().toLowerCase() || null) &&
+    state.duplicateInput.phone === (newCustomerPhone.trim() || null),
   );
 
   function chooseCustomerMode(nextMode: "existing" | "new") {
@@ -183,15 +185,23 @@ export function BookingForm({
           role={state.status === "error" ? "alert" : "status"}
         >
           {state.status === "error" ? (
-            <AlertCircle className="mt-0.5 size-4 shrink-0 text-destructive" aria-hidden="true" />
+            <AlertCircle
+              className="mt-0.5 size-4 shrink-0 text-destructive"
+              aria-hidden="true"
+            />
           ) : (
-            <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
+            <CheckCircle2
+              className="mt-0.5 size-4 shrink-0 text-primary"
+              aria-hidden="true"
+            />
           )}
           <span className="text-muted-foreground">{state.message}</span>
         </div>
       ) : null}
 
-      <input type="hidden" name="scheduledFor" value={scheduledForIso} />
+      {!materialDisabled ? (
+        <input type="hidden" name="scheduledFor" value={scheduledForIso} />
+      ) : null}
       {mode === "create" ? (
         <input type="hidden" name="customerMode" value={customerMode} />
       ) : null}
@@ -272,7 +282,9 @@ export function BookingForm({
                         <SelectItem key={customer.id} value={customer.id}>
                           {customer.name}
                           {customer.phone ? ` - ${customer.phone}` : ""}
-                          {!customer.phone && customer.email ? ` - ${customer.email}` : ""}
+                          {!customer.phone && customer.email
+                            ? ` - ${customer.email}`
+                            : ""}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -363,8 +375,9 @@ export function BookingForm({
                         <div className="min-w-0">
                           <p className="text-sm font-medium">{customer.name}</p>
                           <p className="break-words text-xs text-muted-foreground">
-                            {[customer.email, customer.phone].filter(Boolean).join(" / ") ||
-                              "No contact details"}
+                            {[customer.email, customer.phone]
+                              .filter(Boolean)
+                              .join(" / ") || "No contact details"}
                           </p>
                         </div>
                         <Button
@@ -394,7 +407,7 @@ export function BookingForm({
             value={title}
             onChange={(event) => setTitle(event.target.value)}
             required
-            disabled={disabled}
+            disabled={disabled || materialDisabled}
             aria-invalid={Boolean(fieldError(state, "title"))}
             aria-describedby={fieldError(state, "title") ? "title-error" : undefined}
           />
@@ -413,7 +426,7 @@ export function BookingForm({
             value={description}
             onChange={(event) => setDescription(event.target.value)}
             maxLength={5000}
-            disabled={disabled}
+            disabled={disabled || materialDisabled}
           />
         </div>
 
@@ -423,9 +436,12 @@ export function BookingForm({
             name="currency"
             value={currency}
             onValueChange={setCurrency}
-            disabled={disabled}
+            disabled={disabled || materialDisabled}
           >
-            <SelectTrigger id="currency" aria-invalid={Boolean(fieldError(state, "currency"))}>
+            <SelectTrigger
+              id="currency"
+              aria-invalid={Boolean(fieldError(state, "currency"))}
+            >
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -450,9 +466,11 @@ export function BookingForm({
             type="datetime-local"
             value={scheduledLocal}
             onChange={(event) => setScheduledLocal(event.target.value)}
-            disabled={disabled || scheduledDisabled}
+            disabled={disabled || scheduledDisabled || materialDisabled}
             aria-invalid={Boolean(fieldError(state, "scheduledFor"))}
-            aria-describedby={fieldError(state, "scheduledFor") ? "scheduled-error" : undefined}
+            aria-describedby={
+              fieldError(state, "scheduledFor") ? "scheduled-error" : undefined
+            }
           />
           {scheduledDisabled ? (
             <p className="text-xs leading-5 text-muted-foreground">
@@ -475,9 +493,11 @@ export function BookingForm({
             value={totalAmount}
             onChange={(event) => setTotalAmount(event.target.value)}
             required
-            disabled={disabled}
+            disabled={disabled || materialDisabled}
             aria-invalid={Boolean(fieldError(state, "totalAmount"))}
-            aria-describedby={fieldError(state, "totalAmount") ? "total-error" : undefined}
+            aria-describedby={
+              fieldError(state, "totalAmount") ? "total-error" : undefined
+            }
           />
           {fieldError(state, "totalAmount") ? (
             <p id="total-error" className="text-sm leading-5 text-destructive">
@@ -495,9 +515,11 @@ export function BookingForm({
             value={depositAmount}
             onChange={(event) => setDepositAmount(event.target.value)}
             required
-            disabled={disabled}
+            disabled={disabled || materialDisabled}
             aria-invalid={Boolean(fieldError(state, "depositAmount"))}
-            aria-describedby={fieldError(state, "depositAmount") ? "deposit-error" : undefined}
+            aria-describedby={
+              fieldError(state, "depositAmount") ? "deposit-error" : undefined
+            }
           />
           {fieldError(state, "depositAmount") ? (
             <p id="deposit-error" className="text-sm leading-5 text-destructive">
@@ -523,9 +545,7 @@ export function BookingForm({
       </div>
 
       {!disabled ? (
-        mode === "create" &&
-        customerMode === "new" &&
-        duplicateWarningActive ? (
+        mode === "create" && customerMode === "new" && duplicateWarningActive ? (
           <Button type="submit" name="duplicateAcknowledged" value="true">
             <Save className="size-4" aria-hidden="true" />
             Continue with new customer

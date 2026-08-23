@@ -9,6 +9,7 @@ type BookingStatusFormProps = {
   variant?: "primary" | "secondary" | "destructive";
   confirmMessage?: string;
   cancellationReason?: boolean;
+  cancellationReasonRequired?: boolean;
 };
 
 function SubmitButton({
@@ -33,6 +34,7 @@ export function BookingStatusForm({
   variant = "secondary",
   confirmMessage,
   cancellationReason = false,
+  cancellationReasonRequired = false,
 }: BookingStatusFormProps) {
   return (
     <form
@@ -49,8 +51,11 @@ export function BookingStatusForm({
           name="cancellationReason"
           className="min-h-10 rounded-md border border-input bg-card px-3 py-2 text-sm"
           maxLength={500}
-          placeholder="Optional cancellation reason"
+          placeholder={
+            cancellationReasonRequired ? "Cancellation reason" : "Optional reason"
+          }
           aria-label="Cancellation reason"
+          required={cancellationReasonRequired}
         />
       ) : null}
       <SubmitButton label={label} variant={variant} />

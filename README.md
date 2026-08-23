@@ -18,7 +18,28 @@ compact account menu at mobile widths. Business owners can manage a normalized
 website and one compressed public logo, and secure confirmation pages show that
 public identity without exposing private business contacts. Dashboard summary
 tiles navigate to supported customer, booking-filter, business, or insights
-destinations.
+destinations. Newly generated confirmation links now open a contextual,
+editable sharing flow with native share, WhatsApp, Telegram, copy-message, and
+copy-link options; generic Open Graph previews expose only approved public
+business identity, and first-open/share-method evidence makes no delivery or
+read-receipt claim.
+Customer-confirmed material booking terms are now database-locked against
+ordinary edits. Explicit rescheduling remains the current reconfirmation
+workflow, internal notes remain editable before terminal states, and confirmed
+cancellation atomically preserves confirmation evidence while creating one
+durable customer cancellation email event.
+Confirmed and in-progress bookings now also support explicit customer-approved
+amendments. A pending amendment preserves structured current/proposed terms and
+does not mutate the booking; a purpose-specific 24-hour link applies the change
+atomically only after customer confirmation. Stale, revoked, expired,
+wrong-purpose, and cross-tenant requests are denied, while original confirmation
+and amendment evidence remain reconstructable.
+Confirmed and in-progress bookings also support linked add-ons for genuinely new
+scope. Draft and awaiting-customer add-ons do not change booking totals; only
+customer-confirmed add-ons contribute to derived current value, deposit, balance,
+and analytics. Add-ons inherit the parent currency and current delivery schedule,
+use a separate 24-hour hash-only confirmation capability, and never rewrite the
+original booking or amendment evidence.
 
 ## Stack
 
@@ -64,7 +85,7 @@ E2E_AUTH_PASSWORD=
 Client-safe values are validated separately from server-only secrets in
 `lib/config`.
 
-Booking confirmation email uses the server-only application email abstraction,
+Booking confirmation and cancellation email use the server-only application email abstraction,
 not Supabase Auth email. `development` is the safe default and records a
 synthetic provider message ID without making an external request. Set
 `TRANSACTIONAL_EMAIL_PROVIDER=resend`, `RESEND_API_KEY`, and
@@ -84,7 +105,8 @@ only be pointed at a non-production database. The runtime script also includes
 Phase 3 business onboarding, Phase 4 customer security, Phase 5 booking
 security, Phase 6 confirmation-link security, Phase 7 operational lifecycle
 security, Phase 8 feedback/issue security tests, and Phase 9 analytics security
-tests.
+tests, plus confirmed-booking integrity, cancellation race, amendment, and
+booking add-on coverage.
 
 ## Scripts
 
@@ -127,8 +149,18 @@ public/              Icons and web manifest
   customers; booking references are not security credentials.
 - Customer confirmation links use opaque high-entropy tokens; only token hashes
   are stored, and booking references are not accepted as public credentials.
+- Confirmation share text keeps the application-controlled URL separate from
+  editable copy. Social metadata uses only public business name/logo, and
+  social-preview crawlers do not create customer-view evidence.
 - Operational booking state changes use controlled authenticated database RPCs
   and trigger-owned history rather than direct browser-supplied status writes.
+- Once customer-confirmed, material booking terms cannot be silently edited.
+  Explicit rescheduling invalidates current confirmation and requires
+  reconfirmation; cancellation preserves the original evidence. General
+  material changes use a separate pending amendment and atomic customer
+  approval, never a temporary canonical booking state.
+- New scope uses separate immutable confirmed add-on records. Pending add-ons do
+  not affect totals, and an independently scheduled item must be a new booking.
 - Customer feedback links use a separate scoped token purpose, are available
   only after completion, and store private feedback without public reviews.
 - Operational issues are internal tenant records and are not customer-facing.

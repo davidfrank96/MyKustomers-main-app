@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import type { ReactNode } from "react";
 import { Toaster } from "@/components/ui/toast";
+import { publicEnv } from "@/lib/config/public-env";
 import "./globals.css";
 
 const inter = Inter({
@@ -10,7 +11,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("http://localhost:3000"),
+  metadataBase: new URL(publicEnv.NEXT_PUBLIC_APP_URL),
   title: {
     default: "My Customers",
     template: "%s | My Customers",

@@ -42,30 +42,42 @@ not assume repository presence alone proves application.
 
 ## Development Ledger
 
-| Migration | Development evidence |
-| --- | --- |
-| `20260818113552_phase_2_auth_tenancy.sql` | Applied; Phase 2 runtime tenancy/RLS verified |
-| `20260818140502_phase_3_business_onboarding.sql` | Applied; atomic onboarding runtime verified |
-| `20260818142125_phase_4_customer_management.sql` | Applied; customer RLS/archive runtime verified |
-| `20260818222232_phase_5_booking_engine.sql` | Applied; booking integrity/runtime verified |
-| `20260818230911_phase_6_secure_customer_confirmation_links.sql` | Applied; confirmation capability runtime verified |
-| `20260818234428_phase_7_fulfilment_operational_lifecycle.sql` | Applied; lifecycle/reschedule runtime verified |
-| `20260819001954_phase_8_private_feedback_issues.sql` | Applied; feedback/issues runtime verified |
-| `20260819010145_phase_9_business_insights_analytics.sql` | Applied; analytics runtime verified |
-| `20260819011341_phase_9_fix_insights_current_time.sql` | Applied; analytics runtime verified |
-| `20260820030000_phase_9_fix_booking_trend_buckets.sql` | Applied; completion-bucket regression verified |
-| `20260820131919_customer_contact_confirmation_email_foundation.sql` | Applied; contact/outbox runtime verified |
-| `20260820143032_inline_customer_booking_creation.sql` | Applied; atomic inline customer/booking runtime verified |
-| `20260821125815_business_identity_logo_storage.sql` | Applied; website/logo columns, public logo bucket, owner policies, and confirmation identity inspected live |
-| `20260821132030_business_identity_runtime_fixes.sql` | Applied forward fix; removed RPC overload ambiguity, restored masked consumed-link email, all ten runtime suites passed |
+| Migration                                                                  | Development evidence                                                                                                                                           |
+| -------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `20260818113552_phase_2_auth_tenancy.sql`                                  | Applied; Phase 2 runtime tenancy/RLS verified                                                                                                                  |
+| `20260818140502_phase_3_business_onboarding.sql`                           | Applied; atomic onboarding runtime verified                                                                                                                    |
+| `20260818142125_phase_4_customer_management.sql`                           | Applied; customer RLS/archive runtime verified                                                                                                                 |
+| `20260818222232_phase_5_booking_engine.sql`                                | Applied; booking integrity/runtime verified                                                                                                                    |
+| `20260818230911_phase_6_secure_customer_confirmation_links.sql`            | Applied; confirmation capability runtime verified                                                                                                              |
+| `20260818234428_phase_7_fulfilment_operational_lifecycle.sql`              | Applied; lifecycle/reschedule runtime verified                                                                                                                 |
+| `20260819001954_phase_8_private_feedback_issues.sql`                       | Applied; feedback/issues runtime verified                                                                                                                      |
+| `20260819010145_phase_9_business_insights_analytics.sql`                   | Applied; analytics runtime verified                                                                                                                            |
+| `20260819011341_phase_9_fix_insights_current_time.sql`                     | Applied; analytics runtime verified                                                                                                                            |
+| `20260820030000_phase_9_fix_booking_trend_buckets.sql`                     | Applied; completion-bucket regression verified                                                                                                                 |
+| `20260820131919_customer_contact_confirmation_email_foundation.sql`        | Applied; contact/outbox runtime verified                                                                                                                       |
+| `20260820143032_inline_customer_booking_creation.sql`                      | Applied; atomic inline customer/booking runtime verified                                                                                                       |
+| `20260821125815_business_identity_logo_storage.sql`                        | Applied; website/logo columns, public logo bucket, owner policies, and confirmation identity inspected live                                                    |
+| `20260821132030_business_identity_runtime_fixes.sql`                       | Applied forward fix; removed RPC overload ambiguity, restored masked consumed-link email, all ten runtime suites passed                                        |
+| `20260823105232_trusted_confirmation_sharing.sql`                          | Applied; first-open idempotency, service-only grants, unauthorized denial, and Phase 6 runtime behavior verified                                               |
+| `20260823111107_trusted_confirmation_open_race_fix.sql`                    | Forward fix for delayed hydration after atomic confirmation; service-only grants and idempotency preserved                                                     |
+| `20260823120902_confirmed_booking_integrity_cancellation_notification.sql` | Applied; confirmed-term lock, awaiting-link invalidation, cancellation reason/outbox atomicity, recipient priority, and live race/security behavior verified   |
+| `20260823122133_cancellation_rpc_ambiguous_reference_fix.sql`              | Applied forward fix; qualified table-return column references after the first live cancellation attempt failed atomically; unchanged race scenario then passed |
+| `20260823125121_booking_amendments_customer_reconfirmation.sql`            | Applied; amendment evidence/RLS/RPCs/outbox/lifecycle integration verified live                                                                                |
+| `20260823131218_booking_amendment_revocation_ambiguity_fix.sql`            | Applied forward diagnostic fix; replaced ambiguous revocation parameter references after the first live proposal rolled back                                   |
+| `20260823131332_booking_amendment_revocation_resolution_fix.sql`           | Applied forward fix; deterministic local parameter copies resolved SQL parsing and proposal/replacement then passed                                            |
+| `20260823131517_booking_amendment_email_idempotency_fix.sql`               | Applied forward fix; inferable nullable unique constraint made concurrent confirmation email creation atomic and idempotent                                    |
+| `20260823140111_booking_addons_customer_confirmation.sql`                  | Applied; add-on evidence, RLS/RPCs, purpose links, lifecycle/outbox/audit integration, and effective analytics verified live                                   |
+| `20260823141800_booking_addon_parent_currency_integrity.sql`               | Applied forward hardening; parent business and currency consistency now trigger-enforced on every insert/update                                                |
+| `20260823142231_booking_addon_email_idempotency_fix.sql`                   | Applied forward fix; regenerated request events coexist while confirmed-event uniqueness remains inferable and race-safe                                       |
+| `20260823151142_booking_integrity_consolidation.sql`                       | Removes four exact duplicate B-tree indexes while retaining equivalent query and uniqueness coverage                                                           |
 
 The configured development project's historical CLI migration table remains
-empty because this project predates enforced version tracking. These two
-migrations were applied directly through the configured development database
-URL, matching the established development process above; live columns, bucket
-configuration, policies, function grants/search paths, and runtime behavior were
-then inspected. This does not remove the production requirement to reconcile an
-explicit environment migration history before deployment.
+empty because this project predates enforced version tracking. These migrations
+were applied directly through the configured development
+database URL, matching the established development process above; live columns,
+bucket configuration, policies, function grants/search paths, and runtime behavior
+were then inspected. This does not remove the production requirement to reconcile
+an explicit environment migration history before deployment.
 
 ## Production Deployment
 

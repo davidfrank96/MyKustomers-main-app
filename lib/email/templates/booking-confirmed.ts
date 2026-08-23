@@ -1,6 +1,7 @@
 import { formatMoneyMinor } from "@/features/bookings/money";
 import type { BookingCurrency } from "@/features/bookings/money";
 import type { TransactionalEmailMessage } from "@/lib/email/types";
+import { escapeEmailHtml, formatEmailDateTime } from "@/lib/email/templates/shared";
 
 type BookingConfirmedEmailInput = {
   emailEventId: string;
@@ -15,32 +16,11 @@ type BookingConfirmedEmailInput = {
   balanceAmountMinor: number;
 };
 
-function escapeHtml(value: string) {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
-}
-
-function formatScheduledFor(value: string | null) {
-  if (!value) {
-    return "Not scheduled";
-  }
-
-  return new Intl.DateTimeFormat("en", {
-    dateStyle: "medium",
-    timeStyle: "short",
-    timeZone: "UTC",
-  }).format(new Date(value));
-}
-
 export function bookingConfirmedEmail(
   input: BookingConfirmedEmailInput,
 ): TransactionalEmailMessage {
   const subject = `Booking confirmed - ${input.businessName} - ${input.bookingReference}`;
-  const scheduled = formatScheduledFor(input.scheduledFor);
+  const scheduled = formatEmailDateTime(input.scheduledFor);
   const total = formatMoneyMinor(input.totalAmountMinor, input.currency);
   const deposit = formatMoneyMinor(input.depositAmountMinor, input.currency);
   const balance = formatMoneyMinor(input.balanceAmountMinor, input.currency);
@@ -65,7 +45,7 @@ export function bookingConfirmedEmail(
   const htmlRows = rows
     .map(
       ([label, value]) =>
-        `<tr><th align="left" style="padding:8px 12px;border-bottom:1px solid #e5e7eb">${escapeHtml(label)}</th><td style="padding:8px 12px;border-bottom:1px solid #e5e7eb">${escapeHtml(value)}</td></tr>`,
+        `<tr><th align="left" style="padding:8px 12px;border-bottom:1px solid #e5e7eb">${escapeEmailHtml(label)}</th><td style="padding:8px 12px;border-bottom:1px solid #e5e7eb">${escapeEmailHtml(value)}</td></tr>`,
     )
     .join("");
 
