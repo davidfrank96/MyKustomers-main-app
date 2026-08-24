@@ -10,7 +10,7 @@ type DashboardLayoutProps = {
 
 export default async function DashboardLayout({ children }: DashboardLayoutProps) {
   const user = await requireUser("/dashboard");
-  const businessContext = await getCurrentBusinessContext(user);
+  const businessContext = await getCurrentBusinessContext();
 
   return (
     <DashboardShell user={user} businessContext={businessContext}>

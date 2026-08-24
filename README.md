@@ -23,6 +23,13 @@ editable sharing flow with native share, WhatsApp, Telegram, copy-message, and
 copy-link options; generic Open Graph previews expose only approved public
 business identity, and first-open/share-method evidence makes no delivery or
 read-receipt claim.
+Completed-booking feedback links now use the same trusted sharing model with
+private, no-account-required copy, crawler-safe business-only metadata,
+idempotent first-open evidence, and truthful share-method audit events. Major
+authenticated routes provide neutral structural loading states, tenant switches
+hide the prior workspace while navigation is pending, and authenticated context
+reads are deduplicated only within one server request. Public capability routes
+remain explicitly non-cacheable.
 Accounts with one or more active business memberships can also review their
 workspaces, roles, and explicit current-business state on the Business page and
 switch there through the same server-authorized action as the header quick
@@ -193,6 +200,12 @@ public/              Icons and web manifest
   not affect totals, and an independently scheduled item must be a new booking.
 - Customer feedback links use a separate scoped token purpose, are available
   only after completion, and store private feedback without public reviews.
+- Feedback sharing records intent and first browser open separately; it does not
+  claim delivery, reading, or submission, and social-preview crawlers cannot
+  create first-open evidence.
+- Authenticated and tenant-scoped reads may be memoized within one server
+  request, but may not use persistent caches without an explicit scope, key,
+  invalidation plan, and cross-tenant security analysis.
 - Operational issues are internal tenant records and are not customer-facing.
 - Business insights are private tenant aggregates; they must not mix currencies
   or use revenue/accounting terminology.

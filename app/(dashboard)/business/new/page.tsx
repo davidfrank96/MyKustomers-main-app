@@ -7,8 +7,8 @@ import { createAdditionalBusinessAction } from "@/features/businesses/actions";
 import { getCurrentBusinessContext, requireUser } from "@/lib/auth/server";
 
 export default async function NewBusinessPage() {
-  const user = await requireUser("/business/new");
-  const context = await getCurrentBusinessContext(user);
+  await requireUser("/business/new");
+  const context = await getCurrentBusinessContext();
 
   if (!context.currentBusiness) {
     redirect("/onboarding" as Route);

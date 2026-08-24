@@ -4,7 +4,7 @@ import { updateSession } from "@/lib/supabase/proxy";
 export async function proxy(request: NextRequest) {
   const response = await updateSession(request);
 
-  if (request.nextUrl.pathname.startsWith("/c/") || request.nextUrl.pathname.startsWith("/f/")) {
+  if (/^\/(?:a|c|f|x)\//.test(request.nextUrl.pathname)) {
     response.headers.set("Cache-Control", "no-store, max-age=0");
     response.headers.set("Referrer-Policy", "no-referrer");
     response.headers.set("X-Robots-Tag", "noindex, nofollow");

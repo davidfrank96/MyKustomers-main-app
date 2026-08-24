@@ -444,6 +444,17 @@ Known risks: Future analytics, notifications, public reviews, and staff
 assignment must not broaden public token privileges or expose private feedback
 comments outside the owning business.
 
+Cross-phase maintenance evidence (2026-08-24): Private feedback request sharing
+now reuses the existing trusted-sharing stack, adds service-only idempotent
+first-open evidence, and keeps preview crawlers outside the private booking
+lookup. Major authenticated routes provide accessible structural loading states;
+business switching hides stale workspace content while pending. Authentication
+and current-business reads are request-memoized only. No persistent tenant cache,
+public review, notification delivery, or Phase 10 work was introduced. Full
+local quality, live security, desktop/mobile browser, build, audit, database
+lint, and whitespace gates pass; evidence is tracked in `docs/TESTING.md` and
+`docs/PERFORMANCE.md`.
+
 ## Phase 9 - Business Insights and Analytics
 
 Status: VERIFIED

@@ -54,6 +54,11 @@ Current structural rules:
   than requiring an explicit Search action. URL-backed list search uses replace
   history, preserves compatible filters, resets pagination, and exposes compact
   labeled clear and pending controls without shifting the layout.
+- Major asynchronous route transitions use neutral structural placeholders with
+  stable responsive dimensions. Placeholder controls are not focusable,
+  animation respects reduced motion, and one accessible status names the load.
+- A business switch hides the previous workspace with an opaque pending layer;
+  stale tenant data must never remain visually presented as the selected tenant.
 
 Required viewport and route evidence is recorded in `docs/RESPONSIVE_QA.md`.
 These rules stabilize the current design and do not start the broad redesign.
@@ -76,6 +81,9 @@ Implemented in Phase 1:
 - Phase 9.5 active navigation, owner/customer copy cleanup, booking detail
   next-step hierarchy, natural NGN currency rendering, and responsive visual
   audit across 375px, 390px, 430px, 768px, and desktop widths.
+- Reusable dashboard/list/detail/form loading structures for Dashboard,
+  Bookings, Customers, Insights, Business, and creation/detail transitions,
+  plus tenant-switch pending protection.
 
 Current copy rules:
 

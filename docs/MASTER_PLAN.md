@@ -119,6 +119,16 @@ confirmation shows only safe public identity; and existing dashboard metrics
 link to supported destinations. Both business-identity migrations are applied
 to development and all ten live runtime security suites pass.
 
+The 2026-08-24 feedback-sharing, loading, and performance maintenance pass is
+VERIFIED. It extends the private
+feedback capability through the established trusted-sharing boundary, adds
+truthful first-open/share evidence, adds structural route loading and stale-
+workspace protection during tenant switching, and deduplicates authentication
+and business resolution only within one server request. It adds no public review,
+customer account, persistent tenant cache, Redis, speculative index, or broad
+redesign. Measurement and cache governance are recorded in
+`docs/PERFORMANCE.md`.
+
 Phase 1 established a Next.js application foundation, strict TypeScript, responsive shells, design primitives, environment configuration, Supabase client/server boundaries, test infrastructure, PWA foundation, documentation foundation, and lint/build/typecheck/test verification.
 
 ## Planned Functionality
@@ -355,6 +365,10 @@ Implemented and verified in Phase 8:
   denial, tenant feedback visibility, vendor mutation denial, race behavior,
   issue tenant isolation, issue resolution concurrency, audit events, and
   service-role/SECURITY DEFINER boundaries.
+- Feedback requests reuse the trusted confirmation-sharing interaction with
+  private contextual copy, native share, WhatsApp, Telegram, copy-message, and
+  copy-link methods. Share evidence records intent only; crawler-safe metadata
+  and post-load idempotent open recording avoid false read claims.
 
 Implemented and verified in Phase 9:
 

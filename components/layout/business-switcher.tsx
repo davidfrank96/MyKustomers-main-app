@@ -5,6 +5,7 @@ import type { Route } from "next";
 import { useRef } from "react";
 import { Check, ChevronDown, Plus } from "lucide-react";
 import { BusinessLogo } from "@/components/shared/business-logo";
+import { BusinessSwitchPending } from "@/components/businesses/business-switch-pending";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -63,6 +64,7 @@ function BusinessSwitchOption({
           </span>
         ) : null}
       </DropdownMenuItem>
+      <BusinessSwitchPending />
     </form>
   );
 }

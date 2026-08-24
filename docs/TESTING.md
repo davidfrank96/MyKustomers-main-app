@@ -67,6 +67,11 @@ do not reduce the verified tenant/RLS coverage.
 - Phase 8 feedback domain tests.
 - Static Phase 8 feedback/issue migration/security review tests.
 - Phase 8 runtime Supabase feedback and issue security test.
+- Trusted feedback share-message/intent and safe metadata unit tests; native,
+  clipboard, WhatsApp, Telegram, and contextual panel integration tests; static
+  service-only migration checks; and live idempotent open/direct-role denial.
+- Structural loading component semantics, reduced-motion, stable variant, and
+  request-cache policy tests.
 - Phase 9 analytics date-range, comparison, formatting, and definition tests.
 - Static Phase 9 aggregate RPC migration/security review tests.
 - Phase 9 runtime Supabase analytics correctness and tenant isolation test.
@@ -96,6 +101,10 @@ do not reduce the verified tenant/RLS coverage.
   controlled URL copying, rendered Open Graph fields, hydrated first-open
   evidence, truthful vendor share-method state, and Telegram-style preview
   requests that receive no customer/order body or view evidence.
+- Canonical feedback sharing coverage for private contextual copy, controlled
+  link/message copying, native and social methods, crawler-safe metadata,
+  idempotent ordinary-browser open evidence, audit truthfulness, and private
+  submission on desktop and mobile projects.
 - Lightweight governance tests for required documentation, the repository
   definition-of-done rule, and migration filename/order discipline.
 
@@ -370,6 +379,29 @@ Future phase acceptance should generally require appropriate combinations of:
 - Responsive behavior.
 - Accessibility.
 - Expected error handling.
+
+## Feedback Sharing, Loading, And Performance - 2026-08-24
+
+- Unit/component coverage pins private no-account-required feedback copy, safe
+  message URL construction, all supported methods, native fallback, clipboard
+  separation, crawler-safe metadata, structural loading accessibility, and
+  request-only cache policy.
+- Static and live security coverage verifies the applied migration, service-only
+  grants, exact purpose/state checks, first-open idempotency, one truthful audit
+  event, direct anonymous/authenticated denial, and no raw token in audit data.
+- Canonical Playwright feedback flow now covers vendor sharing, crawler metadata
+  without open evidence, ordinary browser open, submission, and vendor view on
+  desktop and mobile projects. Existing purpose and tenant-isolation suites
+  remain authoritative for negative paths.
+- Query plans and real warmed local route timings are recorded in
+  `docs/PERFORMANCE.md`; timings were network-variable, so no blanket speedup is
+  claimed. The deterministic reduction is one authenticated/current-business
+  resolution chain per server request.
+- Final verification passed lint, strict typecheck, 46 ordinary Vitest files
+  with 195 passing tests, 13 live runtime files with 14 passing tests, 34
+  Playwright journeys with 6 intentional skips across desktop/mobile projects,
+  production build, zero moderate-or-higher npm vulnerabilities, database lint
+  with no findings, and `git diff --check`.
 
 ## Multi-Business Verification - 2026-08-24
 

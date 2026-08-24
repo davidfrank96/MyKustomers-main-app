@@ -2,6 +2,7 @@ export type FeedbackLinkActionState = {
   status: "idle" | "success" | "error";
   message?: string;
   feedbackUrl?: string;
+  feedbackLinkId?: string;
   expiresAt?: string;
 };
 

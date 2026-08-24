@@ -153,3 +153,18 @@ are documented in `docs/CI.md`.
   owner membership remain atomic, then persist the returned UUID as current.
 - Keep public `/c`, `/a`, `/x`, and `/f` routes independent from authenticated
   workspace state. Do not use localStorage as tenant authority.
+
+## Cache And Loading Governance
+
+- No cache may be introduced for authenticated or tenant-scoped data without
+  explicit cache scope, key, invalidation behavior, and cross-tenant security
+  analysis.
+- Public capability-token pages must remain non-cacheable unless a future
+  security review explicitly changes the rule.
+- Request-scoped React server memoization is permitted for stable shared
+  functions and arguments. It must not be described as cross-request caching.
+- Longer asynchronous route/data transitions should provide structural loading
+  feedback without exposing stale tenant data or requiring full-page client
+  rendering.
+- Loading placeholders must be non-interactive, accessible as one status,
+  stable at responsive widths, and reduced-motion safe.

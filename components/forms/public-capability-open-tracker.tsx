@@ -3,7 +3,10 @@
 import { useEffect } from "react";
 
 type PublicCapabilityOpenEndpoint =
-  "/api/confirmation/open" | "/api/amendment/open" | "/api/addon/open";
+  | "/api/confirmation/open"
+  | "/api/amendment/open"
+  | "/api/addon/open"
+  | "/api/feedback/open";
 
 export function PublicCapabilityOpenTracker({
   endpoint,

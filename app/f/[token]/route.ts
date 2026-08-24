@@ -1,11 +1,17 @@
 import { redirect } from "next/navigation";
 import type { NextRequest } from "next/server";
 import {
+  getPublicFeedbackMetadata,
   getPublicFeedbackView,
   submitPublicFeedback,
 } from "@/features/feedback/public";
+import {
+  buildFeedbackMetadata,
+  type FeedbackMetadata,
+} from "@/features/feedback/metadata";
 import { safePublicFeedbackMessage } from "@/features/feedback/messages";
 import type { PublicFeedbackBooking } from "@/features/feedback/public-types";
+import { isSocialPreviewCrawler } from "@/features/confirmation-links/crawlers";
 
 export const dynamic = "force-dynamic";
 
@@ -40,14 +46,26 @@ function formatDateTime(value: string | null) {
   }).format(new Date(value));
 }
 
-function pageShell({ title, body }: { title: string; body: string }) {
+function pageShell({ metadata, body }: { metadata: FeedbackMetadata; body: string }) {
   return `<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex,nofollow">
-  <title>${escapeHtml(title)}</title>
+  <title>${escapeHtml(metadata.title)}</title>
+  <link rel="canonical" href="${escapeHtml(metadata.canonicalUrl)}">
+  <meta name="description" content="${escapeHtml(metadata.description)}">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="My Customers">
+  <meta property="og:title" content="${escapeHtml(metadata.title)}">
+  <meta property="og:description" content="${escapeHtml(metadata.description)}">
+  <meta property="og:url" content="${escapeHtml(metadata.canonicalUrl)}">
+  <meta property="og:image" content="${escapeHtml(metadata.imageUrl)}">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="${escapeHtml(metadata.title)}">
+  <meta name="twitter:description" content="${escapeHtml(metadata.description)}">
+  <meta name="twitter:image" content="${escapeHtml(metadata.imageUrl)}">
   <style>
     :root {
       color-scheme: light;
@@ -188,6 +206,20 @@ function pageShell({ title, body }: { title: string; body: string }) {
 </html>`;
 }
 
+function feedbackOpenTracker(token: string) {
+  const safeToken = JSON.stringify(token).replace(/</g, "\\u003c");
+
+  return `<script>
+    fetch("/api/feedback/open", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token: ${safeToken} }),
+      cache: "no-store",
+      keepalive: true
+    }).catch(function () {});
+  </script>`;
+}
+
 function bookingContext(booking: PublicFeedbackBooking) {
   return `<dl class="context">
     <div>
@@ -250,9 +282,33 @@ function feedbackForm(token: string) {
 
 export async function GET(request: NextRequest, context: FeedbackRouteContext) {
   const { token } = await context.params;
+  const userAgent = request.headers.get("user-agent");
+
+  if (isSocialPreviewCrawler(userAgent)) {
+    const publicMetadata = await getPublicFeedbackMetadata(token);
+    const metadata = buildFeedbackMetadata({
+      token,
+      businessName: publicMetadata?.businessName,
+      businessLogoPath: publicMetadata?.businessLogoPath,
+    });
+    const body = `<div class="notice">
+      <h1>Private feedback request</h1>
+      <p class="muted">Open this secure link in your browser to share private feedback. No account is required.</p>
+    </div>`;
+
+    return new Response(pageShell({ metadata, body }), {
+      headers: securityHeaders,
+    });
+  }
+
   const view = await getPublicFeedbackView(token);
   const booking = view.booking;
-  const submitted = request.nextUrl.searchParams.get("submitted") === "1" || view.status === "submitted";
+  const submitted =
+    request.nextUrl.searchParams.get("submitted") === "1" || view.status === "submitted";
+  const metadata = buildFeedbackMetadata({
+    token,
+    businessName: booking?.business_name,
+  });
 
   if (booking) {
     const body = submitted
@@ -264,13 +320,18 @@ export async function GET(request: NextRequest, context: FeedbackRouteContext) {
           <p class="muted">It is not posted publicly.</p>
         </div>`
       : `<h1>Private feedback</h1>
-        <p class="muted">Share private feedback with ${escapeHtml(booking.business_name)}.</p>
+        <p class="muted">Share private feedback with ${escapeHtml(booking.business_name)}. No account is required.</p>
         ${bookingContext(booking)}
-        ${view.status === "valid"
-          ? feedbackForm(token)
-          : `<p class="notice">${escapeHtml(safePublicFeedbackMessage(view.status))}</p>`}`;
+        ${
+          view.status === "valid"
+            ? feedbackForm(token)
+            : `<p class="notice">${escapeHtml(safePublicFeedbackMessage(view.status))}</p>`
+        }`;
 
-    return new Response(pageShell({ title: "Private Feedback", body }), {
+    const trackedBody =
+      view.status === "valid" ? `${body}${feedbackOpenTracker(token)}` : body;
+
+    return new Response(pageShell({ metadata, body: trackedBody }), {
       headers: securityHeaders,
     });
   }
@@ -280,7 +341,7 @@ export async function GET(request: NextRequest, context: FeedbackRouteContext) {
     <p class="muted">${escapeHtml(safePublicFeedbackMessage(view.status))}</p>
   </div>`;
 
-  return new Response(pageShell({ title: "Private Feedback", body }), {
+  return new Response(pageShell({ metadata, body }), {
     headers: securityHeaders,
   });
 }

@@ -6,6 +6,7 @@ import type { Route } from "next";
 import { requireCurrentBusiness } from "@/lib/auth/server";
 import { publicEnv } from "@/lib/config/public-env";
 import { recordAuditEvent } from "@/lib/security/audit";
+import { canUseServiceRoleClient, createServiceRoleClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type {
   FeedbackLinkActionState,
@@ -20,6 +21,10 @@ import {
   generateFeedbackToken,
   hashFeedbackToken,
 } from "@/features/feedback/token";
+import {
+  isFeedbackShareMethod,
+  type FeedbackShareMethod,
+} from "@/features/feedback/share";
 
 function formValue(formData: FormData, key: string) {
   return formData.get(key);
@@ -72,8 +77,62 @@ export async function generateFeedbackLinkAction(
         ? "Previous feedback link revoked. New feedback link generated."
         : "Feedback link generated.",
     feedbackUrl,
+    feedbackLinkId: data[0].feedback_link_id,
     expiresAt: data[0].expires_at,
   };
+}
+
+export async function recordFeedbackShareAction(
+  bookingId: string,
+  feedbackLinkId: string,
+  method: FeedbackShareMethod,
+): Promise<void> {
+  if (!isFeedbackShareMethod(method) || !canUseServiceRoleClient()) {
+    return;
+  }
+
+  const { user, business } = await requireCurrentBusiness(`/bookings/${bookingId}`);
+  const supabase = createServiceRoleClient();
+  const [{ data: link }, { data: booking }] = await Promise.all([
+    supabase
+      .from("feedback_links")
+      .select("id, expires_at, revoked_at, used_at")
+      .eq("id", feedbackLinkId)
+      .eq("booking_id", bookingId)
+      .eq("business_id", business.id)
+      .eq("purpose", "booking_feedback")
+      .maybeSingle(),
+    supabase
+      .from("bookings")
+      .select("id")
+      .eq("id", bookingId)
+      .eq("business_id", business.id)
+      .eq("status", "COMPLETED")
+      .maybeSingle(),
+  ]);
+
+  if (
+    !link ||
+    !booking ||
+    link.revoked_at ||
+    link.used_at ||
+    new Date(link.expires_at).getTime() <= Date.now()
+  ) {
+    return;
+  }
+
+  await recordAuditEvent({
+    actorUserId: user.id,
+    businessId: business.id,
+    eventType: "FEEDBACK_SHARE_INITIATED",
+    metadata: {
+      booking_id: bookingId,
+      feedback_link_id: feedbackLinkId,
+      method,
+    },
+  });
+
+  revalidatePath(`/bookings/${bookingId}`);
 }
 
 export async function revokeFeedbackLinkAction(
@@ -101,7 +160,8 @@ export async function revokeFeedbackLinkAction(
 
   return {
     status: "success",
-    message: data && data > 0 ? "Feedback link revoked." : "No active feedback link to revoke.",
+    message:
+      data && data > 0 ? "Feedback link revoked." : "No active feedback link to revoke.",
   };
 }
 

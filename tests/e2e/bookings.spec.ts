@@ -6,6 +6,7 @@ import sharp from "sharp";
 import { hashRateLimitIdentity } from "../../features/confirmation-links/rate-limit-keys";
 import { hashConfirmationToken } from "../../features/confirmation-links/token";
 import { hashAddonToken } from "../../features/addons/token";
+import { hashFeedbackToken } from "../../features/feedback/token";
 
 function loadLocalEnv() {
   if (!fs.existsSync(".env")) {
@@ -55,6 +56,21 @@ function createAdminClient() {
       },
     },
   );
+}
+
+async function resetLocalRateLimitBuckets(
+  admin: ReturnType<typeof createAdminClient>,
+  userAgent: string,
+  actions: string[],
+) {
+  const bucketKeys = actions.flatMap((action) =>
+    ["unknown", "127.0.0.1"].map((identity) =>
+      hashRateLimitIdentity(`${action}:${identity}:${userAgent}`),
+    ),
+  );
+
+  bucketKeys.forEach((bucketKey) => createdRateLimitBuckets.add(bucketKey));
+  await admin.from("confirmation_rate_limits").delete().in("bucket_key", bucketKeys);
 }
 
 function testEmail(projectName: string) {
@@ -387,6 +403,12 @@ test.describe("booking engine", () => {
     createdRateLimitBuckets.add(
       hashRateLimitIdentity(`feedback_submit:unknown:${userAgent}`),
     );
+    createdRateLimitBuckets.add(
+      hashRateLimitIdentity(`feedback_metadata:unknown:${userAgent}`),
+    );
+    createdRateLimitBuckets.add(
+      hashRateLimitIdentity(`feedback_open:unknown:${userAgent}`),
+    );
     for (const action of [
       "addon_lookup",
       "addon_metadata",
@@ -397,9 +419,46 @@ test.describe("booking engine", () => {
         hashRateLimitIdentity(`${action}:unknown:${userAgent}`),
       );
     }
+    for (const action of [
+      "lookup",
+      "metadata",
+      "confirm",
+      "open",
+      "feedback_lookup",
+      "feedback_submit",
+      "feedback_metadata",
+      "feedback_open",
+      "addon_lookup",
+      "addon_metadata",
+      "addon_confirm",
+      "addon_open",
+    ]) {
+      createdRateLimitBuckets.add(
+        hashRateLimitIdentity(`${action}:127.0.0.1:${userAgent}`),
+      );
+    }
+    await admin
+      .from("confirmation_rate_limits")
+      .delete()
+      .in("bucket_key", [...createdRateLimitBuckets]);
 
     await page.goto(confirmationUrl);
     await expect(page.getByRole("heading", { name: "Review your order" })).toBeVisible();
+    await expect
+      .poll(async () => {
+        const { data } = await admin
+          .from("confirmation_links")
+          .select("first_opened_at")
+          .eq(
+            "token_hash",
+            hashConfirmationToken(
+              new URL(confirmationUrl).pathname.split("/").at(-1) ?? "",
+            ),
+          )
+          .single();
+        return Boolean(data?.first_opened_at);
+      })
+      .toBe(true);
     await expect(page.locator('meta[property="og:title"]')).toHaveAttribute(
       "content",
       "Review your order with Phase 5 E2E Business",
@@ -522,7 +581,7 @@ test.describe("booking engine", () => {
       .toBe(true);
     await page.reload();
     await expect(
-      page.getByText("First viewed").locator("..").getByText("Not available"),
+      page.getByText("First viewed").first().locator("..").getByText("Not available"),
     ).toHaveCount(0);
 
     await page.goto(`/customers/${fixture.customerId}`);
@@ -797,14 +856,86 @@ test.describe("booking engine", () => {
     const feedbackUrl = await feedbackLinkInput.inputValue();
     expect(feedbackUrl).toContain("/f/");
 
+    await page.getByRole("button", { name: "Share feedback request" }).click();
+    await expect(
+      page.getByRole("heading", { name: "Share feedback request" }),
+    ).toBeVisible();
+    expect(await page.getByLabel("Message").inputValue()).toContain(
+      `Hi ${customerName.split(" ")[0]}, thank you for choosing Phase 5 E2E Business`,
+    );
+    expect(await page.getByLabel("Message").inputValue()).toContain("private feedback");
+    expect(await page.getByLabel("Message").inputValue()).toContain(
+      "No account is required",
+    );
+    await expect(page.getByLabel("Feedback link", { exact: true })).toHaveValue(
+      feedbackUrl,
+    );
+    await page.getByRole("button", { name: "Copy message" }).click();
+    await expect(page.getByText("Message copied", { exact: true })).toBeVisible();
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toContain(
+      `\n\n${feedbackUrl}`,
+    );
+    await page.getByRole("button", { name: "Close dialog" }).click();
+
+    const feedbackToken = new URL(feedbackUrl).pathname.split("/").at(-1) ?? "";
+    const feedbackPreviewResponse = await page.request.get(feedbackUrl, {
+      headers: {
+        "user-agent": `TelegramBot (feedback-sharing-e2e-${testInfo.project.name})`,
+      },
+    });
+    expect(feedbackPreviewResponse.ok()).toBe(true);
+    const feedbackPreviewHtml = await feedbackPreviewResponse.text();
+    expect(feedbackPreviewHtml).toContain(
+      "Share private feedback with Phase 5 E2E Business",
+    );
+    expect(feedbackPreviewHtml).toContain(
+      "Phase 5 E2E Business has requested private feedback about your experience.",
+    );
+    expect(feedbackPreviewHtml).not.toContain(customerName);
+    expect(feedbackPreviewHtml).not.toContain(amendedTitle);
+    expect(feedbackPreviewHtml).not.toContain("MC-");
+    const { data: feedbackLinkAfterCrawler } = await admin
+      .from("feedback_links")
+      .select("id, first_opened_at")
+      .eq("token_hash", hashFeedbackToken(feedbackToken))
+      .single();
+    expect(feedbackLinkAfterCrawler?.first_opened_at).toBeNull();
+    expect(feedbackLinkAfterCrawler?.id).toBeTruthy();
+
     const feedbackResponse = await page.goto(feedbackUrl);
     expect(feedbackResponse?.headers()["cache-control"]).toContain("no-store");
     expect(feedbackResponse?.headers()["referrer-policy"]).toBe("no-referrer");
     expect(feedbackResponse?.headers()["x-robots-tag"]).toContain("noindex");
     await expect(page.getByRole("heading", { name: "Private feedback" })).toBeVisible();
+    await expect(page.locator('meta[property="og:title"]')).toHaveAttribute(
+      "content",
+      "Share private feedback with Phase 5 E2E Business",
+    );
     await expect(page.getByText(amendedTitle)).toBeVisible();
     await expect(page.getByText("Updated private E2E note.")).toHaveCount(0);
     await expect(page.getByText("Balance remaining")).toHaveCount(0);
+
+    await expect
+      .poll(async () => {
+        const { data } = await admin
+          .from("feedback_links")
+          .select("first_opened_at")
+          .eq("token_hash", hashFeedbackToken(feedbackToken))
+          .single();
+        return data?.first_opened_at ?? null;
+      })
+      .not.toBeNull();
+
+    const { data: feedbackShareAudits } = await admin
+      .from("audit_logs")
+      .select("metadata")
+      .eq("event_type", "FEEDBACK_SHARE_INITIATED")
+      .contains("metadata", {
+        feedback_link_id: feedbackLinkAfterCrawler!.id,
+        method: "copy_message",
+      });
+    expect(feedbackShareAudits?.length).toBeGreaterThan(0);
+    expect(JSON.stringify(feedbackShareAudits)).not.toContain(feedbackToken);
 
     await page.locator('input[name="overallRating"][value="5"]').check();
     await page.locator('input[name="onTime"][value="yes"]').check();
@@ -857,7 +988,10 @@ test.describe("booking engine", () => {
   test("booking and customer-picker search update live without resetting form state", async ({
     page,
   }, testInfo) => {
-    test.skip(testInfo.project.name !== "chromium", "The explicit viewport matrix runs once.");
+    test.skip(
+      testInfo.project.name !== "chromium",
+      "The explicit viewport matrix runs once.",
+    );
     test.setTimeout(90_000);
 
     const email = testEmail(testInfo.project.name);
@@ -883,7 +1017,9 @@ test.describe("booking engine", () => {
 
     await page.goto("/bookings/new");
     await page.getByLabel("Booking title").fill(bookingTitle);
-    await page.getByLabel("Description").fill("Preserve this while customer search updates.");
+    await page
+      .getByLabel("Description")
+      .fill("Preserve this while customer search updates.");
     await page.getByLabel("Agreed total").fill("1250");
     await page.getByLabel("Deposit recorded").fill("250");
     await page.getByLabel("Search existing customers").fill(`Sarah ${suffix}`);
@@ -902,24 +1038,28 @@ test.describe("booking engine", () => {
 
     await page.goto("/bookings?filter=active&page=7");
     await page.getByLabel("Search bookings").fill(bookingTitle);
-    await expect
-      .poll(() => new URL(page.url()).searchParams.get("q"))
-      .toBe(bookingTitle);
+    await expect.poll(() => new URL(page.url()).searchParams.get("q")).toBe(bookingTitle);
     expect(new URL(page.url()).searchParams.get("filter")).toBe("active");
     expect(new URL(page.url()).searchParams.has("page")).toBe(false);
-    await expect(page.getByRole("link", { name: new RegExp(bookingTitle) })).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: new RegExp(bookingTitle) }),
+    ).toBeVisible();
 
     await page.getByRole("link", { name: "Draft", exact: true }).click();
     await expect.poll(() => new URL(page.url()).searchParams.get("filter")).toBe("DRAFT");
     expect(new URL(page.url()).searchParams.get("q")).toBe(bookingTitle);
-    await expect(page.getByRole("link", { name: new RegExp(bookingTitle) })).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: new RegExp(bookingTitle) }),
+    ).toBeVisible();
 
     await page.getByLabel("Search bookings").fill(`No match ${suffix}`);
     await expect(page.getByText("No saved bookings matched this search.")).toBeVisible();
     await page.getByRole("button", { name: "Clear booking search" }).click();
     await expect.poll(() => new URL(page.url()).searchParams.has("q")).toBe(false);
     expect(new URL(page.url()).searchParams.get("filter")).toBe("DRAFT");
-    await expect(page.getByRole("link", { name: new RegExp(bookingTitle) })).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: new RegExp(bookingTitle) }),
+    ).toBeVisible();
 
     for (const width of [320, 360, 375, 390, 430, 768, 1024, 1440]) {
       await page.setViewportSize({ width, height: width < 768 ? 900 : 1000 });
@@ -1017,8 +1157,7 @@ test.describe("booking engine", () => {
       .getByLabel("Generated confirmation link")
       .inputValue();
     const userAgent = (await page.evaluate(() => navigator.userAgent)).slice(0, 80);
-    createdRateLimitBuckets.add(hashRateLimitIdentity(`lookup:unknown:${userAgent}`));
-    createdRateLimitBuckets.add(hashRateLimitIdentity(`confirm:unknown:${userAgent}`));
+    await resetLocalRateLimitBuckets(admin, userAgent, ["lookup", "confirm"]);
 
     await page.goto(confirmationUrl);
     await expect(page.getByLabel("Phase 5 E2E Business logo")).toBeVisible();
@@ -1093,8 +1232,10 @@ test.describe("booking engine", () => {
       .getByLabel("Generated confirmation link")
       .inputValue();
     const userAgent = (await page.evaluate(() => navigator.userAgent)).slice(0, 80);
-    createdRateLimitBuckets.add(hashRateLimitIdentity(`lookup:unknown:${userAgent}`));
-    createdRateLimitBuckets.add(hashRateLimitIdentity(`confirm:unknown:${userAgent}`));
+    await resetLocalRateLimitBuckets(createAdminClient(), userAgent, [
+      "lookup",
+      "confirm",
+    ]);
 
     await page.goto(confirmationUrl);
     await page
