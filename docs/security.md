@@ -529,3 +529,23 @@ and database checks prevent those two request types from coexisting. Reschedule,
 cancellation, and advancement to `READY` deliberately revoke or cancel pending
 capabilities under row lock. Regeneration replaces only the same request purpose.
 Draft add-ons have no customer capability and do not affect effective terms.
+
+SEC-041 - Production Deployment Preserves Secret And Migration Boundaries
+
+Status: VERIFIED
+
+Vercel Production contains only `NEXT_PUBLIC_APP_URL`, the browser-safe Supabase
+URL and publishable key, and the server-only `SUPABASE_SERVICE_ROLE_KEY`. The
+service role is marked Sensitive, has no public prefix, and remains behind
+`server-only` configuration. Direct database credentials, email-provider values,
+E2E credentials, and runtime-test controls are not deployed. Preview and
+Development receive none of the Production variables.
+
+The stable HTTPS hostname is the application base URL and Supabase Auth Site URL.
+Only the exact dashboard-confirmation and password-recovery callback URLs are
+allowed; no Preview wildcard is present. Production public capability routes
+retain no-store and noindex behavior, capability values are absent from reports,
+and fetched production HTML contains no localhost URL. Vercel Git integration
+deploys known `main` commits after CI; builds never apply database migrations.
+The initial controlled production workflow cleaned its fixtures and produced no
+Warning, Error, or Fatal runtime log entries.

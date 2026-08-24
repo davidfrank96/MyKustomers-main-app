@@ -54,6 +54,18 @@ original booking or amendment evidence.
 - Playwright
 - ESLint and Prettier
 
+## Production Deployment
+
+The initial Vercel deployment is live at
+`https://my-kustomers-main-app.vercel.app`. Vercel deploys the `main` branch of
+`davidfrank96/MyKustomers-main-app`; GitHub Actions remains the pre-merge quality
+gate and does not itself deploy or apply database migrations.
+
+Production currently uses the existing development Supabase project and the
+no-network transactional email adapter. This is an explicit initial-release
+limitation. See `docs/DEPLOYMENT.md` for environment names, Supabase Auth URLs,
+verification evidence, release steps, and rollback policy.
+
 ## Local Setup
 
 ```bash
@@ -192,6 +204,7 @@ The repository documentation is the source of truth for future implementation:
 - Migration process and ledger: `docs/MIGRATIONS.md`.
 - Responsive verification: `docs/RESPONSIVE_QA.md`.
 - Continuous integration and merge policy: `docs/CI.md`.
+- Vercel deployment and rollback runbook: `docs/DEPLOYMENT.md`.
 
 Documentation can describe PLANNED, IMPLEMENTED, or VERIFIED work. Respect those
 labels. Documentation is not implementation evidence; inspect repository code,
@@ -207,5 +220,6 @@ pre-finish checklist in `docs/DOCUMENTATION_GOVERNANCE.md`.
 GitHub Actions runs Quality, Tests, Build, Dependency Security, and E2E checks
 for pull requests into `main` and pushes to `main`. Live runtime security is
 defined separately and requires a protected non-production Supabase environment.
-See `docs/CI.md` for secrets, required checks, branch protection, and the
-explicit no-deployment/no-production-migration boundary.
+GitHub Actions does not deploy; the separately configured Vercel Git integration
+deploys merged `main` commits and never applies database migrations. See
+`docs/CI.md` and `docs/DEPLOYMENT.md`.

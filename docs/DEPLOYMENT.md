@@ -1,0 +1,140 @@
+# Deployment
+
+STATUS: VERIFIED
+
+## Current Production
+
+- Platform: Vercel
+- Account/team: `David Frank's projects`
+- Project: `my-kustomers-main-app`
+- Repository: `davidfrank96/MyKustomers-main-app`
+- Production branch: `main`
+- Stable URL: `https://my-kustomers-main-app.vercel.app`
+- Initial verified application commit: `ab90ebc4e808bfba64ce0c13a3db757a629b806b`
+- Initial verified deployment: `CDxVhdJyQ1Lnt6AGm7cXuct9YcTE`
+
+Vercel Git integration creates Production deployments from `main`. Pull requests
+and feature branches may create Preview deployments, but the current project
+intentionally gives Preview no Supabase or service-role environment values.
+GitHub Actions remains the required code-quality gate; it does not call Vercel
+or mutate infrastructure.
+
+The initial online application uses the existing development Supabase project.
+This is an explicit early-deployment limitation, not a production database
+promotion. Runtime-security tests and migration administration must continue to
+target an explicitly identified safe environment.
+
+## Production Environment
+
+Vercel Production currently contains exactly these runtime variables:
+
+| Name | Boundary | Scope | Purpose |
+| --- | --- | --- | --- |
+| `NEXT_PUBLIC_APP_URL` | Public | Production | Stable absolute application URL |
+| `NEXT_PUBLIC_SUPABASE_URL` | Public | Production | Supabase API origin |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Public | Production | Browser-safe Supabase key |
+| `SUPABASE_SERVICE_ROLE_KEY` | Server secret | Production | Narrow server-only privileged workflows |
+
+Vercel marks all four entries Sensitive. The service-role key has no
+`NEXT_PUBLIC_` prefix and must never be read by a Client Component or included
+in browser output. Values are managed only in Vercel's environment-variable
+configuration and are never committed, printed in logs, or copied into this
+document.
+
+The following local/test/optional names are deliberately not deployed:
+
+- `DATABASE_URL`, `DIRECT_URL`, `DATABASE_POOLER_URL`, `SUPABASE_DB_URL`
+- `RESEND_API_KEY`, `TRANSACTIONAL_EMAIL_PROVIDER`, `TRANSACTIONAL_EMAIL_FROM`
+- `E2E_AUTH_EMAIL`, `E2E_AUTH_PASSWORD`, `E2E_SIGNUP_EMAIL`
+- `PHASE2_RUNTIME_VERIFICATION`, `PHASE2_SUPABASE_TARGET`
+
+The running application uses Supabase APIs rather than a direct PostgreSQL
+connection. Database administration credentials and test controls therefore do
+not belong in the Vercel runtime.
+
+## Supabase Auth
+
+The Supabase Auth URL configuration for the stable production domain is:
+
+- Site URL: `https://my-kustomers-main-app.vercel.app`
+- Allowed redirect: `https://my-kustomers-main-app.vercel.app/auth/callback?next=/dashboard`
+- Allowed redirect: `https://my-kustomers-main-app.vercel.app/auth/callback?next=/reset-password`
+
+These are exact URLs. No Preview wildcard is configured. Add another exact
+domain only when that environment has a reviewed Supabase access policy.
+
+## Email State
+
+Supabase Auth continues to own signup-confirmation and password-recovery email.
+Customer booking, cancellation, amendment, and add-on events use the durable
+application outbox. Because no transactional provider variables are deployed,
+the application uses its no-network development adapter:
+
+`OUTBOX ACTIVE - EXTERNAL DELIVERY NOT CONFIGURED`
+
+Do not describe an outbox event as customer delivery. Enabling Resend later
+requires reviewed Production values for all three optional email variables and
+a new delivery verification pass.
+
+## Release Process
+
+1. Confirm the intended commit is pushed and the working tree is understood.
+2. Open a pull request into `main` and require Quality, Tests, Build, Dependency
+   Security, and E2E to pass.
+3. Confirm the pull request is conflict-free before merge.
+4. Merge only the reviewed commit. Vercel Git integration then deploys `main`.
+5. Verify the Vercel deployment reports Ready and the stable alias points to it.
+6. Run application-level smoke checks for Auth, protected pages, customer and
+   booking workflows, public capability routes, Storage, metadata, PWA assets,
+   responsive layouts, and runtime logs.
+7. Record the deployed commit and deployment ID. Do not call a release verified
+   merely because the platform build completed.
+
+Vercel uses the repository's standard install and build behavior. The package
+build command remains `next build --webpack`, and Node 22 or newer is required
+by `package.json`.
+
+## Database Migrations
+
+Vercel builds consume the already-reviewed Supabase schema. They do not run,
+apply, repair, or reconcile database migrations. Migration application remains
+a separate controlled operation under `docs/MIGRATIONS.md`; never add a
+migration command to install, build, or deployment hooks.
+
+## Rollback
+
+For an application-only regression, use Vercel Deployments to promote the last
+known-good Production deployment to the stable alias, then diagnose through a
+normal corrective pull request. Confirm that the rollback commit expects the
+currently deployed schema before promotion.
+
+Environment or Supabase Auth changes must be rolled back separately through
+their owning dashboards. A Vercel code rollback does not undo environment
+variables, Auth allowlists, Storage changes, email-provider settings, or
+database migrations. Database rollback requires a reviewed forward migration;
+do not reverse immutable migration files or run an automatic destructive
+rollback.
+
+## Secret And Release Governance
+
+- `.env` and its real-value variants remain Git-ignored.
+- Vercel secrets are managed through Vercel environment configuration only.
+- Every Production deployment must correspond to a known Git commit.
+- Required CI must pass before merge and Production deployment.
+- Production server secrets are not copied into Preview or Development by
+  default.
+- Supabase Auth redirects must be reviewed whenever a production domain changes.
+- Deployment documentation must change with the deployment architecture.
+- Build and deployment must never apply database migrations automatically.
+
+## Initial Verification Evidence
+
+The initial release passed local lint, typecheck, unit/integration/static tests,
+the opt-in development Supabase runtime-security suite, full local Playwright,
+production build, and moderate dependency audit. Production checks then passed
+the canonical customer/booking/confirmation/amendment/add-on/feedback journey,
+live customer and booking search, mobile account/logout, dashboard navigation,
+business logo upload/replacement/public retrieval/removal, 390px and 1440px
+layout checks, HTTPS health/manifest/icon checks, protected-route behavior, and
+the public capability metadata/cache controls. The verification traffic
+produced no Warning, Error, or Fatal Vercel runtime log entries.
