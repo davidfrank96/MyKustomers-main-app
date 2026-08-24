@@ -575,7 +575,7 @@ membership for an ambiguous account.
 
 SEC-043 - Google OAuth Preserves Existing Identity And Redirect Boundaries
 
-Status: IMPLEMENTED - LOCAL RUNTIME VERIFIED - PRODUCTION PENDING
+Status: VERIFIED - PRODUCTION
 
 Google authentication is delegated to Supabase Auth and uses the existing PKCE
 callback. Application code contains no Google client secret, stores no provider
@@ -595,8 +595,10 @@ The configured provider now reports enabled. Real Google authorization completed
 through the normal local application callback, established a Google session,
 provisioned a profile, persisted after refresh, exercised zero, one, and
 multiple-business resolution and switching, and cleared the session on logout
-without exposing transient credentials. Production OAuth remains a release
-check. No nonce, PKCE, state, cookie, or redirect validation was weakened.
+without exposing transient credentials. After required CI passed and the merge
+deployed, production OAuth repeated the callback, multi-business resolution,
+switching, persistence, logout, and protected-route checks. No nonce, PKCE,
+state, cookie, or redirect validation was weakened.
 
 Next.js development incoming-request logging explicitly ignores only
 `/auth/callback`, preventing transient authorization-code query strings from

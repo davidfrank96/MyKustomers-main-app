@@ -32,9 +32,10 @@ A real Google-to-Supabase round trip succeeded, and the application callback,
 profile trigger, zero-business onboarding, persistent session, and logout were
 verified through the normal local callback. The same controlled Google session
 then created one and two-business states, resolved the current workspace,
-switched businesses, persisted after refresh, and logged out cleanly. Production
-OAuth verification remains a post-deployment release gate. Email/password
-authentication remains fully supported.
+switched businesses, persisted after refresh, and logged out cleanly. The merged
+production deployment completed the same Google callback, two-business
+resolution, switching, persistence, logout, and protected-route checks.
+Email/password authentication remains fully supported.
 Customer-confirmed material booking terms are now database-locked against
 ordinary edits. Explicit rescheduling remains the current reconfirmation
 workflow, internal notes remain editable before terminal states, and confirmed

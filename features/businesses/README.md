@@ -44,4 +44,5 @@ Google authentication enters this same resolution path; no provider-specific
 tenant logic exists. Runtime provider activation verified zero-membership
 onboarding, one-business routing, multi-business current-workspace resolution,
 switching, refresh persistence, and logout through a real Google-authenticated
-local session. Production OAuth remains a post-deployment release check.
+local session. The merged production deployment repeated the callback,
+multi-business resolution, switching, persistence, and logout journey.

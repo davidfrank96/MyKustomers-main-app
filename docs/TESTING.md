@@ -414,8 +414,9 @@ Future phase acceptance should generally require appropriate combinations of:
   and protected-route denial.
 - The same Google session created one and then two active memberships, routed to
   the selected workspace, switched businesses, and retained that selection after
-  refresh. CI and production OAuth remain release checks; CI must not automate
-  the external Google consent UI.
+  refresh. Required CI passed, and the merged production deployment repeated the
+  OAuth callback, multi-business resolution, switching, persistence, logout, and
+  protected-route checks. CI does not automate the external Google consent UI.
 - The completed local gate passed lint, strict typecheck, 42 ordinary Vitest
   files with 177 tests, 13 live runtime-security files with 14 tests, 34
   Playwright journeys with 6 intentional skips, production build, moderate npm
