@@ -32,6 +32,7 @@ planned broad visual redesign or Phase 11 PWA/UX hardening.
 | Business identity form | 320-1440 | New logo preview/file/actions and website required bounded wrapping | Responsive preview and stacked mobile actions with shrink-safe fields | Required-width authenticated route matrix plus real upload/replace/remove | VERIFIED |
 | Dashboard metric tiles | 320-1440 | Static summaries had no data destination | Full semantic Link targets with visible focus and supported filters | Active/overdue/customers/insights browser navigation | VERIFIED |
 | Public confirmation identity | 320 mobile | Logo/fallback and external links needed to remain secondary and wrap safely | Compact identity row with bounded logo and wrapping links | Branded and fallback confirmation E2E | VERIFIED |
+| Live list and customer-picker search | 320-1440 | Clear/pending controls and automatic candidates must not widen fields or reset booking values | Overlay icon controls, bounded candidate list, and shrink-safe search wrappers | Authenticated Bookings/Customers/New Booking live-search journeys at all required widths | VERIFIED |
 
 ## Evidence
 
@@ -48,3 +49,9 @@ Settings, Business, and Dashboard at 320, 360, 375, 390, 430, 768, 1024, and
 replacement, removal, mobile logout, dashboard destination, and public
 confirmation identity journeys. It did not repeat the earlier 834/1280 matrix,
 which remains covered by the broader responsive suite.
+
+The 2026-08-23 live-search pass exercised authenticated Bookings, Customers, and
+New Booking search states at 320, 360, 375, 390, 430, 768, 1024, and 1440 pixels.
+The focused live journeys reported zero horizontal-overflow assertions and
+preserved booking field values while customer candidates updated. Physical
+mobile-keyboard and screen-reader acceptance remain release-hardening work.

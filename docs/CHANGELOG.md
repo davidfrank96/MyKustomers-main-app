@@ -2,6 +2,26 @@
 
 This changelog records meaningful project milestones. It is not a substitute for Git history.
 
+## 2026-08-23 - Live Debounced Search Consistency
+
+Status: VERIFIED
+
+- Replaced explicit text-search submission on Bookings and Customers with one
+  shared 300 ms debounced URL control. Typing and clearing use replace-style
+  navigation, preserve compatible filters and limits, and reset pagination.
+- Kept both list pages server-rendered and retained their existing tenant-scoped
+  PostgREST projections, escaping, search fields, status/archive filters, and
+  pagination semantics.
+- Made New Booking's bounded active-customer picker expose automatically visible,
+  keyboard-reachable matching candidates after the same debounce while preserving
+  inline-customer mode, duplicate warnings, and unrelated booking form state.
+- Added focused component tests for debounce/request count, clearing, URL
+  composition, filter preservation, page reset, Back/Forward synchronization,
+  and stale-timer cleanup, plus live Playwright search/filter/picker journeys and
+  the 320-1440px overflow matrix.
+- Added no dependency, database migration, schema change, or cross-tenant query
+  relaxation. Server-paginated customer autocomplete remains deferred.
+
 ## 2026-08-23 - Booking Integrity Consolidation
 
 Status: VERIFIED

@@ -184,6 +184,23 @@ E2E assertion compares `document.documentElement.scrollWidth` with
 `clientWidth` for representative routes; temporary screenshots are inspected
 outside committed production assets.
 
+Live-search regression coverage verifies the reusable 300 ms interaction rule.
+Component tests use fake timers to prove that rapid typing produces one final
+replace navigation rather than one navigation per character, compatible filter
+and limit params survive, `page` is removed, clear is automatic, query values are
+encoded, external URL changes synchronize without replaying a stale query, and
+unmount cancels stale timers. Booking-form coverage verifies that debounced
+active-customer candidates appear without submission and unrelated booking
+fields retain their values.
+
+Authenticated Playwright journeys exercise Bookings and Customers against the
+configured development Supabase project. They verify first-character live
+search, URL state, active/archive and booking-status composition, page reset,
+clear-to-default behavior, visible picker candidates, selection, form-state
+preservation, and zero horizontal overflow at 320, 360, 375, 390, 430, 768,
+1024, and 1440 pixels. Existing Phase 4 and Phase 5 live runtime suites remain
+the tenant-isolation evidence for customer and booking search queries.
+
 All runtime suites use `tests/security/runtime-support.ts` for the shared
 development-target allowlist, explicit opt-in guard, isolated non-persistent
 Supabase clients, required environment checks, and no-row assertions. Feature

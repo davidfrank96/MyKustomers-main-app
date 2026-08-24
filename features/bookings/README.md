@@ -31,6 +31,22 @@ audits, while existing mode accepts only an active same-business customer.
   bookings.
 - Booking detail composition for private feedback and operational issues.
 
+## Search Interaction
+
+The Bookings list remains a server-rendered, tenant-scoped query over booking
+reference, title, and matching current-business customers. Its text input updates
+the `q` URL parameter after a shared 300 ms debounce, uses replace-style history,
+preserves the selected booking filter and list limit, and resets `page` to 1.
+Clearing removes `q` automatically. Status-filter links preserve the current
+query, and pagination links preserve both query and filter.
+
+New Booking loads at most 100 active same-business customer options on the
+server. The browser applies the same 300 ms debounce locally from the first
+character, shows at most eight matching candidates automatically, and retains a
+filtered select for browsing. This creates no per-keystroke database traffic and
+does not reset other booking fields. Server-paginated autocomplete remains
+deferred under ADR-029.
+
 ## Data
 
 Primary tables:

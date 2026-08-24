@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { Route } from "next";
-import { Plus, Search } from "lucide-react";
+import { Plus } from "lucide-react";
+import { DebouncedSearchInput } from "@/components/shared/debounced-search-input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Input } from "@/components/ui/input";
 import { getCurrentBusinessContext } from "@/lib/auth/server";
 import { listCustomersForBusiness } from "@/features/customers/queries";
 import { parseCustomerListParams, type CustomerArchiveFilter } from "@/features/customers/validation";
@@ -84,19 +84,12 @@ export default async function CustomersPage({ searchParams }: CustomersPageProps
       <Card>
         <CardContent className="p-4 sm:p-5">
           <div className="flex flex-col gap-4">
-            <form action="/customers" className="flex flex-col gap-3 sm:flex-row" role="search">
-              <input type="hidden" name="status" value={params.status} />
-              <Input
-                name="q"
-                defaultValue={params.q}
-                placeholder="Search name, email, or phone"
-                aria-label="Search customers"
-              />
-              <Button type="submit" variant="secondary" className="w-full sm:w-fit">
-                <Search className="size-4" aria-hidden="true" />
-                Search
-              </Button>
-            </form>
+            <DebouncedSearchInput
+              clearLabel="Clear customer search"
+              initialValue={params.q}
+              placeholder="Search name, email, or phone"
+              label="Search customers"
+            />
 
             <div className="flex flex-wrap gap-2" aria-label="Customer archive filters">
               {(["active", "archived", "all"] as const).map((status) => (
@@ -119,7 +112,13 @@ export default async function CustomersPage({ searchParams }: CustomersPageProps
 
       {result.customers.length === 0 ? (
         <EmptyState
-          title={params.status === "archived" ? "No archived customers." : "No customers yet."}
+          title={
+            params.q
+              ? "No matching customers."
+              : params.status === "archived"
+                ? "No archived customers."
+                : "No customers yet."
+          }
           description={
             params.q
               ? "No saved customers matched this search."

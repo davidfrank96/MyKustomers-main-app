@@ -854,6 +854,79 @@ test.describe("booking engine", () => {
     await expect(page.getByText("Everything was handled privately.")).toHaveCount(0);
   });
 
+  test("booking and customer-picker search update live without resetting form state", async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "The explicit viewport matrix runs once.");
+    test.setTimeout(90_000);
+
+    const email = testEmail(testInfo.project.name);
+    const password = `Phase5-Search-${randomUUID()}-A1`;
+    const suffix = randomUUID().slice(0, 8);
+    const slug = `phase5-search-${Date.now()}-${suffix}`;
+    const customerName = `Search Customer Sarah ${suffix}`;
+    const bookingTitle = `Search Booking Sarah ${suffix}`;
+    createdBusinessSlugs.add(slug);
+    await createConfirmedBusinessOwner({
+      email,
+      password,
+      slug,
+      customerName,
+      customerEmail: `search-${suffix}@example.com`,
+    });
+
+    await page.goto("/login");
+    await page.getByLabel("Email").fill(email);
+    await page.getByLabel("Password").fill(password);
+    await page.getByRole("button", { name: "Log in" }).click();
+    await expect(page).toHaveURL(/\/dashboard/);
+
+    await page.goto("/bookings/new");
+    await page.getByLabel("Booking title").fill(bookingTitle);
+    await page.getByLabel("Description").fill("Preserve this while customer search updates.");
+    await page.getByLabel("Agreed total").fill("1250");
+    await page.getByLabel("Deposit recorded").fill("250");
+    await page.getByLabel("Search existing customers").fill(`Sarah ${suffix}`);
+    const candidate = page.getByRole("option", { name: new RegExp(customerName) });
+    await expect(candidate).toBeVisible();
+    await expect(page.getByLabel("Booking title")).toHaveValue(bookingTitle);
+    await expect(page.getByLabel("Description")).toHaveValue(
+      "Preserve this while customer search updates.",
+    );
+    await candidate.click();
+    await expect(page.locator("#customerId")).toContainText(customerName);
+    await page.getByRole("button", { name: "Create booking" }).click();
+    await expect(page).toHaveURL(/\/bookings\/[0-9a-f-]+\?created=1/, {
+      timeout: serverActionTimeout,
+    });
+
+    await page.goto("/bookings?filter=active&page=7");
+    await page.getByLabel("Search bookings").fill(bookingTitle);
+    await expect
+      .poll(() => new URL(page.url()).searchParams.get("q"))
+      .toBe(bookingTitle);
+    expect(new URL(page.url()).searchParams.get("filter")).toBe("active");
+    expect(new URL(page.url()).searchParams.has("page")).toBe(false);
+    await expect(page.getByRole("link", { name: new RegExp(bookingTitle) })).toBeVisible();
+
+    await page.getByRole("link", { name: "Draft", exact: true }).click();
+    await expect.poll(() => new URL(page.url()).searchParams.get("filter")).toBe("DRAFT");
+    expect(new URL(page.url()).searchParams.get("q")).toBe(bookingTitle);
+    await expect(page.getByRole("link", { name: new RegExp(bookingTitle) })).toBeVisible();
+
+    await page.getByLabel("Search bookings").fill(`No match ${suffix}`);
+    await expect(page.getByText("No saved bookings matched this search.")).toBeVisible();
+    await page.getByRole("button", { name: "Clear booking search" }).click();
+    await expect.poll(() => new URL(page.url()).searchParams.has("q")).toBe(false);
+    expect(new URL(page.url()).searchParams.get("filter")).toBe("DRAFT");
+    await expect(page.getByRole("link", { name: new RegExp(bookingTitle) })).toBeVisible();
+
+    for (const width of [320, 360, 375, 390, 430, 768, 1024, 1440]) {
+      await page.setViewportSize({ width, height: width < 768 ? 900 : 1000 });
+      await expectNoPageOverflow(page);
+    }
+  });
+
   test("business user can create a customer inline after an exact-match warning", async ({
     page,
   }, testInfo) => {
