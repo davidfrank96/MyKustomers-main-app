@@ -846,3 +846,23 @@ resolved current business. Migration
 last first-membership inference from atomic booking creation. Unit, static,
 live Supabase, desktop/mobile E2E, and responsive evidence is recorded in
 `docs/TESTING.md`.
+
+## Admin Phase 0/1 - Platform Admin Authorization Foundation
+
+STATUS: VERIFIED IN DEVELOPMENT
+
+Implemented scope:
+
+- dedicated `SUPER_ADMIN` role and `ACTIVE`/`DISABLED` authority model;
+- RLS-enabled `platform_admins` table with no browser table grants or policies;
+- authenticated self-scoped active-admin RPC;
+- separate server-only platform authorization helpers and `/admin` layout;
+- minimal accessible shell with only implemented navigation;
+- trigger-backed authority-change audit and controlled bootstrap runbook;
+- unit, static migration, live security, E2E, and responsive coverage.
+
+Excluded: production rollout, production seed, operational summaries, platform
+data browsing, impersonation, admin management UI, billing, staff management,
+generic editing, destructive mutation, and hard deletion.
+
+Future Admin Phases 2-7 remain planned as defined in `docs/ADMIN_SECURITY.md`.

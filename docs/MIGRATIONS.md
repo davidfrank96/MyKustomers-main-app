@@ -73,6 +73,7 @@ not assume repository presence alone proves application.
 | `20260824094523_select_current_business_for_booking_creation.sql`          | Applied; exact active membership now authorizes explicit-business atomic booking creation; second-business write and cross-tenant denial verified live          |
 | `20260824100357_preserve_single_business_booking_compatibility.sql`        | Applied; legacy deployed caller remains available only for exactly one active membership and fails closed for multi-business accounts                          |
 | `20260824133925_trusted_feedback_sharing.sql`                              | Applied; feedback first-open column, truthful audit values, service-only idempotent open RPC, direct-role denial, and live Phase 8 behavior verified            |
+| `20260824223141_platform_admin_authorization_foundation.sql`               | Applied to development only; dedicated admin model, RLS/grants, self-scoped RPC, audit triggers, and live authorization verified                               |
 
 The configured development project's historical CLI migration table remains
 empty because this project predates enforced version tracking. These migrations
@@ -123,3 +124,20 @@ signature only when the caller has exactly one active membership. It delegates
 to the new explicit-business implementation. Multi-business legacy calls fail
 with `explicit_business_required`, preventing ambiguous tenant writes during the
 frontend deployment window.
+
+## 2026-08-24 Platform Admin Foundation Migration
+
+`20260824223141_platform_admin_authorization_foundation.sql` was created with
+the Supabase CLI and applied as one transaction through the configured
+development database URL. It adds only the Phase 1 admin enums, table, RLS/grant
+boundary, self-scoped active lookup, and authority-change audit trigger. No
+index beyond the user UUID primary key was added because the table is tiny and
+lookups are by that key. Live grant, role/status, self-promotion, vendor-owner,
+disablement, audit, and route tests passed. It has not been applied to a
+separate production database or used to seed a production administrator.
+
+The current Vercel Production app is documented as using this same configured
+Supabase project. The schema objects therefore exist in that shared backend,
+but no production application code in this task was deployed to call them and
+the table contains no administrator row. A separate production rollout remains
+explicitly unapproved.

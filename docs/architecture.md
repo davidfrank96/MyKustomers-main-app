@@ -335,3 +335,16 @@ The Business page receives that same bounded accessible-business list through
 its existing profile loader. It renders the current membership and switchable
 memberships but posts every switch through the exact same server action as the
 header; neither surface turns a submitted business ID into authority.
+
+## Platform Admin Boundary
+
+The platform-admin namespace is a separate domain shell within the monolith.
+Supabase Auth establishes identity, `platform_admins` establishes platform
+authority, and `business_members` continues to establish tenant authority. The
+admin layout authenticates first and then uses the caller's normal server
+Supabase client to invoke an active-caller-only function. It does not load
+business context or import the service-role client.
+
+Future privileged platform reads must be narrow, server-only operations after
+`requirePlatformAdminRole`. A generic unrestricted admin data client is not an
+accepted architecture. See `docs/ADMIN_SECURITY.md` and ADR-037.

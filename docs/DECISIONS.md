@@ -872,3 +872,24 @@ the application performs no email-based user creation or manual linking.
 
 Revisit conditions: Provider configuration is completed, explicit manual account
 linking becomes a product requirement, or another reviewed provider enters scope.
+
+## ADR-037 - Platform Administration Uses Separate Database Authority
+
+Status: Accepted
+
+Decision: Platform administration is authorized by a dedicated
+`platform_admins` row linked to `auth.users.id`. Tenant roles in
+`business_members` never imply platform authority. Admin Phase 1 defines only
+`SUPER_ADMIN` and requires `ACTIVE` status on every admin request through a
+self-scoped authenticated RPC. Browser roles receive no direct admin-table
+privileges.
+
+The initial administrator is provisioned through a controlled, audited UUID
+operation. There is no email allowlist, profile boolean, self-service bootstrap,
+client role claim, generic service-role query helper, or admin-management UI.
+Authority changes are audited, while ordinary page navigation is not.
+
+Consequences: Admin revocation takes effect on the next server render without
+deleting the Auth account. Future admin data reads and writes require narrow
+post-authorization boundaries, operation-specific audit semantics, and runtime
+security tests. MFA should be enforced before high-risk admin writes are enabled.

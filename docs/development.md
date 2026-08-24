@@ -186,3 +186,19 @@ are documented in `docs/CI.md`.
 - Performance instrumentation must not log URL query strings, tokens, cookies,
   customer data, emails, credentials, or database URLs. Remove temporary timing
   hooks before release unless permanent telemetry has a reviewed contract.
+
+## Platform Admin Development
+
+- Use `requirePlatformAdmin` or `requirePlatformAdminRole`; never reuse
+  `requireBusinessRole` for platform authority.
+- Authenticate and authorize before any privileged platform data access.
+- Keep platform-admin queries in a server-only, narrow boundary. Do not expose
+  service role to client modules or create a generic table accessor.
+- Do not use profile metadata, an email allowlist, client state, or business
+  ownership as admin authority.
+- Keep the admin shell limited to implemented destinations. New pages require
+  an authorization, disclosure, audit, runtime-test, and threat-model update.
+- Runtime/E2E admin fixtures must use the service-role test boundary and clean
+  audit rows, admin rows, tenant fixtures, and Auth users in dependency order.
+- Production bootstrap, migration, or deployment requires separate explicit
+  approval and the runbook in `docs/ADMIN_SECURITY.md`.

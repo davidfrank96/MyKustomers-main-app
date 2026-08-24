@@ -452,3 +452,22 @@ cross-phase business discoverability and Google authentication support:
   current-business, switching, persistence, logout, and protected-route journey.
   Same-email identity behavior remains a separate lifecycle check. No Vercel
   variable or Google credential is required.
+
+## Platform Admin Roadmap
+
+Admin Phase 0/1 - Platform Admin Architecture and Authorization Foundation:
+VERIFIED IN DEVELOPMENT.
+
+- A dedicated `platform_admins` model authorizes platform access independently
+  from vendor tenant roles.
+- `/admin` has a separate server-protected shell with no business-data tooling,
+  fake metrics, destructive action, impersonation, billing, or staff management.
+- Browser roles cannot enumerate or mutate admin records; an authenticated
+  function returns only the active caller's own record.
+- Controlled UUID-based bootstrap and admin authority changes are audited.
+- Production rollout and initial production-admin creation are NOT DEPLOYED.
+
+Planned only: Admin Phase 2 operational summaries; Phase 3 read-only businesses
+and users; Phase 4 read-only bookings and issues; Phase 5 email operations;
+Phase 6 reviewed safe writes; Phase 7 security/system health. Each phase requires
+its own threat-model and regression update.

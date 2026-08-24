@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-08-24 - Platform Admin Authorization Foundation
+
+- Added the dedicated `platform_admins` role/status model, RLS, browser grant
+  denial, self-scoped active-admin lookup, and trigger-backed authority audit.
+- Added server-only platform authorization helpers and a separate minimal
+  `/admin` shell with safe denial and no business-data or destructive controls.
+- Added controlled bootstrap, threat model, MFA readiness, future phase rules,
+  and platform/vendor authority separation documentation.
+- Added unit, static security, live Supabase, E2E, and responsive regression
+  coverage. The migration was applied only to the configured development
+  database; production rollout and production admin creation remain deferred.
+- Isolated the existing canonical E2E browser projects into distinct test-only
+  rate-limit identities so parallel confirmation journeys cannot exhaust one
+  shared loopback bucket; production rate limits and assertions are unchanged.
+
 ## 2026-08-24 - CI E2E Reliability And Failure Diagnostics
 
 Status: IMPLEMENTED - REMOTE VERIFICATION PENDING

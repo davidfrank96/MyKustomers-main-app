@@ -630,3 +630,17 @@ for authenticated or tenant-scoped data without explicit cache scope, key,
 invalidation behavior, and cross-tenant security analysis. Public capability-
 token pages must remain non-cacheable unless a future security review explicitly
 changes the rule.
+
+## Platform Administration
+
+`business_members` tenant authority and `platform_admins` platform authority are
+permanently separate. Only an authoritative `ACTIVE SUPER_ADMIN` row may enter
+`/admin`. The table has RLS and no anonymous/authenticated table grants or
+policies; the only browser-callable surface returns the active caller's own row.
+Profile metadata, email, OAuth provider, client state, business ownership, and
+current-business preference have no effect on platform authority.
+
+Admin authorization must precede every future privileged platform query. Admin
+creation, role/status changes, and disablement are audited; page navigation is
+not. Bootstrap, threats, MFA readiness, and deferred capabilities are defined in
+`docs/ADMIN_SECURITY.md`.
