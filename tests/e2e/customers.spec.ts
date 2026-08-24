@@ -101,6 +101,8 @@ async function createConfirmedBusinessOwner({
     status: "active",
   });
   expect(membershipError).toBeNull();
+
+  return business!.id;
 }
 
 test.describe("customer management", () => {
@@ -178,5 +180,96 @@ test.describe("customer management", () => {
 
     await page.getByRole("link", { name: "Archived" }).click();
     await expect(page.getByRole("link", { name: new RegExp(updatedName) })).toBeVisible();
+  });
+
+  test("customer search updates live, composes with archive filters, and clears", async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "The explicit viewport matrix runs once.");
+
+    const email = testEmail(testInfo.project.name);
+    const password = `Phase4-Search-${randomUUID()}-A1`;
+    const suffix = randomUUID().slice(0, 8);
+    const slug = `phase4-search-${Date.now()}-${suffix}`;
+    const searchQuery = `Live Search Sarah ${suffix}`;
+    const activeName = `${searchQuery} Active`;
+    const archivedName = `${searchQuery} Archived`;
+    createdBusinessSlugs.add(slug);
+    const businessId = await createConfirmedBusinessOwner({ email, password, slug });
+    const admin = createAdminClient();
+    const { data: customers, error: customersError } = await admin
+      .from("customers")
+      .insert([
+        {
+          business_id: businessId,
+          name: activeName,
+          email: `active-${suffix}@example.com`,
+          phone: null,
+        },
+        {
+          business_id: businessId,
+          name: archivedName,
+          email: `archived-${suffix}@example.com`,
+          phone: null,
+        },
+        {
+          business_id: businessId,
+          name: `Live Search David ${suffix}`,
+          email: `david-${suffix}@example.com`,
+          phone: null,
+        },
+      ])
+      .select("id, name, created_at");
+    expect(customersError).toBeNull();
+    const archivedCustomer = customers?.find((customer) => customer.name === archivedName);
+    expect(archivedCustomer).toBeTruthy();
+    const { error: archiveError } = await admin
+      .from("customers")
+      .update({
+        archived_at: new Date(
+          new Date(archivedCustomer!.created_at).getTime() + 1_000,
+        ).toISOString(),
+      })
+      .eq("id", archivedCustomer!.id);
+    expect(archiveError).toBeNull();
+
+    await page.goto("/login");
+    await page.getByLabel("Email").fill(email);
+    await page.getByLabel("Password").fill(password);
+    await page.getByRole("button", { name: "Log in" }).click();
+    await expect(page).toHaveURL(/\/dashboard/);
+
+    await page.goto("/customers?status=active&page=7");
+    const search = page.getByLabel("Search customers");
+    await search.fill(searchQuery);
+    await expect
+      .poll(() => new URL(page.url()).searchParams.get("q"))
+      .toBe(searchQuery);
+    expect(new URL(page.url()).searchParams.get("status")).toBe("active");
+    expect(new URL(page.url()).searchParams.has("page")).toBe(false);
+    await expect(page.getByRole("link", { name: new RegExp(activeName) })).toBeVisible();
+    await expect(page.getByRole("link", { name: new RegExp(archivedName) })).toHaveCount(0);
+
+    await page.getByRole("link", { name: "Archived", exact: true }).click();
+    await expect
+      .poll(() => new URL(page.url()).searchParams.get("status"))
+      .toBe("archived");
+    expect(new URL(page.url()).searchParams.get("q")).toBe(searchQuery);
+    await expect(page.getByRole("link", { name: new RegExp(archivedName) })).toBeVisible();
+    await expect(page.getByRole("link", { name: new RegExp(activeName) })).toHaveCount(0);
+
+    await page.getByRole("button", { name: "Clear customer search" }).click();
+    await expect.poll(() => new URL(page.url()).searchParams.has("q")).toBe(false);
+    expect(new URL(page.url()).searchParams.get("status")).toBe("archived");
+    await expect(page.getByRole("link", { name: new RegExp(archivedName) })).toBeVisible();
+
+    for (const width of [320, 360, 375, 390, 430, 768, 1024, 1440]) {
+      await page.setViewportSize({ width, height: width < 768 ? 900 : 1000 });
+      const dimensions = await page.evaluate(() => ({
+        clientWidth: document.documentElement.clientWidth,
+        scrollWidth: document.documentElement.scrollWidth,
+      }));
+      expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth + 1);
+    }
   });
 });

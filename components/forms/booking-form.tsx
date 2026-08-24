@@ -2,7 +2,16 @@
 
 import { useActionState, useMemo, useState } from "react";
 import { useFormStatus } from "react-dom";
-import { AlertCircle, CheckCircle2, Plus, Save, Search, UserRound } from "lucide-react";
+import {
+  AlertCircle,
+  CheckCircle2,
+  LoaderCircle,
+  Plus,
+  Save,
+  Search,
+  UserRound,
+  X,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,6 +28,7 @@ import {
   type BookingActionState,
 } from "@/features/bookings/action-state";
 import { bookingCurrencies } from "@/features/bookings/money";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 
 type CustomerOption = {
   id: string;
@@ -115,6 +125,7 @@ export function BookingForm({
   const [scheduledLocal, setScheduledLocal] = useState(
     toLocalDateTimeValue(initialValues.scheduledFor),
   );
+  const debouncedCustomerSearch = useDebouncedValue(customerSearch);
   const scheduledForIso = useMemo(() => {
     if (!scheduledLocal) {
       return "";
@@ -135,7 +146,7 @@ export function BookingForm({
     return options;
   }, [customers, state.duplicateCandidates]);
   const filteredCustomers = useMemo(() => {
-    const normalizedSearch = customerSearch.trim().toLowerCase();
+    const normalizedSearch = debouncedCustomerSearch.trim().toLowerCase();
 
     if (!normalizedSearch) {
       return customerOptions;
@@ -146,7 +157,11 @@ export function BookingForm({
         value?.toLowerCase().includes(normalizedSearch),
       ),
     );
-  }, [customerOptions, customerSearch]);
+  }, [customerOptions, debouncedCustomerSearch]);
+  const matchingCustomerSuggestions = debouncedCustomerSearch.trim()
+    ? filteredCustomers.slice(0, 8)
+    : [];
+  const customerSearchPending = customerSearch !== debouncedCustomerSearch;
   const duplicateWarningActive = Boolean(
     state.duplicateCandidates?.length &&
     state.duplicateInput &&
@@ -257,11 +272,74 @@ export function BookingForm({
                       value={customerSearch}
                       onChange={(event) => setCustomerSearch(event.target.value)}
                       placeholder="Name, email, or phone"
-                      className="pl-9"
+                      className="pl-9 pr-20"
                       disabled={disabled}
+                      role="combobox"
+                      aria-autocomplete="list"
+                      aria-controls="customer-search-results"
+                      aria-expanded={Boolean(debouncedCustomerSearch.trim())}
+                      aria-busy={customerSearchPending}
                     />
+                    {customerSearchPending ? (
+                      <LoaderCircle
+                        className="absolute right-11 top-3.5 size-4 animate-spin text-muted-foreground"
+                        aria-hidden="true"
+                      />
+                    ) : null}
+                    {customerSearch ? (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="absolute right-0.5 top-0.5 size-10"
+                        onClick={() => setCustomerSearch("")}
+                        aria-label="Clear existing customer search"
+                        title="Clear existing customer search"
+                        disabled={disabled}
+                      >
+                        <X className="size-4" aria-hidden="true" />
+                      </Button>
+                    ) : null}
                   </div>
+                  <span className="sr-only" role="status" aria-live="polite">
+                    {customerSearchPending ? "Searching customers..." : ""}
+                  </span>
                 </div>
+
+                {debouncedCustomerSearch.trim() && matchingCustomerSuggestions.length > 0 ? (
+                  <div
+                    id="customer-search-results"
+                    role="listbox"
+                    aria-label="Matching active customers"
+                    className="grid max-h-64 gap-1 overflow-y-auto rounded-md border border-border bg-card p-1"
+                  >
+                    {matchingCustomerSuggestions.map((customer) => (
+                      <button
+                        key={customer.id}
+                        type="button"
+                        role="option"
+                        aria-selected={selectedCustomerId === customer.id}
+                        className="min-w-0 rounded-md px-3 py-2 text-left text-sm hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        onClick={() => selectExistingCustomer(customer)}
+                      >
+                        <span className="block truncate font-medium">{customer.name}</span>
+                        <span className="block truncate text-xs text-muted-foreground">
+                          {[customer.email, customer.phone].filter(Boolean).join(" / ") ||
+                            "No contact details"}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+                {debouncedCustomerSearch.trim() && matchingCustomerSuggestions.length === 0 ? (
+                  <p
+                    id="customer-search-results"
+                    className="rounded-md border border-border bg-card px-3 py-2 text-xs leading-5 text-muted-foreground"
+                    role="status"
+                  >
+                    No active customers match this search.
+                  </p>
+                ) : null}
 
                 <div className="space-y-2">
                   <Label htmlFor="customerId">Customer</Label>
@@ -289,11 +367,6 @@ export function BookingForm({
                       ))}
                     </SelectContent>
                   </Select>
-                  {filteredCustomers.length === 0 ? (
-                    <p className="text-xs leading-5 text-muted-foreground">
-                      No active customers match this search.
-                    </p>
-                  ) : null}
                   {fieldError(state, "customerId") ? (
                     <p className="text-sm leading-5 text-destructive">
                       {fieldError(state, "customerId")}

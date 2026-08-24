@@ -50,6 +50,10 @@ Current structural rules:
   state or hiding primary actions.
 - Dialogs and sheets fit the dynamic viewport and allow vertical scrolling.
 - Mobile navigation preserves reachable content and safe-area padding.
+- Searchable lists and entity pickers update after a short shared debounce rather
+  than requiring an explicit Search action. URL-backed list search uses replace
+  history, preserves compatible filters, resets pagination, and exposes compact
+  labeled clear and pending controls without shifting the layout.
 
 Required viewport and route evidence is recorded in `docs/RESPONSIVE_QA.md`.
 These rules stabilize the current design and do not start the broad redesign.

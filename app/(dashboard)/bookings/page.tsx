@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { Route } from "next";
-import { Plus, Search } from "lucide-react";
+import { Plus } from "lucide-react";
+import { DebouncedSearchInput } from "@/components/shared/debounced-search-input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Input } from "@/components/ui/input";
 import { formatMoneyMinor, deriveBalanceMinor } from "@/features/bookings/money";
 import { listBookingsForBusiness } from "@/features/bookings/queries";
 import { getBookingStatusLabel, isBookingOverdue } from "@/features/bookings/status";
@@ -106,19 +106,12 @@ export default async function BookingsPage({ searchParams }: BookingsPageProps) 
       <Card>
         <CardContent className="p-4 sm:p-5">
           <div className="flex flex-col gap-4">
-            <form action="/bookings" className="flex flex-col gap-3 sm:flex-row" role="search">
-              <input type="hidden" name="filter" value={params.filter} />
-              <Input
-                name="q"
-                defaultValue={params.q}
-                placeholder="Search reference, title, or customer"
-                aria-label="Search bookings"
-              />
-              <Button type="submit" variant="secondary" className="w-full sm:w-fit">
-                <Search className="size-4" aria-hidden="true" />
-                Search
-              </Button>
-            </form>
+            <DebouncedSearchInput
+              clearLabel="Clear booking search"
+              initialValue={params.q}
+              placeholder="Search reference, title, or customer"
+              label="Search bookings"
+            />
 
             <div className="flex flex-wrap gap-2" aria-label="Booking filters">
               {bookingListFilters.map((filter) => (
@@ -138,7 +131,7 @@ export default async function BookingsPage({ searchParams }: BookingsPageProps) 
 
       {result.bookings.length === 0 ? (
         <EmptyState
-          title="No bookings yet."
+          title={params.q ? "No matching bookings." : "No bookings yet."}
           description={
             params.q
               ? "No saved bookings matched this search."

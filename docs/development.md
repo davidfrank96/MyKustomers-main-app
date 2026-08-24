@@ -102,6 +102,17 @@ Before billing or other expansion phases, preserve the Phase 9.5 baseline:
   summary metrics.
 - Extend the canonical E2E journey when a new phase changes the core workflow.
 
+## Search Interaction
+
+Searchable lists and entity pickers should update from debounced user input
+without requiring an explicit Search submission unless a specific workflow
+requires manual submission. Use the shared 300 ms debounce by default. Keep
+server-rendered list pages URL-authoritative, use replace-style navigation while
+typing, preserve compatible filters, reset pagination, and provide labeled clear
+and quiet pending states. Do not move tenant data into the browser solely to add
+live search; retain the existing server/client data boundary and document any
+bounded local picker as deferred scalability work.
+
 ## Branch Integration
 
 - Fetch and compare both branch tips and their merge base before reconciliation.

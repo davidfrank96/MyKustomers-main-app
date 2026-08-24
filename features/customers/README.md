@@ -11,6 +11,14 @@ server-side membership checks, and PostgreSQL RLS. Ordinary UI deletion is
 implemented as archiving through `archived_at`; hard deletion is deferred to a
 future privacy/account-deletion design.
 
+The Customers list remains a server-rendered, tenant-scoped search over name,
+email, and phone. Its text input updates the `q` URL parameter from the first
+character after a shared 300 ms debounce. Replace-style navigation preserves the
+active/archived/all filter and list limit without adding one browser-history
+entry per character, while each query change removes `page` so results restart
+at page 1. Clearing removes `q` automatically, and archive-filter and pagination
+links preserve compatible search state.
+
 A vendor may create a real customer inline from New Booking with required name
 and optional email/phone. Creation is part of the same authenticated database
 transaction as the booking and records the ordinary `CUSTOMER_CREATED` audit.
