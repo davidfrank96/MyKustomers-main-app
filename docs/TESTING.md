@@ -503,3 +503,20 @@ Future phase acceptance should generally require appropriate combinations of:
 - A Next-config unit regression requires the OAuth callback logging exclusion.
   A live dummy callback emitted no incoming-request line while `/login` remained
   logged, confirming that ordinary development diagnostics were not disabled.
+
+## Platform Admin Foundation Coverage
+
+- `tests/unit/platform-admin-access-policy.test.ts` verifies strict role/status
+  parsing and fail-closed malformed or disabled values.
+- `tests/security/platform-admin-foundation.test.ts` statically verifies the
+  migration, RLS/grants, caller scoping, audit trigger, and server-only boundary.
+- `tests/security/platform-admin-runtime.test.ts` uses temporary development
+  fixtures to prove ordinary, one-business, multi-business, disabled, anonymous,
+  self-insert, self-update, metadata-forgery, and enumeration denial; it verifies
+  active access and audit evidence, then removes every fixture.
+- `tests/e2e/platform-admin.spec.ts` verifies unauthenticated login handling,
+  vendor denial, active zero-business access, refresh persistence, disabled
+  denial, and no overflow at 390, 768, and 1440 pixels.
+
+The live suite retains the existing `PHASE2_RUNTIME_VERIFICATION=1` and safe
+`PHASE2_SUPABASE_TARGET` gate. CI requires no static administrator credentials.

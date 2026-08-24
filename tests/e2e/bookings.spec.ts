@@ -247,6 +247,9 @@ test.describe("booking engine", () => {
   }, testInfo) => {
     test.setTimeout(180_000);
     await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+    const rateLimitIdentity =
+      testInfo.project.name === "mobile-chrome" ? "198.51.100.42" : "198.51.100.41";
+    await context.setExtraHTTPHeaders({ "x-forwarded-for": rateLimitIdentity });
 
     const email = testEmail(testInfo.project.name);
     const password = `Phase5-E2E-${randomUUID()}-A1`;
@@ -435,6 +438,9 @@ test.describe("booking engine", () => {
     ]) {
       createdRateLimitBuckets.add(
         hashRateLimitIdentity(`${action}:127.0.0.1:${userAgent}`),
+      );
+      createdRateLimitBuckets.add(
+        hashRateLimitIdentity(`${action}:${rateLimitIdentity}:${userAgent}`),
       );
     }
     await admin

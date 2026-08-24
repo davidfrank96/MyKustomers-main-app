@@ -413,3 +413,11 @@ Migration `20260824094523_select_current_business_for_booking_creation.sql`
 changes `create_booking_with_customer` to require `p_business_id` and verifies
 an exact active membership before any customer or booking write. This prevents
 the transaction from inferring an unrelated first membership.
+
+## Platform Administration
+
+`platform_admins`: VERIFIED IN DEVELOPMENT. One row per Auth user, with
+`SUPER_ADMIN`, `ACTIVE`/`DISABLED`, creation/update provenance, timestamps, RLS,
+no browser table grants, and an active-caller-only RPC. It has no `business_id`
+and does not derive authority from `business_members`. The user UUID primary key
+is the only index required for the current lookup contract.

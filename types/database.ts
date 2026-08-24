@@ -4,6 +4,36 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      platform_admins: {
+        Row: {
+          user_id: string;
+          role: Database["public"]["Enums"]["platform_admin_role"];
+          status: Database["public"]["Enums"]["platform_admin_status"];
+          created_at: string;
+          updated_at: string;
+          created_by: string | null;
+          updated_by: string | null;
+        };
+        Insert: {
+          user_id: string;
+          role: Database["public"]["Enums"]["platform_admin_role"];
+          status?: Database["public"]["Enums"]["platform_admin_status"];
+          created_at?: string;
+          updated_at?: string;
+          created_by?: string | null;
+          updated_by?: string | null;
+        };
+        Update: {
+          user_id?: string;
+          role?: Database["public"]["Enums"]["platform_admin_role"];
+          status?: Database["public"]["Enums"]["platform_admin_status"];
+          created_at?: string;
+          updated_at?: string;
+          created_by?: string | null;
+          updated_by?: string | null;
+        };
+        Relationships: [];
+      };
       profiles: {
         Row: {
           id: string;
@@ -680,6 +710,14 @@ export type Database = {
     };
     Views: Record<string, never>;
     Functions: {
+      get_my_platform_admin: {
+        Args: Record<string, never>;
+        Returns: {
+          user_id: string;
+          role: Database["public"]["Enums"]["platform_admin_role"];
+          status: Database["public"]["Enums"]["platform_admin_status"];
+        }[];
+      };
       create_booking_with_customer: {
         Args: {
           p_business_id: string;
@@ -928,6 +966,8 @@ export type Database = {
       };
     };
     Enums: {
+      platform_admin_role: "SUPER_ADMIN";
+      platform_admin_status: "ACTIVE" | "DISABLED";
       business_member_role: "owner" | "member";
       business_member_status: "active";
       booking_issue_category:
@@ -1002,7 +1042,10 @@ export type Database = {
         | "FEEDBACK_OPENED"
         | "FEEDBACK_SUBMITTED"
         | "ISSUE_CREATED"
-        | "ISSUE_RESOLVED";
+        | "ISSUE_RESOLVED"
+        | "PLATFORM_ADMIN_CREATED"
+        | "PLATFORM_ADMIN_UPDATED"
+        | "PLATFORM_ADMIN_DISABLED";
     };
     CompositeTypes: Record<string, never>;
   };
@@ -1010,3 +1053,6 @@ export type Database = {
 
 export type BusinessMemberRole = Database["public"]["Enums"]["business_member_role"];
 export type AuditEventType = Database["public"]["Enums"]["audit_event_type"];
+export type PlatformAdminRole = Database["public"]["Enums"]["platform_admin_role"];
+export type PlatformAdminStatus =
+  Database["public"]["Enums"]["platform_admin_status"];

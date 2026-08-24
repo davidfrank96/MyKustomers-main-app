@@ -233,6 +233,7 @@ The repository documentation is the source of truth for future implementation:
 - Analytics definitions: `docs/ANALYTICS_DEFINITIONS.md`.
 - Documentation governance: `docs/DOCUMENTATION_GOVERNANCE.md`.
 - Migration process and ledger: `docs/MIGRATIONS.md`.
+- Platform-admin threat model and bootstrap: `docs/ADMIN_SECURITY.md`.
 - Responsive verification: `docs/RESPONSIVE_QA.md`.
 - Continuous integration and merge policy: `docs/CI.md`.
 - Vercel deployment and rollback runbook: `docs/DEPLOYMENT.md`.
@@ -264,3 +265,13 @@ missing, and can create another owner workspace through the existing atomic
 onboarding RPC. Customers, bookings, insights, searches, and business settings
 then use that resolved business. The preference is never authorization, and no
 `profiles.business_id` shortcut exists.
+
+## Platform Administration
+
+Admin Phase 0/1 is verified in the configured development environment. Platform
+authority is stored in a dedicated `platform_admins` model and is permanently
+separate from tenant `business_members` roles. The server-protected `/admin`
+namespace exposes only a minimal shell to an `ACTIVE SUPER_ADMIN`; ordinary,
+single-business, multi-business, anonymous, disabled, and client-forged callers
+are denied. No production admin was seeded and no privileged admin operations
+were deployed. See `docs/ADMIN_SECURITY.md`.

@@ -298,3 +298,17 @@ production-readiness work.
       runtime-verified.
 - [x] Shared-database deployment ordering is protected by a single-membership
       legacy wrapper that fails closed for multi-business callers.
+
+## Platform Administration
+
+- [ ] Production rollout has explicit user authorization and an identified
+      migration/version record.
+- [ ] `platform_admins` RLS and grants match `docs/ADMIN_SECURITY.md`.
+- [ ] Ordinary, business-owner, multi-business-owner, disabled, anonymous, and
+      forged-client runtime denials pass.
+- [ ] Every production bootstrap target UUID and identity was independently
+      reviewed; no email is embedded in authorization logic.
+- [ ] Admin role/status change audit evidence was verified without secrets.
+- [ ] MFA is enforced before any high-risk platform write capability is enabled.
+- [ ] No generic privileged database browser, impersonation, destructive
+      mutation, membership-management UI, or hard deletion shipped implicitly.
