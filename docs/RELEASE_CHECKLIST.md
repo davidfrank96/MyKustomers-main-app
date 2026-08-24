@@ -74,6 +74,22 @@ production-readiness work.
 - [x] Session handling reviewed.
 - [x] Mobile account menu and Settings expose the existing logout flow and
       protected access is removed after logout.
+- [x] Login and signup expose one reusable Supabase Google OAuth control while
+      preserving email/password and password recovery.
+- [x] OAuth callback errors and external `next` values fail safely without
+      rendering raw provider details.
+- [x] Next.js development request logging excludes the exact OAuth callback so
+      transient authorization-code query strings are not printed.
+- [x] Supabase public Auth settings report the Google provider enabled; provider
+      credentials remain only in Supabase.
+- [x] Real Google authorization reached Supabase, and controlled downstream
+      verification covered profile provisioning, zero-business onboarding,
+      session persistence, logout, and protected-route denial.
+- [x] Exact local Supabase redirect is allowlisted and an unassisted
+      Google -> Supabase -> application callback completes.
+- [x] Existing-business and multi-business/switcher Google journeys are verified
+      locally through a real authenticated session.
+- [ ] Same-email identity behavior, CI, and production Google OAuth are verified.
 
 ## Authorization
 
@@ -253,3 +269,22 @@ production-readiness work.
 - [x] GitHub Actions core checks pass on the reconciliation branch.
 - [x] Pull request reports mergeable with required checks green.
 - [ ] `main` branch protection requires the documented core checks.
+
+## Multi-Business Account Support
+
+- [x] Active `business_members` remains tenant and role authority; no
+      `profiles.business_id` was introduced.
+- [x] Current-business cookie is HTTP-only, server-validated, and cleared at
+      logout; stale/revoked preferences fall back safely.
+- [x] Forged switch submissions and cross-tenant booking RPC business IDs are
+      denied without changing current authority or creating rows.
+- [x] Additional business creation reuses atomic onboarding and selects the new
+      owner workspace immediately.
+- [x] Owner/member roles, customer and booking isolation, responsive switching,
+      and five-item mobile navigation are covered on desktop and mobile.
+- [x] Business page lists active memberships with textual current state and uses
+      the same validated switch action as the header.
+- [x] Forward booking-selection migration is applied to development and
+      runtime-verified.
+- [x] Shared-database deployment ordering is protected by a single-membership
+      legacy wrapper that fails closed for multi-business callers.

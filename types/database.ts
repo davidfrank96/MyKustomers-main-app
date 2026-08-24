@@ -680,6 +680,7 @@ export type Database = {
     Functions: {
       create_booking_with_customer: {
         Args: {
+          p_business_id: string;
           p_customer_mode: "existing" | "new";
           p_customer_id: string | null;
           p_new_customer_name: string | null;

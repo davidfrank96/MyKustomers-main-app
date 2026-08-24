@@ -23,6 +23,18 @@ editable sharing flow with native share, WhatsApp, Telegram, copy-message, and
 copy-link options; generic Open Graph previews expose only approved public
 business identity, and first-open/share-method evidence makes no delivery or
 read-receipt claim.
+Accounts with one or more active business memberships can also review their
+workspaces, roles, and explicit current-business state on the Business page and
+switch there through the same server-authorized action as the header quick
+switcher. Login and signup include application support for Supabase Google OAuth;
+the configured project now reports Google enabled and both controls are active.
+A real Google-to-Supabase round trip succeeded, and the application callback,
+profile trigger, zero-business onboarding, persistent session, and logout were
+verified through the normal local callback. The same controlled Google session
+then created one and two-business states, resolved the current workspace,
+switched businesses, persisted after refresh, and logged out cleanly. Production
+OAuth verification remains a post-deployment release gate. Email/password
+authentication remains fully supported.
 Customer-confirmed material booking terms are now database-locked against
 ordinary edits. Explicit rescheduling remains the current reconfirmation
 workflow, internal notes remain editable before terminal states, and confirmed
@@ -109,6 +121,11 @@ real Supabase authentication E2E tests. Do not commit real values.
 `E2E_SIGNUP_EMAIL` is optional and must point at a safe inbox before running
 default Supabase email confirmation tests. The E2E test derives plus-addressed
 test aliases from this value.
+
+Google OAuth provider credentials are not application environment variables.
+They belong in the Supabase Auth Google provider configuration and must never be
+committed or added to Vercel. See `docs/DEPLOYMENT.md` for the required callback
+and provider configuration names.
 
 `PHASE2_RUNTIME_VERIFICATION=1` and `PHASE2_SUPABASE_TARGET=local|development|test|staging`
 opt in to mutating Phase 2 Supabase runtime security tests. These tests also
@@ -223,3 +240,13 @@ defined separately and requires a protected non-production Supabase environment.
 GitHub Actions does not deploy; the separately configured Vercel Git integration
 deploys merged `main` commits and never applies database migrations. See
 `docs/CI.md` and `docs/DEPLOYMENT.md`.
+
+## Multi-Business Accounts
+
+Authenticated accounts may belong to multiple businesses through
+`business_members`. The shared desktop/mobile header restores a server-validated
+HTTP-only current-business preference, falls back safely when that membership is
+missing, and can create another owner workspace through the existing atomic
+onboarding RPC. Customers, bookings, insights, searches, and business settings
+then use that resolved business. The preference is never authorization, and no
+`profiles.business_id` shortcut exists.

@@ -18,6 +18,12 @@ The platform is not replacing WhatsApp, Instagram, phone calls, or direct messag
 
 An authenticated My Customers user.
 
+Platform users may authenticate with email/password or, when the Supabase Google
+provider is configured, Google OAuth. Both methods resolve to the same
+`auth.users.id`, profile provisioning, memberships, onboarding, tenant routing,
+and logout behavior. Google is a convenience method, not a replacement for
+email/password.
+
 Examples:
 
 - Business owner.
@@ -29,6 +35,11 @@ Examples:
 A tenant within My Customers.
 
 A platform user may eventually belong to one or more businesses. Do not assume one-user-one-business unless a later accepted decision explicitly does so.
+
+The authenticated Business page is the discoverable management surface for
+active memberships: it shows identity, owner/member role, the current business,
+switch actions for other memberships, and the existing additional-business
+flow. The authenticated header remains the quick-switch surface.
 
 ### Customer
 
@@ -239,3 +250,17 @@ V1 does not process payment between a vendor and their customer. Vendor subscrip
 
 PDF confirmations, progress/ready/completion emails, feedback email, and actual
 contact ownership verification or OTP are not part of the current foundation.
+
+## Multi-Business Account Rule
+
+An authenticated account may operate more than one independent business. The
+application restores the last selected active membership, chooses the sole
+membership automatically, and uses deterministic fallback for a missing or
+revoked preference. The header switcher is available on mobile and desktop and
+shows each business identity and membership-specific role. Creating another
+business produces a separate owner workspace and never copies tenant data.
+
+The selected-business cookie is convenience state, not authority. Server
+membership checks and database RLS decide access. Staff invitations, membership
+administration, business deletion, cross-business analytics, and billing remain
+outside this feature.

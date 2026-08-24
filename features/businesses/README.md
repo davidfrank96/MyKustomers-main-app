@@ -24,3 +24,24 @@ Customers, bookings, confirmations, feedback, and insights remain in their own
 feature modules. Staff invitations, galleries, additional social networks,
 subscription billing, customer payment processing, and external messaging
 integrations remain outside this pass.
+
+Accounts can create another business at `/business/new` and switch from the
+shared authenticated header. The returned onboarding business becomes current.
+The current ID is remembered in an HTTP-only cookie but is resolved against
+active memberships on every dashboard request. Missing, forged, or revoked
+values fall back safely; membership-specific role controls remain effective.
+The switcher is not a sixth mobile navigation destination.
+
+The authenticated Business page is the discoverable membership surface. `My
+businesses` displays the bounded active-business list already resolved for the
+current user, each owner/member role, and a textual current state. Non-current
+rows submit to the same `switchCurrentBusinessAction` as the header, and the
+existing `/business/new` route remains the only additional-business flow. No
+business UUID is shown as user-facing content, and the submitted ID remains
+untrusted until the server repeats active-membership validation.
+
+Google authentication enters this same resolution path; no provider-specific
+tenant logic exists. Runtime provider activation verified zero-membership
+onboarding, one-business routing, multi-business current-workspace resolution,
+switching, refresh persistence, and logout through a real Google-authenticated
+local session. Production OAuth remains a post-deployment release check.

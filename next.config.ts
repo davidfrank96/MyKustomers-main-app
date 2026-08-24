@@ -3,6 +3,11 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   typedRoutes: true,
+  logging: {
+    incomingRequests: {
+      ignore: [/\/auth\/callback(?:\?|$)/],
+    },
+  },
   async headers() {
     return [
       {

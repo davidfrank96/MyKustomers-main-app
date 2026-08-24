@@ -140,3 +140,16 @@ are documented in `docs/CI.md`.
 - Do not add migration execution to install, build, or deployment commands.
 - Update `docs/DEPLOYMENT.md` when domains, environment scope, providers,
   deployment ownership, or rollback behavior changes.
+
+## Multi-Business Development
+
+- Resolve tenant context with `getCurrentBusinessContext`; do not infer
+  `memberships[0]` inside domain actions or database functions.
+- Treat the current-business cookie as untrusted preference input. Validate an
+  active membership before reading or writing tenant data.
+- Pass the resolved `business.id` explicitly into every customer, booking,
+  analytics, search, and settings boundary. Keep RLS and exact RPC checks.
+- Use `create_business_onboarding` for every new business so the business and
+  owner membership remain atomic, then persist the returned UUID as current.
+- Keep public `/c`, `/a`, `/x`, and `/f` routes independent from authenticated
+  workspace state. Do not use localStorage as tenant authority.

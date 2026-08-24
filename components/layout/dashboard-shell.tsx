@@ -3,8 +3,8 @@ import type { Route } from "next";
 import type { ReactNode } from "react";
 import { LogOut, Settings } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { BusinessLogo } from "@/components/shared/business-logo";
 import { Button } from "@/components/ui/button";
+import { BusinessSwitcher } from "@/components/layout/business-switcher";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,8 +12,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { DesktopNavigation, MobileNavigation } from "@/components/layout/dashboard-navigation";
-import { getBusinessLogoPublicUrl } from "@/features/businesses/logo-public";
+import {
+  DesktopNavigation,
+  MobileNavigation,
+} from "@/components/layout/dashboard-navigation";
 import type { BusinessContext, AuthenticatedUser } from "@/lib/auth/server";
 
 type DashboardShellProps = {
@@ -40,15 +42,8 @@ function getInitials(user: AuthenticatedUser) {
     .join("");
 }
 
-export function DashboardShell({
-  children,
-  user,
-  businessContext,
-}: DashboardShellProps) {
+export function DashboardShell({ children, user, businessContext }: DashboardShellProps) {
   const workspaceLabel = businessContext.currentBusiness?.name ?? "No business selected";
-  const workspaceLogoUrl = getBusinessLogoPublicUrl(
-    businessContext.currentBusiness?.logoPath,
-  );
 
   return (
     <div className="min-h-dvh bg-background pb-20 lg:pb-0">
@@ -63,24 +58,28 @@ export function DashboardShell({
       </aside>
 
       <div className="lg:pl-64">
-        <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-border bg-background/95 px-5 backdrop-blur sm:px-8 lg:px-10">
-          <div className="lg:hidden">
-            <Link href="/" className="flex items-center gap-3" aria-label="My Customers home">
+        <header className="sticky top-0 z-20 flex h-16 items-center justify-between gap-2 border-b border-border bg-background/95 px-3 backdrop-blur sm:px-5 lg:px-10">
+          <div className="flex min-w-0 flex-1 items-center gap-2 lg:hidden">
+            <Link
+              href="/"
+              className="flex items-center gap-3"
+              aria-label="My Customers home"
+            >
               <span className="grid size-9 place-items-center rounded-lg bg-primary text-sm font-semibold text-primary-foreground">
                 MC
               </span>
-              <span className="font-semibold">My Customers</span>
+              <span className="hidden font-semibold sm:inline">My Customers</span>
             </Link>
-          </div>
-          <div className="hidden min-w-0 flex-1 items-center gap-3 lg:flex">
-            <BusinessLogo
-              name={workspaceLabel}
-              url={workspaceLogoUrl}
-              className="size-8"
+            <BusinessSwitcher
+              businesses={businessContext.businesses}
+              currentBusiness={businessContext.currentBusiness}
             />
-            <p className="truncate text-sm font-medium text-muted-foreground" title={workspaceLabel}>
-              {workspaceLabel}
-            </p>
+          </div>
+          <div className="hidden min-w-0 flex-1 items-center lg:flex">
+            <BusinessSwitcher
+              businesses={businessContext.businesses}
+              currentBusiness={businessContext.currentBusiness}
+            />
           </div>
           <div className="flex shrink-0 items-center gap-3">
             <DropdownMenu>
@@ -101,7 +100,9 @@ export function DashboardShell({
                 <div className="min-w-0 px-3 py-2">
                   <p className="truncate text-sm font-medium">{workspaceLabel}</p>
                   {user.email ? (
-                    <p className="mt-1 truncate text-xs text-muted-foreground">{user.email}</p>
+                    <p className="mt-1 truncate text-xs text-muted-foreground">
+                      {user.email}
+                    </p>
                   ) : null}
                 </div>
                 <DropdownMenuSeparator />

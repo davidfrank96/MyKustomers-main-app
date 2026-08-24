@@ -819,3 +819,56 @@ workflow rather than direct mutation.
 Revisit conditions: Customer rejection/chat, independently delivered additions,
 catalog/inventory, or explicit confirmed add-on correction/cancellation enters
 accepted scope.
+
+## ADR-035 - Current Business Is A Validated Preference, Not Tenant Authority
+
+Status: Accepted
+
+Date: 2026-08-24
+
+Context: One authenticated account can own or join multiple businesses, while
+existing private routes need one current tenant for ordinary workflows.
+
+Decision: Keep `business_members` and RLS as authorization authority. Persist
+only a preferred business UUID in an HTTP-only, same-site cookie. Resolve that
+value server-side against ordered active memberships on every dynamic dashboard
+request, falling back deterministically or onboarding when none remain. Do not
+add `profiles.business_id`. Switches use a membership-validating server action;
+new businesses reuse atomic onboarding and become current.
+
+Consequences: Role and tenant scope change together after a full dashboard
+redirect. A forged or stale cookie cannot grant access. Private data remains
+business-scoped, while public capability routes do not read account preference.
+The dashboard context performs one membership query and one bounded business
+identity query per request.
+
+Revisit conditions: Membership volumes require pagination, server-side
+preference persistence becomes a cross-device requirement, or invitations and
+membership administration enter scope.
+
+## ADR-036 - Google Authentication Uses Supabase Auth And The Existing Callback
+
+Status: Accepted
+
+Date: 2026-08-24
+
+Context: Email/password remains required, while users need Google as an optional
+authentication convenience without creating a second identity or tenant model.
+
+Decision: Use Supabase `signInWithOAuth` with provider `google`, the configured
+application URL, and the existing `/auth/callback` PKCE exchange. Carry only the
+sanitized local post-auth destination in a ten-minute HTTP-only, same-site cookie
+scoped to the callback; keep the Supabase redirect target on the exact existing
+`/auth/callback?next=/dashboard` allowlist entry. Provider enablement and Google
+Web credentials are owned by Supabase Auth, not Vercel or client code. All users
+continue through the same profile trigger, onboarding, membership resolution,
+RLS, and logout boundaries.
+
+Consequences: A disabled or unavailable provider fails closed without exposing
+raw OAuth errors. No Google secret enters the application environment. Supabase
+documents automatic linking for matching verified emails, but this project's
+actual same-email behavior cannot be runtime-verified until Google is configured;
+the application performs no email-based user creation or manual linking.
+
+Revisit conditions: Provider configuration is completed, explicit manual account
+linking becomes a product requirement, or another reviewed provider enters scope.

@@ -3,7 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { Route } from "next";
-import { getCurrentBusinessContext, requireBusinessRole, requireUser } from "@/lib/auth/server";
+import {
+  getCurrentBusinessContext,
+  requireBusinessRole,
+  requireUser,
+} from "@/lib/auth/server";
+import { setSelectedBusinessId } from "@/lib/auth/current-business";
 import { recordAuditEvent } from "@/lib/security/audit";
 import { createClient } from "@/lib/supabase/server";
 import type { BusinessActionState } from "@/features/businesses/action-state";
@@ -52,24 +57,14 @@ function parseBusinessForm(formData: FormData) {
   });
 }
 
-export async function createBusinessAction(
-  _previousState: BusinessActionState,
-  formData: FormData,
-): Promise<BusinessActionState> {
-  const user = await requireUser("/onboarding");
-
-  const existingContext = await getCurrentBusinessContext(user);
-  if (existingContext.currentBusiness) {
-    redirect("/dashboard" as Route);
-  }
-
+async function createBusiness(formData: FormData): Promise<BusinessActionState | string> {
   const parsed = parseBusinessForm(formData);
   if (!parsed.success) {
     return validationError(parsed.error);
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.rpc("create_business_onboarding", {
+  const { data, error } = await supabase.rpc("create_business_onboarding", {
     business_name: parsed.data.name,
     business_slug: parsed.data.slug,
     business_category: parsed.data.category,
@@ -82,15 +77,55 @@ export async function createBusinessAction(
     business_website: parsed.data.website ?? null,
   });
 
-  if (error) {
+  if (error || !data) {
     return {
       status: "error",
-      message: mapBusinessError(error.message),
+      message: mapBusinessError(error?.message),
     };
   }
 
-  revalidatePath("/dashboard");
-  revalidatePath("/business");
+  return data;
+}
+
+export async function createBusinessAction(
+  _previousState: BusinessActionState,
+  formData: FormData,
+): Promise<BusinessActionState> {
+  const user = await requireUser("/onboarding");
+
+  const existingContext = await getCurrentBusinessContext(user);
+  if (existingContext.currentBusiness) {
+    redirect("/dashboard" as Route);
+  }
+
+  const result = await createBusiness(formData);
+  if (typeof result !== "string") {
+    return result;
+  }
+
+  await setSelectedBusinessId(result);
+  revalidatePath("/", "layout");
+  redirect("/dashboard" as Route);
+}
+
+export async function createAdditionalBusinessAction(
+  _previousState: BusinessActionState,
+  formData: FormData,
+): Promise<BusinessActionState> {
+  const user = await requireUser("/business/new");
+  const existingContext = await getCurrentBusinessContext(user);
+
+  if (!existingContext.currentBusiness) {
+    redirect("/onboarding" as Route);
+  }
+
+  const result = await createBusiness(formData);
+  if (typeof result !== "string") {
+    return result;
+  }
+
+  await setSelectedBusinessId(result);
+  revalidatePath("/", "layout");
   redirect("/dashboard" as Route);
 }
 
@@ -110,7 +145,9 @@ export async function updateBusinessProfileAction(
   const supabase = await createClient();
   const { data: previousBusiness } = await supabase
     .from("businesses")
-    .select("name, slug, category, description, phone, email, whatsapp, instagram, website, address_text")
+    .select(
+      "name, slug, category, description, phone, email, whatsapp, instagram, website, address_text",
+    )
     .eq("id", businessId)
     .maybeSingle();
 
@@ -141,7 +178,10 @@ export async function updateBusinessProfileAction(
 
   const changedFields = previousBusiness
     ? Object.entries(nextBusiness)
-        .filter(([key, value]) => previousBusiness[key as keyof typeof previousBusiness] !== value)
+        .filter(
+          ([key, value]) =>
+            previousBusiness[key as keyof typeof previousBusiness] !== value,
+        )
         .map(([key]) => key)
     : Object.keys(nextBusiness);
 

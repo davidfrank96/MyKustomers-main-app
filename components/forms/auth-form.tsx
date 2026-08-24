@@ -7,6 +7,7 @@ import { AlertCircle, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { GoogleAuthButton } from "@/components/forms/google-auth-button";
 import {
   initialAuthActionState,
   type AuthActionState,
@@ -32,6 +33,10 @@ type AuthFormProps = {
   hiddenFields?: Record<string, string>;
   footer?: ReactNode;
   message?: string;
+  googleAuth?: {
+    enabled: boolean;
+    next: string;
+  };
 };
 
 function SubmitButton({ label }: { label: string }) {
@@ -53,6 +58,7 @@ export function AuthForm({
   hiddenFields = {},
   footer,
   message,
+  googleAuth,
 }: AuthFormProps) {
   const [state, formAction] = useActionState(action, initialAuthActionState);
 
@@ -89,7 +95,18 @@ export function AuthForm({
         </div>
       ) : null}
 
-      <form action={formAction} className="mt-6 space-y-4" noValidate>
+      {googleAuth ? (
+        <>
+          <GoogleAuthButton enabled={googleAuth.enabled} next={googleAuth.next} />
+          <div className="my-6 flex items-center gap-3" aria-hidden="true">
+            <span className="h-px flex-1 bg-border" />
+            <span className="text-xs text-muted-foreground">or continue with email</span>
+            <span className="h-px flex-1 bg-border" />
+          </div>
+        </>
+      ) : null}
+
+      <form action={formAction} className={googleAuth ? "space-y-4" : "mt-6 space-y-4"} noValidate>
         {Object.entries(hiddenFields).map(([name, value]) => (
           <input key={name} type="hidden" name={name} value={value} />
         ))}

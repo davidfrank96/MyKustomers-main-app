@@ -29,6 +29,22 @@ The two forward migrations are applied to development; static, live storage/RLS,
 responsive, confirmation, and focused E2E evidence passed. Billing and the broad
 redesign remain unstarted.
 
+The 2026-08-24 business-switcher discoverability and Google Auth pass is
+IMPLEMENTED with full Google verification blocked by Supabase redirect
+configuration. The Business page now exposes
+active memberships, roles, current state, switching, and additional-business
+creation while reusing the validated current-business action. Supabase Google
+OAuth application support reuses the existing callback, profile trigger,
+onboarding, tenant resolution, and logout. The configured development project
+reports Google enabled; a real authorization reached Google and Supabase, and a
+controlled downstream callback verified Google session establishment, profile
+provisioning, zero-business onboarding, refresh persistence, and logout. Supabase
+currently falls back to the production Site URL root instead of allowing the
+exact local application callback, so the unassisted callback, same-email,
+one/multi-business-after-Google, CI, and production journeys remain unverified.
+This pass adds no schema migration, Vercel variable, provider, billing, or broad
+redesign.
+
 ## Phase 0 - Product Definition
 
 Status: VERIFIED
@@ -805,3 +821,17 @@ Documentation requirements: Launch notes and changelog.
 Acceptance criteria: Controlled release completes with monitoring.
 
 Known risks: Support and incident response readiness.
+
+## Cross-Phase Maintenance - Multi-Business Account Support
+
+Status: VERIFIED
+
+Implemented after Phase 9.5 without starting billing or later roadmap phases.
+Accounts can create, restore, and switch among active business memberships from
+the authenticated shell. Membership-specific roles remain authoritative, stale
+preferences fall back safely, and all private operational surfaces follow the
+resolved current business. Migration
+`20260824094523_select_current_business_for_booking_creation.sql` removes the
+last first-membership inference from atomic booking creation. Unit, static,
+live Supabase, desktop/mobile E2E, and responsive evidence is recorded in
+`docs/TESTING.md`.

@@ -5,6 +5,7 @@ import { AuthForm } from "@/components/forms/auth-form";
 import { loginAction } from "@/features/auth/actions";
 import { getAuthenticatedUser } from "@/lib/auth/server";
 import { getSafeRedirectPath } from "@/lib/security/redirects";
+import { isGoogleAuthEnabled } from "@/features/auth/provider-status";
 
 type LoginPageProps = {
   searchParams: Promise<{
@@ -16,12 +17,16 @@ type LoginPageProps = {
 const messages: Record<string, string> = {
   "signed-out": "You have been signed out.",
   "auth-error": "We could not complete authentication. Please try again.",
+  "oauth-error": "Google sign-in was not completed. Try again or use email.",
 };
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const params = await searchParams;
   const next = getSafeRedirectPath(params.next);
-  const user = await getAuthenticatedUser();
+  const [user, googleAuthEnabled] = await Promise.all([
+    getAuthenticatedUser(),
+    isGoogleAuthEnabled(),
+  ]);
 
   if (user) {
     redirect(next as Route);
@@ -34,6 +39,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
       action={loginAction}
       submitLabel="Log in"
       hiddenFields={{ next }}
+      googleAuth={{ enabled: googleAuthEnabled, next }}
       message={params.message ? messages[params.message] : undefined}
       fields={[
         {

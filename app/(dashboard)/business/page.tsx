@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import type { Route } from "next";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { BusinessMembershipList } from "@/components/businesses/business-membership-list";
 import { BusinessLogoForm } from "@/components/forms/business-logo-form";
 import { BusinessOnboardingForm } from "@/components/forms/business-onboarding-form";
 import { updateBusinessProfileAction } from "@/features/businesses/actions";
@@ -30,6 +31,18 @@ export default async function BusinessPage() {
           </p>
         </div>
       </section>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>My businesses</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <BusinessMembershipList
+            businesses={result.businesses}
+            currentBusinessId={result.business.id}
+          />
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

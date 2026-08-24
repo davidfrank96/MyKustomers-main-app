@@ -147,6 +147,13 @@ business resolution so protected actions do not repeat Auth validation calls.
 Current-business enforcement is centralized in `lib/auth/server.ts`; feature
 actions remain responsible for their domain validation and mutations.
 
+Email/password and Google OAuth share the same Supabase Auth identity boundary.
+Google starts through one server action, returns to the existing PKCE callback,
+and then enters the ordinary dashboard/onboarding and membership-resolution
+path. The provider status is read from Supabase's public Auth settings and fails
+closed when unavailable. A short-lived callback-scoped cookie may remember a
+sanitized local destination; it contains no token and grants no authority.
+
 ## Multi-Tenancy
 
 Platform users authenticate with Supabase Auth and belong to one or more
@@ -267,3 +274,24 @@ validates active membership and reason, writes status/history/audit state, and
 inserts one `BOOKING_CANCELLED` outbox event before commit. Provider delivery is
 post-commit through the existing service-only email boundary, so failure changes
 delivery state but never cancellation truth.
+
+## Current Business Resolution
+
+Authenticated dashboard layouts are dynamic. They load ordered active
+`business_members`, fetch the bounded set of corresponding business identities,
+and resolve the HTTP-only preference only when its UUID appears in that set.
+Zero active memberships routes to onboarding; one selects automatically; two or
+more restore a valid preference or use the first deterministic membership.
+
+The shell receives the resolved business and minimal accessible-business list.
+Its shared switcher calls a server action that rechecks the current user's active
+membership, writes the cookie only after success, invalidates the layout, and
+redirects to `/dashboard`. Domain pages pass the resolved business ID into
+customer, booking, analytics, and settings queries. Atomic inline booking
+creation also receives that ID and independently validates it in Postgres.
+Public token routes never enter this resolution path.
+
+The Business page receives that same bounded accessible-business list through
+its existing profile loader. It renders the current membership and switchable
+memberships but posts every switch through the exact same server action as the
+header; neither surface turns a submitted business ID into authority.

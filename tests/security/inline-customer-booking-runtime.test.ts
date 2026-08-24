@@ -25,12 +25,11 @@ if (runtimeVerificationEnabled) {
     const service = runtime.createSupabaseClient(
       runtime.requiredEnv("SUPABASE_SERVICE_ROLE_KEY"),
     );
-    const publishableKey = runtime.requiredEnv(
-      "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
-    );
+    const publishableKey = runtime.requiredEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY");
     const fixtureId = `${Date.now()}-${randomUUID()}`;
     const createdUserIds: string[] = [];
     const createdBusinessIds: string[] = [];
+    let defaultBusinessId = "";
 
     async function createUser(label: string): Promise<UserFixture> {
       const email = `inline-booking-${label}-${fixtureId}@example.com`.toLowerCase();
@@ -69,14 +68,12 @@ if (runtimeVerificationEnabled) {
       expect(error).toBeNull();
       createdBusinessIds.push(data!.id);
 
-      const { error: membershipError } = await service
-        .from("business_members")
-        .insert({
-          business_id: data!.id,
-          user_id: ownerId,
-          role: "owner",
-          status: "active",
-        });
+      const { error: membershipError } = await service.from("business_members").insert({
+        business_id: data!.id,
+        user_id: ownerId,
+        role: "owner",
+        status: "active",
+      });
       expect(membershipError).toBeNull();
       return data!.id;
     }
@@ -106,6 +103,7 @@ if (runtimeVerificationEnabled) {
       > = {},
     ) {
       return {
+        p_business_id: defaultBusinessId,
         p_customer_mode: "new" as const,
         p_customer_id: null,
         p_new_customer_name: `Sarah ${randomUUID().slice(0, 8)}`,
@@ -122,11 +120,22 @@ if (runtimeVerificationEnabled) {
       };
     }
 
+    function legacyBookingArgs(
+      overrides: Partial<
+        Database["public"]["Functions"]["create_booking_with_customer"]["Args"]
+      > = {},
+    ) {
+      const legacyArgs: Record<string, unknown> = { ...bookingArgs(overrides) };
+      delete legacyArgs.p_business_id;
+      return legacyArgs;
+    }
+
     it("creates existing and inline customers atomically with tenant-safe behavior", async () => {
       const userA = await createUser("owner-a");
       const userB = await createUser("owner-b");
       const businessAId = await createBusiness(userA.id, "Business A");
       const businessBId = await createBusiness(userB.id, "Business B");
+      defaultBusinessId = businessAId;
       const existingAId = await createCustomer(businessAId, "Existing Customer A", {
         email: "existing-a@example.com",
       });
@@ -332,17 +341,13 @@ if (runtimeVerificationEnabled) {
       expectNoRows(rollbackCustomers);
       expect(auditCountAfterRollback).toBe(auditCountBeforeRollback);
 
-      const unsafeRpc = userA.client.rpc.bind(userA.client) as unknown as (
-        name: string,
-        args: Record<string, unknown>,
-      ) => PromiseLike<{ error: unknown }>;
       const injectedName = `Injected ${randomUUID().slice(0, 8)}`;
-      const { error: injectedBusinessError } = await unsafeRpc(
+      const { error: injectedBusinessError } = await userA.client.rpc(
         "create_booking_with_customer",
-        {
-          ...bookingArgs({ p_new_customer_name: injectedName }),
+        bookingArgs({
           p_business_id: businessBId,
-        },
+          p_new_customer_name: injectedName,
+        }),
       );
       expect(injectedBusinessError).not.toBeNull();
       const { data: injectedCustomers } = await service
@@ -350,6 +355,67 @@ if (runtimeVerificationEnabled) {
         .select("id")
         .eq("name", injectedName);
       expectNoRows(injectedCustomers);
+
+      const legacyRpc = userB.client.rpc.bind(userB.client) as unknown as (
+        name: string,
+        args: Record<string, unknown>,
+      ) => PromiseLike<{
+        data: { booking_id: string }[] | null;
+        error: unknown;
+      }>;
+      const legacySingleBusinessArgs = legacyBookingArgs({
+        p_new_customer_name: `Legacy Single ${randomUUID().slice(0, 8)}`,
+        p_title: "Legacy Single Business Booking",
+      });
+      const { data: legacyResult, error: legacyError } = await legacyRpc(
+        "create_booking_with_customer",
+        legacySingleBusinessArgs,
+      );
+      expect(legacyError).toBeNull();
+      const { data: legacyBooking } = await service
+        .from("bookings")
+        .select("business_id")
+        .eq("id", legacyResult![0].booking_id)
+        .single();
+      expect(legacyBooking?.business_id).toBe(businessBId);
+
+      const businessASecondId = await createBusiness(userA.id, "Business A Second");
+      const secondBusinessCustomerName = `Second Business ${randomUUID().slice(0, 8)}`;
+      const { data: secondBusinessResult, error: secondBusinessError } =
+        await userA.client.rpc(
+          "create_booking_with_customer",
+          bookingArgs({
+            p_business_id: businessASecondId,
+            p_new_customer_name: secondBusinessCustomerName,
+            p_title: "Explicit Second Business Booking",
+          }),
+        );
+      expect(secondBusinessError).toBeNull();
+      const { data: secondBusinessBooking } = await service
+        .from("bookings")
+        .select("business_id")
+        .eq("id", secondBusinessResult![0].booking_id)
+        .single();
+      expect(secondBusinessBooking?.business_id).toBe(businessASecondId);
+
+      const multiBusinessLegacyRpc = userA.client.rpc.bind(
+        userA.client,
+      ) as unknown as typeof legacyRpc;
+      const legacyMultiCustomerName = `Legacy Multi ${randomUUID().slice(0, 8)}`;
+      const legacyMultiBusinessArgs = legacyBookingArgs({
+        p_new_customer_name: legacyMultiCustomerName,
+        p_title: "Legacy Multi Business Attack",
+      });
+      const { error: legacyMultiError } = await multiBusinessLegacyRpc(
+        "create_booking_with_customer",
+        legacyMultiBusinessArgs,
+      );
+      expect(legacyMultiError).not.toBeNull();
+      const { data: legacyMultiCustomers } = await service
+        .from("customers")
+        .select("id")
+        .eq("name", legacyMultiCustomerName);
+      expectNoRows(legacyMultiCustomers);
 
       const { data: visibleDuplicateMatches } = await userA.client
         .from("customers")
@@ -361,15 +427,21 @@ if (runtimeVerificationEnabled) {
       const concurrent = await Promise.all([
         userA.client.rpc(
           "create_booking_with_customer",
-          bookingArgs({ p_new_customer_name: `Concurrent A ${randomUUID().slice(0, 8)}` }),
+          bookingArgs({
+            p_new_customer_name: `Concurrent A ${randomUUID().slice(0, 8)}`,
+          }),
         ),
         userA.client.rpc(
           "create_booking_with_customer",
-          bookingArgs({ p_new_customer_name: `Concurrent B ${randomUUID().slice(0, 8)}` }),
+          bookingArgs({
+            p_new_customer_name: `Concurrent B ${randomUUID().slice(0, 8)}`,
+          }),
         ),
       ]);
       expect(concurrent.every((result) => result.error === null)).toBe(true);
-      expect(new Set(concurrent.map((result) => result.data?.[0].booking_id)).size).toBe(2);
+      expect(new Set(concurrent.map((result) => result.data?.[0].booking_id)).size).toBe(
+        2,
+      );
 
       const { data: auditRows } = await service
         .from("audit_logs")
@@ -397,9 +469,15 @@ if (runtimeVerificationEnabled) {
 
         if (bookingIds.length > 0) {
           await service.from("email_events").delete().in("booking_id", bookingIds);
-          await service.from("booking_confirmations").delete().in("booking_id", bookingIds);
+          await service
+            .from("booking_confirmations")
+            .delete()
+            .in("booking_id", bookingIds);
           await service.from("confirmation_links").delete().in("booking_id", bookingIds);
-          await service.from("booking_status_history").delete().in("booking_id", bookingIds);
+          await service
+            .from("booking_status_history")
+            .delete()
+            .in("booking_id", bookingIds);
           await service.from("bookings").delete().in("id", bookingIds);
         }
 

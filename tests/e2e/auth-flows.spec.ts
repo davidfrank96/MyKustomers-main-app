@@ -220,8 +220,102 @@ test.describe("Supabase authentication journeys", () => {
     await expect(page).toHaveURL(/\/login\?next=%2Fdashboard/);
   });
 
+  test("OAuth-style profile metadata provisions safely and follows normal onboarding", async ({
+    page,
+  }, testInfo) => {
+    const email = testEmail("oauth-profile", testInfo.project.name);
+    const password = `Phase2v-Oauth-${randomUUID()}-A1`;
+    const admin = createAdminClient();
+    const { data, error } = await admin.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: {
+        full_name: "OAuth Style User",
+        avatar_url: "https://example.com/avatar.png",
+      },
+    });
+    expect(error).toBeNull();
+
+    const { data: profile, error: profileError } = await admin
+      .from("profiles")
+      .select("id, display_name")
+      .eq("id", data.user!.id)
+      .single();
+    expect(profileError).toBeNull();
+    expect(profile?.id).toBe(data.user!.id);
+    expect(profile?.display_name).toBeNull();
+
+    await page.goto("/login");
+    await page.getByLabel("Email").fill(email);
+    await page.getByLabel("Password").fill(password);
+    await page.getByRole("button", { name: "Log in" }).click();
+    await expect(page).toHaveURL(/\/onboarding/);
+  });
+
+  test("Google controls fail closed when the provider is disabled", async ({
+    page,
+  }, testInfo) => {
+    const settingsResponse = await fetch(
+      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/settings`,
+      {
+        headers: {
+          apikey: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? "",
+        },
+      },
+    );
+    const settings = (await settingsResponse.json()) as {
+      external?: { google?: boolean };
+    };
+    const googleEnabled = settings.external?.google === true;
+
+    for (const path of ["/login?next=https://attacker.example", "/signup"]) {
+      await page.goto(path);
+      const googleButton = page.getByRole("button", { name: "Continue with Google" });
+      await expect(googleButton).toBeVisible();
+      if (googleEnabled) {
+        await expect(googleButton).toBeEnabled();
+      } else {
+        await expect(googleButton).toBeDisabled();
+      }
+
+      if (!googleEnabled) {
+        await expect(
+          page.getByText("Google sign-in is not available yet. Use email to continue."),
+        ).toBeVisible();
+      }
+    }
+
+    await page.goto(
+      "/auth/callback?error=access_denied&error_description=private&next=https://attacker.example",
+    );
+    await expect(page).toHaveURL(/\/login\?message=oauth-error$/);
+    await expect(
+      page.getByText("Google sign-in was not completed. Try again or use email."),
+    ).toBeVisible();
+    await expect(page.getByText("private")).toHaveCount(0);
+
+    if (testInfo.project.name === "chromium") {
+      for (const width of [320, 360, 375, 390, 430, 768, 1024, 1440]) {
+        await page.setViewportSize({ width, height: width < 768 ? 900 : 1000 });
+        await page.goto("/login");
+        await expect(
+          page.getByRole("button", { name: "Continue with Google" }),
+        ).toBeVisible();
+        const dimensions = await page.evaluate(() => ({
+          clientWidth: document.documentElement.clientWidth,
+          scrollWidth: document.documentElement.scrollWidth,
+        }));
+        expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth + 1);
+      }
+    }
+  });
+
   test("invalid login and forgot password responses are safe", async ({ page }, testInfo) => {
     const email = testEmail("missing", testInfo.project.name);
+
+    await page.goto("/auth/callback?next=%E0%A4%A");
+    await expect(page).toHaveURL(/\/login\?message=auth-error/);
 
     await page.goto("/auth/callback?code=invalid&next=https://attacker.example");
     await expect(page).toHaveURL(/\/login\?message=auth-error/);
@@ -231,7 +325,12 @@ test.describe("Supabase authentication journeys", () => {
     await page.getByLabel("Password").fill("WrongPassword1");
     await page.getByRole("button", { name: "Log in" }).click();
     await expect(page.getByText("We could not verify those credentials.")).toBeVisible();
-    await expect(page.locator('input[name="next"]')).toHaveValue("/dashboard");
+    await expect(
+      page
+        .locator("form")
+        .filter({ has: page.getByLabel("Email") })
+        .locator('input[name="next"]'),
+    ).toHaveValue("/dashboard");
 
     await page.goto("/forgot-password");
     await page.getByLabel("Email").fill(email);
