@@ -317,6 +317,24 @@ a safe inbox. Without it, signup confirmation and reset-password completion
 remain PARTIAL rather than using reserved domains or untrusted third-party
 inboxes.
 
+## Production Deployment Verification
+
+The initial Vercel deployment at `my-kustomers-main-app.vercel.app` was verified
+against the existing development Supabase project with self-cleaning controlled
+fixtures. The live hostname passed the canonical customer, booking, original
+confirmation, amendment, add-on, fulfilment, feedback, outbox, and insights
+journey; focused customer/booking live search; and the mobile account, dashboard,
+logo Storage, logout, and protected-route journey at 390px and 1440px.
+
+Additional HTTP checks verified HTTPS, `/api/health`, the manifest and declared
+icons, no localhost URL in public HTML, and no-store/noindex behavior on `/c`,
+`/a`, `/x`, and `/f`. The canonical metadata assertions verified the production
+hostname and absence of customer PII. Vercel logs for the verification window
+contained no Warning, Error, or Fatal events. Production smoke tests are not
+part of ordinary CI because they use live infrastructure and one-time capability
+links; follow `docs/DEPLOYMENT.md` for authorization, execution, cleanup, and
+reporting.
+
 ## GitHub Actions
 
 `.github/workflows/ci.yml` runs on pull requests into and pushes to `main`:

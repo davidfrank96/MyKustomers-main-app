@@ -14,8 +14,9 @@ production-readiness work.
 ## Environment
 
 - [x] `.env.example` exists.
-- [ ] Production environment variables configured.
-- [ ] Secret rotation process documented.
+- [x] Production environment variables configured with minimum Production-only
+      scope in Vercel.
+- [x] Secret rotation and environment rollback boundaries documented.
 
 ## Database
 
@@ -120,12 +121,12 @@ production-readiness work.
 ## Secrets
 
 - [x] Server-only environment boundary exists.
-- [ ] Production secrets configured outside source control.
+- [x] Production secrets configured outside source control.
 - [x] Service-role key exposure audit completed.
 
 ## Logging And Monitoring
 
-- [ ] Sensitive logging review completed.
+- [x] Sensitive logging review completed for the initial verification window.
 - [ ] Monitoring configured.
 - [ ] Error reporting configured.
 - [ ] Incident response procedure documented.
@@ -158,7 +159,8 @@ production-readiness work.
 - [x] Public confirmation and feedback states have mobile visual checks.
 - [x] Public amendment Current/Proposed diff passes the required 320-1440px matrix.
 - [x] Public add-on review passes the required 320-1440px matrix.
-- [ ] Production browser/device acceptance completed for the release candidate.
+- [x] Production browser acceptance completed at 390px and 1440px for the
+      release candidate.
 
 ## Privacy And Compliance
 
@@ -231,10 +233,10 @@ production-readiness work.
 
 ## Deployment
 
-- [ ] Vercel project configured.
-- [ ] Domain configured.
-- [ ] Production deployment smoke-tested.
-- [ ] Rollback process documented.
+- [x] Vercel project configured.
+- [x] Stable Vercel production domain configured.
+- [x] Production deployment smoke-tested with controlled, cleaned fixtures.
+- [x] Application, environment, Auth, and database rollback boundaries documented.
 
 ## Repository Integration And CI
 

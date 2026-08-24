@@ -21,10 +21,10 @@ CI uses Node 22 because `package.json` requires Node 22 or newer. Official
 read` permission. Superseded runs for the same pull request or branch are
 cancelled.
 
-The workflow was executed on pull request #2. Quality, Tests, Build, Dependency
-Security, and E2E completed successfully after the required non-production E2E
-secrets were installed. Runtime Security remained intentionally skipped behind
-its documented protected-environment guard.
+The workflow was executed for the current release on pull request #5. Quality,
+Tests, Build, Dependency Security, and E2E completed successfully after the
+required non-production E2E secrets were installed. Runtime Security remained
+intentionally skipped behind its documented protected-environment guard.
 
 The Build job needs no Supabase or service-role values. Public configuration is
 optional during compilation, and server-only functionality fails closed when a
@@ -80,6 +80,10 @@ method is preferred; shared history must not be rewritten.
 
 ## Deployment Boundary
 
-CI is implemented. A production deployment pipeline is deferred. Normal PR and
-`main` workflows do not deploy Vercel or other infrastructure, apply production
-migrations, or mutate a production Supabase project.
+Normal PR and `main` GitHub Actions workflows do not call Vercel, apply database
+migrations, or mutate Supabase. A separate Vercel Git integration watches the
+same repository and deploys merged `main` commits to Production. This separation
+does not weaken the merge policy: required CI must pass and the pull request must
+be conflict-free before merge. Preview receives no current runtime secrets, and
+Vercel builds never apply migrations. The operational process and rollback
+boundary are documented in `docs/DEPLOYMENT.md`.

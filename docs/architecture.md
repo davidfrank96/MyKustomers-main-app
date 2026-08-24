@@ -29,8 +29,12 @@ GitHub Actions is the repository CI boundary. Pull requests into and pushes to
 `main` run independent quality, test, build, dependency, and browser jobs with
 read-only repository permission. E2E owns its local Next.js server and may use
 only a dedicated non-production Supabase project. Live runtime security is a
-separate protected-environment job. CI does not deploy the application or apply
-database migrations; those remain separately controlled future operations.
+separate protected-environment job. GitHub Actions does not deploy or apply
+database migrations. Separately, Vercel Git integration deploys merged `main`
+commits to `my-kustomers-main-app.vercel.app`; builds consume the existing schema
+and never mutate it. The initial Vercel runtime uses the existing development
+Supabase project with four Production-only variables documented in
+`docs/DEPLOYMENT.md`; Preview receives no privileged environment values.
 
 ## Inline Customer Booking Boundary
 

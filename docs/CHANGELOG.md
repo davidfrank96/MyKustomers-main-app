@@ -2,6 +2,28 @@
 
 This changelog records meaningful project milestones. It is not a substitute for Git history.
 
+## 2026-08-24 - Initial Vercel Production Deployment
+
+Status: VERIFIED
+
+- Merged the verified release through pull request #5 after Quality, Tests,
+  Build, Dependency Security, and E2E passed and GitHub reported no conflicts.
+- Repaired the existing Vercel project, deployed `main` commit `ab90ebc`, and
+  assigned the stable HTTPS domain `my-kustomers-main-app.vercel.app`.
+- Reduced Vercel to the four application-required Sensitive Production-only
+  variables; excluded direct database credentials, email-provider values, E2E
+  credentials, and runtime-test controls from the deployed environment.
+- Configured the stable Supabase Auth Site URL and two exact application callback
+  URLs without a Preview wildcard. No database migration was run by Vercel.
+- Verified the live canonical customer/booking/public-capability workflow,
+  trusted sharing and safe metadata, amendment, add-on, feedback, outbox,
+  dashboard navigation, live search, Storage logo lifecycle, logout/protected
+  access, responsive layouts, HTTPS, PWA assets, and clean runtime logs with
+  self-cleaning controlled fixtures.
+- Kept customer transactional email on the no-network development adapter and
+  documented that the initial deployment still uses the development Supabase
+  project. External customer email delivery is not configured.
+
 ## 2026-08-23 - Live Debounced Search Consistency
 
 Status: VERIFIED

@@ -126,3 +126,17 @@ bounded local picker as deferred scalability work.
 
 Required checks, secret configuration, and branch protection recommendations
 are documented in `docs/CI.md`.
+
+## Deployment Governance
+
+- Treat GitHub Actions and Vercel as separate boundaries: CI validates code;
+  Vercel Git integration deploys reviewed `main` commits.
+- A Production deployment must identify its Git commit and pass application-level
+  verification after the platform build succeeds.
+- Manage runtime values in Vercel environment configuration. Never commit or log
+  `.env` values, and never give a server secret a `NEXT_PUBLIC_` prefix.
+- Keep Production server secrets out of Preview and Development unless those
+  environments receive a separate reviewed access policy.
+- Do not add migration execution to install, build, or deployment commands.
+- Update `docs/DEPLOYMENT.md` when domains, environment scope, providers,
+  deployment ownership, or rollback behavior changes.
