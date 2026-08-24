@@ -30,6 +30,10 @@ export type FeedbackWithBooking = Feedback & {
   } | null;
 };
 
+type FeedbackRowWithBooking = Feedback & {
+  bookings: FeedbackWithBooking["booking"];
+};
+
 export async function getFeedbackLinkSummaryForBooking(
   businessId: string,
   bookingId: string,
@@ -131,7 +135,7 @@ export async function listFeedbackForCustomer(
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("feedback")
-    .select("*")
+    .select("*, bookings!feedback_booking_business_fk(id, reference, title)")
     .eq("business_id", businessId)
     .eq("customer_id", customerId)
     .order("submitted_at", { ascending: false })
@@ -141,24 +145,12 @@ export async function listFeedbackForCustomer(
     return [];
   }
 
-  const bookingIds = data.map((row) => row.booking_id);
-
-  if (bookingIds.length === 0) {
-    return [];
-  }
-
-  const { data: bookings } = await supabase
-    .from("bookings")
-    .select("id, reference, title")
-    .eq("business_id", businessId)
-    .in("id", bookingIds);
-
-  const bookingMap = new Map((bookings ?? []).map((booking) => [booking.id, booking]));
-
-  return data.map((row) => ({
-    ...row,
-    booking: bookingMap.get(row.booking_id) ?? null,
-  }));
+  return (data as unknown as FeedbackRowWithBooking[]).map(
+    ({ bookings, ...feedback }) => ({
+      ...feedback,
+      booking: bookings,
+    }),
+  );
 }
 
 export async function listBookingIssuesForBooking(businessId: string, bookingId: string) {

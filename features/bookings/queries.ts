@@ -15,6 +15,10 @@ export type BookingChange = Database["public"]["Tables"]["booking_changes"]["Row
 
 const bookingListColumns =
   "id, customer_id, reference, title, currency, total_amount_minor, deposit_amount_minor, scheduled_for, status, created_at" as const;
+const bookingCustomerColumns =
+  "customers!bookings_business_customer_fk(id, name, email, phone)" as const;
+const bookingListWithCustomerColumns =
+  `${bookingListColumns}, ${bookingCustomerColumns}` as const;
 
 type BookingListItem = Pick<
   Booking,
@@ -39,6 +43,14 @@ export type BookingCustomerSummary = {
 
 export type BookingWithCustomer = BookingListItem & {
   customer: BookingCustomerSummary | null;
+};
+
+type BookingListRow = BookingListItem & {
+  customers: BookingCustomerSummary | null;
+};
+
+type BookingDetailRow = Booking & {
+  customers: BookingCustomerSummary | null;
 };
 
 export type BookingListResult = {
@@ -88,34 +100,12 @@ async function matchingCustomerIds(businessId: string, search: string) {
   return data.map((row) => row.id);
 }
 
-async function customersById(businessId: string, customerIds: string[]) {
-  const uniqueCustomerIds = [...new Set(customerIds)];
-
-  if (uniqueCustomerIds.length === 0) {
-    return new Map<string, BookingCustomerSummary>();
-  }
-
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("customers")
-    .select("id, name, email, phone")
-    .eq("business_id", businessId)
-    .in("id", uniqueCustomerIds);
-
-  if (error || !data) {
-    return new Map<string, BookingCustomerSummary>();
-  }
-
-  return new Map(data.map((customer) => [customer.id, customer]));
-}
-
-function attachCustomers<T extends { customer_id: string }>(
+function attachEmbeddedCustomers<T extends { customers: BookingCustomerSummary | null }>(
   bookings: T[],
-  customerMap: Map<string, BookingCustomerSummary>,
 ) {
-  return bookings.map((booking) => ({
+  return bookings.map(({ customers, ...booking }) => ({
     ...booking,
-    customer: customerMap.get(booking.customer_id) ?? null,
+    customer: customers,
   }));
 }
 
@@ -142,7 +132,7 @@ export async function listBookingsForBusiness(
 
   let query = supabase
     .from("bookings")
-    .select(bookingListColumns, { count: "exact" })
+    .select(bookingListWithCustomerColumns, { count: "exact" })
     .eq("business_id", businessId)
     .order("created_at", { ascending: false });
 
@@ -196,14 +186,10 @@ export async function listBookingsForBusiness(
   }
 
   const total = count ?? 0;
-  const bookings = data ?? [];
-  const customerMap = await customersById(
-    businessId,
-    bookings.map((booking) => booking.customer_id),
-  );
+  const bookings = (data ?? []) as unknown as BookingListRow[];
 
   return {
-    bookings: attachCustomers(bookings, customerMap),
+    bookings: attachEmbeddedCustomers(bookings),
     total,
     page: params.page,
     limit: params.limit,
@@ -215,7 +201,7 @@ export async function getBookingForBusiness(businessId: string, bookingId: strin
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("bookings")
-    .select("*")
+    .select(`*, ${bookingCustomerColumns}`)
     .eq("business_id", businessId)
     .eq("id", bookingId)
     .maybeSingle();
@@ -224,8 +210,7 @@ export async function getBookingForBusiness(businessId: string, bookingId: strin
     return null;
   }
 
-  const customerMap = await customersById(businessId, [data.customer_id]);
-  return attachCustomers([data], customerMap)[0] ?? null;
+  return attachEmbeddedCustomers([data as unknown as BookingDetailRow])[0] ?? null;
 }
 
 export async function listBookingStatusHistoryForBusiness(
@@ -300,7 +285,9 @@ export async function customerBelongsToBusiness(businessId: string, customerId: 
   return true;
 }
 
-export async function getBookingDashboardStats(businessId: string): Promise<BookingDashboardStats> {
+export async function getBookingDashboardStats(
+  businessId: string,
+): Promise<BookingDashboardStats> {
   const supabase = await createClient();
   const now = new Date().toISOString();
   const range = todayRange();
@@ -320,7 +307,7 @@ export async function getBookingDashboardStats(businessId: string): Promise<Book
       .not("status", "in", "(COMPLETED,CANCELLED)"),
     supabase
       .from("bookings")
-      .select(bookingListColumns, { count: "exact" })
+      .select(bookingListWithCustomerColumns, { count: "exact" })
       .eq("business_id", businessId)
       .not("scheduled_for", "is", null)
       .lt("scheduled_for", now)
@@ -329,7 +316,7 @@ export async function getBookingDashboardStats(businessId: string): Promise<Book
       .limit(5),
     supabase
       .from("bookings")
-      .select(bookingListColumns, { count: "exact" })
+      .select(bookingListWithCustomerColumns, { count: "exact" })
       .eq("business_id", businessId)
       .not("scheduled_for", "is", null)
       .gte("scheduled_for", range.start)
@@ -339,14 +326,14 @@ export async function getBookingDashboardStats(businessId: string): Promise<Book
       .limit(5),
     supabase
       .from("bookings")
-      .select(bookingListColumns, { count: "exact" })
+      .select(bookingListWithCustomerColumns, { count: "exact" })
       .eq("business_id", businessId)
       .eq("status", "IN_PROGRESS")
       .order("scheduled_for", { ascending: true, nullsFirst: false })
       .limit(5),
     supabase
       .from("bookings")
-      .select(bookingListColumns, { count: "exact" })
+      .select(bookingListWithCustomerColumns, { count: "exact" })
       .eq("business_id", businessId)
       .eq("status", "READY")
       .order("scheduled_for", { ascending: true, nullsFirst: false })
@@ -354,30 +341,23 @@ export async function getBookingDashboardStats(businessId: string): Promise<Book
   ]);
 
   function queueRows(result: typeof dueToday) {
-    return result.error ? [] : result.data ?? [];
+    return result.error ? [] : ((result.data ?? []) as unknown as BookingListRow[]);
   }
 
   const dueTodayRows = queueRows(dueToday);
   const overdueRows = queueRows(overdue);
   const inProgressRows = queueRows(inProgress);
   const readyRows = queueRows(ready);
-  const customerMap = await customersById(
-    businessId,
-    [...dueTodayRows, ...overdueRows, ...inProgressRows, ...readyRows].map(
-      (booking) => booking.customer_id,
-    ),
-  );
-
   return {
-    activeBookings: active.error ? 0 : active.count ?? 0,
-    upcomingBookings: upcoming.error ? 0 : upcoming.count ?? 0,
-    overdueBookings: overdue.error ? 0 : overdue.count ?? 0,
-    dueTodayBookings: dueToday.error ? 0 : dueToday.count ?? 0,
-    inProgressBookings: inProgress.error ? 0 : inProgress.count ?? 0,
-    readyBookings: ready.error ? 0 : ready.count ?? 0,
-    dueToday: attachCustomers(dueTodayRows, customerMap),
-    overdue: attachCustomers(overdueRows, customerMap),
-    inProgress: attachCustomers(inProgressRows, customerMap),
-    ready: attachCustomers(readyRows, customerMap),
+    activeBookings: active.error ? 0 : (active.count ?? 0),
+    upcomingBookings: upcoming.error ? 0 : (upcoming.count ?? 0),
+    overdueBookings: overdue.error ? 0 : (overdue.count ?? 0),
+    dueTodayBookings: dueToday.error ? 0 : (dueToday.count ?? 0),
+    inProgressBookings: inProgress.error ? 0 : (inProgress.count ?? 0),
+    readyBookings: ready.error ? 0 : (ready.count ?? 0),
+    dueToday: attachEmbeddedCustomers(dueTodayRows),
+    overdue: attachEmbeddedCustomers(overdueRows),
+    inProgress: attachEmbeddedCustomers(inProgressRows),
+    ready: attachEmbeddedCustomers(readyRows),
   };
 }

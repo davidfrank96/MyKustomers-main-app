@@ -10,6 +10,7 @@ STATUS: VERIFIED
 - Repository: `davidfrank96/MyKustomers-main-app`
 - Production branch: `main`
 - Stable URL: `https://my-kustomers-main-app.vercel.app`
+- Function region: London, `lhr1` (aligned with Supabase AWS `eu-west-2`)
 - Initial verified application commit: `ab90ebc4e808bfba64ce0c13a3db757a629b806b`
 - Initial verified deployment: `CDxVhdJyQ1Lnt6AGm7cXuct9YcTE`
 
@@ -123,6 +124,11 @@ a new delivery verification pass.
 Vercel uses the repository's standard install and build behavior. The package
 build command remains `next build --webpack`, and Node 22 or newer is required
 by `package.json`.
+
+`vercel.json` pins the Node function region to `lhr1`. This corrects the measured
+pre-change path where requests entered through Dublin but executed in `iad1`
+before calling the London Supabase project. Do not remove or change this region
+without rechecking the active Supabase project region and production timings.
 
 ## Database Migrations
 

@@ -35,6 +35,8 @@ commits to `my-kustomers-main-app.vercel.app`; builds consume the existing schem
 and never mutate it. The initial Vercel runtime uses the existing development
 Supabase project with four Production-only variables documented in
 `docs/DEPLOYMENT.md`; Preview receives no privileged environment values.
+Vercel functions execute in London (`lhr1`) to align with the configured
+Supabase AWS `eu-west-2` region; the application remains on the Node runtime.
 
 ## Inline Customer Booking Boundary
 
@@ -102,12 +104,15 @@ idempotently. The existing feedback view/submission RPC remains authoritative.
 
 ## Request Memoization And Loading
 
-React server `cache` deduplicates authenticated user, membership, and current-
-business resolution only during one server render request. Shared module-level
-functions and stable zero-argument calls are required for deduplication. There
-is no persistent application cache for authenticated, tenant-scoped, analytics,
-or capability-token data, so membership revocation and business switches take
-effect on the next request without an application invalidation protocol.
+React server `cache` deduplicates authenticated user and current-business
+resolution only during one server render request. Current-business resolution
+uses one RLS-scoped membership/business relation read; standalone membership
+reads remain available for actions that require only membership authorization.
+Shared module-level functions and stable zero-argument calls are required for
+deduplication. There is no persistent application cache for authenticated,
+tenant-scoped, analytics, or capability-token data, so membership revocation
+and business switches take effect on the next request without an application
+invalidation protocol.
 
 Major route segments use server-rendered structural loading states rather than
 turning whole pages into client components. Skeletons are presentation-only,
@@ -115,6 +120,10 @@ have stable responsive dimensions, expose one accessible loading status, and
 disable animation under reduced motion. A tenant switch presents an opaque
 pending layer so data from the previous workspace is not exposed as current.
 The permanent cache rules and measurements are in `docs/PERFORMANCE.md`.
+Booking and feedback reads use existing composite foreign-key relationships to
+return narrow associated labels in the authorized query instead of performing a
+second sequential HTTP request. Dashboard monthly analytics streams behind one
+secondary Suspense boundary while operational queues remain the primary render.
 
 ## Business Logo Storage Boundary
 

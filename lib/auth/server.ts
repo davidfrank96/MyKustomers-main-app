@@ -36,6 +36,19 @@ export type BusinessContext = {
   currentBusiness: BusinessSummary | null;
 };
 
+type BusinessAccessRow = {
+  business_id: string;
+  role: BusinessMemberRole;
+  status: "active";
+  businesses: {
+    id: string;
+    name: string;
+    slug: string;
+    category: string;
+    logo_path: string | null;
+  } | null;
+};
+
 export class AuthorizationError extends Error {
   constructor(message = "You are not authorized to access this resource.") {
     super(message);
@@ -111,28 +124,35 @@ export const getBusinessMemberships = cache(async function getBusinessMembership
 export const getCurrentBusinessContext = cache(async function getCurrentBusinessContext(
   authenticatedUser?: AuthenticatedUser,
 ): Promise<BusinessContext> {
-  const memberships = await getBusinessMemberships(authenticatedUser);
+  const user = authenticatedUser ?? (await getAuthenticatedUser());
 
-  if (memberships.length === 0 || !isSupabasePublicEnvConfigured()) {
-    return { memberships, businesses: [], currentBusiness: null };
+  if (!user || !isSupabasePublicEnvConfigured()) {
+    return { memberships: [], businesses: [], currentBusiness: null };
   }
 
   const supabase = await createClient();
   const { data, error } = await supabase
-    .from("businesses")
-    .select("id, name, slug, category, logo_path")
-    .in(
-      "id",
-      memberships.map((membership) => membership.businessId),
-    );
+    .from("business_members")
+    .select(
+      "business_id, role, status, businesses!business_members_business_id_fkey(id, name, slug, category, logo_path)",
+    )
+    .eq("user_id", user.id)
+    .eq("status", "active")
+    .order("created_at", { ascending: true })
+    .order("business_id", { ascending: true });
 
   if (error || !data) {
-    return { memberships, businesses: [], currentBusiness: null };
+    return { memberships: [], businesses: [], currentBusiness: null };
   }
 
-  const businessById = new Map(data.map((business) => [business.id, business]));
-  const businesses = memberships.flatMap((membership) => {
-    const business = businessById.get(membership.businessId);
+  const rows = data as unknown as BusinessAccessRow[];
+  const memberships = rows.map((row) => ({
+    businessId: row.business_id,
+    role: row.role,
+    status: row.status,
+  }));
+  const businesses = rows.flatMap((row) => {
+    const business = row.businesses;
 
     return business
       ? [
@@ -142,7 +162,7 @@ export const getCurrentBusinessContext = cache(async function getCurrentBusiness
             slug: business.slug,
             category: business.category,
             logoPath: business.logo_path,
-            role: membership.role,
+            role: row.role,
           } satisfies BusinessSummary,
         ]
       : [];

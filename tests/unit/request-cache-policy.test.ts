@@ -17,4 +17,11 @@ describe("request-scoped tenant context policy", () => {
     expect(dashboardLayout).toContain("getCurrentBusinessContext()");
     expect(dashboardLayout).not.toContain("getCurrentBusinessContext(user)");
   });
+
+  it("resolves memberships and business summaries through one RLS-scoped relation read", () => {
+    expect(authServer).toContain("businesses!business_members_business_id_fkey");
+    expect(authServer).toContain('.from("business_members")');
+    expect(authServer).toContain('.eq("user_id", user.id)');
+    expect(authServer).not.toContain("const businessById = new Map");
+  });
 });

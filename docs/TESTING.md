@@ -403,6 +403,31 @@ Future phase acceptance should generally require appropriate combinations of:
   production build, zero moderate-or-higher npm vulnerabilities, database lint
   with no findings, and `git diff --check`.
 
+## Navigation And PWA Performance Deep Audit - 2026-08-24
+
+- Three-run fresh-context browser profiles cover login, all seven required core
+  transitions, business switching, and browser Back against separate local
+  production and Vercel production targets. Timing assertions are not committed;
+  measured medians are recorded in `docs/PERFORMANCE.md`.
+- Unit policy coverage requires London function placement, the RLS-scoped
+  membership/business relation read, embedded booking/customer and
+  feedback/booking projections, the single dashboard analytics Suspense
+  boundary, semantic Next links, and absence of an authenticated-route service
+  worker cache.
+- A controlled live Supabase probe verifies each embedded relationship returns
+  the expected same-tenant row before the full runtime-security suite exercises
+  cross-tenant denial and business switching.
+- The full ordinary, runtime-security, desktop/mobile E2E, build, dependency,
+  database-lint, and whitespace gates remain mandatory. No existing test is
+  skipped, removed, or weakened for the optimization.
+- Final local verification passed 47 ordinary Vitest files with 201 tests,
+  13 live runtime-security files with 14 tests, 34 Playwright journeys with the
+  repository's 6 intentional skips, lint, strict typecheck, production build,
+  moderate dependency audit with zero vulnerabilities, and `git diff --check`.
+  Database lint was unavailable because no Supabase CLI is installed and the
+  connected advisor endpoint denied access; this pass contains no database or
+  migration change.
+
 ## Multi-Business Verification - 2026-08-24
 
 - Unit selection tests cover zero, one, multiple, restored, missing, and stale

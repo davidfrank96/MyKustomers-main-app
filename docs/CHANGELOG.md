@@ -1,5 +1,32 @@
 # Changelog
 
+## 2026-08-24 - Navigation Latency And PWA Performance Deep Audit
+
+Status: IMPLEMENTED - PRODUCTION VERIFICATION PENDING
+
+- Reproduced authenticated production navigation latency with controlled
+  three-run browser profiles and separated local production-build evidence from
+  Vercel production evidence.
+- Identified a Dublin-to-Washington Vercel request path while Supabase executes
+  in London, then configured the Vercel function region as `lhr1`.
+- Collapsed current-business membership/identity, booking/customer, and
+  feedback/booking reads through existing RLS-protected foreign-key relations,
+  removing avoidable sequential Supabase HTTP round trips.
+- Streamed only secondary monthly dashboard analytics while preserving primary
+  operational content, exact metrics, request-scoped memoization, dynamic tenant
+  freshness, and all authorization boundaries.
+- Confirmed semantic Link navigation, effectively instant browser Back, no
+  service worker/private RSC cache, and no meaningful client-bundle regression.
+  Rejected Redis, broad prefetch, Edge conversion, speculative indexes, and
+  persistent tenant caching.
+- Added focused performance-policy regression coverage. No schema migration,
+  dependency, client JavaScript behavior, environment variable, or secret
+  change was introduced.
+- Local gates passed lint, strict typecheck, 201 ordinary tests, 14 live
+  runtime-security tests, 34 desktop/mobile Playwright journeys with 6
+  intentional skips, production build, moderate dependency audit, and
+  `git diff --check`.
+
 ## 2026-08-24 - Trusted Feedback Sharing, Structural Loading, And Cache Governance
 
 Status: VERIFIED

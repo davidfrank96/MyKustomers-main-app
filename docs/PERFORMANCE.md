@@ -4,9 +4,10 @@
 
 STATUS: VERIFIED
 
-Audit date: 2026-08-24. Measurements use the configured non-production Supabase
-project and a local production-style application server. They are diagnostic
-samples, not production Web Vitals or a latency service-level objective.
+Audit date: 2026-08-24. Measurements use a disposable controlled account against
+both a local production build and the deployed Vercel application. Samples are
+three-run medians unless stated otherwise. They are diagnostic evidence, not a
+latency service-level objective.
 
 ## Permanent Rules
 
@@ -34,6 +35,105 @@ business membership, business identity, search, or public capability-token
 data. Therefore there is no application cache invalidation protocol: database
 state, RLS, and membership checks are reevaluated on the next request. `/c`,
 `/a`, `/x`, and `/f` route families explicitly return non-cacheable headers.
+
+## Navigation Deep Audit
+
+The measured production request path entered Vercel through Dublin but executed
+the Next.js function in `iad1` (Washington). The configured Supabase project is
+in AWS `eu-west-2` (London). `vercel.json` now pins functions to `lhr1`, the
+Vercel London region, so the application server and Supabase API are colocated
+geographically. This is an application runtime setting only; no database,
+credential, environment-variable, or Edge Runtime change is involved.
+
+The profiling sequence was click, Next.js navigation, destination RSC request,
+server auth/tenant/data work, RSC arrival, React commit, and visible level-one
+destination heading. Each transition used a fresh authenticated browser context
+to avoid carrying a favorable route cache between samples. Local baseline and
+changed builds ran concurrently against the same Supabase project. Production
+was measured separately before deployment of the change.
+
+Local destination RSC medians in milliseconds:
+
+| Transition                   | Baseline | Changed | Difference |
+| ---------------------------- | -------: | ------: | ---------: |
+| Dashboard to Bookings        |      330 |     152 |       -54% |
+| Bookings to booking detail   |      656 |     522 |       -20% |
+| Dashboard to Customers       |      289 |     179 |       -38% |
+| Customers to customer detail |      345 |     190 |       -45% |
+| Dashboard to Insights        |      344 |     188 |       -45% |
+| Dashboard to Business        |      263 |     159 |       -40% |
+| Business to Dashboard        |      541 |     382 |       -29% |
+
+Click-to-heading medians remained clustered around 0.83 seconds on most local
+dynamic-route samples because Next's transition scheduling and partial route
+prefetch dominated once server work became shorter. Customer detail had a
+236 ms changed median. The deterministic RSC duration reduction is therefore
+stronger evidence for the server changes than a blanket click-timing claim.
+
+Pre-deployment Vercel click-to-heading medians were 1,366 ms for Bookings,
+1,611 ms for booking detail, 1,060 ms for Customers, 1,026 ms for customer
+detail, 1,077 ms for Insights, 1,038 ms for Business, 3,080 ms from Business
+back to Dashboard, 2,346 ms from login to Dashboard, and 1,052 ms for a business
+switch. Browser Back from Bookings to Dashboard was already fast at 17 ms.
+Production remained materially slower than local after warm-up, confirming that
+the cross-Atlantic function-to-Supabase path, not SQL execution or hydration,
+was the dominant production cost.
+
+## Round Trips And Streaming
+
+- Current-business resolution now reads active membership and business identity
+  through one RLS-scoped embedded relationship query instead of two sequential
+  PostgREST requests. Request-scoped React memoization remains unchanged.
+- Booking lists, booking details, and dashboard queues embed their customer
+  summary through the existing composite foreign key. This removes one
+  conditional sequential customer request without widening the selected fields.
+- Customer feedback embeds booking label data through its existing composite
+  foreign key, removing another conditional sequential request.
+- Dashboard operational counts and queues remain the primary render boundary.
+  Monthly analytics starts concurrently and streams through one meaningful
+  Suspense boundary, so its aggregate RPCs no longer hold back operational
+  content.
+
+Temporary local instrumentation recorded method, Supabase pathname, and elapsed
+time only. It showed typical individual PostgREST calls around 60-200 ms with
+occasional larger network variance. The first local JWT key-set lookup was about
+70 ms; subsequent route transitions did not make a separate Auth endpoint call.
+Proxy claim validation remains in place because it is required for protected
+route/session behavior. Timing instrumentation is not shipped.
+
+## Prefetch, Client, And PWA Findings
+
+All five primary desktop and mobile destinations already use ordinary Next.js
+`Link` elements. No `router.push` wrapper or disabled prefetch was found. Waiting
+1.5 seconds for default prefetch produced variable results and no repeatable
+click-to-content improvement for these dynamic authenticated routes. Explicitly
+prefetching all five full RSC payloads was rejected because it would amplify
+authorized backend reads and increase stale workspace exposure without measured
+benefit.
+
+The root client bundle measured about 361 KB gzip and authenticated route chunks
+about 20 KB gzip before and after; the server-only changes did not increase the
+client payload. Named Lucide imports remain tree-shakeable, and the shared Radix
+menu boundary was not a material bundle outlier. Next's hashed static assets use
+the platform defaults. Fonts use the existing Next font optimization.
+
+The repository has a web manifest and icons but no service worker registration
+or worker file. Browser checks confirmed `navigator.serviceWorker.controller`
+was absent, so no worker intercepts, delays, or caches authenticated HTML/RSC.
+Headless Chromium app-window mode does not report standalone display mode; a
+true installed-window comparison is therefore not claimed. With no service
+worker, browser and installed-shell navigation use the same network path.
+
+## Deliberately Rejected
+
+- No Redis, persistent React/Next cache, browser tenant cache, keep-alive request,
+  direct PostgreSQL connection, speculative index, or Edge Runtime conversion.
+- No removal of proxy claim validation, RLS filters, capability-route `no-store`,
+  authenticated `force-dynamic`, or business-switch authorization.
+- No explicit five-route full prefetch and no service worker. Either would need
+  separate evidence and a private-data cache/security design.
+- No server-timing production header. Temporary pathname-only local timing was
+  sufficient and avoids permanent production implementation disclosure/noise.
 
 ## Measured Server Work
 
