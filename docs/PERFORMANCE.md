@@ -79,6 +79,26 @@ Production remained materially slower than local after warm-up, confirming that
 the cross-Atlantic function-to-Supabase path, not SQL execution or hydration,
 was the dominant production cost.
 
+After merge and Vercel promotion, `x-vercel-id` changed from `dub1::iad1` to
+`dub1::lhr1`. Fresh-context production click-to-heading medians in milliseconds:
+
+| Transition | Before | After | Difference |
+| --- | ---: | ---: | ---: |
+| Login to Dashboard | 2,346 | 1,334 | -43% |
+| Dashboard to Bookings | 1,366 | 555 | -59% |
+| Bookings to booking detail | 1,611 | 571 | -65% |
+| Dashboard to Customers | 1,060 | 563 | -47% |
+| Customers to customer detail | 1,026 | 494 | -52% |
+| Dashboard to Insights | 1,077 | 513 | -52% |
+| Dashboard to Business | 1,038 | 550 | -47% |
+| Business to Dashboard | 3,080 | 644 | -79% |
+| Business switch to Dashboard | 1,052 | 555 | -47% |
+
+Browser Back remained effectively immediate at 11 ms after versus 17 ms before.
+The repeatable reductions across every authenticated path support both the
+round-trip changes and region alignment. Individual samples still varied, so
+these medians remain diagnostic rather than an SLO.
+
 ## Round Trips And Streaming
 
 - Current-business resolution now reads active membership and business identity
@@ -115,14 +135,25 @@ The root client bundle measured about 361 KB gzip and authenticated route chunks
 about 20 KB gzip before and after; the server-only changes did not increase the
 client payload. Named Lucide imports remain tree-shakeable, and the shared Radix
 menu boundary was not a material bundle outlier. Next's hashed static assets use
-the platform defaults. Fonts use the existing Next font optimization.
+the platform defaults; a deployed chunk returned a cache hit with
+`public,max-age=31536000,immutable`. Fonts use the existing Next font
+optimization.
 
 The repository has a web manifest and icons but no service worker registration
 or worker file. Browser checks confirmed `navigator.serviceWorker.controller`
 was absent, so no worker intercepts, delays, or caches authenticated HTML/RSC.
-Headless Chromium app-window mode does not report standalone display mode; a
-true installed-window comparison is therefore not claimed. With no service
-worker, browser and installed-shell navigation use the same network path.
+Headed Chromium app-window checks reported real standalone display mode, no
+horizontal overflow, successful authenticated navigation, and no worker control.
+In matched three-run samples, normal headed browser navigation had a 359 ms
+median while standalone app-window navigation had an 826 ms median. Because
+both used the same network path and no service worker, the difference is not a
+cache delay; app-window launch/prefetch scheduling remains a follow-up trace
+candidate.
+
+Production page-load samples had zero CLS. Desktop TTFB/LCP was effectively flat
+at 146/1,856 ms after versus 143/1,788 ms before. Mobile TTFB/LCP improved to
+151/1,408 ms from 194/2,504 ms. Synthetic page loads produced no qualifying INP
+interaction, so the observed zero is not reported as a real INP measurement.
 
 ## Deliberately Rejected
 

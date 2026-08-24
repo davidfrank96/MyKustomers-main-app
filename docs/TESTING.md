@@ -427,6 +427,15 @@ Future phase acceptance should generally require appropriate combinations of:
   Database lint was unavailable because no Supabase CLI is installed and the
   connected advisor endpoint denied access; this pass contains no database or
   migration change.
+- Pull request #10 was conflict-free and passed all seven active CI checks; its
+  protected Runtime Security job was the expected skip, with the authoritative
+  14-test live suite already green locally. Vercel promoted the matching merge
+  commit to Production.
+- Post-deployment verification separately covered desktop, mobile, and headed
+  standalone app-window navigation; all required route transitions, business
+  switching, browser Back, region headers, hashed static caching, CLS, LCP/TTFB,
+  service-worker control, and horizontal overflow. Production medians are in
+  `docs/PERFORMANCE.md`.
 
 ## Multi-Business Verification - 2026-08-24
 
