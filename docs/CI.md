@@ -17,9 +17,10 @@ database migration.
 | E2E                 | Chromium installation and the complete Playwright suite against its workflow-owned local server and dedicated non-production Supabase project |
 
 CI uses Node 22 because `package.json` requires Node 22 or newer. Official
-`actions/checkout@v4` and `actions/setup-node@v4` actions run with `contents:
+`actions/checkout@v7` and `actions/setup-node@v7` actions run with `contents:
 read` permission. Superseded runs for the same pull request or branch are
-cancelled.
+cancelled. These action majors use the supported GitHub-hosted action runtime;
+the previous v4 actions emitted a Node 20 deprecation warning in run #22.
 
 The workflow was executed for the current release on pull request #5. Quality,
 Tests, Build, Dependency Security, and E2E completed successfully after the
@@ -43,18 +44,31 @@ non-production Supabase project:
 case remains skipped as documented; ordinary authenticated product journeys
 must run. The workflow validates required names without printing values.
 
-Playwright artifacts are not uploaded automatically because current journeys
-traverse raw one-time confirmation and feedback links. Local `test-results`
-remain available for diagnosis without risking capability-token disclosure in
-a shared CI artifact.
+On E2E failure, Playwright emits list output, GitHub annotations, and a JSON
+report. A post-failure step parses that report and any textual error contexts,
+redacts configured secret values, capability URLs, OAuth values, JWTs, bearer
+tokens, and email addresses, and uploads only the sanitized output for seven
+days. Raw traces, screenshots, videos, environment files, and browser storage
+are deliberately excluded because current journeys traverse one-time
+confirmation and feedback capabilities. Artifact preparation and upload run
+only after the Playwright step fails and cannot convert a test failure into a
+successful job.
+
+Run #22 exposed a mobile-only race in the forged business-switch regression:
+the test changed a hidden business ID and clicked in separate browser tasks, so
+React hydration could restore the authorized ID before submission. The test now
+changes the value and calls `requestSubmit` in one browser task. The original
+form was correctly submitted when the value survived, and the server action's
+membership validation and unavailable redirect remain unchanged.
 
 ## Runtime Security
 
-The `Runtime Security` job is defined but guarded by the repository variable:
+The `Runtime Security` job is defined independently from E2E but guarded by the
+repository variable:
 
 - `RUNTIME_SECURITY_ENABLED=true`
 
-When enabled, the job uses the protected GitHub Environment
+When enabled, the job starts with the other jobs and uses the protected GitHub Environment
 `supabase-runtime-security`, the three Supabase secrets listed above,
 `PHASE2_RUNTIME_VERIFICATION=1`, and `PHASE2_SUPABASE_TARGET=test`. The target
 must be a dedicated safe test/development project, never production. Until the

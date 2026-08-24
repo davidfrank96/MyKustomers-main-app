@@ -349,12 +349,19 @@ test.describe("multi-business account support", () => {
         .getByRole("listitem")
         .filter({ hasText: businessBName })
         .locator("form[data-business-page-switch-form]");
-      await forgedForm
-        .locator('input[name="businessId"]')
-        .evaluate((input, businessId) => {
-          (input as HTMLInputElement).value = businessId;
-        }, businessCId);
-      await forgedForm.getByRole("button", { name: "Switch" }).click();
+      await forgedForm.evaluate((form, businessId) => {
+        const businessIdInput = form.querySelector<HTMLInputElement>(
+          'input[name="businessId"]',
+        );
+        const submitter = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+
+        if (!businessIdInput || !submitter) {
+          throw new Error("Business switch form controls are unavailable.");
+        }
+
+        businessIdInput.value = businessId;
+        (form as HTMLFormElement).requestSubmit(submitter);
+      }, businessCId);
       await expect(page).toHaveURL(/\/dashboard\?business=unavailable$/);
       await expect(
         page.getByRole("button", {

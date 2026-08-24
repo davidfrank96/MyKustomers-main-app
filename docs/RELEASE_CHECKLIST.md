@@ -271,6 +271,8 @@ production-readiness work.
       and guarded Runtime Security jobs.
 - [x] Workflow permissions are read-only and no production migration/deployment
       step exists.
+- [x] E2E failures retain sanitized JSON/error-context diagnostics without raw
+      capability URLs, secrets, browser storage, traces, screenshots, or videos.
 - [x] Required E2E GitHub secrets configured for a dedicated non-production
       Supabase project.
 - [ ] Protected runtime-security environment and enable variable configured.

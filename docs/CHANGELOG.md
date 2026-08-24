@@ -1,5 +1,30 @@
 # Changelog
 
+## 2026-08-24 - CI E2E Reliability And Failure Diagnostics
+
+Status: IMPLEMENTED - REMOTE VERIFICATION PENDING
+
+- Audited GitHub Actions run #22 and traced its only failure to the mobile
+  multi-business forged-switch test. The test changed a hidden input and clicked
+  in separate browser tasks, allowing React hydration to restore the authorized
+  business ID before submission; the application correctly switched to that
+  submitted business and redirected to `/dashboard`.
+- Reproduced the exact failure locally once in five sequential CI-equivalent
+  repetitions. The forged value and `requestSubmit` now execute in one browser
+  task, preserving the strict unauthorized-selection assertion without changing
+  the application action, membership authority, RLS, or tenant behavior.
+- Added GitHub and JSON Playwright reporters plus a tested post-failure sanitizer.
+  CI uploads only redacted report/error-context text for seven days and excludes
+  raw traces, media, environment files, and browser storage because E2E journeys
+  traverse customer capability URLs.
+- Updated official checkout, setup-node, and upload-artifact actions to their
+  current v7 majors, removing the action-runtime deprecation warning from the
+  failed run. Runtime Security remains independently protected by its existing
+  enable variable and environment.
+- The fixed mobile journey passed ten consecutive CI-equivalent repetitions.
+  Full local and remote pipeline verification follows before this entry becomes
+  VERIFIED.
+
 ## 2026-08-24 - Navigation Latency And PWA Performance Deep Audit
 
 Status: VERIFIED - PRODUCTION

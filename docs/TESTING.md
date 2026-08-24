@@ -107,6 +107,8 @@ do not reduce the verified tenant/RLS coverage.
   submission on desktop and mobile projects.
 - Lightweight governance tests for required documentation, the repository
   definition-of-done rule, and migration filename/order discipline.
+- Playwright CI diagnostics sanitizer coverage for configured secrets, raw
+  capability paths, OAuth values, JWTs, bearer tokens, and email addresses.
 
 ## Planned Critical Journeys
 
@@ -360,7 +362,11 @@ reporting.
 The core E2E job validates required secret presence so missing credentials do
 not silently turn all authenticated product journeys into skips. Runtime
 Security remains explicitly configuration-pending rather than manufacturing a
-pass. Full details are in `docs/CI.md`.
+pass. Failed E2E runs retain a sanitized JSON report and textual error context,
+while raw traces and media remain excluded because the suite traverses customer
+capability URLs. The multi-business forged-switch regression performs its DOM
+tampering and submission atomically so React hydration cannot replace the
+forged value between separate browser tasks. Full details are in `docs/CI.md`.
 
 ## Definition of Done
 
