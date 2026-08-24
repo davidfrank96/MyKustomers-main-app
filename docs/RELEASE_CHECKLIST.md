@@ -89,7 +89,9 @@ production-readiness work.
       Google -> Supabase -> application callback completes.
 - [x] Existing-business and multi-business/switcher Google journeys are verified
       locally through a real authenticated session.
-- [ ] Same-email identity behavior, CI, and production Google OAuth are verified.
+- [x] Required CI and production Google OAuth are verified after merge and Vercel
+      deployment.
+- [ ] Same-email identity behavior is verified as a separate lifecycle check.
 
 ## Authorization
 

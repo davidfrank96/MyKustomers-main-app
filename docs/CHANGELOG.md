@@ -2,7 +2,7 @@
 
 ## 2026-08-24 - Business Switcher Discoverability And Google Auth Support
 
-Status: IMPLEMENTED - LOCAL RUNTIME VERIFIED - PRODUCTION PENDING
+Status: VERIFIED - PRODUCTION
 
 - Added a Business-page `My businesses` section with active membership identity,
   owner/member role, textual current state, shared secure switching, and the
@@ -17,8 +17,10 @@ Status: IMPLEMENTED - LOCAL RUNTIME VERIFIED - PRODUCTION PENDING
   completed through the normal local callback, and covered profile provisioning,
   zero-business onboarding, persistence, logout, and protected-route denial.
 - The same Google session verified one and multiple-business routing, current
-  workspace resolution, switching, and refresh persistence. CI, production OAuth,
-  and same-email identity behavior remain release checks.
+  workspace resolution, switching, and refresh persistence. Required CI passed,
+  the merge deployed successfully, and production OAuth repeated the callback,
+  multi-business resolution, switching, persistence, logout, and protected-route
+  checks. Same-email identity behavior remains a separate lifecycle check.
 - Excluded the exact OAuth callback route from Next.js development incoming-request
   logs so transient authorization-code query strings are not printed; ordinary
   development request logging remains enabled.

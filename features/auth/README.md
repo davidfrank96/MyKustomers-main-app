@@ -38,6 +38,7 @@ sanitized local destination.
 A real Google authorization completed through the normal local callback,
 established a Google session, provisioned its profile, routed zero memberships
 to onboarding, persisted after refresh, and logged out cleanly. The same account
-then exercised one and multiple-business routing and switching. Production OAuth
-and same-email identity behavior remain release checks. Application code does
-not perform email-based linking or duplication.
+then exercised one and multiple-business routing and switching locally and on
+the merged production deployment. Same-email identity behavior remains a
+separate lifecycle check. Application code does not perform email-based linking
+or duplication.

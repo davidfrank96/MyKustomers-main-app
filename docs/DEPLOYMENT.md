@@ -88,8 +88,10 @@ Google requires no new Vercel variable: provider credentials belong in Supabase,
 not `NEXT_PUBLIC_*`, source control, deployment logs, Preview, or Development.
 New-user profile/onboarding, session persistence, logout, existing and
 multi-business routing, and switching have controlled local runtime evidence.
-CI, production deployment, production OAuth, and same-email identity behavior
-remain release checks before this provider is called production-ready.
+Required CI passed, the merge deployed successfully to Vercel, and production
+Google OAuth repeated the callback, multi-business resolution, switching,
+persistence, logout, and protected-route checks. Same-email identity behavior
+remains a separate lifecycle check.
 
 ## Email State
 

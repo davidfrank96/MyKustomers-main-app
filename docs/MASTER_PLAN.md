@@ -433,6 +433,8 @@ cross-phase business discoverability and Google authentication support:
   to onboarding, persisted after refresh, and logged out cleanly.
 - The same controlled Google account created one and then two active business
   memberships, followed normal current-business resolution, switched workspaces,
-  and retained its selection after refresh. CI, production deployment, production
-  OAuth, and same-email identity behavior remain release checks. No Vercel
+  and retained its selection after refresh. Required CI passed, the merge deployed
+  successfully to Vercel, and production Google OAuth repeated the callback,
+  current-business, switching, persistence, logout, and protected-route journey.
+  Same-email identity behavior remains a separate lifecycle check. No Vercel
   variable or Google credential is required.
