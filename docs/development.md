@@ -168,3 +168,21 @@ are documented in `docs/CI.md`.
   rendering.
 - Loading placeholders must be non-interactive, accessible as one status,
   stable at responsive widths, and reduced-motion safe.
+
+## Navigation Performance Governance
+
+- Measure local production builds and deployed production separately with a
+  controlled authenticated account. Prefer repeat medians and preserve cold
+  outliers instead of reporting one favorable run.
+- Keep Vercel functions close to the Supabase project region. A region change
+  must be based on verified provider locations and followed by production
+  response-header and application-flow verification.
+- Reduce sequential Supabase HTTP round trips through existing RLS-protected
+  relations or safe concurrency. Do not trade tenant authority, freshness, or
+  projection boundaries for latency.
+- Treat broad authenticated RSC prefetch, service-worker data caching, Redis,
+  and persistent framework caches as security/design changes requiring measured
+  benefit, tenant keys, invalidation, and revocation analysis.
+- Performance instrumentation must not log URL query strings, tokens, cookies,
+  customer data, emails, credentials, or database URLs. Remove temporary timing
+  hooks before release unless permanent telemetry has a reviewed contract.

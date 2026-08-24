@@ -1,14 +1,16 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { Route } from "next";
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { BusinessLogo } from "@/components/shared/business-logo";
 import { parseAnalyticsRange } from "@/features/analytics/date-ranges";
 import { formatCurrencyMinor, formatInteger } from "@/features/analytics/format";
 import { getBusinessInsights } from "@/features/analytics/queries";
+import type { BusinessInsights } from "@/features/analytics/types";
 import type { BookingWithCustomer } from "@/features/bookings/queries";
 import { getBookingDashboardStats } from "@/features/bookings/queries";
 import { getBusinessLogoPublicUrl } from "@/features/businesses/logo-public";
@@ -55,7 +57,8 @@ function WorkQueue({
               >
                 <p className="text-sm font-medium">{booking.title}</p>
                 <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                  {booking.customer?.name ?? "Customer unavailable"} · {formatDate(booking.scheduled_for)}
+                  {booking.customer?.name ?? "Customer unavailable"} ·{" "}
+                  {formatDate(booking.scheduled_for)}
                 </p>
               </Link>
             ))}
@@ -86,6 +89,110 @@ function DashboardTile({
   );
 }
 
+async function DashboardInsightsSummary({
+  insightsPromise,
+}: {
+  insightsPromise: Promise<BusinessInsights | null>;
+}) {
+  const monthInsights = await insightsPromise;
+  const completedValueSummary = !monthInsights
+    ? "Unavailable"
+    : monthInsights.value.completed.length === 0
+      ? "No completed value"
+      : monthInsights.value.completed
+          .map((metric) => formatCurrencyMinor(metric.amountMinor, metric.currency))
+          .join(" · ");
+
+  return (
+    <section className="flex flex-col gap-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h2 className="text-xl font-semibold leading-tight">This month</h2>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            A short analytics summary from completed bookings, feedback, and recorded
+            values.
+          </p>
+        </div>
+        <Button asChild variant="secondary" size="sm">
+          <Link href={"/insights?range=this_month" as Route}>Open insights</Link>
+        </Button>
+      </div>
+      <div className="grid gap-4 md:grid-cols-3">
+        <DashboardTile
+          href={"/insights?range=this_month" as Route}
+          label="View completed booking insights for this month"
+        >
+          <CardHeader>
+            <CardTitle>Completed this month</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm leading-6 text-muted-foreground">
+              {monthInsights
+                ? `${formatInteger(monthInsights.bookings.completed.value)} bookings completed.`
+                : "Insights unavailable."}
+            </p>
+          </CardContent>
+        </DashboardTile>
+        <DashboardTile
+          href={"/insights?range=this_month" as Route}
+          label="View completed booking value insights for this month"
+        >
+          <CardHeader>
+            <CardTitle>Completed booking value</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm leading-6 text-muted-foreground">
+              {completedValueSummary}
+            </p>
+          </CardContent>
+        </DashboardTile>
+        <DashboardTile
+          href={"/insights?range=this_month" as Route}
+          label="View feedback insights for this month"
+        >
+          <CardHeader>
+            <CardTitle>Feedback received</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm leading-6 text-muted-foreground">
+              {monthInsights
+                ? `${formatInteger(monthInsights.feedback.responses.value)} private responses.`
+                : "Insights unavailable."}
+            </p>
+          </CardContent>
+        </DashboardTile>
+      </div>
+    </section>
+  );
+}
+
+function DashboardInsightsFallback() {
+  return (
+    <section
+      className="flex flex-col gap-4"
+      role="status"
+      aria-label="Loading monthly insights"
+    >
+      <div>
+        <h2 className="text-xl font-semibold leading-tight">This month</h2>
+        <Skeleton className="mt-3 h-4 w-full max-w-xl" />
+      </div>
+      <div className="grid gap-4 md:grid-cols-3" aria-hidden="true">
+        {Array.from({ length: 3 }, (_, index) => (
+          <Card key={index}>
+            <CardHeader>
+              <Skeleton className="h-5 w-36" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-4 w-28" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export default async function DashboardPage() {
   const businessContext = await getCurrentBusinessContext();
   const currentBusiness = businessContext.currentBusiness;
@@ -94,19 +201,13 @@ export default async function DashboardPage() {
     redirect("/onboarding" as Route);
   }
   const monthRange = parseAnalyticsRange({ range: "this_month" });
-  const [customerCount, bookingStats, monthInsights] = await Promise.all([
+  const monthInsightsPromise = getBusinessInsights(currentBusiness.id, monthRange).catch(
+    () => null,
+  );
+  const [customerCount, bookingStats] = await Promise.all([
     countActiveCustomersForBusiness(currentBusiness.id),
     getBookingDashboardStats(currentBusiness.id),
-    getBusinessInsights(currentBusiness.id, monthRange).catch(() => null),
   ]);
-  const completedValueSummary =
-    !monthInsights
-      ? "Unavailable"
-      : monthInsights.value.completed.length === 0
-      ? "No completed value"
-      : monthInsights.value.completed
-          .map((metric) => formatCurrencyMinor(metric.amountMinor, metric.currency))
-          .join(" · ");
   const businessLogoUrl = getBusinessLogoPublicUrl(currentBusiness.logoPath);
 
   return (
@@ -148,7 +249,10 @@ export default async function DashboardPage() {
             </p>
           </CardContent>
         </DashboardTile>
-        <DashboardTile href={"/bookings?filter=active" as Route} label="View active bookings">
+        <DashboardTile
+          href={"/bookings?filter=active" as Route}
+          label="View active bookings"
+        >
           <CardHeader>
             <CardTitle>Active bookings</CardTitle>
           </CardHeader>
@@ -158,7 +262,10 @@ export default async function DashboardPage() {
             </p>
           </CardContent>
         </DashboardTile>
-        <DashboardTile href={"/bookings?filter=today" as Route} label="View bookings due today">
+        <DashboardTile
+          href={"/bookings?filter=today" as Route}
+          label="View bookings due today"
+        >
           <CardHeader>
             <CardTitle>Due today</CardTitle>
           </CardHeader>
@@ -168,7 +275,10 @@ export default async function DashboardPage() {
             </p>
           </CardContent>
         </DashboardTile>
-        <DashboardTile href={"/bookings?filter=overdue" as Route} label="View overdue bookings">
+        <DashboardTile
+          href={"/bookings?filter=overdue" as Route}
+          label="View overdue bookings"
+        >
           <CardHeader>
             <CardTitle>Overdue</CardTitle>
           </CardHeader>
@@ -216,55 +326,9 @@ export default async function DashboardPage() {
         </div>
       </section>
 
-      <section className="flex flex-col gap-4">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h2 className="text-xl font-semibold leading-tight">This month</h2>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              A short analytics summary from completed bookings, feedback, and recorded values.
-            </p>
-          </div>
-          <Button asChild variant="secondary" size="sm">
-            <Link href={"/insights?range=this_month" as Route}>Open insights</Link>
-          </Button>
-        </div>
-        <div className="grid gap-4 md:grid-cols-3">
-          <DashboardTile href={"/insights?range=this_month" as Route} label="View completed booking insights for this month">
-            <CardHeader>
-              <CardTitle>Completed this month</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm leading-6 text-muted-foreground">
-                {monthInsights
-                  ? `${formatInteger(monthInsights.bookings.completed.value)} bookings completed.`
-                  : "Insights unavailable."}
-              </p>
-            </CardContent>
-          </DashboardTile>
-          <DashboardTile href={"/insights?range=this_month" as Route} label="View completed booking value insights for this month">
-            <CardHeader>
-              <CardTitle>Completed booking value</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm leading-6 text-muted-foreground">
-                {completedValueSummary}
-              </p>
-            </CardContent>
-          </DashboardTile>
-          <DashboardTile href={"/insights?range=this_month" as Route} label="View feedback insights for this month">
-            <CardHeader>
-              <CardTitle>Feedback received</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm leading-6 text-muted-foreground">
-                {monthInsights
-                  ? `${formatInteger(monthInsights.feedback.responses.value)} private responses.`
-                  : "Insights unavailable."}
-              </p>
-            </CardContent>
-          </DashboardTile>
-        </div>
-      </section>
+      <Suspense fallback={<DashboardInsightsFallback />}>
+        <DashboardInsightsSummary insightsPromise={monthInsightsPromise} />
+      </Suspense>
     </main>
   );
 }
