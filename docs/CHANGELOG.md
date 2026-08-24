@@ -2,7 +2,7 @@
 
 ## 2026-08-24 - Navigation Latency And PWA Performance Deep Audit
 
-Status: IMPLEMENTED - PRODUCTION VERIFICATION PENDING
+Status: VERIFIED - PRODUCTION
 
 - Reproduced authenticated production navigation latency with controlled
   three-run browser profiles and separated local production-build evidence from
@@ -26,6 +26,14 @@ Status: IMPLEMENTED - PRODUCTION VERIFICATION PENDING
   runtime-security tests, 34 desktop/mobile Playwright journeys with 6
   intentional skips, production build, moderate dependency audit, and
   `git diff --check`.
+- Pull request #10 passed all required CI without conflicts and merged as
+  `e3c6e5b`. Vercel promoted the matching Production deployment, and response
+  headers confirmed execution moved from `iad1` to `lhr1`.
+- Production medians improved by 43-79% across login, all seven core
+  transitions, and business switching. Mobile LCP improved from 2.50 seconds to
+  1.41 seconds; desktop LCP was effectively flat. Browser and real standalone
+  app-window checks retained zero CLS, no service-worker control, and no
+  horizontal overflow.
 
 ## 2026-08-24 - Trusted Feedback Sharing, Structural Loading, And Cache Governance
 

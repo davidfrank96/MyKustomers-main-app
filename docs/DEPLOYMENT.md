@@ -13,6 +13,8 @@ STATUS: VERIFIED
 - Function region: London, `lhr1` (aligned with Supabase AWS `eu-west-2`)
 - Initial verified application commit: `ab90ebc4e808bfba64ce0c13a3db757a629b806b`
 - Initial verified deployment: `CDxVhdJyQ1Lnt6AGm7cXuct9YcTE`
+- Navigation performance commit: `e3c6e5b1e406d0ee8f5ee48c3526bf2ff43fdfdb`
+- Navigation performance deployment: `dpl_554b3B9TtEUUw1a84vgUNPmDmZg4`
 
 Vercel Git integration creates Production deployments from `main`. Pull requests
 and feature branches may create Preview deployments, but the current project
@@ -129,6 +131,9 @@ by `package.json`.
 pre-change path where requests entered through Dublin but executed in `iad1`
 before calling the London Supabase project. Do not remove or change this region
 without rechecking the active Supabase project region and production timings.
+The first aligned deployment above reached `READY`/`PROMOTED` for Production,
+and the stable domain returned `dub1::lhr1` before authenticated desktop,
+mobile, standalone-window, and route-transition verification passed.
 
 ## Database Migrations
 
