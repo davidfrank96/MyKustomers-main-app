@@ -549,3 +549,57 @@ and fetched production HTML contains no localhost URL. Vercel Git integration
 deploys known `main` commits after CI; builds never apply database migrations.
 The initial controlled production workflow cleaned its fixtures and produced no
 Warning, Error, or Fatal runtime log entries.
+
+SEC-042 - Current Business Preference Cannot Grant Tenant Access
+
+Status: VERIFIED
+
+The selected business UUID is stored in an HTTP-only, same-site cookie and is
+untrusted input. Server resolution accepts it only when the authenticated user
+has an active `business_members` row for the same UUID; otherwise it falls back
+to another active membership or onboarding. The switch action repeats this
+check before changing the cookie. Membership-specific role checks govern owner
+settings after every switch.
+
+`create_booking_with_customer` now requires the resolved business UUID and
+validates that exact active membership inside its hardened SECURITY DEFINER
+boundary. Forged switch submissions and cross-tenant RPC business IDs are denied
+without changing current authority or creating data. Public confirmation,
+amendment, add-on, and feedback capabilities do not consult this cookie.
+
+During the shared-database frontend rollout, the prior booking RPC signature is
+retained as a compatibility wrapper only for callers with exactly one active
+membership. It delegates to the explicit-business function and rejects two or
+more memberships with `explicit_business_required`; it never chooses a first
+membership for an ambiguous account.
+
+SEC-043 - Google OAuth Preserves Existing Identity And Redirect Boundaries
+
+Status: IMPLEMENTED - LOCAL RUNTIME VERIFIED - PRODUCTION PENDING
+
+Google authentication is delegated to Supabase Auth and uses the existing PKCE
+callback. Application code contains no Google client secret, stores no provider
+token, and creates no email-derived identity row. The provider control fails
+closed when Supabase's public settings do not report Google enabled. Callback
+errors map to fixed user-safe messages and raw provider details are not rendered.
+
+The OAuth destination is derived from `NEXT_PUBLIC_APP_URL`, constrained to the
+configured Supabase `/auth/v1/authorize` origin/path, and returns through the
+exact production callback. A ten-minute HTTP-only, same-site, callback-scoped
+cookie contains only a sanitized local path and is consumed at callback; it is
+neither session state nor authorization. Profile metadata remains descriptive
+only. `auth.users.id`, active membership checks, current-business validation,
+and RLS continue to provide identity and tenant authority.
+
+The configured provider now reports enabled. Real Google authorization completed
+through the normal local application callback, established a Google session,
+provisioned a profile, persisted after refresh, exercised zero, one, and
+multiple-business resolution and switching, and cleared the session on logout
+without exposing transient credentials. Production OAuth remains a release
+check. No nonce, PKCE, state, cookie, or redirect validation was weakened.
+
+Next.js development incoming-request logging explicitly ignores only
+`/auth/callback`, preventing transient authorization-code query strings from
+being printed by the framework. Other development request logging remains
+enabled. Application code does not log OAuth codes, provider tokens, or session
+cookies.

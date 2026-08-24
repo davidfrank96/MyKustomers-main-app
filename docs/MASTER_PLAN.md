@@ -398,3 +398,41 @@ Implemented and verified in Phase 9.5:
   private feedback, internal issue handling, and insights verification.
 - Phase 9.5 did not add billing, payment processing, messaging automation,
   exports, staff management, schema changes, or public review functionality.
+
+Implemented and verified as cross-phase multi-business account support:
+
+- One authenticated account may hold multiple active `business_members` rows;
+  `profiles` remains identity-only and has no permanent business foreign key.
+- A server-read HTTP-only cookie remembers the preferred business ID. Every
+  request resolves it against active memberships and deterministically falls
+  back to the oldest active membership when it is absent, stale, or revoked.
+- A shared responsive header switcher changes workspace through a validated
+  server action and reloads `/dashboard`; the five-item mobile navigation is
+  unchanged.
+- `/business/new` reuses `create_business_onboarding` and makes the returned
+  owner workspace current immediately.
+- Private operational surfaces use the resolved business. Public `/c`, `/a`,
+  `/x`, and `/f` capabilities remain independent of account preference.
+
+Implemented with external redirect configuration blocking full verification as
+cross-phase business discoverability and Google authentication support:
+
+- The Business page lists every active membership with business identity,
+  owner/member role, a textual current-business indicator, the existing secure
+  switch action, and the existing `/business/new` path.
+- The header remains the quick switcher and now includes a textual current state;
+  mobile navigation remains five items.
+- Login and signup share one Supabase `signInWithOAuth` Google action. PKCE code
+  exchange remains in `/auth/callback`, and post-auth routing uses the same zero,
+  one, and multiple-business resolution as email/password users.
+- A short-lived HTTP-only callback preference carries only a sanitized local
+  `next` path. It is not a session or authorization source.
+- The development project's public Auth settings report Google enabled. A real
+  Google-to-Supabase authorization completed through the normal local callback,
+  established a Google session, provisioned one profile, routed zero memberships
+  to onboarding, persisted after refresh, and logged out cleanly.
+- The same controlled Google account created one and then two active business
+  memberships, followed normal current-business resolution, switched workspaces,
+  and retained its selection after refresh. CI, production deployment, production
+  OAuth, and same-email identity behavior remain release checks. No Vercel
+  variable or Google credential is required.

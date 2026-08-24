@@ -389,3 +389,18 @@ PostgreSQL through a membership-checked RPC. Value aggregates are grouped by
 booking currency; mixed-currency totals are not stored or returned.
 
 Subscriptions represent vendor subscription billing for My Customers, not payments between vendors and their customers.
+
+## Multi-Business Membership And Selection
+
+One auth user may have zero, one, or many `business_members` rows. The active
+membership set is the authorization source; `profiles` deliberately has no
+`business_id`. Current-business preference is stored outside the relational
+model in an HTTP-only application cookie and is accepted only when it matches an
+active membership visible to that user. Role is read from the selected
+membership, so one account may be an owner in one business and a member in
+another.
+
+Migration `20260824094523_select_current_business_for_booking_creation.sql`
+changes `create_booking_with_customer` to require `p_business_id` and verifies
+an exact active membership before any customer or booking write. This prevents
+the transaction from inferring an unrelated first membership.

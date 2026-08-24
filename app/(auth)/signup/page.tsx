@@ -4,9 +4,13 @@ import { redirect } from "next/navigation";
 import { AuthForm } from "@/components/forms/auth-form";
 import { signupAction } from "@/features/auth/actions";
 import { getAuthenticatedUser } from "@/lib/auth/server";
+import { isGoogleAuthEnabled } from "@/features/auth/provider-status";
 
 export default async function SignupPage() {
-  const user = await getAuthenticatedUser();
+  const [user, googleAuthEnabled] = await Promise.all([
+    getAuthenticatedUser(),
+    isGoogleAuthEnabled(),
+  ]);
 
   if (user) {
     redirect("/dashboard");
@@ -18,6 +22,7 @@ export default async function SignupPage() {
       description="Create your My Customers login. You will set up your business next."
       action={signupAction}
       submitLabel="Create account"
+      googleAuth={{ enabled: googleAuthEnabled, next: "/dashboard" }}
       fields={[
         {
           name: "displayName",

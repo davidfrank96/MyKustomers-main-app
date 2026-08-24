@@ -370,3 +370,63 @@ Future phase acceptance should generally require appropriate combinations of:
 - Responsive behavior.
 - Accessibility.
 - Expected error handling.
+
+## Multi-Business Verification - 2026-08-24
+
+- Unit selection tests cover zero, one, multiple, restored, missing, and stale
+  business preferences.
+- Static migration tests require exact `p_business_id` membership validation,
+  hardened search path, and authenticated-only execution.
+- The focused live inline-booking suite passed after the development migration,
+  including an authorized second-business write and unrelated-tenant denial.
+- `tests/e2e/multi-business.spec.ts` passed in desktop Chromium and mobile
+  Chromium. It verifies switching, owner/member UI permissions, customer and
+  booking isolation, a forged server-action submission, stale-cookie fallback,
+  revoked-membership fallback, additional-business creation, and immediate
+  current-business selection.
+- Responsive shell/switcher checks passed at 320, 360, 375, 390, 430, 768,
+  1024, and 1440 pixels without horizontal overflow; mobile navigation remains
+  five items.
+- The full lint, typecheck, Vitest, runtime-security, Playwright, build, and
+  moderate audit commands passed: 40 Vitest files plus 13 live runtime files,
+  28 Playwright tests with 6 intentional skips, production build, and zero
+  moderate-or-higher npm vulnerabilities.
+
+## Business Discoverability And Google Auth - 2026-08-24
+
+- Business-page E2E covers one and multiple memberships, owner/member labels,
+  textual current state, switching through the shared action, additional-business
+  navigation, forged-selection denial, tenant data changes, and 320-1440px
+  overflow/touch-target checks.
+- OAuth unit tests pin provider `google`, the configured application callback,
+  local-only `next` normalization, and trusted Supabase authorization origin/path.
+- Auth E2E verifies the Google control on login/signup, disabled-provider
+  fail-closed behavior, callback cancellation/error redaction, unchanged password
+  login/logout/protected routes, and a controlled Auth user with OAuth-style
+  metadata receiving a profile and normal zero-business onboarding.
+- The configured development project's public Auth settings report Google
+  enabled. Login and signup controls are enabled, and a real browser journey
+  reached Google through Supabase without Gmail, Drive, Calendar, Contacts, or
+  other unrelated scopes.
+- Supabase returned through the requested local callback without manual code
+  forwarding. The real journey verified PKCE exchange, one Google Auth user, one
+  provisioned profile, zero-membership onboarding, refresh persistence, logout,
+  and protected-route denial.
+- The same Google session created one and then two active memberships, routed to
+  the selected workspace, switched businesses, and retained that selection after
+  refresh. CI and production OAuth remain release checks; CI must not automate
+  the external Google consent UI.
+- The completed local gate passed lint, strict typecheck, 42 ordinary Vitest
+  files with 177 tests, 13 live runtime-security files with 14 tests, 34
+  Playwright journeys with 6 intentional skips, production build, moderate npm
+  audit with zero vulnerabilities, database lint with no findings, and
+  `git diff --check`. Controlled E2E user-prefix count was zero after cleanup.
+- This provider-activation check added focused callback regressions for a missing
+  authorization code with malformed `next`, protocol-relative/external
+  destinations, and the safe dashboard fallback. The external allowlist itself
+  remains configuration-only and is not simulated in CI; existing live
+  runtime-security, responsive, password-auth, callback security, and
+  multi-business coverage remains the broader regression boundary.
+- A Next-config unit regression requires the OAuth callback logging exclusion.
+  A live dummy callback emitted no incoming-request line while `/login` remained
+  logged, confirming that ordinary development diagnostics were not disabled.

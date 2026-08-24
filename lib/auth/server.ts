@@ -2,6 +2,8 @@ import "server-only";
 import type { Route } from "next";
 import { redirect } from "next/navigation";
 import { isSupabasePublicEnvConfigured } from "@/lib/config/public-env";
+import { getSelectedBusinessId } from "@/lib/auth/current-business";
+import { resolveCurrentBusinessId } from "@/lib/auth/current-business-selection";
 import { getSafeRedirectPath } from "@/lib/security/redirects";
 import { createClient } from "@/lib/supabase/server";
 import type { BusinessMemberRole } from "@/types/database";
@@ -29,6 +31,7 @@ export type BusinessSummary = {
 
 export type BusinessContext = {
   memberships: BusinessMembership[];
+  businesses: BusinessSummary[];
   currentBusiness: BusinessSummary | null;
 };
 
@@ -88,7 +91,8 @@ export async function getBusinessMemberships(
     .select("business_id, role, status")
     .eq("user_id", user.id)
     .eq("status", "active")
-    .order("created_at", { ascending: true });
+    .order("created_at", { ascending: true })
+    .order("business_id", { ascending: true });
 
   if (error || !data) {
     return [];
@@ -107,36 +111,56 @@ export async function getCurrentBusinessContext(
   const memberships = await getBusinessMemberships(authenticatedUser);
 
   if (memberships.length === 0 || !isSupabasePublicEnvConfigured()) {
-    return { memberships, currentBusiness: null };
+    return { memberships, businesses: [], currentBusiness: null };
   }
 
   const supabase = await createClient();
-  const selectedMembership = memberships[0];
   const { data, error } = await supabase
     .from("businesses")
     .select("id, name, slug, category, logo_path")
-    .eq("id", selectedMembership.businessId)
-    .maybeSingle();
+    .in(
+      "id",
+      memberships.map((membership) => membership.businessId),
+    );
 
   if (error || !data) {
-    return { memberships, currentBusiness: null };
+    return { memberships, businesses: [], currentBusiness: null };
   }
+
+  const businessById = new Map(data.map((business) => [business.id, business]));
+  const businesses = memberships.flatMap((membership) => {
+    const business = businessById.get(membership.businessId);
+
+    return business
+      ? [
+          {
+            id: business.id,
+            name: business.name,
+            slug: business.slug,
+            category: business.category,
+            logoPath: business.logo_path,
+            role: membership.role,
+          } satisfies BusinessSummary,
+        ]
+      : [];
+  });
+  const selectedBusinessId = resolveCurrentBusinessId(
+    businesses,
+    await getSelectedBusinessId(),
+  );
+  const currentBusiness =
+    businesses.find((business) => business.id === selectedBusinessId) ?? null;
 
   return {
     memberships,
-    currentBusiness: {
-      id: data.id,
-      name: data.name,
-      slug: data.slug,
-      category: data.category,
-      logoPath: data.logo_path,
-      role: selectedMembership.role,
-    },
+    businesses,
+    currentBusiness,
   };
 }
 
 export async function requireBusinessMembership(businessId?: string) {
-  const memberships = await getBusinessMemberships();
+  const context = await getCurrentBusinessContext();
+  const memberships = context.memberships;
 
   if (memberships.length === 0) {
     throw new AuthorizationError("No active business membership was found.");
@@ -144,7 +168,9 @@ export async function requireBusinessMembership(businessId?: string) {
 
   const membership = businessId
     ? memberships.find((candidate) => candidate.businessId === businessId)
-    : memberships[0];
+    : memberships.find(
+        (candidate) => candidate.businessId === context.currentBusiness?.id,
+      );
 
   if (!membership) {
     throw new AuthorizationError();

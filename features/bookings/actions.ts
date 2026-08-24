@@ -106,6 +106,7 @@ export async function createBookingAction(
 
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("create_booking_with_customer", {
+    p_business_id: business.id,
     p_customer_mode: parsed.data.customerMode,
     p_customer_id:
       parsed.data.customerMode === "existing" ? parsed.data.customerId : null,

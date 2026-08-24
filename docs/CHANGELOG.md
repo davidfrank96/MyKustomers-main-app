@@ -1,5 +1,49 @@
 # Changelog
 
+## 2026-08-24 - Business Switcher Discoverability And Google Auth Support
+
+Status: IMPLEMENTED - LOCAL RUNTIME VERIFIED - PRODUCTION PENDING
+
+- Added a Business-page `My businesses` section with active membership identity,
+  owner/member role, textual current state, shared secure switching, and the
+  existing additional-business route across mobile and desktop.
+- Kept the header quick switcher and made its current state textual without
+  adding a mobile navigation destination or changing tenant authority.
+- Added one reusable Supabase Google OAuth control/action to login and signup,
+  reusing the existing PKCE callback, profile trigger, onboarding, business
+  resolution, logout, and safe redirect boundaries.
+- Added safe provider/callback errors and a disabled-provider state. The current
+  project now reports Google enabled; real Google authorization reached Supabase,
+  completed through the normal local callback, and covered profile provisioning,
+  zero-business onboarding, persistence, logout, and protected-route denial.
+- The same Google session verified one and multiple-business routing, current
+  workspace resolution, switching, and refresh persistence. CI, production OAuth,
+  and same-email identity behavior remain release checks.
+- Excluded the exact OAuth callback route from Next.js development incoming-request
+  logs so transient authorization-code query strings are not printed; ordinary
+  development request logging remains enabled.
+- Added no database migration, dependency, Google secret, Vercel variable, or
+  additional identity store.
+
+## 2026-08-24 - Multi-Business Account Support And Business Switching
+
+Status: VERIFIED
+
+- Added server-validated HTTP-only current-business preference with safe
+  deterministic fallback for missing or revoked memberships.
+- Added one responsive authenticated-shell switcher and `/business/new`, reusing
+  atomic onboarding and preserving the five-item mobile navigation.
+- Preserved membership-specific owner/member authorization across customers,
+  bookings, insights, business settings, search, and booking creation.
+- Added and applied forward migration
+  `20260824094523_select_current_business_for_booking_creation.sql`, requiring
+  exact active membership for atomic booking creation.
+- Added a fail-closed legacy RPC wrapper for deployment-order compatibility: it
+  delegates only for exactly one active membership and rejects multi-business
+  ambiguity.
+- Added unit, static migration, live Supabase, desktop/mobile E2E, forged-input,
+  stale preference, revocation, and responsive regression coverage.
+
 This changelog records meaningful project milestones. It is not a substitute for Git history.
 
 ## 2026-08-24 - Initial Vercel Production Deployment

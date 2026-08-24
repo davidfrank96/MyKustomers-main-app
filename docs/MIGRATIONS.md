@@ -70,6 +70,8 @@ not assume repository presence alone proves application.
 | `20260823141800_booking_addon_parent_currency_integrity.sql`               | Applied forward hardening; parent business and currency consistency now trigger-enforced on every insert/update                                                |
 | `20260823142231_booking_addon_email_idempotency_fix.sql`                   | Applied forward fix; regenerated request events coexist while confirmed-event uniqueness remains inferable and race-safe                                       |
 | `20260823151142_booking_integrity_consolidation.sql`                       | Removes four exact duplicate B-tree indexes while retaining equivalent query and uniqueness coverage                                                           |
+| `20260824094523_select_current_business_for_booking_creation.sql`          | Applied; exact active membership now authorizes explicit-business atomic booking creation; second-business write and cross-tenant denial verified live          |
+| `20260824100357_preserve_single_business_booking_compatibility.sql`        | Applied; legacy deployed caller remains available only for exactly one active membership and fails closed for multi-business accounts                          |
 
 The configured development project's historical CLI migration table remains
 empty because this project predates enforced version tracking. These migrations
@@ -102,3 +104,21 @@ database. Live runtime suites assume the reviewed repository migrations were
 already applied to their dedicated non-production target. Production migration
 tracking, approval, application, and rollback remain a separate controlled
 deployment process.
+
+## 2026-08-24 Multi-Business Forward Migration
+
+`20260824094523_select_current_business_for_booking_creation.sql` was created
+with Supabase CLI 2.115.0 and applied transactionally to the configured
+development database. It replaces the old first-membership booking RPC with an
+explicit `p_business_id` contract and exact active-membership check. Static and
+live tests verify an authorized second-business write, cross-tenant denial,
+grants, and hardened search path. The development CLI ledger remains unreconciled
+as documented above, so only this reviewed file was applied rather than
+replaying historical migrations.
+
+Because the initial Production app currently shares this database and still
+uses the earlier RPC signature, the compatibility migration preserves that
+signature only when the caller has exactly one active membership. It delegates
+to the new explicit-business implementation. Multi-business legacy calls fail
+with `explicit_business_required`, preventing ambiguous tenant writes during the
+frontend deployment window.
