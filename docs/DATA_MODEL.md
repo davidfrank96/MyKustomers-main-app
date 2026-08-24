@@ -88,6 +88,15 @@ the configured development Supabase database and runtime-verified for feedback
 token lifecycle, public minimization, tenant isolation, issue lifecycle
 authorization, concurrency, and audit behavior.
 
+Trusted feedback sharing migration evidence exists at
+`supabase/migrations/20260824133925_trusted_feedback_sharing.sql`. It adds
+nullable `feedback_links.first_opened_at`, `FEEDBACK_SHARE_INITIATED` and
+`FEEDBACK_OPENED` audit values, and the service-role-only idempotent
+`public.record_feedback_link_open` RPC. The migration was applied to the
+configured development database and the focused live Phase 8 suite verified
+open idempotency, direct-role denial, purpose separation, and raw-token absence
+from audit metadata.
+
 Phase 9 migration evidence exists at
 `supabase/migrations/20260819010145_phase_9_business_insights_analytics.sql`
 and follow-up fix
@@ -179,8 +188,8 @@ These names are conceptual and not yet necessarily final table names.
   rate-limit buckets without raw IP addresses.
 - `feedback_links`: VERIFIED. Phase 8 fields include `id`, `business_id`,
   `booking_id`, `token_hash`, `purpose`, `expires_at`, `used_at`,
-  `revoked_at`, `revoked_reason`, `created_by`, and `created_at`. Raw feedback
-  tokens are not stored.
+  `first_opened_at`, `revoked_at`, `revoked_reason`, `created_by`, and
+  `created_at`. Raw feedback tokens are not stored.
 - `feedback`: VERIFIED. Phase 8 fields include `id`, `business_id`,
   `booking_id`, `customer_id`, `feedback_link_id`, `overall_rating`,
   `on_time`, `met_expectations`, optional `comment`, `submitted_at`, and

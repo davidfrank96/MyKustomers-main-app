@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import type { Route } from "next";
 import { redirect } from "next/navigation";
 import { isSupabasePublicEnvConfigured } from "@/lib/config/public-env";
@@ -42,28 +43,30 @@ export class AuthorizationError extends Error {
   }
 }
 
-export async function getAuthenticatedUser(): Promise<AuthenticatedUser | null> {
-  if (!isSupabasePublicEnvConfigured()) {
-    return null;
-  }
+export const getAuthenticatedUser = cache(
+  async function getAuthenticatedUser(): Promise<AuthenticatedUser | null> {
+    if (!isSupabasePublicEnvConfigured()) {
+      return null;
+    }
 
-  const supabase = await createClient();
-  const { data: claimsData, error: claimsError } = await supabase.auth.getClaims();
-  const claims = claimsData?.claims;
+    const supabase = await createClient();
+    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims();
+    const claims = claimsData?.claims;
 
-  if (claimsError || !claims?.sub) {
-    return null;
-  }
+    if (claimsError || !claims?.sub) {
+      return null;
+    }
 
-  return {
-    id: claims.sub,
-    email: typeof claims.email === "string" ? claims.email : undefined,
-    userMetadata:
-      typeof claims.user_metadata === "object" && claims.user_metadata !== null
-        ? claims.user_metadata
-        : {},
-  };
-}
+    return {
+      id: claims.sub,
+      email: typeof claims.email === "string" ? claims.email : undefined,
+      userMetadata:
+        typeof claims.user_metadata === "object" && claims.user_metadata !== null
+          ? claims.user_metadata
+          : {},
+    };
+  },
+);
 
 export async function requireUser(next = "/dashboard") {
   const user = await getAuthenticatedUser();
@@ -76,7 +79,7 @@ export async function requireUser(next = "/dashboard") {
   return user;
 }
 
-export async function getBusinessMemberships(
+export const getBusinessMemberships = cache(async function getBusinessMemberships(
   authenticatedUser?: AuthenticatedUser,
 ): Promise<BusinessMembership[]> {
   const user = authenticatedUser ?? (await getAuthenticatedUser());
@@ -103,9 +106,9 @@ export async function getBusinessMemberships(
     role: membership.role,
     status: membership.status,
   }));
-}
+});
 
-export async function getCurrentBusinessContext(
+export const getCurrentBusinessContext = cache(async function getCurrentBusinessContext(
   authenticatedUser?: AuthenticatedUser,
 ): Promise<BusinessContext> {
   const memberships = await getBusinessMemberships(authenticatedUser);
@@ -156,7 +159,7 @@ export async function getCurrentBusinessContext(
     businesses,
     currentBusiness,
   };
-}
+});
 
 export async function requireBusinessMembership(businessId?: string) {
   const context = await getCurrentBusinessContext();
@@ -195,8 +198,10 @@ export async function requireBusinessRole(
 }
 
 export async function requireCurrentBusiness(next = "/dashboard") {
-  const user = await requireUser(next);
-  const context = await getCurrentBusinessContext(user);
+  const [user, context] = await Promise.all([
+    requireUser(next),
+    getCurrentBusinessContext(),
+  ]);
 
   if (!context.currentBusiness) {
     redirect("/onboarding" as Route);

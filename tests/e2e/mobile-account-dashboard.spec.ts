@@ -136,7 +136,10 @@ test.describe("mobile account and dashboard navigation", () => {
       await page.getByRole("button", { name: "Upload logo" }).click();
       await expect(page.getByText("Business logo uploaded.")).toBeVisible();
       await expect(
-        page.getByRole("main").getByLabel("Mobile Account Business logo").locator("img"),
+        page
+          .getByRole("region", { name: "Business logo settings" })
+          .getByLabel("Mobile Account Business logo")
+          .locator("img"),
       ).toBeVisible();
 
       const jpegLogo = await sharp({

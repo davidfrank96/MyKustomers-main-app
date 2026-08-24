@@ -5,6 +5,7 @@ import type { Route } from "next";
 import { Check, Plus } from "lucide-react";
 import { useFormStatus } from "react-dom";
 import { BusinessLogo } from "@/components/shared/business-logo";
+import { BusinessSwitchPending } from "@/components/businesses/business-switch-pending";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getBusinessLogoPublicUrl } from "@/features/businesses/logo-public";
@@ -78,6 +79,7 @@ export function BusinessMembershipList({
                 >
                   <input type="hidden" name="businessId" value={business.id} />
                   <SwitchButton />
+                  <BusinessSwitchPending />
                 </form>
               )}
             </li>

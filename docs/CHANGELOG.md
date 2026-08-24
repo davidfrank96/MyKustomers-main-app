@@ -1,5 +1,33 @@
 # Changelog
 
+## 2026-08-24 - Trusted Feedback Sharing, Structural Loading, And Cache Governance
+
+Status: VERIFIED
+
+- Extended completed-booking private feedback requests with the existing trusted
+  sharing interaction: native share, WhatsApp, Telegram, copy message, and copy
+  link, using contextual no-account-required copy and one controlled URL.
+- Added tenant-validated `FEEDBACK_SHARE_INITIATED` evidence and idempotent
+  service-only `FEEDBACK_OPENED` evidence without claiming provider delivery,
+  customer reading, or submission.
+- Added crawler-safe business-only metadata and generic preview shells while
+  preserving purpose separation, no-store responses, hash-only token storage,
+  and cross-tenant denial.
+- Added accessible, reduced-motion-safe structural loading states to major
+  authenticated routes and an opaque pending overlay that prevents stale
+  workspace data from remaining visible during business switching.
+- Deduplicated authenticated user and current-business resolution within each
+  React server request. No persistent tenant cache, Redis, speculative index, or
+  global analytics cache was introduced; measured query plans supported the
+  existing indexes.
+- Added unit, component, static migration, live runtime-security, and responsive
+  desktop/mobile browser regressions. Detailed measurement and cache policy live
+  in `docs/PERFORMANCE.md`.
+- Final gates passed: lint, strict typecheck, 46 ordinary Vitest files with 195
+  tests, 13 live runtime files with 14 tests, 34 Playwright journeys with 6
+  intentional skips, production build, moderate dependency audit, database lint,
+  and `git diff --check`.
+
 ## 2026-08-24 - Business Switcher Discoverability And Google Auth Support
 
 Status: VERIFIED - PRODUCTION

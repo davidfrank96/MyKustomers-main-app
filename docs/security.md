@@ -605,3 +605,28 @@ Next.js development incoming-request logging explicitly ignores only
 being printed by the framework. Other development request logging remains
 enabled. Application code does not log OAuth codes, provider tokens, or session
 cookies.
+
+SEC-044 - Feedback Sharing Evidence Is Purpose-Scoped And Truthful
+
+Status: VERIFIED
+
+Private feedback sharing uses only `booking_feedback` links for completed
+bookings in the active tenant. The server validates the current membership,
+booking, business, link purpose, expiry, revocation, consumption, and submitted-
+feedback state before recording a share method. Audit metadata contains only
+identifiers and the selected method; it contains no raw capability, message,
+customer contact, or provider claim.
+
+`public.record_feedback_link_open` is executable only by `service_role`, uses a
+fixed empty search path and qualified relations, hashes the supplied token, and
+writes the first-open timestamp and one audit event idempotently. Anonymous and
+authenticated roles cannot execute it directly. Wrong-purpose, expired, revoked,
+used, unknown, non-completed, and cross-tenant states fail closed. Preview
+crawlers receive metadata-only content and never invoke the open path.
+
+Public `/f` pages and their open endpoint remain no-store, noindex, and
+no-referrer. No external redirect input is accepted. No cache may be introduced
+for authenticated or tenant-scoped data without explicit cache scope, key,
+invalidation behavior, and cross-tenant security analysis. Public capability-
+token pages must remain non-cacheable unless a future security review explicitly
+changes the rule.

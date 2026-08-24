@@ -39,6 +39,8 @@ production-readiness work.
       runtime-verified, including the forward RPC/contact regression fix.
 - [x] Trusted confirmation sharing migration created, applied to development,
       and runtime-verified with service-only first-open execution.
+- [x] Trusted feedback sharing migration created, applied to development, and
+      runtime-verified with service-only idempotent first-open execution.
 - [x] Confirmed booking integrity and cancellation notification migrations
       created, applied to development, and runtime-verified, including the forward
       RPC qualification fix found by the first live race attempt.
@@ -155,6 +157,8 @@ production-readiness work.
 - [ ] Security headers configured.
 - [x] Public confirmation route no-store/noindex/referrer headers configured.
 - [x] Public feedback route no-store/noindex/referrer headers configured.
+- [x] Public confirmation, amendment, add-on, and feedback capability route
+      families have explicit non-cacheable response rules.
 - [x] Public amendment metadata is noindex and excludes customer/term details.
 - [x] Public add-on metadata is noindex and excludes customer/add-on terms.
 - [ ] Cookie settings reviewed.
@@ -175,6 +179,8 @@ production-readiness work.
 - [x] Account menu, Settings, business logo/website form, dashboard tiles, and
       confirmation identity pass the required 320-1440px matrix.
 - [x] Public confirmation and feedback states have mobile visual checks.
+- [x] Major authenticated routes have accessible reduced-motion-safe structural
+      loading, and business switching obscures stale workspace content.
 - [x] Public amendment Current/Proposed diff passes the required 320-1440px matrix.
 - [x] Public add-on review passes the required 320-1440px matrix.
 - [x] Production browser acceptance completed at 390px and 1440px for the

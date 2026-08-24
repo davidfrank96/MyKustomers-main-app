@@ -41,7 +41,10 @@ type UnsafeTable = {
     eq(column: string, value: string): PromiseLike<{ error: unknown }>;
   };
   select(columns: string): {
-    eq(column: string, value: string): PromiseLike<{ data: unknown[] | null; error: unknown }>;
+    eq(
+      column: string,
+      value: string,
+    ): PromiseLike<{ data: unknown[] | null; error: unknown }>;
   };
 };
 
@@ -200,7 +203,13 @@ if (runtimeVerificationEnabled) {
       customerId: string,
       title: string,
     ) {
-      const bookingId = await createBooking(user.client, businessId, customerId, user.id, title);
+      const bookingId = await createBooking(
+        user.client,
+        businessId,
+        customerId,
+        user.id,
+        title,
+      );
       await confirmBooking(user.client, bookingId);
 
       for (const status of ["IN_PROGRESS", "READY", "DELIVERED", "COMPLETED"] as const) {
@@ -274,6 +283,49 @@ if (runtimeVerificationEnabled) {
       expect(JSON.stringify(validView)).not.toContain("business_id");
       expect(JSON.stringify(validView)).not.toContain(hashFeedbackToken(feedbackA.token));
 
+      const feedbackTokenHash = hashFeedbackToken(feedbackA.token);
+      const firstOpen = await service.rpc("record_feedback_link_open", {
+        p_token_hash: feedbackTokenHash,
+      });
+      const repeatedOpen = await service.rpc("record_feedback_link_open", {
+        p_token_hash: feedbackTokenHash,
+      });
+      expect(firstOpen.error).toBeNull();
+      expect(firstOpen.data).toBe(true);
+      expect(repeatedOpen.error).toBeNull();
+      expect(repeatedOpen.data).toBe(false);
+
+      const { data: openedLink } = await service
+        .from("feedback_links")
+        .select("first_opened_at")
+        .eq("id", feedbackA.linkId)
+        .single();
+      expect(openedLink?.first_opened_at).toBeTruthy();
+
+      const { count: openAuditCount } = await service
+        .from("audit_logs")
+        .select("id", { count: "exact", head: true })
+        .eq("business_id", businessAId)
+        .eq("event_type", "FEEDBACK_OPENED")
+        .contains("metadata", { feedback_link_id: feedbackA.linkId });
+      expect(openAuditCount).toBe(1);
+
+      expect(
+        (
+          await userA.client.rpc("record_feedback_link_open", {
+            p_token_hash: feedbackTokenHash,
+          })
+        ).error,
+      ).not.toBeNull();
+      const anonOpenClient = createSupabaseClient(publishableKey);
+      expect(
+        (
+          await anonOpenClient.rpc("record_feedback_link_open", {
+            p_token_hash: feedbackTokenHash,
+          })
+        ).error,
+      ).not.toBeNull();
+
       const submitResult = await submitFeedback(feedbackA.token);
       expect(statusFrom(submitResult)).toBe("submitted");
 
@@ -320,7 +372,9 @@ if (runtimeVerificationEnabled) {
       const expired = await generateFeedbackLink(userA.client, expiredBooking);
       const expiredCreatedAt = new Date(Date.now() - 120_000).toISOString();
       const expiredExpiresAt = new Date(Date.now() - 60_000).toISOString();
-      const expiredUpdate = await (service.from("feedback_links") as unknown as UnsafeTable)
+      const expiredUpdate = await (
+        service.from("feedback_links") as unknown as UnsafeTable
+      )
         .update({ created_at: expiredCreatedAt, expires_at: expiredExpiresAt })
         .eq("id", expired.linkId);
       expect(expiredUpdate.error).toBeNull();
@@ -341,8 +395,11 @@ if (runtimeVerificationEnabled) {
       );
       const revoked = await generateFeedbackLink(userA.client, revokedBooking);
       expect(
-        (await userA.client.rpc("revoke_booking_feedback_link", { p_booking_id: revokedBooking }))
-          .error,
+        (
+          await userA.client.rpc("revoke_booking_feedback_link", {
+            p_booking_id: revokedBooking,
+          })
+        ).error,
       ).toBeNull();
       const { data: revokedResult } = await service.rpc("submit_feedback_by_token_hash", {
         p_token_hash: hashFeedbackToken(revoked.token),
@@ -361,9 +418,12 @@ if (runtimeVerificationEnabled) {
         "Phase 8 Purpose Boundary",
       );
       const confirmationToken = await confirmBooking(userA.client, purposeBooking);
-      const { data: wrongPurposeFeedback } = await service.rpc("get_feedback_public_view", {
-        p_token_hash: hashConfirmationToken(confirmationToken),
-      });
+      const { data: wrongPurposeFeedback } = await service.rpc(
+        "get_feedback_public_view",
+        {
+          p_token_hash: hashConfirmationToken(confirmationToken),
+        },
+      );
       expect(statusFrom(wrongPurposeFeedback)).toBe("unavailable");
       const completedPurpose = await completeBooking(
         userA,
@@ -381,7 +441,14 @@ if (runtimeVerificationEnabled) {
       );
       expect(statusFrom(wrongPurposeConfirmation)).toBe("unavailable");
 
-      for (const status of ["DRAFT", "CONFIRMED", "IN_PROGRESS", "READY", "DELIVERED", "CANCELLED"] as const) {
+      for (const status of [
+        "DRAFT",
+        "CONFIRMED",
+        "IN_PROGRESS",
+        "READY",
+        "DELIVERED",
+        "CANCELLED",
+      ] as const) {
         const bookingId = await createBooking(
           userA.client,
           businessAId,
@@ -445,7 +512,11 @@ if (runtimeVerificationEnabled) {
         ).error,
       ).not.toBeNull();
       expect(
-        (await userB.client.rpc("revoke_booking_feedback_link", { p_booking_id: completedA })).error,
+        (
+          await userB.client.rpc("revoke_booking_feedback_link", {
+            p_booking_id: completedA,
+          })
+        ).error,
       ).not.toBeNull();
 
       const { data: userAFeedback } = await userA.client
@@ -460,17 +531,13 @@ if (runtimeVerificationEnabled) {
       expectNoRows(userBFeedback);
       const anon = createSupabaseClient(publishableKey);
       expect(
-        (
-          await anon
-            .from("feedback")
-            .select("id")
-            .eq("id", storedFeedback!.id)
-        ).error,
+        (await anon.from("feedback").select("id").eq("id", storedFeedback!.id)).error,
       ).not.toBeNull();
 
       const unsafeFeedback = userA.client.from("feedback") as unknown as UnsafeTable;
       expect(
-        (await unsafeFeedback.update({ overall_rating: 1 }).eq("id", storedFeedback!.id)).error,
+        (await unsafeFeedback.update({ overall_rating: 1 }).eq("id", storedFeedback!.id))
+          .error,
       ).not.toBeNull();
       expect(
         (await unsafeFeedback.delete().eq("id", storedFeedback!.id)).error,
@@ -519,16 +586,14 @@ if (runtimeVerificationEnabled) {
       );
       const integrityLink = await generateFeedbackLink(userA.client, integrityBooking);
       for (const invalidRating of [0, 6]) {
-        const { data: invalidRatingResult, error: invalidRatingError } = await service.rpc(
-          "submit_feedback_by_token_hash",
-          {
+        const { data: invalidRatingResult, error: invalidRatingError } =
+          await service.rpc("submit_feedback_by_token_hash", {
             p_token_hash: hashFeedbackToken(integrityLink.token),
             p_overall_rating: invalidRating,
             p_on_time: true,
             p_met_expectations: true,
             p_comment: null,
-          },
-        );
+          });
         expect(invalidRatingError).toBeNull();
         expect(statusFrom(invalidRatingResult)).toBe("invalid_feedback");
       }
@@ -579,36 +644,19 @@ if (runtimeVerificationEnabled) {
       createdIssueIds.push(issueB!.id);
 
       expect(
-        (
-          await userA.client
-            .from("booking_issues")
-            .select("id")
-            .eq("id", issueA!.id)
-        ).data,
+        (await userA.client.from("booking_issues").select("id").eq("id", issueA!.id))
+          .data,
       ).toHaveLength(1);
       expectNoRows(
-        (
-          await userA.client
-            .from("booking_issues")
-            .select("id")
-            .eq("id", issueB!.id)
-        ).data,
+        (await userA.client.from("booking_issues").select("id").eq("id", issueB!.id))
+          .data,
       );
       expectNoRows(
-        (
-          await userB.client
-            .from("booking_issues")
-            .select("id")
-            .eq("id", issueA!.id)
-        ).data,
+        (await userB.client.from("booking_issues").select("id").eq("id", issueA!.id))
+          .data,
       );
       expect(
-        (
-          await anon
-            .from("booking_issues")
-            .select("id")
-            .eq("id", issueA!.id)
-        ).error,
+        (await anon.from("booking_issues").select("id").eq("id", issueA!.id)).error,
       ).not.toBeNull();
       const crossTenantResolve = await userA.client
         .from("booking_issues")
@@ -642,8 +690,12 @@ if (runtimeVerificationEnabled) {
           .select("id")
           .maybeSingle(),
       ]);
-      const successfulResolution = [resolveA, resolveB].find((result) => !result.error && result.data);
-      const failedResolution = [resolveA, resolveB].find((result) => result.error || !result.data);
+      const successfulResolution = [resolveA, resolveB].find(
+        (result) => !result.error && result.data,
+      );
+      const failedResolution = [resolveA, resolveB].find(
+        (result) => result.error || !result.data,
+      );
       expect(successfulResolution?.data).toBeTruthy();
       expect(failedResolution).toBeTruthy();
 
@@ -666,21 +718,29 @@ if (runtimeVerificationEnabled) {
       ).not.toBeNull();
 
       const unsafeIssue = service.from("booking_issues") as unknown as UnsafeTable;
-      expect((await unsafeIssue.insert({
-        business_id: businessAId,
-        booking_id: completedA,
-        category: "NOT_REAL",
-        description: "Invalid category",
-        created_by: userA.id,
-      })).error).not.toBeNull();
-      expect((await unsafeIssue.insert({
-        business_id: businessAId,
-        booking_id: completedA,
-        category: "OTHER",
-        description: "Invalid status",
-        status: "BROKEN",
-        created_by: userA.id,
-      })).error).not.toBeNull();
+      expect(
+        (
+          await unsafeIssue.insert({
+            business_id: businessAId,
+            booking_id: completedA,
+            category: "NOT_REAL",
+            description: "Invalid category",
+            created_by: userA.id,
+          })
+        ).error,
+      ).not.toBeNull();
+      expect(
+        (
+          await unsafeIssue.insert({
+            business_id: businessAId,
+            booking_id: completedA,
+            category: "OTHER",
+            description: "Invalid status",
+            status: "BROKEN",
+            created_by: userA.id,
+          })
+        ).error,
+      ).not.toBeNull();
 
       const { data: auditRows, error: auditError } = await service
         .from("audit_logs")
@@ -690,8 +750,10 @@ if (runtimeVerificationEnabled) {
       const eventTypes = auditRows?.map((row) => row.event_type) ?? [];
       expect(eventTypes).toContain("FEEDBACK_LINK_CREATED");
       expect(eventTypes).toContain("FEEDBACK_LINK_REVOKED");
+      expect(eventTypes).toContain("FEEDBACK_OPENED");
       expect(eventTypes).toContain("FEEDBACK_SUBMITTED");
       expect(JSON.stringify(auditRows)).not.toContain("Private runtime feedback");
+      expect(JSON.stringify(auditRows)).not.toContain(feedbackA.token);
     }, 300_000);
 
     afterAll(async () => {
@@ -702,10 +764,22 @@ if (runtimeVerificationEnabled) {
       if (createdBookingIds.length > 0) {
         await service.from("feedback").delete().in("booking_id", createdBookingIds);
         await service.from("feedback_links").delete().in("booking_id", createdBookingIds);
-        await service.from("booking_confirmations").delete().in("booking_id", createdBookingIds);
-        await service.from("confirmation_links").delete().in("booking_id", createdBookingIds);
-        await service.from("booking_status_history").delete().in("booking_id", createdBookingIds);
-        await service.from("booking_changes").delete().in("booking_id", createdBookingIds);
+        await service
+          .from("booking_confirmations")
+          .delete()
+          .in("booking_id", createdBookingIds);
+        await service
+          .from("confirmation_links")
+          .delete()
+          .in("booking_id", createdBookingIds);
+        await service
+          .from("booking_status_history")
+          .delete()
+          .in("booking_id", createdBookingIds);
+        await service
+          .from("booking_changes")
+          .delete()
+          .in("booking_id", createdBookingIds);
         await service.from("bookings").delete().in("id", createdBookingIds);
       }
 

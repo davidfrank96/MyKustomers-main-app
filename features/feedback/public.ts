@@ -53,6 +53,77 @@ export async function getPublicFeedbackView(token: string): Promise<PublicFeedba
   return parsePublicFeedbackView(data);
 }
 
+export type PublicFeedbackMetadata = {
+  businessName: string;
+  businessLogoPath: string | null;
+};
+
+export async function getPublicFeedbackMetadata(
+  token: string,
+): Promise<PublicFeedbackMetadata | null> {
+  if (!canUseServiceRoleClient() || !isPlausibleFeedbackToken(token)) {
+    return null;
+  }
+
+  const allowed = await consumeFeedbackRateLimit("feedback_metadata");
+  if (!allowed) {
+    return null;
+  }
+
+  const supabase = createServiceRoleClient();
+  const { data: link, error: linkError } = await supabase
+    .from("feedback_links")
+    .select("business_id, booking_id, expires_at, revoked_at, used_at, purpose")
+    .eq("token_hash", hashFeedbackToken(token))
+    .maybeSingle();
+
+  if (
+    linkError ||
+    !link ||
+    link.purpose !== "booking_feedback" ||
+    link.revoked_at ||
+    (!link.used_at && new Date(link.expires_at).getTime() <= Date.now())
+  ) {
+    return null;
+  }
+
+  const [{ data: booking }, { data: business }] = await Promise.all([
+    supabase
+      .from("bookings")
+      .select("status")
+      .eq("id", link.booking_id)
+      .eq("business_id", link.business_id)
+      .maybeSingle(),
+    supabase
+      .from("businesses")
+      .select("name, logo_path")
+      .eq("id", link.business_id)
+      .maybeSingle(),
+  ]);
+
+  if (!booking || !business || booking.status !== "COMPLETED") {
+    return null;
+  }
+
+  return {
+    businessName: business.name,
+    businessLogoPath: business.logo_path,
+  };
+}
+
+export async function recordPublicFeedbackOpen(token: string) {
+  const allowed = await consumeFeedbackRateLimit("feedback_open");
+
+  if (!allowed || !canUseServiceRoleClient() || !isPlausibleFeedbackToken(token)) {
+    return;
+  }
+
+  const supabase = createServiceRoleClient();
+  await supabase.rpc("record_feedback_link_open", {
+    p_token_hash: hashFeedbackToken(token),
+  });
+}
+
 export async function submitPublicFeedback(token: string, formData: FormData) {
   const allowed = await consumeFeedbackRateLimit("feedback_submit");
 

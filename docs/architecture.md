@@ -85,6 +85,37 @@ the full booking lookup, preventing common preview fetchers from receiving the
 customer/order body. Token validation remains authoritative for normal browser
 access; user-agent classification is only an additional preview-privacy layer.
 
+## Trusted Feedback Sharing Boundary
+
+Feedback request sharing reuses the confirmation sharing component and method
+model but keeps a purpose-specific message and capability. The successful
+generation result is the only source of the raw `/f` URL. A tenant-authorized
+server action records the chosen method with booking/link identifiers only and
+does not claim delivery, reading, or submission.
+
+Metadata uses a separate service-only lookup restricted to validity and public
+business identity. Recognized preview crawlers receive a generic private-
+feedback shell before the booking lookup and cannot record an open. Ordinary
+browsers post to a no-store endpoint after load; PostgreSQL hashes and validates
+the token and writes `first_opened_at` plus one `FEEDBACK_OPENED` audit event
+idempotently. The existing feedback view/submission RPC remains authoritative.
+
+## Request Memoization And Loading
+
+React server `cache` deduplicates authenticated user, membership, and current-
+business resolution only during one server render request. Shared module-level
+functions and stable zero-argument calls are required for deduplication. There
+is no persistent application cache for authenticated, tenant-scoped, analytics,
+or capability-token data, so membership revocation and business switches take
+effect on the next request without an application invalidation protocol.
+
+Major route segments use server-rendered structural loading states rather than
+turning whole pages into client components. Skeletons are presentation-only,
+have stable responsive dimensions, expose one accessible loading status, and
+disable animation under reduced motion. A tenant switch presents an opaque
+pending layer so data from the previous workspace is not exposed as current.
+The permanent cache rules and measurements are in `docs/PERFORMANCE.md`.
+
 ## Business Logo Storage Boundary
 
 `POST` and `DELETE /api/businesses/[businessId]/logo` authenticate the current

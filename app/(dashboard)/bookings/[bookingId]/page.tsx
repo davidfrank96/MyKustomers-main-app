@@ -44,6 +44,7 @@ import { isConfirmationEligibleStatus } from "@/features/confirmation-links/term
 import {
   createBookingIssueAction,
   generateFeedbackLinkAction,
+  recordFeedbackShareAction,
   resolveBookingIssueAction,
   revokeFeedbackLinkAction,
 } from "@/features/feedback/actions";
@@ -535,6 +536,9 @@ export default async function BookingDetailPage({
               canManage={canRequestFeedback}
               generateAction={generateFeedbackLinkAction.bind(null, booking.id)}
               revokeAction={revokeFeedbackLinkAction.bind(null, booking.id)}
+              businessName={currentBusiness.name}
+              customerName={booking.customer?.name ?? null}
+              recordShareAction={recordFeedbackShareAction.bind(null, booking.id)}
             />
           )}
         </CardContent>

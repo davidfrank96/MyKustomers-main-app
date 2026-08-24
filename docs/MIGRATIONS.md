@@ -72,6 +72,7 @@ not assume repository presence alone proves application.
 | `20260823151142_booking_integrity_consolidation.sql`                       | Removes four exact duplicate B-tree indexes while retaining equivalent query and uniqueness coverage                                                           |
 | `20260824094523_select_current_business_for_booking_creation.sql`          | Applied; exact active membership now authorizes explicit-business atomic booking creation; second-business write and cross-tenant denial verified live          |
 | `20260824100357_preserve_single_business_booking_compatibility.sql`        | Applied; legacy deployed caller remains available only for exactly one active membership and fails closed for multi-business accounts                          |
+| `20260824133925_trusted_feedback_sharing.sql`                              | Applied; feedback first-open column, truthful audit values, service-only idempotent open RPC, direct-role denial, and live Phase 8 behavior verified            |
 
 The configured development project's historical CLI migration table remains
 empty because this project predates enforced version tracking. These migrations

@@ -545,6 +545,7 @@ export type Database = {
           used_at: string | null;
           revoked_at: string | null;
           revoked_reason: string | null;
+          first_opened_at: string | null;
           created_by: string;
           created_at: string;
         };
@@ -558,6 +559,7 @@ export type Database = {
           used_at?: string | null;
           revoked_at?: string | null;
           revoked_reason?: string | null;
+          first_opened_at?: string | null;
           created_by: string;
           created_at?: string;
         };
@@ -900,6 +902,12 @@ export type Database = {
         };
         Returns: Json;
       };
+      record_feedback_link_open: {
+        Args: {
+          p_token_hash: string;
+        };
+        Returns: boolean;
+      };
       submit_feedback_by_token_hash: {
         Args: {
           p_token_hash: string;
@@ -990,6 +998,8 @@ export type Database = {
         | "FEEDBACK_LINK_CREATED"
         | "FEEDBACK_LINK_REVOKED"
         | "FEEDBACK_LINK_REGENERATED"
+        | "FEEDBACK_SHARE_INITIATED"
+        | "FEEDBACK_OPENED"
         | "FEEDBACK_SUBMITTED"
         | "ISSUE_CREATED"
         | "ISSUE_RESOLVED";

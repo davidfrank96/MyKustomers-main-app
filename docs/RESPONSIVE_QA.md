@@ -33,6 +33,8 @@ planned broad visual redesign or Phase 11 PWA/UX hardening.
 | Dashboard metric tiles | 320-1440 | Static summaries had no data destination | Full semantic Link targets with visible focus and supported filters | Active/overdue/customers/insights browser navigation | VERIFIED |
 | Public confirmation identity | 320 mobile | Logo/fallback and external links needed to remain secondary and wrap safely | Compact identity row with bounded logo and wrapping links | Branded and fallback confirmation E2E | VERIFIED |
 | Live list and customer-picker search | 320-1440 | Clear/pending controls and automatic candidates must not widen fields or reset booking values | Overlay icon controls, bounded candidate list, and shrink-safe search wrappers | Authenticated Bookings/Customers/New Booking live-search journeys at all required widths | VERIFIED |
+| Structural route loading | 320-1440 | Async navigation needed feedback without layout shift, fake controls, or motion-only meaning | Stable dashboard/list/detail/form skeletons, one accessible status, reduced-motion opt-out, and bounded grids | Component semantics plus desktop/mobile route E2E | VERIFIED |
+| Business switch pending | Mobile/desktop | Previous tenant content could remain visible while the next workspace resolved | Opaque fixed pending layer driven by the shared switch form status | Multi-business desktop/mobile E2E and component review | VERIFIED |
 
 ## Evidence
 

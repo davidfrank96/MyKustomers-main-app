@@ -119,7 +119,7 @@ export function BusinessLogoForm({
   }
 
   return (
-    <div className="space-y-5">
+    <section className="space-y-5" aria-label="Business logo settings">
       <div className="flex items-center gap-4">
         <BusinessLogo
           name={businessName}
@@ -181,6 +181,6 @@ export function BusinessLogoForm({
           </div>
         </form>
       ) : null}
-    </div>
+    </section>
   );
 }

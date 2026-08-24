@@ -39,6 +39,7 @@ type CustomerConfirmationShareProps = {
   dialogTitle?: string;
   dialogDescription?: string;
   linkLabel?: string;
+  messageHelp?: string;
   idPrefix?: string;
 };
 
@@ -87,6 +88,7 @@ export function CustomerConfirmationShare({
   dialogTitle = "Share with customer",
   dialogDescription = "Send a clear request so your customer knows who it is from and what to do.",
   linkLabel = "Confirmation link",
+  messageHelp = "You can edit this message before sharing. The secure confirmation link will be included automatically.",
   idPrefix = "confirmation",
 }: CustomerConfirmationShareProps) {
   const initialMessage =
@@ -206,10 +208,7 @@ export function CustomerConfirmationShare({
                 onChange={(event) => setMessage(event.target.value)}
                 className="min-h-36 resize-y"
               />
-              <p className="text-xs leading-5 text-muted-foreground">
-                You can edit this message before sharing. The secure confirmation link
-                will be included automatically.
-              </p>
+              <p className="text-xs leading-5 text-muted-foreground">{messageHelp}</p>
             </div>
 
             <div className="space-y-2">

@@ -37,13 +37,14 @@ export default async function CustomerDetailPage({
 
   const { customerId } = await params;
   const query = (await searchParams) ?? {};
-  const customer = await getCustomerForBusiness(currentBusiness.id, customerId);
+  const [customer, feedback] = await Promise.all([
+    getCustomerForBusiness(currentBusiness.id, customerId),
+    listFeedbackForCustomer(currentBusiness.id, customerId),
+  ]);
 
   if (!customer) {
     notFound();
   }
-
-  const feedback = await listFeedbackForCustomer(currentBusiness.id, customer.id);
 
   const isArchived = Boolean(customer.archived_at);
   const duplicateWarning = query.duplicate === "1";
