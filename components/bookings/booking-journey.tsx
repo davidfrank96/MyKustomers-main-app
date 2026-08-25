@@ -1,13 +1,19 @@
 import { AlertTriangle, Check, Circle, Clock3, X } from "lucide-react";
+import { BookingCompletionDialog } from "@/components/forms/booking-completion-dialog";
 import { BookingStatusForm } from "@/components/forms/booking-status-form";
 import { Button } from "@/components/ui/button";
 import type { BookingJourneyState } from "@/features/bookings/journey";
 import type { BookingStatus } from "@/features/bookings/status";
+import type { BookingActionState } from "@/features/bookings/action-state";
 import { cn } from "@/lib/utils/cn";
 
 type BookingJourneyProps = {
   journey: BookingJourneyState;
   transitionAction: (toStatus: BookingStatus, formData: FormData) => Promise<void>;
+  completionAction: (
+    previousState: BookingActionState,
+    formData: FormData,
+  ) => Promise<BookingActionState>;
   canCancel: boolean;
   cancellationReasonRequired: boolean;
   canReschedule: boolean;
@@ -43,6 +49,7 @@ function StageIcon({ state }: { state: keyof typeof stateLabels }) {
 export function BookingJourney({
   journey,
   transitionAction,
+  completionAction,
   canCancel,
   cancellationReasonRequired,
   canReschedule,
@@ -72,7 +79,6 @@ export function BookingJourney({
           <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
             {journey.description}
           </p>
-
         </div>
 
         <div className="min-w-0 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:pt-1">
@@ -87,16 +93,15 @@ export function BookingJourney({
                   {journey.primaryAction.description}
                 </p>
                 <div className="mt-4">
-                  {journey.primaryAction.kind === "transition" ? (
+                  {journey.primaryAction.kind === "transition" &&
+                  journey.primaryAction.toStatus === "COMPLETED" ? (
+                    <BookingCompletionDialog action={completionAction} />
+                  ) : journey.primaryAction.kind === "transition" ? (
                     <BookingStatusForm
-                      action={transitionAction.bind(
-                        null,
-                        journey.primaryAction.toStatus,
-                      )}
+                      action={transitionAction.bind(null, journey.primaryAction.toStatus)}
                       label={journey.primaryAction.label}
                       pendingLabel={journey.primaryAction.pendingLabel}
                       variant="primary"
-                      confirmMessage={journey.primaryAction.confirmMessage}
                     />
                   ) : (
                     <Button asChild className="w-full sm:w-fit">
@@ -163,7 +168,9 @@ export function BookingJourney({
 
           {hasOtherActions ? (
             <details className="mt-4 rounded-md border border-border bg-card p-3">
-              <summary className="cursor-pointer text-sm font-medium">Other actions</summary>
+              <summary className="cursor-pointer text-sm font-medium">
+                Other actions
+              </summary>
               <div className="mt-3 flex flex-col items-start gap-3">
                 <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm">
                   {canReschedule ? (
@@ -188,7 +195,12 @@ export function BookingJourney({
                     label="Cancel booking"
                     pendingLabel="Cancelling booking..."
                     variant="destructive"
-                    confirmMessage="Confirm cancelled?"
+                    confirmation={{
+                      title: "Cancel this booking?",
+                      description:
+                        "This will cancel the booking and stop the current fulfilment journey.",
+                      confirmLabel: "Cancel booking",
+                    }}
                     cancellationReason
                     cancellationReasonRequired={cancellationReasonRequired}
                   />
@@ -198,10 +210,7 @@ export function BookingJourney({
           ) : null}
         </div>
 
-        <ol
-          className="lg:col-start-1 lg:row-start-2"
-          aria-label="Booking progress"
-        >
+        <ol className="lg:col-start-1 lg:row-start-2" aria-label="Booking progress">
           {journey.stages.map((stage, index) => {
             const isCurrent = stage.state === "current" || stage.state === "attention";
             return (

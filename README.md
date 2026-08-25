@@ -330,3 +330,14 @@ account cleanup are runtime verified. PR #19 passed its required checks and
 merged as `52a1820`; Vercel deployed that exact commit and authenticated
 production summary/list/detail smoke passed over existing live events without
 creating email or domain fixtures.
+
+Booking completion now uses an accessible application-owned confirmation
+dialog. The final `DELIVERED -> COMPLETED` mutation runs only after confirmation
+inside My Customers; browser-native confirm, alert, and prompt dialogs are not
+lifecycle dependencies. New first and additional business setup also requires
+one successfully persisted optimized logo before the workspace is selected and
+setup is considered complete. The existing owner-authorized logo API,
+validation, WebP optimization, deterministic path, Storage RLS, and public
+fallback remain unchanged. Existing legacy businesses without logos remain
+usable. No migration is included, and transactional-provider activation and
+Admin Phase 6 remain paused.

@@ -42,3 +42,11 @@ then exercised one and multiple-business routing and switching locally and on
 the merged production deployment. Same-email identity behavior remains a
 separate lifecycle check. Application code does not perform email-based linking
 or duplication.
+
+Regardless of password or Google authentication, a zero-business user enters
+the same staged onboarding flow. New workspace setup does not complete or select
+the workspace until the businesses feature verifies a persisted optimized logo;
+this does not change Auth sessions, callback routing, or provider behavior.
+The same-browser pending-setup marker is cleared by the existing logout action
+alongside the current-business preference; durable pending status remains on the
+business until its owner completes the logo step.

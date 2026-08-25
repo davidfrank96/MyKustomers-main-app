@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-08-25 - Booking Completion And Required Business Logo
+
+Status: IMPLEMENTED - VERIFICATION PENDING
+
+- Replaced browser-native booking completion confirmation with an accessible
+  in-app dialog, in-dialog pending/error states, cancel semantics, and the
+  unchanged authoritative `DELIVERED -> COMPLETED` transition. Cancellation now
+  follows the same application-owned confirmation policy.
+- Required a selected logo before creating a first or additional business, then
+  staged the workspace until the existing optimized logo endpoint persists and
+  the server verifies `logo_path`. Failed uploads remain resumable without
+  creating a second workspace.
+- Preserved legacy no-logo businesses, upload/replace/remove behavior, public
+  fallback, booking/email/admin boundaries, and the paused provider and Admin
+  Phase 6 work. No migration or environment change was introduced.
+- Added policy regressions and expanded onboarding, multi-business, booking
+  completion, failure recovery, cleanup, and responsive E2E coverage.
+
 ## 2026-08-25 - Booking Journey UX
 
 Status: VERIFIED - PRODUCTION

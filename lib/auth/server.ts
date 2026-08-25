@@ -8,6 +8,7 @@ import { resolveCurrentBusinessId } from "@/lib/auth/current-business-selection"
 import { getSafeRedirectPath } from "@/lib/security/redirects";
 import { createClient } from "@/lib/supabase/server";
 import type { BusinessMemberRole } from "@/types/database";
+import { isBusinessOnboardingPending } from "@/features/businesses/onboarding";
 
 export type AuthenticatedUser = {
   id: string;
@@ -28,11 +29,13 @@ export type BusinessSummary = {
   category: string;
   logoPath: string | null;
   role: BusinessMemberRole;
+  onboardingPending: boolean;
 };
 
 export type BusinessContext = {
   memberships: BusinessMembership[];
   businesses: BusinessSummary[];
+  pendingBusinesses: BusinessSummary[];
   currentBusiness: BusinessSummary | null;
 };
 
@@ -46,6 +49,7 @@ type BusinessAccessRow = {
     slug: string;
     category: string;
     logo_path: string | null;
+    onboarding_completed_at: string;
   } | null;
 };
 
@@ -127,14 +131,19 @@ export const getCurrentBusinessContext = cache(async function getCurrentBusiness
   const user = authenticatedUser ?? (await getAuthenticatedUser());
 
   if (!user || !isSupabasePublicEnvConfigured()) {
-    return { memberships: [], businesses: [], currentBusiness: null };
+    return {
+      memberships: [],
+      businesses: [],
+      pendingBusinesses: [],
+      currentBusiness: null,
+    };
   }
 
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("business_members")
     .select(
-      "business_id, role, status, businesses!business_members_business_id_fkey(id, name, slug, category, logo_path)",
+      "business_id, role, status, businesses!business_members_business_id_fkey(id, name, slug, category, logo_path, onboarding_completed_at)",
     )
     .eq("user_id", user.id)
     .eq("status", "active")
@@ -142,7 +151,12 @@ export const getCurrentBusinessContext = cache(async function getCurrentBusiness
     .order("business_id", { ascending: true });
 
   if (error || !data) {
-    return { memberships: [], businesses: [], currentBusiness: null };
+    return {
+      memberships: [],
+      businesses: [],
+      pendingBusinesses: [],
+      currentBusiness: null,
+    };
   }
 
   const rows = data as unknown as BusinessAccessRow[];
@@ -151,7 +165,7 @@ export const getCurrentBusinessContext = cache(async function getCurrentBusiness
     role: row.role,
     status: row.status,
   }));
-  const businesses = rows.flatMap((row) => {
+  const allBusinesses = rows.flatMap((row) => {
     const business = row.businesses;
 
     return business
@@ -163,10 +177,18 @@ export const getCurrentBusinessContext = cache(async function getCurrentBusiness
             category: business.category,
             logoPath: business.logo_path,
             role: row.role,
+            onboardingPending: isBusinessOnboardingPending(
+              business.onboarding_completed_at,
+            ),
           } satisfies BusinessSummary,
         ]
       : [];
   });
+  const pendingBusinesses = allBusinesses.filter(
+    (business) => business.onboardingPending,
+  );
+  const pendingIds = new Set(pendingBusinesses.map((business) => business.id));
+  const businesses = allBusinesses.filter((business) => !pendingIds.has(business.id));
   const selectedBusinessId = resolveCurrentBusinessId(
     businesses,
     await getSelectedBusinessId(),
@@ -177,6 +199,7 @@ export const getCurrentBusinessContext = cache(async function getCurrentBusiness
   return {
     memberships,
     businesses,
+    pendingBusinesses,
     currentBusiness,
   };
 });

@@ -12,11 +12,7 @@ export const bookingJourneyStageKeys = [
 
 export type BookingJourneyStageKey = (typeof bookingJourneyStageKeys)[number];
 export type BookingJourneyStageState =
-  | "completed"
-  | "current"
-  | "upcoming"
-  | "attention"
-  | "cancelled";
+  "completed" | "current" | "upcoming" | "attention" | "cancelled";
 
 export type BookingJourneyStage = {
   key: BookingJourneyStageKey | "cancelled";
@@ -31,7 +27,6 @@ export type BookingJourneyAction =
       label: string;
       pendingLabel: string;
       description: string;
-      confirmMessage?: string;
     }
   | {
       kind: "anchor";
@@ -124,7 +119,11 @@ function deriveStandardStages(
 
   return bookingJourneyStageKeys.map((key, index): BookingJourneyStage => {
     let state: BookingJourneyStageState =
-      index < currentIndex ? "completed" : index === currentIndex ? "current" : "upcoming";
+      index < currentIndex
+        ? "completed"
+        : index === currentIndex
+          ? "current"
+          : "upcoming";
 
     if (status === "AWAITING_CUSTOMER" && key === "confirmation") {
       state = "attention";
@@ -219,9 +218,8 @@ function derivePrimaryAction(
         kind: "transition",
         toStatus: "COMPLETED",
         label: "Complete booking",
-        pendingLabel: "Completing booking...",
+        pendingLabel: "Completing booking…",
         description: "Complete the booking once fulfilment is finished.",
-        confirmMessage: "Confirm completed?",
       };
     case "COMPLETED":
       if (input.feedbackReceived || input.feedbackLinkStatus === "submitted") return null;
@@ -285,7 +283,8 @@ function deriveSummary(input: DeriveBookingJourneyInput) {
           }
         : {
             title: "Booking completed",
-            description: "Fulfilment is complete. Private feedback is the final journey step.",
+            description:
+              "Fulfilment is complete. Private feedback is the final journey step.",
           };
     case "CANCELLED":
       return {
@@ -298,7 +297,8 @@ function deriveSummary(input: DeriveBookingJourneyInput) {
 export function deriveBookingJourney(
   input: DeriveBookingJourneyInput,
 ): BookingJourneyState {
-  const feedbackReceived = input.feedbackReceived || input.feedbackLinkStatus === "submitted";
+  const feedbackReceived =
+    input.feedbackReceived || input.feedbackLinkStatus === "submitted";
   const summary = deriveSummary(input);
   const attention: BookingJourneyAttention[] = [];
 
@@ -330,7 +330,8 @@ export function deriveBookingJourney(
     });
   }
 
-  const complete = input.status === "CANCELLED" || (input.status === "COMPLETED" && feedbackReceived);
+  const complete =
+    input.status === "CANCELLED" || (input.status === "COMPLETED" && feedbackReceived);
 
   return {
     status: input.status,

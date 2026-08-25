@@ -2,6 +2,7 @@ import fs from "node:fs";
 import { randomUUID } from "node:crypto";
 import { expect, test, type Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
+import sharp from "sharp";
 import { CURRENT_BUSINESS_COOKIE_NAME } from "../../lib/auth/current-business-selection";
 
 function loadLocalEnv() {
@@ -111,7 +112,9 @@ test.describe("multi-business account support", () => {
 
       await page.getByRole("link", { name: "Add another business" }).click();
       await expect(page).toHaveURL(/\/business\/new$/);
-      await expect(page.getByRole("heading", { name: "Add another business" })).toBeVisible();
+      await expect(
+        page.getByRole("heading", { name: "Add another business" }),
+      ).toBeVisible();
     } finally {
       if (businessId) await admin.from("businesses").delete().eq("id", businessId);
       if (userId) await admin.auth.admin.deleteUser(userId);
@@ -376,8 +379,23 @@ test.describe("multi-business account support", () => {
       await page.getByLabel("Business slug").fill(additionalSlug);
       await page.getByRole("combobox").click();
       await page.getByRole("option", { name: "Other" }).click();
+      const additionalLogo = await sharp({
+        create: {
+          width: 640,
+          height: 320,
+          channels: 4,
+          background: { r: 31, g: 100, b: 82, alpha: 1 },
+        },
+      })
+        .png()
+        .toBuffer();
+      await page.getByLabel("Logo image").setInputFiles({
+        name: "additional-business.png",
+        mimeType: "image/png",
+        buffer: additionalLogo,
+      });
       await page.getByRole("button", { name: "Create business" }).click();
-      await expect(page).toHaveURL(/\/dashboard$/);
+      await expect(page).toHaveURL(/\/dashboard$/, { timeout: 20_000 });
       await expect(
         page.getByRole("button", {
           name: `Switch business. Current business: ${additionalName}`,
@@ -385,10 +403,11 @@ test.describe("multi-business account support", () => {
       ).toBeVisible();
       const { data: additionalBusiness } = await admin
         .from("businesses")
-        .select("id")
+        .select("id, logo_path")
         .eq("slug", additionalSlug)
         .single();
       businessIds.push(additionalBusiness!.id);
+      expect(additionalBusiness!.logo_path).toBe(`${additionalBusiness!.id}/logo.webp`);
 
       await page
         .getByRole("button", {
@@ -419,7 +438,9 @@ test.describe("multi-business account support", () => {
           await page.goto("/dashboard");
           await expectNoOverflow(page);
           await page.goto("/business");
-          await expect(page.getByRole("heading", { name: "My businesses" })).toBeVisible();
+          await expect(
+            page.getByRole("heading", { name: "My businesses" }),
+          ).toBeVisible();
           await expectNoOverflow(page);
           const switchButton = page
             .getByRole("button", { name: "Switch", exact: true })
@@ -439,6 +460,17 @@ test.describe("multi-business account support", () => {
         }
       }
     } finally {
+      const { data: businesses } = await admin
+        .from("businesses")
+        .select("logo_path")
+        .in("id", businessIds);
+      const logoPaths =
+        businesses?.flatMap((business) =>
+          business.logo_path ? [business.logo_path] : [],
+        ) ?? [];
+      if (logoPaths.length > 0) {
+        await admin.storage.from("business-logos").remove(logoPaths);
+      }
       const { data: bookings } = await admin
         .from("bookings")
         .select("id")

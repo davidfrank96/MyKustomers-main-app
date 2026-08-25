@@ -695,3 +695,22 @@ temporary admin/Auth leftovers and exactly one approved active `SUPER_ADMIN`.
   and `CONFIRMED -> IN_PROGRESS -> READY -> DELIVERED -> COMPLETED` UI path,
   feedback guidance, and all eight responsive widths. Cleanup verified zero
   temporary business or Auth-user leftovers.
+
+## Booking Completion And Required-Logo Coverage
+
+- `tests/unit/lifecycle-confirmation-policy.test.ts` prevents booking lifecycle
+  UI from reintroducing browser-native blocking dialogs or popup windows and
+  requires the owned completion dialog contract.
+- `tests/unit/business-onboarding-logo-policy.test.ts` locks the no-logo create
+  guard, persisted `logo_path` completion check, selection order, and established
+  logo HTTP boundary.
+- Existing logo unit/runtime suites continue covering image normalization,
+  malformed/oversized/dimension rejection, deterministic paths, owner-only
+  writes, and cross-tenant denial.
+- Onboarding E2E blocks submit without creating a row, stages one business after
+  a malformed upload, proves it remains incomplete across refresh, then recovers
+  with optimized WebP without duplication. Multi-business E2E requires the same
+  logo flow.
+- Booking E2E proves dialog visibility, cancel without mutation, final
+  completion, feedback guidance, and 320px containment without a browser dialog
+  handler.

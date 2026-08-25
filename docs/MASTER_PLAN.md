@@ -531,3 +531,22 @@ lifecycle actions, feedback guidance, and the 320-1440 responsive matrix before
 cleanup confirmed zero temporary Auth-user or business leftovers. No migration,
 environment change, Docker stack, public-route redesign, or Admin Phase 6 work
 was introduced.
+
+## Booking Completion And New-Business Branding Maintenance
+
+Lifecycle-critical confirmations must use accessible application-owned
+confirmation UI rather than browser-native confirm/alert/prompt dialogs. The
+booking completion action keeps the authoritative database transition but
+requires an in-app dialog, blocks duplicate submission, and returns failures
+inside the dialog.
+
+Every newly created business must complete a valid optimized business-logo
+upload before business setup is considered complete. Existing legacy businesses
+remain supported. First and additional business creation stage the atomic
+business/membership result, persist the logo through the existing owner/RLS
+upload boundary, verify `logo_path`, and only then select the workspace. The
+existing onboarding-completion field records a durable pending state until that
+verification; a short-lived HTTP-only marker preserves the same-browser route.
+Pending workspaces are excluded from current-business resolution and switching,
+so failures remain resumable without repeat creation. No schema, lifecycle,
+email, environment, or Admin Phase 6 change is included.

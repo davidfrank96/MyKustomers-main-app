@@ -110,3 +110,16 @@ Not yet implemented:
 - Final branding.
 - Full component coverage.
 - Billing and staff-management interfaces.
+
+## Critical Confirmations
+
+Lifecycle-critical confirmations must use accessible application-owned
+confirmation UI rather than browser-native confirm/alert/prompt dialogs. Use the
+existing Radix dialog primitives for title/description semantics, focus
+trapping, Escape, outside interaction, and trigger focus return. Keep the final
+terminal action explicit, disable competing actions while pending, and render
+recoverable errors inside the dialog.
+
+At mobile widths, dialog actions stack to full width inside the viewport-height
+scroll boundary. File-upload previews and controls must also remain contained at
+320 pixels.

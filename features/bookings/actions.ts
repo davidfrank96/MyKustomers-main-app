@@ -288,11 +288,40 @@ export async function transitionBookingStatusAction(
   toStatus: string,
   formData?: FormData,
 ) {
+  const result = await transitionBookingStatus(bookingId, toStatus, formData);
+
+  if (result.status === "error") {
+    redirect(`/bookings/${bookingId}?message=${result.code}` as Route);
+  }
+
+  revalidateBookingStatusPaths(bookingId);
+  redirect(`/bookings/${bookingId}?message=status-updated` as Route);
+}
+
+type BookingTransitionResult =
+  | { status: "success" }
+  | { status: "error"; code: "invalid-transition" | "invalid-status"; message: string };
+
+function revalidateBookingStatusPaths(bookingId: string) {
+  revalidatePath("/dashboard");
+  revalidatePath("/bookings");
+  revalidatePath(`/bookings/${bookingId}`);
+}
+
+async function transitionBookingStatus(
+  bookingId: string,
+  toStatus: string,
+  formData?: FormData,
+): Promise<BookingTransitionResult> {
   const { business } = await requireCurrentBusiness(`/bookings/${bookingId}`);
   const booking = await getBookingForBusiness(business.id, bookingId);
 
   if (!booking) {
-    redirect(`/bookings/${bookingId}?message=invalid-transition` as Route);
+    return {
+      status: "error",
+      code: "invalid-transition",
+      message: "This booking could not be updated. Refresh and try again.",
+    };
   }
 
   const parsed = bookingTransitionSchema.safeParse({
@@ -302,7 +331,11 @@ export async function transitionBookingStatusAction(
   });
 
   if (!parsed.success) {
-    redirect(`/bookings/${bookingId}?message=invalid-status` as Route);
+    return {
+      status: "error",
+      code: "invalid-status",
+      message: "This booking is no longer ready for that action.",
+    };
   }
 
   const supabase = await createClient();
@@ -313,7 +346,11 @@ export async function transitionBookingStatusAction(
   });
 
   if (error) {
-    redirect(`/bookings/${bookingId}?message=invalid-transition` as Route);
+    return {
+      status: "error",
+      code: "invalid-transition",
+      message: "This booking could not be updated. Refresh and try again.",
+    };
   }
 
   const emailEventId = data?.[0]?.email_event_id;
@@ -321,10 +358,29 @@ export async function transitionBookingStatusAction(
     await deliverEmailEvent(emailEventId);
   }
 
-  revalidatePath("/dashboard");
-  revalidatePath("/bookings");
-  revalidatePath(`/bookings/${bookingId}`);
-  redirect(`/bookings/${bookingId}?message=status-updated` as Route);
+  return { status: "success" };
+}
+
+export async function completeBookingStatusAction(
+  bookingId: string,
+  _previousState: BookingActionState,
+  formData: FormData,
+): Promise<BookingActionState> {
+  const result = await transitionBookingStatus(bookingId, "COMPLETED", formData);
+
+  if (result.status === "error") {
+    return {
+      status: "error",
+      message: result.message,
+    };
+  }
+
+  revalidateBookingStatusPaths(bookingId);
+
+  return {
+    status: "success",
+    message: "Booking completed.",
+  };
 }
 
 export async function rescheduleBookingAction(

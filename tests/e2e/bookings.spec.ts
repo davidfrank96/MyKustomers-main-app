@@ -895,8 +895,27 @@ test.describe("booking engine", () => {
     await expect(page.getByText("Ready to Delivered")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Delivered" })).toBeVisible();
 
-    page.once("dialog", (dialog) => dialog.accept());
     await page.getByRole("button", { name: "Complete booking" }).click();
+    const completionDialog = page.getByRole("dialog", { name: "Complete this booking?" });
+    await expect(completionDialog).toBeVisible();
+    await expect(
+      completionDialog.getByText(
+        "This will mark the booking as completed and move it to the feedback stage.",
+      ),
+    ).toBeVisible();
+    await completionDialog.getByRole("button", { name: "Cancel" }).click();
+    await expect(completionDialog).toBeHidden();
+    await expect(
+      page.locator("span.inline-flex.w-fit").filter({ hasText: /^Delivered$/ }),
+    ).toBeVisible();
+
+    if (testInfo.project.name === "chromium") {
+      await page.setViewportSize({ width: 320, height: 720 });
+    }
+    await page.getByRole("button", { name: "Complete booking" }).click();
+    await expect(completionDialog).toBeVisible();
+    await expectNoPageOverflow(page);
+    await completionDialog.getByRole("button", { name: "Complete booking" }).click();
     await expect(
       page.locator("span.inline-flex.w-fit").filter({ hasText: /^Completed$/ }),
     ).toBeVisible({ timeout: serverActionTimeout });
@@ -1328,16 +1347,20 @@ test.describe("booking engine", () => {
     });
 
     await page.locator("summary").filter({ hasText: "Other actions" }).click();
-    const reasonInput = page.getByLabel("Cancellation reason");
+    await page.getByRole("button", { name: "Cancel booking" }).click();
+    const cancellationDialog = page.getByRole("dialog", { name: "Cancel this booking?" });
+    await expect(cancellationDialog).toBeVisible();
+    const reasonInput = cancellationDialog.getByLabel("Cancellation reason");
     await expect(reasonInput).toHaveAttribute("required", "");
     await reasonInput.fill(cancellationReason);
-    page.once("dialog", (dialog) => dialog.accept());
-    await page.getByRole("button", { name: "Cancel booking" }).click();
+    await cancellationDialog.getByRole("button", { name: "Cancel booking" }).click();
     await expect(
       page.locator("span.inline-flex.w-fit").filter({ hasText: /^Cancelled$/ }),
     ).toBeVisible({ timeout: serverActionTimeout });
     await expect(page.getByRole("heading", { name: "Booking cancelled" })).toBeVisible();
-    await expect(page.getByText("No further fulfilment actions are available.")).toBeVisible();
+    await expect(
+      page.getByText("No further fulfilment actions are available."),
+    ).toBeVisible();
     await expect(page.getByRole("button", { name: "Start work" })).toHaveCount(0);
     await expect(
       page.getByText(`Cancellation reason: ${cancellationReason}`),

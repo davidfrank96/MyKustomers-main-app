@@ -1004,3 +1004,28 @@ Feedback is a derived post-completion step, cancellation is terminal, pending
 amendments/add-ons remain separate capability state, and rescheduling can return
 the presentation to waiting without erasing history. Every non-terminal state
 must expose an action or a clear waiting reason.
+
+## ADR-043 - Critical Confirmation And New-Business Logo Completion
+
+Status: Accepted
+
+Decision: Lifecycle-critical confirmations use accessible application-owned
+dialogs, never browser-native confirm, alert, or prompt APIs. New first and
+additional businesses are staged after the existing atomic creation RPC and do
+not become the selected completed workspace until the established logo API has
+persisted an optimized logo and the server has re-read a non-null `logo_path`.
+
+Rationale: Browser-owned prompts are unreliable in installed and constrained
+browser contexts. Logo persistence cannot be included safely in the existing
+database RPC, and raw image binary does not belong in a server-action or RPC
+argument. Staging preserves the verified transaction and storage boundaries.
+
+Consequences: The existing `onboarding_completed_at` field uses a deterministic
+pending value until logo verification, and pending workspaces are excluded from
+normal resolution/switching. A short-lived HTTP-only marker preserves routing
+context; server-side pending discovery remains durable across sessions. The logo endpoint retains
+owner authorization, decoded-image validation, metadata stripping, WebP
+conversion, size bounds, deterministic storage, and RLS. Legacy businesses may
+remain without logos and retain upload, replace, and remove controls. A later
+decision should consider replacement-only behavior for active businesses. No
+migration is introduced.

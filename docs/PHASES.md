@@ -1009,3 +1009,14 @@ business, customer, booking, history, confirmation, email, and audit fixtures
 with zero account/business leftovers. Runtime fixture suites remained
 intentionally skipped by the protected-backend safe-target gate; no gate was
 weakened or bypassed.
+
+## 2026-08-25 Booking Completion And Logo-Onboarding Maintenance
+
+Status: IMPLEMENTED - VERIFICATION PENDING
+
+This targeted maintenance replaces booking completion and cancellation browser
+confirm prompts with accessible in-app dialogs and makes a persisted optimized
+logo mandatory for every newly created first or additional business. Existing
+RPCs, booking transitions, the owner-authorized logo route, Storage RLS, and
+legacy no-logo behavior are preserved. No database migration, email-provider
+configuration, broad redesign, or Admin Phase 6 scope is included.
