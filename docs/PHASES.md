@@ -987,3 +987,16 @@ filters, pagination, recipient masking, cross-links, absence of write controls,
 and desktop overflow checks. Failed temporary Auth creation left zero matching
 users; exactly one approved active `SUPER_ADMIN` remains. Docker is not used.
 Admin Phase 6 remains planned and is not started.
+
+## 2026-08-25 Booking Journey UX Maintenance
+
+Status: IMPLEMENTED - VERIFICATION PENDING
+
+This targeted cross-phase UX pass adds a server-derived booking lifecycle
+stepper, explicit current-state guidance, one prominent valid next action,
+secondary cancellation/related workflows, reschedule reconfirmation context,
+and derived feedback completion. It changes no persisted state, transition,
+RPC, RLS policy, migration, or public customer route. It also clarifies
+Scheduled delivery date and starts new total/deposit entry empty while keeping
+the total required and normalizing an empty optional deposit to zero minor
+units. Admin Phase 6 and broad visual redesign are not started.

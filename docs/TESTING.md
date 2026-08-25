@@ -673,3 +673,17 @@ denial, active-admin projections, filters, data minimization, and outbox
 immutability. Full Playwright passes with 35 tests and 7 intentional skips,
 including the admin route and 390/768/1024/1440 matrix. Cleanup confirms zero
 temporary admin/Auth leftovers and exactly one approved active `SUPER_ADMIN`.
+
+## Booking Journey UX Coverage
+
+- `tests/unit/booking-journey.test.ts` exhaustively maps every booking status,
+  checks actions against the transition graph, proves the no-dead-end invariant,
+  and covers feedback, cancellation, reconfirmation, amendments, and add-ons.
+- Booking domain tests require total amount and prove an empty optional deposit
+  normalizes to zero without changing integer minor-unit parsing.
+- Booking form integration tests prove new total/deposit values are empty,
+  delivery schedule wording is explicit, and persisted edit values remain.
+- The canonical Playwright journey asserts current-step semantics, valid and
+  absent-invalid actions, reconfirmation, attention context, feedback close,
+  cancellation hierarchy, and zero overflow at 320, 360, 375, 390, 430, 768,
+  1024, and 1440 pixels in desktop and mobile projects.

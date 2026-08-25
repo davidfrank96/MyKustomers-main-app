@@ -35,6 +35,7 @@ planned broad visual redesign or Phase 11 PWA/UX hardening.
 | Live list and customer-picker search | 320-1440 | Clear/pending controls and automatic candidates must not widen fields or reset booking values | Overlay icon controls, bounded candidate list, and shrink-safe search wrappers | Authenticated Bookings/Customers/New Booking live-search journeys at all required widths | VERIFIED |
 | Structural route loading | 320-1440 | Async navigation needed feedback without layout shift, fake controls, or motion-only meaning | Stable dashboard/list/detail/form skeletons, one accessible status, reduced-motion opt-out, and bounded grids | Component semantics plus desktop/mobile route E2E | VERIFIED |
 | Business switch pending | Mobile/desktop | Previous tenant content could remain visible while the next workspace resolved | Opaque fixed pending layer driven by the shared switch form status | Multi-business desktop/mobile E2E and component review | VERIFIED |
+| Booking journey stepper/action | 320-1440 | Seven lifecycle labels and a primary action needed hierarchy without horizontal compression | Vertical semantic stepper, two-column desktop composition, full-width mobile primary action, and secondary action disclosure | Canonical booking and cancellation E2E in desktop/mobile projects at 320, 360, 375, 390, 430, 768, 1024, and 1440 | VERIFIED |
 
 ## Evidence
 
@@ -57,3 +58,8 @@ New Booking search states at 320, 360, 375, 390, 430, 768, 1024, and 1440 pixels
 The focused live journeys reported zero horizontal-overflow assertions and
 preserved booking field values while customer candidates updated. Physical
 mobile-keyboard and screen-reader acceptance remain release-hardening work.
+
+The 2026-08-25 booking-journey pass exercised authenticated booking detail at
+320, 360, 375, 390, 430, 768, 1024, and 1440 pixels inside canonical desktop and
+mobile lifecycle journeys. Current-step semantics, primary-action fit, secondary
+cancellation access, attention copy, and document overflow passed.

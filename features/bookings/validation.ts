@@ -49,6 +49,13 @@ function moneyField(label: string) {
     });
 }
 
+function optionalMoneyField(label: string) {
+  return z.preprocess(
+    (value) => (typeof value === "string" && value.trim().length === 0 ? "0" : value),
+    moneyField(label),
+  );
+}
+
 const bookingFieldsSchema = z.object({
   title: z
     .string()
@@ -60,7 +67,7 @@ const bookingFieldsSchema = z.object({
     errorMap: () => ({ message: "Choose a valid currency." }),
   }),
   totalAmount: moneyField("Agreed total"),
-  depositAmount: moneyField("Deposit recorded"),
+  depositAmount: optionalMoneyField("Deposit recorded"),
   scheduledFor: z.preprocess((value) => {
     if (typeof value !== "string" || value.trim().length === 0) {
       return undefined;

@@ -2,12 +2,12 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import type { Route } from "next";
 import { ArrowLeft } from "lucide-react";
+import { BookingJourney } from "@/components/bookings/booking-journey";
 import { BookingForm } from "@/components/forms/booking-form";
 import { BookingAmendmentPanel } from "@/components/forms/booking-amendment-panel";
 import { BookingAddonPanel } from "@/components/forms/booking-addon-panel";
 import { BookingIssueForm } from "@/components/forms/booking-issue-form";
 import { BookingRescheduleForm } from "@/components/forms/booking-reschedule-form";
-import { BookingStatusForm } from "@/components/forms/booking-status-form";
 import { ConfirmationLinkPanel } from "@/components/forms/confirmation-link-panel";
 import { FeedbackLinkPanel } from "@/components/forms/feedback-link-panel";
 import { Badge } from "@/components/ui/badge";
@@ -20,6 +20,7 @@ import {
   updateBookingInternalNotesAction,
 } from "@/features/bookings/actions";
 import { formatMoneyMinor, minorUnitsToInput } from "@/features/bookings/money";
+import { deriveBookingJourney } from "@/features/bookings/journey";
 import {
   getBookingForBusiness,
   listBookingChangesForBusiness,
@@ -28,7 +29,6 @@ import {
 import {
   getAllowedBookingTransitions,
   getBookingStatusLabel,
-  getTransitionLabel,
   areMaterialBookingTermsLocked,
   hasCustomerConfirmedTerms,
   isBookingOverdue,
@@ -90,38 +90,6 @@ function formatDateTime(value: string | null) {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(value));
-}
-
-function nextStepDescription(status: string) {
-  if (status === "DRAFT" || status === "AWAITING_CUSTOMER") {
-    return "Send a confirmation link when the customer is ready to approve the booking.";
-  }
-
-  if (status === "CONFIRMED") {
-    return "The customer has confirmed the booking. Start work when you are ready.";
-  }
-
-  if (status === "IN_PROGRESS") {
-    return "Work has started. Mark the booking ready when it is prepared for delivery or pickup.";
-  }
-
-  if (status === "READY") {
-    return "The booking is ready. Mark it delivered when the customer has received it.";
-  }
-
-  if (status === "DELIVERED") {
-    return "The booking has been delivered. Complete it when no further fulfilment work remains.";
-  }
-
-  if (status === "COMPLETED") {
-    return "This booking is complete. You can request private feedback from the customer.";
-  }
-
-  if (status === "CANCELLED") {
-    return "This booking was cancelled and is locked.";
-  }
-
-  return "Review the current booking state and choose the next action.";
 }
 
 export default async function BookingDetailPage({
@@ -260,61 +228,52 @@ export default async function BookingDetailPage({
   const materialLocked = areMaterialBookingTermsLocked(booking.status);
   const cancellationReasonRequired = hasCustomerConfirmedTerms(booking.status);
   const canRequestFeedback = isFeedbackEligibleStatus(booking.status) && !feedback;
+  const confirmationEverCompleted = Boolean(
+    confirmationSummary.confirmedAt ||
+      booking.customer_confirmed_at ||
+      history.some((event) => event.to_status === "CONFIRMED"),
+  );
+  const reconfirmationRequired =
+    booking.status === "AWAITING_CUSTOMER" &&
+    confirmationEverCompleted &&
+    changes.some((change) => change.change_type === "reschedule");
+  const journey = deriveBookingJourney({
+    status: booking.status,
+    confirmationLinkStatus: confirmationSummary.status,
+    feedbackLinkStatus: feedbackSummary.status,
+    feedbackReceived: Boolean(feedback),
+    confirmationEverCompleted,
+    started: Boolean(booking.started_at),
+    ready: Boolean(booking.ready_at),
+    delivered: Boolean(booking.delivered_at),
+    completed: Boolean(booking.completed_at),
+    reconfirmationRequired,
+    pendingAmendment: amendmentSummary.displayStatus === "pending",
+    awaitingAddon: addonSummary.hasAwaitingAddon,
+  });
 
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-5 py-6 sm:px-8 lg:px-10">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <Button asChild variant="ghost" size="sm">
-            <Link href={"/bookings" as Route}>
-              <ArrowLeft className="size-4" aria-hidden="true" />
-              Bookings
-            </Link>
-          </Button>
-          <div className="mt-4 flex flex-wrap items-center gap-2">
-            <Badge variant="outline">{booking.reference}</Badge>
-            <Badge variant={overdue ? "accent" : "default"}>
-              {overdue ? "Overdue" : getBookingStatusLabel(booking.status)}
-            </Badge>
-          </div>
-          <h1 className="mt-3 text-2xl font-semibold leading-tight sm:text-3xl">
-            {booking.title}
-          </h1>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground">
-            {booking.customer?.name ?? "Customer unavailable"} · Scheduled{" "}
-            {formatDateTime(booking.scheduled_for)}
-          </p>
+      <div>
+        <Button asChild variant="ghost" size="sm">
+          <Link href={"/bookings" as Route}>
+            <ArrowLeft className="size-4" aria-hidden="true" />
+            Bookings
+          </Link>
+        </Button>
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <Badge variant="outline">{booking.reference}</Badge>
+          <Badge variant={overdue ? "accent" : "default"}>
+            {overdue ? "Overdue" : getBookingStatusLabel(booking.status)}
+          </Badge>
         </div>
-
-        <div className="w-full rounded-lg border border-border bg-card p-4 lg:max-w-sm">
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Next step
-          </p>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground">
-            {nextStepDescription(booking.status)}
-          </p>
-          {allowedTransitions.length > 0 ? (
-            <div className="mt-4 flex flex-wrap gap-2">
-              {allowedTransitions.map((status) => (
-                <BookingStatusForm
-                  key={status}
-                  action={transitionBookingStatusAction.bind(null, booking.id, status)}
-                  label={getTransitionLabel(status)}
-                  variant={status === "CANCELLED" ? "destructive" : "secondary"}
-                  confirmMessage={
-                    status === "CANCELLED" || status === "COMPLETED"
-                      ? `Confirm ${getBookingStatusLabel(status).toLowerCase()}?`
-                      : undefined
-                  }
-                  cancellationReason={status === "CANCELLED"}
-                  cancellationReasonRequired={
-                    status === "CANCELLED" && cancellationReasonRequired
-                  }
-                />
-              ))}
-            </div>
-          ) : null}
-        </div>
+        <h1 className="mt-3 text-2xl font-semibold leading-tight sm:text-3xl">
+          {booking.title}
+        </h1>
+        <p className="mt-2 text-sm leading-6 text-muted-foreground">
+          {booking.customer?.name ?? "Customer unavailable"} · Scheduled delivery{" "}
+          {formatDateTime(booking.scheduled_for)}
+        </p>
       </div>
 
       {query.created === "1" ? (
@@ -335,6 +294,13 @@ export default async function BookingDetailPage({
         </p>
       ) : null}
 
+      {query.message === "invalid-status" ? (
+        <p className="rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground">
+          That status action is not valid. The journey below reflects the current saved
+          booking state.
+        </p>
+      ) : null}
+
       {query.message === "issue-resolved" ? (
         <p className="rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground">
           Issue resolved.
@@ -352,6 +318,18 @@ export default async function BookingDetailPage({
           This issue could not be resolved.
         </p>
       ) : null}
+
+      <BookingJourney
+        journey={journey}
+        transitionAction={transitionBookingStatusAction.bind(null, booking.id)}
+        canCancel={allowedTransitions.includes("CANCELLED")}
+        cancellationReasonRequired={cancellationReasonRequired}
+        canReschedule={rescheduleEligible}
+        canAmend={isAmendableBookingStatus(booking.status)}
+        canAdd={isAmendableBookingStatus(booking.status)}
+        cancelledAt={booking.cancelled_at}
+        cancellationReason={booking.cancellation_reason}
+      />
 
       <div className="grid gap-4 lg:grid-cols-3">
         <Card>
@@ -421,7 +399,7 @@ export default async function BookingDetailPage({
         </CardContent>
       </Card>
 
-      <Card>
+      <Card id="customer-confirmation" className="scroll-mt-6">
         <CardHeader>
           <CardTitle>Customer confirmation</CardTitle>
         </CardHeader>
@@ -438,7 +416,7 @@ export default async function BookingDetailPage({
         </CardContent>
       </Card>
 
-      <Card>
+      <Card id="booking-changes" className="scroll-mt-6">
         <CardHeader>
           <CardTitle>Booking changes</CardTitle>
         </CardHeader>
@@ -469,7 +447,7 @@ export default async function BookingDetailPage({
         </CardContent>
       </Card>
 
-      <Card>
+      <Card id="booking-addons" className="scroll-mt-6">
         <CardHeader>
           <CardTitle>Booking add-ons</CardTitle>
         </CardHeader>
@@ -494,7 +472,7 @@ export default async function BookingDetailPage({
         </CardContent>
       </Card>
 
-      <Card>
+      <Card id="private-feedback" className="scroll-mt-6">
         <CardHeader>
           <CardTitle>Private feedback</CardTitle>
         </CardHeader>
@@ -602,7 +580,7 @@ export default async function BookingDetailPage({
         </CardContent>
       </Card>
 
-      <Card>
+      <Card id="reschedule" className="scroll-mt-6">
         <CardHeader>
           <CardTitle>Reschedule</CardTitle>
         </CardHeader>

@@ -49,3 +49,9 @@ Known preview crawlers receive a generic shell before private booking lookup and
 cannot trigger open evidence. An ordinary browser records open evidence after
 the page loads. All `/f` responses remain non-cacheable and external redirect
 targets are not accepted.
+
+On vendor booking detail, feedback is projected as the final journey step after
+`COMPLETED`: no link means Request feedback, an active link means Share
+feedback request, and submitted feedback closes the journey as Feedback
+received. This is presentation only; feedback does not add or alter a booking
+status.

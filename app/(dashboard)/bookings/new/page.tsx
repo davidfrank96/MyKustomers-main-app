@@ -32,8 +32,8 @@ export default async function NewBookingPage() {
           New booking
         </h1>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-          Record the agreed work, scheduled date, and any deposit already agreed. This
-          is not payment verification.
+          Record the agreed work, scheduled delivery date, and any deposit already
+          agreed. This is not payment verification.
         </p>
       </div>
 

@@ -52,6 +52,33 @@ describe("booking domain", () => {
     expect(parsed.success).toBe(false);
   });
 
+  it("requires an agreed total and normalizes an empty optional deposit to zero", () => {
+    const base = {
+      customerMode: "existing" as const,
+      customerId: "00000000-0000-4000-8000-000000000001",
+      duplicateAcknowledged: false,
+      title: "Birthday cake",
+      currency: "NGN" as const,
+    };
+    const missingTotal = bookingCreateSchema.safeParse({
+      ...base,
+      totalAmount: "",
+      depositAmount: "",
+    });
+    const optionalDeposit = bookingCreateSchema.safeParse({
+      ...base,
+      totalAmount: "45000",
+      depositAmount: "",
+    });
+
+    expect(missingTotal.success).toBe(false);
+    expect(optionalDeposit.success).toBe(true);
+    if (optionalDeposit.success) {
+      expect(optionalDeposit.data.depositAmount).toBe(0);
+      expect(optionalDeposit.data.totalAmount).toBe(4_500_000);
+    }
+  });
+
   it("validates existing-customer booking input without new-customer fields", () => {
     const parsed = bookingCreateSchema.safeParse({
       customerMode: "existing",

@@ -75,8 +75,8 @@ export function getTransitionLabel(toStatus: BookingStatus) {
     AWAITING_CUSTOMER: "Request customer confirmation",
     CONFIRMED: "Confirm booking",
     IN_PROGRESS: "Start work",
-    READY: "Mark ready",
-    DELIVERED: "Mark delivered",
+    READY: "Mark as ready",
+    DELIVERED: "Mark as delivered",
     COMPLETED: "Complete booking",
     CANCELLED: "Cancel booking",
   };

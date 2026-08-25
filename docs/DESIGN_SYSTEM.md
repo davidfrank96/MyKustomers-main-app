@@ -96,6 +96,14 @@ Current copy rules:
   accounting claims.
 - Public customer pages should be shorter and simpler than authenticated vendor
   pages and should always provide safe next steps for unavailable links.
+- Booking detail uses a vertical semantic ordered-list stepper at mobile and
+  desktop widths. Completed, current, upcoming, waiting, and cancelled states
+  include text as well as color/icon treatment.
+- The journey action area keeps the valid lifecycle action prominent and
+  full-width on narrow screens. Cancellation and related booking operations are
+  grouped under secondary actions.
+- User-facing delivery timing uses `Scheduled delivery date`; new money fields
+  start empty with `Enter amount` and `Optional` placeholders.
 
 Not yet implemented:
 

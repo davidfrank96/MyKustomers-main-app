@@ -18,6 +18,18 @@ production-readiness work.
       scope in Vercel.
 - [x] Secret rotation and environment rollback boundaries documented.
 
+## Booking Journey UX
+
+- [x] Every persisted booking status has centralized current-step guidance.
+- [x] Every non-terminal state has a valid next action or explicit waiting reason.
+- [x] Customer confirmation and work start remain separate actions/facts.
+- [x] Cancellation remains available as a secondary terminal action.
+- [x] Feedback is derived after completion and does not alter booking status.
+- [x] New total/deposit empty-state and persisted edit-value regressions pass.
+- [x] Desktop/mobile canonical, reconfirmation, cancellation, and 320-1440
+      responsive journey checks pass locally.
+- [ ] Required CI, production deployment, and controlled production smoke pass.
+
 ## Database
 
 - [x] Repository migrations accounted for in `docs/MIGRATIONS.md`.
