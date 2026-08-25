@@ -1,6 +1,6 @@
 # Email Operations
 
-Status: IMPLEMENTED - PRODUCTION DEPLOYMENT PENDING
+Status: VERIFIED - PRODUCTION
 
 `/admin/emails` is the platform administrator's read-only view of the existing
 My Customers transactional email outbox. It does not create a second delivery
@@ -49,6 +49,11 @@ records accepted by the no-network development adapter and one `PENDING` record
 older than 15 minutes. Current delivery reality is therefore `OUTBOX ACTIVE -
 EXTERNAL DELIVERY NOT CONFIGURED`. This is not a provider-delivery claim.
 
+After deployment, authenticated production smoke found nine existing events:
+eight `SENT`, one `PENDING`, zero `SENDING`, and zero `FAILED`. The additional
+event was existing live application activity, not a verification fixture. The
+same backlog and delivery-configuration semantics rendered truthfully.
+
 ## Security And Deferred Writes
 
 The server requires platform-admin authorization before invoking either narrow
@@ -72,3 +77,14 @@ the controlled active admin read succeeds; status/type/punctuation filters and
 strict minimized outputs pass; and outbox delivery fields are byte-equivalent
 before and after reads. Full Playwright passes with 35 tests and 7 intentional
 skips. Temporary Auth/admin cleanup returned to zero leftovers.
+
+PR #19 passed all required checks and merged as `52a1820`. Vercel deployed the
+exact merge commit and all duplicate `main` push checks completed successfully,
+apart from the intentional safe-target Runtime Security skip. The existing
+approved production admin session then verified the live summary, directory,
+detail, search, status and event-type filters, pagination, recipient masking,
+business/booking cross-links, absence of write controls, and desktop layout.
+The smoke created no email or domain record and did not change outbox state.
+Two controlled temporary Auth creation attempts returned HTTP 500 before an
+Auth UUID was issued; the residue check found zero matching users or authority
+rows and exactly one approved active `SUPER_ADMIN`.

@@ -2,7 +2,7 @@
 
 ## 2026-08-25 - Admin Read-Only Email Operations
 
-Status: IMPLEMENTED - PRODUCTION DEPLOYMENT PENDING
+Status: VERIFIED - PRODUCTION
 
 - Added `/admin/emails` summary/directory/detail, bounded date/status/event-type
   filters, search, pagination, delivery-configuration truth, health assessment,
@@ -13,8 +13,15 @@ Status: IMPLEMENTED - PRODUCTION DEPLOYMENT PENDING
 - Added unit, static security, gated immutable runtime, and expanded admin E2E
   coverage. The approved production-backed migration applied transactionally;
   direct authorization/minimization/immutability checks and the full 35-pass E2E
-  suite pass with zero temporary leftovers. PR/CI, deployment, and production
-  smoke remain pending.
+  suite pass with zero temporary leftovers.
+- PR #19 passed all required checks and merged as `52a1820`. Vercel deployed that
+  exact `main` commit, the duplicate push checks passed, and authenticated
+  production smoke verified summary/list/detail, search, filters, pagination,
+  masking, cross-links, read-only controls, and layout integrity over nine live
+  events. Two temporary Auth creation attempts failed before an Auth UUID was
+  issued; residue verification found zero matching users and exactly one active
+  production `SUPER_ADMIN`, so the existing approved admin session was used for
+  the non-mutating smoke.
 
 ## 2026-08-25 - Admin Read-Only Booking And Issue Operations
 

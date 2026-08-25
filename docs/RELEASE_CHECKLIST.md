@@ -339,4 +339,4 @@ production-readiness work.
       production-backed project.
 - [x] Email Operations uses acceptance terminology and exposes no message body,
       full recipient, provider identifier, raw failure, or retry control.
-- [ ] Admin Phase 5 PR/CI, Vercel deployment, and production route smoke pass.
+- [x] Admin Phase 5 PR/CI, Vercel deployment, and production route smoke pass.
