@@ -4,7 +4,8 @@ Admin Phase 0/1 provides platform identity parsing, server authorization, and a
 protected `/admin` shell. Admin Phase 2 adds aggregate-only read operations.
 Admin Phase 3 adds narrow read-only business and user support directories and
 details. Admin Phase 4 adds narrow read-only booking and issue operations; it
-does not provide mutations.
+does not provide mutations. Phase 4 is verified in production from PR #17 and
+merge `edbef26`.
 
 ## Modules
 

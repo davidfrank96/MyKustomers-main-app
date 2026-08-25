@@ -329,8 +329,8 @@ production-readiness work.
       terms/hashes, private feedback comments, and email delivery payloads.
 - [x] Admin Phase 4 RPC migration explicitly approved and applied to the
       production-backed Supabase project.
-- [ ] Admin Phase 4 safe runtime denial/positive checks, CI, Vercel deployment,
+- [x] Admin Phase 4 safe runtime denial/positive checks, CI, Vercel deployment,
       and production read-only smoke pass.
 - [ ] MFA is enforced before any high-risk platform write capability is enabled.
-- [ ] No generic privileged database browser, impersonation, destructive
+- [x] No generic privileged database browser, impersonation, destructive
       mutation, membership-management UI, or hard deletion shipped implicitly.

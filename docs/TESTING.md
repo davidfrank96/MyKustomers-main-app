@@ -633,7 +633,18 @@ the unchanged helper and prior verified platform-admin runtime/revocation
 coverage. Existing production data covered effective confirmed-add-on totals,
 cancellation evidence, feedback structure, email-state grouping, issue details,
 search, filters, cross-links, safe not-found behavior, and responsive routes.
-Production has no amendment rows, so amendment rendering remains unit/static
-coverage rather than a manufactured runtime result. No Docker/local Supabase or
+At direct verification time, production had no amendment rows, so amendment
+rendering remained unit/static coverage rather than a manufactured runtime
+result. No Docker/local Supabase or
 production booking, issue, amendment, add-on, feedback, or email fixture was
 created.
+
+PR #17 passed all eight reported checks and merged as `edbef26`. Vercel marked
+the deployment for that exact `main` commit ready. The existing approved
+production admin session then rendered `/admin/bookings`, one booking detail,
+`/admin/issues`, and one issue detail against live records; minimized fields,
+masked confirmation contact, effective confirmed-add-on value, status history,
+grouped email state, private issue detail, and cross-links were present as
+designed. Browser diagnostics contained no warnings or errors. This production
+smoke was read-only and created no Auth, admin, audit, booking, issue, amendment,
+add-on, feedback, or email record.

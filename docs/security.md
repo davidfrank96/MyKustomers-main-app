@@ -690,3 +690,6 @@ Anonymous grant-boundary denial and active-admin reads were directly reverified;
 ordinary-user and disabled-admin denial continue to rely on the unchanged helper
 and previously verified platform-admin runtime/revocation coverage rather than
 production authority mutation.
+PR #17 subsequently passed all eight checks and merged as `edbef26`; Vercel
+deployed that exact commit and the authenticated production read-only smoke
+passed for all four routes without creating authority or domain fixtures.

@@ -927,7 +927,7 @@ billing, and all Admin Phase 4 work.
 
 ## Admin Phase 4 - Read-Only Bookings And Issues Operations
 
-STATUS: IMPLEMENTED - VERIFICATION PENDING
+STATUS: VERIFIED - PRODUCTION
 
 Implemented scope:
 
@@ -947,8 +947,10 @@ Migration `20260825022135_platform_admin_read_only_booking_issue_operations.sql`
 was explicitly approved and applied transactionally to the production-backed
 project. Ownership/grants, active-admin and anonymous paths, exact count/value
 reconciliation, real-data local browser flows, safe search/UUID behavior, and
-390/768/1024/1440 responsive checks pass. CI, deployment, and production-URL
-smoke remain pending.
+390/768/1024/1440 responsive checks pass. PR #17 passed all eight checks and
+merged as `edbef26`; Vercel deployed that exact `main` commit, and authenticated
+production directory/detail smoke passed for all four routes with no browser
+warning or error diagnostics.
 Customer directory browsing, private feedback comments, full email operations,
 editing, cancellation, status transitions, issue resolution, impersonation,
 suspension, hard deletion, membership mutation, and billing are excluded.
