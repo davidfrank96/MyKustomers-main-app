@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-08-25 - Production Domain And Email Infrastructure
+
+Status: IMPLEMENTED - PRODUCTION DELIVERY VERIFICATION PENDING
+
+- Attached `mykustomers.com` and `www.mykustomers.com` to Vercel Production,
+  issued valid TLS, made the apex canonical, preserved the original Vercel
+  hostname, and added exact custom-domain Supabase Auth callbacks.
+- Verified Cloudflare inbound routing for `hello@mykustomers.com`, Brevo root
+  domain and professional sender authentication, and Resend standby-domain
+  readiness without changing unrelated DNS records.
+- Configured Brevo as Production application provider and Resend as scoped
+  standby through server-only Vercel values. Automatic failover, historical
+  replay, marketing synchronization, infrastructure, and database changes remain
+  absent.
+- Enabled Supabase custom SMTP with the verified My Kustomers sender through
+  Brevo. Controlled signup and recovery delivery remain verification-pending.
+
 ## 2026-08-25 - Booking Completion And Required Business Logo
 
 Status: VERIFIED - PRODUCTION
@@ -25,6 +42,24 @@ Status: VERIFIED - PRODUCTION
   controlled logo replace/remove/restore. Cleanup verified zero temporary Auth
   or business fixtures. Runtime Security remained intentionally skipped by the
   protected-backend safe-target policy; no Docker or gate bypass was used.
+
+## 2026-08-25 - Brevo Transactional Email Adapter
+
+Status: IMPLEMENTED - CONFIGURATION REQUIRED
+
+- Added a server-only Brevo direct transactional adapter with bounded timeout,
+  safe provider-error mapping, deterministic provider idempotency, and minimized
+  response handling while retaining development/no-network and Resend adapters.
+- Made Admin Email Operations derive truthful provider/configuration wording from
+  the delivery selection. `SENT` continues to mean provider acceptance only.
+- Added unit and static security regressions for provider switching, HTTP/network
+  failures, secrets, atomic claiming, domain-state isolation, privacy, logging,
+  and absence of marketing/contact synchronization. No migration, dependency,
+  infrastructure, webhook, retry control, historical replay, or Admin Phase 6
+  work is included.
+- Production activation remains blocked on authenticated Brevo account access,
+  approved sender/domain authentication, Production-only Vercel values, and one
+  controlled new-event/inbox verification.
 
 ## 2026-08-25 - Booking Journey UX
 

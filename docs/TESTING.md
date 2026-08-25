@@ -54,6 +54,17 @@ do not reduce the verified tenant/RLS coverage.
   grant checks, and live idempotent first-open/unauthorized-call coverage.
 - Customer contact validation and booking-confirmed email template/provider
   boundary unit tests.
+- Transactional provider selection and Brevo/Resend adapter tests covering
+  success IDs, HTML/plain text, deterministic idempotency, 401/403/429/500,
+  network/timeout failure, malformed responses, invalid sender input, and
+  fail-closed configuration.
+- Static transactional-email boundary tests covering server-only secrets,
+  domain neutrality, atomic claims, domain-state isolation, no sensitive
+  logging, no contact/marketing APIs, and retained development/Resend support.
+- Production activation requires a new controlled event after deployment. It
+  must prove one claim, Brevo acceptance, bounded provider evidence, truthful
+  Admin wording, and inbox outcome without replaying historical events. Resend
+  standby uses a separate controlled send and never the same event.
 - Static customer-contact/email-outbox migration security tests.
 - Confirmed-term material classification, cancellation reason, recipient
   priority, safe HTML/plain-text cancellation template, and outbox idempotency
@@ -665,6 +676,12 @@ add-on, feedback, or email record.
 - `tests/e2e/platform-admin.spec.ts` covers Email Operations route denial,
   navigation, malformed/not-found detail, current admin regression, and the
   390/768/1024/1440 responsive matrix after the migration is available.
+
+Provider activation adds unit and static regression coverage without a real
+network dependency. A live Brevo test is deliberately separate and must use one
+new controlled Production event after sender/domain and Production-only Vercel
+configuration. Unit mocks cover destructive credential failures; no real key is
+corrupted. Historical events and customer addresses are never live-test input.
 
 Exact four-state/filter fixture creation is not run against production and no
 Docker/local Supabase stack is used. Production verification is read-only over

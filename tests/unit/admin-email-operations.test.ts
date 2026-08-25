@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   ADMIN_EMAIL_PAGE_SIZE,
+  describeAdminEmailDeliveryConfiguration,
   formatEmailFailureCategory,
   getAdminEmailHealth,
   parseAdminEmailEventDetail,
@@ -155,5 +156,37 @@ describe("platform admin email operation response boundaries", () => {
   it("formats only controlled failure categories", () => {
     expect(formatEmailFailureCategory("provider_rejected")).toBe("Provider Rejected");
     expect(formatEmailFailureCategory(null)).toBe("No failure recorded");
+  });
+
+  it("reports provider configuration without overstating recipient delivery", () => {
+    expect(
+      describeAdminEmailDeliveryConfiguration({
+        label: "Brevo",
+        external: true,
+        configured: true,
+      }),
+    ).toEqual({
+      status: "configured",
+      provider: "Brevo",
+      label: "External delivery configured — Brevo",
+      description:
+        "Sent means the configured provider accepted the request; delivery, opening, and reading are not tracked.",
+    });
+
+    expect(
+      describeAdminEmailDeliveryConfiguration({
+        label: "Brevo",
+        external: true,
+        configured: false,
+      }),
+    ).toMatchObject({ status: "incomplete", provider: "Brevo" });
+
+    expect(
+      describeAdminEmailDeliveryConfiguration({
+        label: "Development",
+        external: false,
+        configured: true,
+      }),
+    ).toMatchObject({ status: "development", provider: "Development" });
   });
 });

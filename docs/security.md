@@ -43,6 +43,8 @@ Security principles for all future phases:
 - PostgreSQL Row Level Security is required for tenant-owned Supabase tables.
 - No service-role key may be imported into or exposed from client components.
 - Secrets stay in server-only environment variables and are never logged.
+- Transactional provider secrets are Production-only, never `NEXT_PUBLIC_`, and
+  one outbox event is submitted to only the selected provider.
 - External input must be validated before domain logic runs.
 - Output must be encoded by framework-safe rendering primitives.
 - Sensitive public endpoints need rate limiting.
@@ -54,6 +56,12 @@ Security principles for all future phases:
 - Origin and CSRF protections must be considered for state-changing requests.
 - Application logs must not contain credentials, tokens, customer private data,
   or security-sensitive implementation details.
+
+Cloudflare DNS and inbound forwarding, Vercel delivery, application Brevo API,
+Resend standby, and Supabase Auth email are separate trust boundaries. Provider
+activation does not grant database access, alter RLS, replay historical events,
+or authorize marketing contact synchronization. Supabase Auth uses Brevo custom
+SMTP with the verified sender, independently from the application outbox API.
 
 Explicit tenant rule:
 
@@ -724,3 +732,19 @@ masked recipient output, cross-links, and the absence of write controls. No
 production email/domain fixture was created. Failed temporary Auth creation
 attempts produced no user UUID or residue, and one active production
 `SUPER_ADMIN` remains.
+
+SEC-050 - External Transactional Email Is Server-Only And Minimized
+
+`BREVO_API_KEY` and `RESEND_API_KEY` are accepted only by server environment
+validation and provider modules marked `server-only`; no public-prefixed vendor
+credential exists. Provider selection fails closed when the selected external
+adapter lacks a valid key or sender and does not fall back to another real
+provider.
+
+Transactional providers receive only the minimum message and direct recipient
+information needed for the specific event. The adapters do not create contacts,
+lists, campaigns, or marketing state and do not log recipients, bodies, secure
+URLs, credentials, or provider payloads. Failure bodies are not parsed or
+returned; bounded categories feed the existing outbox classifier. Atomic claim
+and event uniqueness remain authoritative, while provider failure changes only
+the email event and never reverses committed domain state.

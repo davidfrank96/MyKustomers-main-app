@@ -602,8 +602,9 @@ cannot create a false booking failure or hold database locks open.
 
 Consequences: Submitted email is not ownership-verified. Failed events remain
 durable and claimable for a future retry worker. Production delivery requires
-explicit Resend sender configuration; the development adapter performs no
-external send.
+an explicitly selected external adapter with its reviewed sender configuration;
+the development adapter performs no external send. Brevo is the current approved
+Production provider and Resend remains supported.
 
 Revisit conditions: Contact ownership verification, customer-managed contact
 updates, retry scheduling, additional lifecycle event types, or another email
@@ -1029,3 +1030,25 @@ conversion, size bounds, deterministic storage, and RLS. Legacy businesses may
 remain without logos and retain upload, replace, and remove controls. A later
 decision should consider replacement-only behavior for active businesses. No
 migration is introduced.
+
+## ADR-044 - Transactional Providers Remain Behind The Durable Outbox
+
+Status: Accepted
+
+Decision: Keep development/no-network, Brevo, and Resend as interchangeable
+server-only adapters behind the existing transactional provider contract. Brevo
+is the approved Production provider after sender/domain and controlled-delivery
+verification. Domain workflows create durable events only; they never call a
+vendor directly. External provider failure never reverses an already committed
+booking or customer-domain transaction.
+
+Rationale: The atomic outbox claim is the durable concurrency and idempotency
+boundary. Provider selection, credentials, HTTP behavior, and response parsing
+belong at the integration edge and must not leak into confirmation, cancellation,
+amendment, add-on, or feedback domains.
+
+Consequences: Brevo receives only the recipient and rendered message required
+for one transactional send. Provider acceptance maps to existing `SENT`
+semantics, not inbox delivery. Delivery/bounce webhooks, automatic retries,
+quota telemetry, and Admin Retry remain separately reviewed work. No database
+migration or new infrastructure is introduced.

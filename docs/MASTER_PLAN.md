@@ -51,8 +51,9 @@ The product should remain deliberately lightweight.
 - Authorization: Server-side authorization plus PostgreSQL RLS.
 - Storage: Supabase Storage.
 - Validation: Zod.
-- Transactional email: provider-neutral server boundary with a no-network
-  development adapter and optional Resend adapter.
+- Transactional email: provider-neutral server boundary with development,
+  Brevo, and Resend adapters. Brevo is configured as Production primary; Resend
+  is verified standby with no automatic failover.
 - Testing: Vitest and Playwright.
 - Deployment: Vercel initially.
 - Native mobile: Not V1.
@@ -84,8 +85,10 @@ creates a durable `BOOKING_CONFIRMED` email event in the confirmation
 transaction. Confirmed-booking cancellation creates one durable
 `BOOKING_CANCELLED` event in the same cancellation transaction, preferring the
 immutable confirmation contact over current customer email. Development-safe
-delivery is implemented; production Resend configuration and other lifecycle
-email workflows remain future work.
+delivery and all current lifecycle email workflows are implemented. The Brevo
+Production adapter, sender/domain, and Vercel values are configured; one
+controlled post-deploy live send remains required before activation is verified.
+Resend is configured standby only.
 
 Inline customer creation during booking is VERIFIED. Every booking still
 belongs to exactly one tenant-owned customer, but a vendor may select an active
@@ -505,10 +508,11 @@ authenticated production smoke verified the minimized live routes.
 `/admin/emails` provides a bounded platform-wide summary, event distribution,
 search, filters, stable pagination, business/booking links, and safe event
 detail. It never returns message content, full recipients, provider identifiers,
-raw failures, or provider configuration. Current evidence is `OUTBOX ACTIVE -
-EXTERNAL DELIVERY NOT CONFIGURED`; one pending event is older than the documented
-15-minute potential-stuck threshold. There is no retry scheduler. Admin Phase 6
-safe writes and Phase 7 system health remain planned.
+raw failures, or provider configuration. The next reviewed deployment selects
+Brevo; provider acceptance and inbox receipt remain verification-pending. The
+historical pending event was never claimed, has zero attempts,
+targets the reserved `example.com` domain, and will not be replayed. There is no
+retry scheduler. Admin Phase 6 safe writes and Phase 7 system health remain planned.
 
 ## Booking Journey UX Maintenance
 

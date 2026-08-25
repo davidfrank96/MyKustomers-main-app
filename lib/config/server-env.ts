@@ -8,8 +8,11 @@ const optionalSecret = z
 
 const serverEnvSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: optionalSecret.optional(),
+  BREVO_API_KEY: optionalSecret.optional(),
   RESEND_API_KEY: optionalSecret.optional(),
-  TRANSACTIONAL_EMAIL_PROVIDER: z.enum(["development", "resend"]).default("development"),
+  TRANSACTIONAL_EMAIL_PROVIDER: z
+    .enum(["development", "brevo", "resend"])
+    .default("development"),
   TRANSACTIONAL_EMAIL_FROM: optionalSecret.optional(),
 });
 
@@ -17,6 +20,7 @@ export const serverEnv = {
   ...publicEnv,
   ...serverEnvSchema.parse({
     SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+    BREVO_API_KEY: process.env.BREVO_API_KEY,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     TRANSACTIONAL_EMAIL_PROVIDER: process.env.TRANSACTIONAL_EMAIL_PROVIDER,
     TRANSACTIONAL_EMAIL_FROM: process.env.TRANSACTIONAL_EMAIL_FROM,

@@ -1,68 +1,115 @@
 import "server-only";
-import { randomUUID } from "node:crypto";
 import { serverEnv } from "@/lib/config/server-env";
+import { createBrevoEmailProvider } from "@/lib/email/providers/brevo";
+import { developmentEmailProvider } from "@/lib/email/providers/development";
+import { createResendEmailProvider } from "@/lib/email/providers/resend";
+import { parseTransactionalEmailSender } from "@/lib/email/providers/shared";
 import type {
   TransactionalEmailProvider,
+  TransactionalEmailProviderName,
 } from "@/lib/email/types";
 
-const developmentProvider: TransactionalEmailProvider = {
-  async send() {
-    return {
-      status: "sent",
-      messageId: `development-${randomUUID()}`,
-    };
-  },
+export type TransactionalEmailProviderConfig = {
+  provider: string;
+  brevoApiKey?: string;
+  resendApiKey?: string;
+  from?: string;
 };
 
-const resendProvider: TransactionalEmailProvider = {
-  async send(message) {
-    if (!serverEnv.RESEND_API_KEY || !serverEnv.TRANSACTIONAL_EMAIL_FROM) {
+export type TransactionalEmailProviderSelection = {
+  name: TransactionalEmailProviderName | "unsupported";
+  label: "Development" | "Brevo" | "Resend" | "Unsupported";
+  external: boolean;
+  configured: boolean;
+  provider: TransactionalEmailProvider;
+};
+
+type ProviderDependencies = {
+  fetchImpl?: typeof fetch;
+  timeoutMs?: number;
+};
+
+function unavailableEmailProvider(): TransactionalEmailProvider {
+  return {
+    name: "unavailable",
+    async send() {
       return {
         status: "failed",
         code: "provider_not_configured",
         message: "The transactional email provider is not fully configured.",
       };
-    }
+    },
+  };
+}
 
-    const response = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${serverEnv.RESEND_API_KEY}`,
-        "Content-Type": "application/json",
-        "Idempotency-Key": message.idempotencyKey,
-      },
-      body: JSON.stringify({
-        from: serverEnv.TRANSACTIONAL_EMAIL_FROM,
-        to: [message.to],
-        subject: message.subject,
-        html: message.html,
-        text: message.text,
-      }),
-    });
+export function resolveTransactionalEmailProvider(
+  config: TransactionalEmailProviderConfig,
+  dependencies: ProviderDependencies = {},
+): TransactionalEmailProviderSelection {
+  if (config.provider === "development") {
+    return {
+      name: "development",
+      label: "Development",
+      external: false,
+      configured: true,
+      provider: developmentEmailProvider,
+    };
+  }
 
-    if (!response.ok) {
-      return {
-        status: "failed",
-        code: `provider_http_${response.status}`,
-        message: "The transactional email provider rejected the request.",
-      };
-    }
+  const senderConfigured = Boolean(parseTransactionalEmailSender(config.from));
 
-    const result = (await response.json()) as { id?: unknown };
-    if (typeof result.id !== "string" || result.id.length === 0) {
-      return {
-        status: "failed",
-        code: "provider_invalid_response",
-        message: "The transactional email provider returned an invalid response.",
-      };
-    }
+  if (config.provider === "brevo") {
+    const configured = Boolean(config.brevoApiKey && senderConfigured);
+    return {
+      name: "brevo",
+      label: "Brevo",
+      external: true,
+      configured,
+      provider: configured
+        ? createBrevoEmailProvider({
+            apiKey: config.brevoApiKey!,
+            from: config.from!,
+            ...dependencies,
+          })
+        : unavailableEmailProvider(),
+    };
+  }
 
-    return { status: "sent", messageId: result.id };
-  },
-};
+  if (config.provider === "resend") {
+    const configured = Boolean(config.resendApiKey && senderConfigured);
+    return {
+      name: "resend",
+      label: "Resend",
+      external: true,
+      configured,
+      provider: configured
+        ? createResendEmailProvider({
+            apiKey: config.resendApiKey!,
+            from: config.from!,
+            ...dependencies,
+          })
+        : unavailableEmailProvider(),
+    };
+  }
+
+  return {
+    name: "unsupported",
+    label: "Unsupported",
+    external: true,
+    configured: false,
+    provider: unavailableEmailProvider(),
+  };
+}
+
+export function getTransactionalEmailProviderSelection() {
+  return resolveTransactionalEmailProvider({
+    provider: serverEnv.TRANSACTIONAL_EMAIL_PROVIDER,
+    brevoApiKey: serverEnv.BREVO_API_KEY,
+    resendApiKey: serverEnv.RESEND_API_KEY,
+    from: serverEnv.TRANSACTIONAL_EMAIL_FROM,
+  });
+}
 
 export function getTransactionalEmailProvider() {
-  return serverEnv.TRANSACTIONAL_EMAIL_PROVIDER === "resend"
-    ? resendProvider
-    : developmentProvider;
+  return getTransactionalEmailProviderSelection().provider;
 }

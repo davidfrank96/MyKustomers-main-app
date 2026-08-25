@@ -51,6 +51,8 @@ Rules:
 - No feature is complete merely because it compiles.
 - Update tests when behavior changes.
 - Keep secrets out of source control and browser bundles.
+- Keep local email on the no-network adapter by default. Production Brevo and
+  Resend credentials must not be pulled into Preview or Development.
 
 ## Image Upload Governance
 
@@ -140,6 +142,15 @@ are documented in `docs/CI.md`.
 - Do not add migration execution to install, build, or deployment commands.
 - Update `docs/DEPLOYMENT.md` when domains, environment scope, providers,
   deployment ownership, or rollback behavior changes.
+
+## Transactional Email Development
+
+Keep `TRANSACTIONAL_EMAIL_PROVIDER=development` for ordinary local and Preview
+work. Opting into Brevo or Resend requires an intentional server-only key and
+sender configuration plus a controlled recipient. Never run broad E2E suites
+with an external provider pointed at customer addresses. Provider changes must
+preserve the durable outbox boundary, no-network default, domain-state failure
+isolation, and the tests described in `docs/TRANSACTIONAL_EMAIL.md`.
 
 ## Multi-Business Development
 
