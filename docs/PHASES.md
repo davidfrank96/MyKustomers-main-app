@@ -990,7 +990,7 @@ Admin Phase 6 remains planned and is not started.
 
 ## 2026-08-25 Booking Journey UX Maintenance
 
-Status: IMPLEMENTED - VERIFICATION PENDING
+Status: VERIFIED - PRODUCTION
 
 This targeted cross-phase UX pass adds a server-derived booking lifecycle
 stepper, explicit current-state guidance, one prominent valid next action,
@@ -1000,3 +1000,12 @@ RPC, RLS policy, migration, or public customer route. It also clarifies
 Scheduled delivery date and starts new total/deposit entry empty while keeping
 the total required and normalizing an empty optional deposit to zero minor
 units. Admin Phase 6 and broad visual redesign are not started.
+
+PR #21 passed all required executable CI checks and merged conflict-free as
+`b26f0c4`. Vercel deployed the same `main` commit. Controlled production smoke
+verified form clarity, the confirmed-through-completed vendor journey, feedback
+guidance, and 320-1440 responsive containment, then removed its temporary Auth,
+business, customer, booking, history, confirmation, email, and audit fixtures
+with zero account/business leftovers. Runtime fixture suites remained
+intentionally skipped by the protected-backend safe-target gate; no gate was
+weakened or bypassed.
