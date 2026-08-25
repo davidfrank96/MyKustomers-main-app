@@ -254,7 +254,7 @@ production-readiness work.
 - [x] Production-only `TRANSACTIONAL_EMAIL_PROVIDER`, `BREVO_API_KEY`,
       `TRANSACTIONAL_EMAIL_FROM`, and `RESEND_API_KEY` configured without
       exposing values.
-- [ ] One new controlled event accepted by Brevo, provider evidence stored, inbox
+- [x] One new controlled event accepted by Brevo, provider evidence stored, inbox
       receipt checked, and Admin Email Operations verified after deployment.
 - [x] Historical events, including the never-claimed reserved-domain pending event,
       are excluded from activation replay.
@@ -262,7 +262,7 @@ production-readiness work.
 - [x] Canonical apex/www TLS, retained Vercel hostname, exact Supabase callbacks,
       and Cloudflare inbound alias configured.
 - [x] Supabase custom SMTP configuration persisted with the verified sender.
-- [ ] Controlled signup/reset email delivery and callbacks verified.
+- [x] Controlled signup/reset email delivery and callbacks verified.
 - [x] Provider-neutral booking-confirmed HTML/plain-text templates reviewed.
 - [x] Durable booking-confirmed event and post-commit failure behavior verified.
 - [x] Provider-neutral booking-cancelled HTML/plain-text template reviewed.

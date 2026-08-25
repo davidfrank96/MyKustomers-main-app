@@ -743,3 +743,26 @@ temporary admin/Auth leftovers and exactly one approved active `SUPER_ADMIN`.
   additional logos, switching, completion Cancel/final paths and feedback at
   320px, and logo replace/remove/restore. Cleanup proved zero controlled Auth
   or business fixtures remained.
+
+## Production Domain And Email Verification
+
+- PR #25 passed Quality, Tests, Build, E2E, Dependency Security, and Vercel;
+  Runtime Security was intentionally skipped by the protected-target gate.
+  GitHub reported no conflicts before merge `25df3c5` deployed to Production.
+- Canonical apex TLS, `www` permanent redirect, retained Vercel hostname, exact
+  Supabase callbacks, Google OAuth, and email/password session behavior passed.
+- Supabase Auth custom SMTP delivered controlled signup and recovery messages
+  through the verified Brevo sender. Signup confirmation, zero-business routing,
+  recovery callback, password update, old-password rejection, new-password login,
+  session establishment, and logout passed on the canonical domain.
+- One isolated booking confirmation created one durable event, claimed it once,
+  persisted `SENT` with a provider ID and no failure, appeared in Admin Email
+  Operations, and separately showed delivered/opened in Brevo and received in
+  the controlled inbox. The historical pending event was not replayed.
+- Cloudflare recorded one controlled `hello@mykustomers.com` message received and
+  delivered/forwarded. Cleanup returned controlled business, customer, booking,
+  email-event, and Auth-user counts to zero.
+- Existing provider unit/static coverage remains the regression layer for Brevo
+  failure classes and Resend standby behavior. No new test was required for this
+  documentation-only verification follow-up because application behavior did not
+  change after the already tested and merged implementation.

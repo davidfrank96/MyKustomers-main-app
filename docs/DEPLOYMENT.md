@@ -115,8 +115,9 @@ never submits one event to both providers and has no automatic failover.
 
 Do not describe an outbox event as customer delivery. Brevo reports the root
 domain and My Kustomers sender verified; Resend reports its standby domain
-verified. Delivery remains verification-pending until a new controlled event is
-accepted after deployment and its inbox result is checked. Active names are:
+verified. One new controlled booking-confirmation event was accepted by Brevo,
+reached the controlled inbox, and appeared in Admin Email Operations after the
+reviewed deployment. Active names are:
 
 | Name                           | Boundary             | Scope      | Purpose                                 |
 | ------------------------------ | -------------------- | ---------- | --------------------------------------- |
@@ -126,16 +127,16 @@ accepted after deployment and its inbox result is checked. Active names are:
 | `RESEND_API_KEY`               | Server secret        | Production | Standby direct transactional sends      |
 
 Do not copy these values into Preview or Development, use a
-`NEXT_PUBLIC_BREVO_API_KEY`, or expose values during configuration. After the
-reviewed deployment, verify one new controlled event and inbox only; never replay
+`NEXT_PUBLIC_BREVO_API_KEY`, or expose values during configuration. Never replay
 historical events. Roll back delivery by restoring the prior Production provider
 selection or removing external-provider configuration, then redeploy. Resend is
 not automatically invoked after a Brevo failure.
 
 Supabase Auth email is separate from this outbox. Production custom SMTP is
 enabled with the verified My Kustomers sender through Brevo. Signup and
-password-recovery delivery remain verification-pending until controlled inbox
-and callback tests complete.
+password-recovery delivery, canonical callbacks, password update, old/new
+password behavior, session establishment, and logout have controlled production
+evidence.
 See `docs/DOMAIN_EMAIL_INFRASTRUCTURE.md`.
 
 ## Release Process

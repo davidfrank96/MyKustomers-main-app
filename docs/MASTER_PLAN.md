@@ -65,7 +65,7 @@ Accepted decisions are recorded in `docs/DECISIONS.md`.
 - Phase 0 - Product Definition: VERIFIED.
 - Phase 1 - Repository Foundation: VERIFIED.
 - Phase 1.5 - Project Governance and Planning: VERIFIED.
-- Phase 2 - Authentication and Multi-Tenancy Foundation: IMPLEMENTED - VERIFICATION PENDING.
+- Phase 2 - Authentication and Multi-Tenancy Foundation: VERIFIED.
 - Phase 3 - Business Onboarding: VERIFIED.
 - Phase 4 - Customer Management: VERIFIED.
 - Phase 5 - Booking Engine: VERIFIED.
@@ -86,9 +86,9 @@ transaction. Confirmed-booking cancellation creates one durable
 `BOOKING_CANCELLED` event in the same cancellation transaction, preferring the
 immutable confirmation contact over current customer email. Development-safe
 delivery and all current lifecycle email workflows are implemented. The Brevo
-Production adapter, sender/domain, and Vercel values are configured; one
-controlled post-deploy live send remains required before activation is verified.
-Resend is configured standby only.
+Production adapter, sender/domain, and Vercel values are configured. A controlled
+post-deploy booking confirmation passed provider acceptance, delivery-log,
+inbox, and Admin Operations verification. Resend is configured standby only.
 
 Inline customer creation during booking is VERIFIED. Every booking still
 belongs to exactly one tenant-owned customer, but a vendor may select an active
@@ -153,13 +153,11 @@ Supabase database:
 - Cross-tenant select/mutation denial, membership escalation denial, owner/member
   authorization, profile isolation, anonymous denial, and audit write boundaries.
 
-Implemented in Phase 2 but still verification-pending overall:
-
-- Public signup E2E is blocked by the configured Supabase project's email rate
-  limit during Phase 2V and by the absence of a safe default-email inbox during
-  Phase 2E.
-- Reset-password completion remains partial until recovery email delivery/token
-  handling can be exercised end to end.
+Phase 2 email verification completed on 2026-08-25 using Brevo custom SMTP for
+Supabase Auth. A controlled signup reached the inbox and confirmed into an
+authenticated zero-business session. Recovery reached the canonical callback,
+updated the password, rejected the old password, accepted the new password, and
+logged out cleanly. The earlier default-sender rate-limit limitation is closed.
 
 Implemented and verified in Phase 3:
 
@@ -508,9 +506,9 @@ authenticated production smoke verified the minimized live routes.
 `/admin/emails` provides a bounded platform-wide summary, event distribution,
 search, filters, stable pagination, business/booking links, and safe event
 detail. It never returns message content, full recipients, provider identifiers,
-raw failures, or provider configuration. The next reviewed deployment selects
-Brevo; provider acceptance and inbox receipt remain verification-pending. The
-historical pending event was never claimed, has zero attempts,
+raw failures, or provider configuration. Production selects Brevo, and a new
+controlled event passed provider acceptance, inbox receipt, and Admin listing.
+The historical pending event was never claimed, has zero attempts,
 targets the reserved `example.com` domain, and will not be replayed. There is no
 retry scheduler. Admin Phase 6 safe writes and Phase 7 system health remain planned.
 

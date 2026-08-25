@@ -2,7 +2,7 @@
 
 ## 2026-08-25 - Production Domain And Email Infrastructure
 
-Status: IMPLEMENTED - PRODUCTION DELIVERY VERIFICATION PENDING
+Status: VERIFIED - PRODUCTION
 
 - Attached `mykustomers.com` and `www.mykustomers.com` to Vercel Production,
   issued valid TLS, made the apex canonical, preserved the original Vercel
@@ -15,7 +15,13 @@ Status: IMPLEMENTED - PRODUCTION DELIVERY VERIFICATION PENDING
   replay, marketing synchronization, infrastructure, and database changes remain
   absent.
 - Enabled Supabase custom SMTP with the verified My Kustomers sender through
-  Brevo. Controlled signup and recovery delivery remain verification-pending.
+  Brevo. Controlled signup confirmation, recovery, password update, old/new
+  password behavior, canonical callbacks, session, and logout passed.
+- Verified one new booking-confirmation event through durable claim, Brevo API
+  acceptance, provider delivery log, controlled inbox receipt, and truthful
+  Admin Email Operations, then removed every controlled Auth/domain fixture.
+- Verified the active `hello@mykustomers.com` route with one controlled message;
+  Cloudflare recorded it received and delivered/forwarded.
 
 ## 2026-08-25 - Booking Completion And Required Business Logo
 
