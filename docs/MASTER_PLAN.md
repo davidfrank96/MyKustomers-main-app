@@ -550,3 +550,12 @@ verification; a short-lived HTTP-only marker preserves the same-browser route.
 Pending workspaces are excluded from current-business resolution and switching,
 so failures remain resumable without repeat creation. No schema, lifecycle,
 email, environment, or Admin Phase 6 change is included.
+
+Production verification completed on 2026-08-25 after PR #23 passed required
+CI and merged conflict-free as `9dae103`. Vercel deployed that exact `main`
+commit. A controlled production fixture passed first/additional-business logo
+enforcement and optimized persistence, current-business switching, the
+application-owned completion dialog Cancel/final paths at 320px, feedback
+handoff, and logo replace/remove/restore. Cleanup confirmed zero temporary Auth
+or business leftovers. The paused transactional-email branch remains preserved;
+no migration, environment change, Docker stack, or Admin Phase 6 work occurred.

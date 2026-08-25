@@ -36,7 +36,7 @@ planned broad visual redesign or Phase 11 PWA/UX hardening.
 | Structural route loading                  | 320-1440              | Async navigation needed feedback without layout shift, fake controls, or motion-only meaning  | Stable dashboard/list/detail/form skeletons, one accessible status, reduced-motion opt-out, and bounded grids                | Component semantics plus desktop/mobile route E2E                                                                 | VERIFIED    |
 | Business switch pending                   | Mobile/desktop        | Previous tenant content could remain visible while the next workspace resolved                | Opaque fixed pending layer driven by the shared switch form status                                                           | Multi-business desktop/mobile E2E and component review                                                            | VERIFIED    |
 | Booking journey stepper/action            | 320-1440              | Seven lifecycle labels and a primary action needed hierarchy without horizontal compression   | Vertical semantic stepper, two-column desktop composition, full-width mobile primary action, and secondary action disclosure | Canonical booking and cancellation E2E in desktop/mobile projects at 320, 360, 375, 390, 430, 768, 1024, and 1440 | VERIFIED    |
-| Completion dialog and required logo setup | 320-1440              | Terminal confirmation and logo controls must remain visible without browser UI or overflow    | Radix dialog with stacked mobile actions; bounded shared logo preview/input and staged setup                                 | Booking cancel/confirm at 320 plus onboarding and full responsive route matrix                                    | IMPLEMENTED |
+| Completion dialog and required logo setup | 320-1440              | Terminal confirmation and logo controls must remain visible without browser UI or overflow    | Radix dialog with stacked mobile actions; bounded shared logo preview/input and staged setup                                 | Booking cancel/confirm at 320 plus onboarding and full responsive route matrix                                    | VERIFIED    |
 
 ## Evidence
 
@@ -71,5 +71,10 @@ labels or horizontal overflow. Controlled fixtures were removed afterward.
 
 The 2026-08-25 urgent maintenance adds an explicit 320px completion-dialog
 assertion and reuses the existing 320, 360, 375, 390, 430, 768, 1024, and 1440
-onboarding/business matrix for the required logo section. Production-like and
-post-deployment evidence remains pending until the full E2E/CI/deployment pass.
+onboarding/business matrix for the required logo section. PR #23 passed E2E and
+the other required executable CI jobs before merge `9dae103`. Post-deployment
+production smoke repeated the dialog Cancel/final paths and document-overflow
+check at 320px, then verified first/additional logo controls and switching at
+1440px. Controlled fixtures were removed afterward. Physical-device and
+standalone installed-PWA acceptance remain release-hardening work; application
+behavior no longer depends on browser popup presentation.

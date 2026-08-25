@@ -714,3 +714,15 @@ temporary admin/Auth leftovers and exactly one approved active `SUPER_ADMIN`.
 - Booking E2E proves dialog visibility, cancel without mutation, final
   completion, feedback guidance, and 320px containment without a browser dialog
   handler.
+- Local verification passed lint, typecheck, 280 unit/integration/static tests,
+  the safe-target runtime command, 35 E2E tests with 7 documented skips, build,
+  moderate audit with zero vulnerabilities, and whitespace checks. A focused
+  recovery E2E also removed the routing cookie before reload and completed the
+  same persisted pending business.
+- PR #23 passed Quality, Tests, Build, E2E, and Dependency Security; Runtime
+  Security was intentionally skipped by the protected-backend safe-target
+  policy. After Vercel deployed merge `9dae103`, one isolated production Auth
+  user verified no-logo rejection without row creation, optimized first and
+  additional logos, switching, completion Cancel/final paths and feedback at
+  320px, and logo replace/remove/restore. Cleanup proved zero controlled Auth
+  or business fixtures remained.
