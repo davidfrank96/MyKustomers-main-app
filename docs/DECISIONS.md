@@ -959,3 +959,26 @@ recipient/provider/failure payload, customer contact, write RPC, or audit-on-rea
 is introduced. Search is literal and bounded, pages contain 20 records, UUIDs
 are route-validated, and current-business state is irrelevant. Customer browsing
 and full email operations remain future separately authorized scope.
+
+## ADR-041 - Admin Email Operations Exposes Outbox Metadata, Not Communications
+
+Status: Accepted
+
+Decision: Admin Phase 5 uses one active-admin-only RPC for a time-bounded status
+summary and event directory and one RPC for minimized event detail. The directory
+contains no recipient or failure payload. Detail may expose the existing masked
+recipient and a fixed failure category derived inside PostgreSQL. `SENT` means
+the configured adapter/provider accepted the request; delivery, bounce, opening,
+and reading are not inferred.
+
+Rationale: Operational diagnosis needs event state, type, tenant context,
+attempts, and timing, not access to customer communications. One database-side
+projection avoids N+1 reads and gives stable status/filter semantics without a
+generic outbox browser or direct table grant.
+
+Consequences: The default window is seven days with Today and 30-day presets.
+Pending or sending events older than 15 minutes are potentially stuck because
+delivery is invoked immediately after commit and no retry scheduler exists.
+Retry/resend remains Admin Phase 6 work requiring MFA, write authorization,
+idempotency, reason/audit semantics, and external-side-effect review. No index is
+added at current volume; a future index requires measured query-plan evidence.

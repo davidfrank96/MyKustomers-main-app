@@ -45,7 +45,7 @@ describe("platform admin read-only booking and issue operations boundary", () =>
 
   it("keeps all privileged calls server-only, admin-first, and tenant-context independent", () => {
     expect(queries.startsWith('import "server-only";')).toBe(true);
-    expect(queries.match(/await requirePlatformAdmin\(\)/g)).toHaveLength(9);
+    expect(queries.match(/await requirePlatformAdmin\(\)/g)).toHaveLength(11);
     expect(queries).not.toMatch(/createServiceRoleClient|SUPABASE_SERVICE_ROLE_KEY/);
     expect(queries).not.toMatch(/getCurrentBusinessContext|getSelectedBusinessId/);
   });

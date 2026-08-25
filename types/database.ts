@@ -775,6 +775,23 @@ export type Database = {
         Args: { p_issue_id: string };
         Returns: Json;
       };
+      get_platform_admin_email_operations: {
+        Args: {
+          p_search?: string | null;
+          p_status?: string;
+          p_event_type?: string;
+          p_range?: string;
+          p_business_id?: string | null;
+          p_booking_id?: string | null;
+          p_page?: number;
+          p_page_size?: number;
+        };
+        Returns: Json;
+      };
+      get_platform_admin_email_event: {
+        Args: { p_email_event_id: string };
+        Returns: Json;
+      };
       create_booking_with_customer: {
         Args: {
           p_business_id: string;
@@ -1111,5 +1128,4 @@ export type Database = {
 export type BusinessMemberRole = Database["public"]["Enums"]["business_member_role"];
 export type AuditEventType = Database["public"]["Enums"]["audit_event_type"];
 export type PlatformAdminRole = Database["public"]["Enums"]["platform_admin_role"];
-export type PlatformAdminStatus =
-  Database["public"]["Enums"]["platform_admin_status"];
+export type PlatformAdminStatus = Database["public"]["Enums"]["platform_admin_status"];

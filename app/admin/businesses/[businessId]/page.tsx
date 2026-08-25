@@ -134,6 +134,7 @@ export default async function AdminBusinessDetailPage({
           <div className="flex flex-wrap gap-4 text-sm font-medium">
             <Link href={`/admin/bookings?business=${business.id}` as Route} className="text-primary">View bookings</Link>
             <Link href={`/admin/issues?business=${business.id}` as Route} className="text-primary">View issues</Link>
+            <Link href={`/admin/emails?business=${business.id}` as Route} className="text-primary">View email operations</Link>
           </div>
         </div>
         <dl className="mt-4 grid grid-cols-2 gap-px bg-border lg:grid-cols-4">

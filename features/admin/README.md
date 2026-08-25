@@ -6,6 +6,8 @@ Admin Phase 3 adds narrow read-only business and user support directories and
 details. Admin Phase 4 adds narrow read-only booking and issue operations; it
 does not provide mutations. Phase 4 is verified in production from PR #17 and
 merge `edbef26`.
+Admin Phase 5 adds read-only email operations. Its production-backed RPC
+migration is applied and runtime verified; application deployment is pending.
 
 ## Modules
 
@@ -21,9 +23,12 @@ merge `edbef26`.
   detail DTOs and formats provider names.
 - `features/admin/operations.ts` parses booking/issue list, filter, and detail
   DTOs and rejects unexpected privileged response fields.
+- `features/admin/email-operations.ts` parses bounded email summary, directory,
+  and detail DTOs and derives controlled operational health labels.
 - `features/admin/queries.ts` is server-only and invokes one narrow RPC per
   overview, directory, or detail after platform authorization.
-- `app/admin` implements Overview, Businesses, Users, Bookings, and Issues with
+- `app/admin` implements Overview, Businesses, Users, Bookings, Issues, and
+  Email Operations with
   structural loading, safe unavailable/not-found states, and cross-linked
   support details.
 
@@ -45,6 +50,9 @@ merge `edbef26`.
   private feedback comments, and email recipient/provider/failure payloads.
 - Effective booking totals include confirmed add-ons only; child records never
   increase booking row counts.
+- Email directories expose no recipient or failure fields. Detail exposes only
+  masked recipient and a controlled failure category; content, provider IDs,
+  raw failures, retry, resend, and status mutation remain absent.
 
 ## Adding A Future Capability
 

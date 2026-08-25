@@ -77,6 +77,7 @@ not assume repository presence alone proves application.
 | `20260825003000_platform_admin_read_only_overview.sql`                     | Applied to the production-backed configured project; aggregate-only active-admin overview RPC and exact runtime security verification passed                  |
 | `20260825003219_platform_admin_read_only_directories.sql`                  | Applied to the production-backed configured project; four narrow business/user directory/detail RPCs and production read-only verification passed             |
 | `20260825022135_platform_admin_read_only_booking_issue_operations.sql`     | Explicitly approved and applied transactionally to the production-backed project; ownership, grants, active/anonymous behavior, and real-data projections verified |
+| `20260825095217_platform_admin_read_only_email_operations.sql`             | Explicitly approved and applied transactionally; three functions, two authenticated execute grants, no domain or index changes; runtime authorization verified   |
 
 The configured development project's historical CLI migration table remains
 empty because this project predates enforced version tracking. These migrations
@@ -180,3 +181,18 @@ production-backed; the user explicitly approved this exact file and it applied
 transactionally. Post-apply inspection confirmed postgres ownership, stable
 security-definer execution, empty search paths, authenticated-only grants,
 internal active-admin checks, and one unchanged active production admin.
+
+## 2026-08-25 Platform Admin Read-Only Email Operations Migration
+
+`20260825095217_platform_admin_read_only_email_operations.sql` adds three
+functions: one private immutable failure classifier and two postgres-owned,
+stable, empty-search-path `SECURITY DEFINER` read RPCs for a combined summary /
+directory and minimized event detail. It revokes execution from PUBLIC,
+anonymous, and authenticated before granting only the two public RPCs to
+`authenticated`; both still assert active `SUPER_ADMIN` internally.
+
+It adds no table, column, enum, policy, trigger, index, direct table grant, or
+domain-data change. The user explicitly approved the file and it applied in one
+transaction. Post-apply inspection confirmed postgres ownership, empty search
+paths, authenticated-only public RPC grants, absent PUBLIC/anonymous grants,
+unchanged eight outbox rows, and one unchanged active production admin.

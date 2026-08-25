@@ -497,3 +497,14 @@ server-paginated booking and issue operations. Booking value means current
 canonical booking value plus confirmed add-ons only. Directories are minimized;
 detail evidence is allowlisted and never returns raw tokens/hashes, internal
 notes, feedback comments, or email delivery payloads. No admin write exists.
+
+Admin Phase 5 email operations is implemented in the repository. Its read-only
+RPC migration is applied to the production-backed project and runtime verified;
+PR/CI and Vercel deployment remain pending.
+`/admin/emails` provides a bounded platform-wide summary, event distribution,
+search, filters, stable pagination, business/booking links, and safe event
+detail. It never returns message content, full recipients, provider identifiers,
+raw failures, or provider configuration. Current evidence is `OUTBOX ACTIVE -
+EXTERNAL DELIVERY NOT CONFIGURED`; one pending event is older than the documented
+15-minute potential-stuck threshold. There is no retry scheduler. Admin Phase 6
+safe writes and Phase 7 system health remain planned.

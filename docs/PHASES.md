@@ -955,4 +955,30 @@ Customer directory browsing, private feedback comments, full email operations,
 editing, cancellation, status transitions, issue resolution, impersonation,
 suspension, hard deletion, membership mutation, and billing are excluded.
 
-Admin Phase 5 remains planned as defined in `docs/ADMIN_SECURITY.md`.
+## Admin Phase 5 - Read-Only Email Operations
+
+Status: IMPLEMENTED - PRODUCTION DEPLOYMENT PENDING
+
+Objective: Provide truthful platform-wide outbox visibility without exposing
+customer communications or enabling external side effects.
+
+Scope: `/admin/emails`, four authoritative status counts, Today/7-day/30-day
+presets, actual event-type and status filters, bounded literal search, stable
+20-row pagination, safe business/booking context, detail-only recipient masking,
+controlled failure categories, adapter configuration state, and a documented
+15-minute potential-stuck signal. One RPC combines summary and directory work;
+one RPC returns detail, and strict DTO parsing protects both boundaries.
+
+Security impact: Every RPC independently requires an active `SUPER_ADMIN`, is
+postgres-owned with an empty search path, and grants execute only to
+`authenticated`. No direct outbox table grant, service-role page query, body,
+provider ID, raw failure, full recipient, token, mutation, or audit-on-read is
+introduced. The current-business cookie is irrelevant.
+
+Verification status: the approved production-backed migration applied
+transactionally. Ownership, search paths, grants, anonymous/ordinary/disabled
+denial, active-admin reads, filters, data minimization, outbox immutability, and
+temporary-account cleanup pass. The full Playwright suite passes with 35 tests
+and 7 intentional skips. PR/CI, Vercel deployment, and production route smoke
+remain pending. Docker is not used. Admin Phase 6 remains planned and is not
+started.

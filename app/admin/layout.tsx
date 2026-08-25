@@ -3,6 +3,7 @@ import {
   ArrowLeft,
   Building2,
   CalendarDays,
+  Mail,
   ShieldCheck,
   Users,
 } from "lucide-react";
@@ -109,6 +110,13 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
             >
               <AlertTriangle className="size-4" aria-hidden="true" />
               Issues
+            </Link>
+            <Link
+              href="/admin/emails"
+              className="inline-flex items-center gap-1.5 font-medium text-primary"
+            >
+              <Mail className="size-4" aria-hidden="true" />
+              Email Operations
             </Link>
             <Link
               href="/dashboard"
