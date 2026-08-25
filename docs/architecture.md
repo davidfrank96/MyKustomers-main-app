@@ -342,9 +342,15 @@ The platform-admin namespace is a separate domain shell within the monolith.
 Supabase Auth establishes identity, `platform_admins` establishes platform
 authority, and `business_members` continues to establish tenant authority. The
 admin layout authenticates first and then uses the caller's normal server
-Supabase client to invoke an active-caller-only function. It does not load
+Supabase client to invoke an active-caller-only identity function. It does not load
 business context or import the service-role client.
 
-Future privileged platform reads must be narrow, server-only operations after
+Admin Phase 2 follows that guard with `features/admin/queries.ts`, a server-only
+boundary that invokes `get_platform_admin_overview()`. The database function
+rechecks active `SUPER_ADMIN` authority and returns aggregate counts only. Its
+single-statement snapshot is independent of the current-business cookie and
+contains no row-level or financial data.
+
+Privileged platform reads must remain narrow, server-only operations after
 `requirePlatformAdminRole`. A generic unrestricted admin data client is not an
 accepted architecture. See `docs/ADMIN_SECURITY.md` and ADR-037.

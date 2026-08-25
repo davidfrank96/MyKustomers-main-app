@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-08-25 - Admin Production Bootstrap And Read-Only Operations
+
+- Verified the production admin foundation with the approved existing Auth
+  identity as the sole active `SUPER_ADMIN`; live disable/re-enable checks proved
+  next-request revocation, restoration, and expected audit evidence.
+- Added an aggregate-only active-admin RPC and server boundary for platform,
+  booking, issue, and email-state counts, with no PII, monetary totals, record
+  browsing, or mutations.
+- Replaced the empty admin landing surface with a responsive operational
+  overview, structural loading state, safe unavailable state, and truthful
+  database/authorization/outbox status.
+- Added exact unit, static security, live runtime-security, cross-business E2E,
+  and 390/768/1024/1440 responsive regression coverage. Production UI deployment
+  remains pending the release and post-deploy verification steps.
+
 ## 2026-08-24 - Platform Admin Authorization Foundation
 
 - Added the dedicated `platform_admins` role/status model, RLS, browser grant
@@ -10,7 +25,8 @@
   and platform/vendor authority separation documentation.
 - Added unit, static security, live Supabase, E2E, and responsive regression
   coverage. The migration was applied only to the configured development
-  database; production rollout and production admin creation remain deferred.
+  database at that point; the 2026-08-25 entry supersedes that historical
+  rollout status.
 - Isolated the existing canonical E2E browser projects into distinct test-only
   rate-limit identities so parallel confirmation journeys cannot exhaust one
   shared loopback bucket; production rate limits and assertions are unchanged.

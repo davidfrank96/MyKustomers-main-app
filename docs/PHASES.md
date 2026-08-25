@@ -849,7 +849,7 @@ live Supabase, desktop/mobile E2E, and responsive evidence is recorded in
 
 ## Admin Phase 0/1 - Platform Admin Authorization Foundation
 
-STATUS: VERIFIED IN DEVELOPMENT
+STATUS: VERIFIED IN PRODUCTION
 
 Implemented scope:
 
@@ -861,8 +861,30 @@ Implemented scope:
 - trigger-backed authority-change audit and controlled bootstrap runbook;
 - unit, static migration, live security, E2E, and responsive coverage.
 
-Excluded: production rollout, production seed, operational summaries, platform
-data browsing, impersonation, admin management UI, billing, staff management,
-generic editing, destructive mutation, and hard deletion.
+Production evidence: the approved existing Auth account is the sole active
+`SUPER_ADMIN`; the production route and shell passed; ordinary tenant roles
+remain unrelated; an ACTIVE-to-DISABLED-to-ACTIVE round trip revoked and restored
+the existing session on reload and produced the expected audit events.
 
-Future Admin Phases 2-7 remain planned as defined in `docs/ADMIN_SECURITY.md`.
+Excluded: operational record browsing, impersonation, admin management UI,
+billing, staff management, generic editing, destructive mutation, and hard
+deletion.
+
+## Admin Phase 2 - Read-Only Operations Overview
+
+STATUS: IMPLEMENTED - PRODUCTION DEPLOYMENT VERIFICATION PENDING
+
+Implemented scope:
+
+- aggregate-only counts for businesses, profiles, customers, and bookings;
+- active, due-today UTC, overdue, and completed booking counts;
+- open issue and pending/sending/sent/failed email-event counts;
+- narrow active-admin-only `SECURITY DEFINER` RPC and server-only query boundary;
+- truthful loading, unavailable, and system-read states;
+- exact live aggregate, denial, disablement, current-business independence,
+  E2E, and 390/768/1024/1440 responsive regression coverage.
+
+Excluded: PII, financial totals, record lists, search, exports, mutations,
+impersonation, admin membership management, billing, and destructive controls.
+
+Future Admin Phases 3-7 remain planned as defined in `docs/ADMIN_SECURITY.md`.

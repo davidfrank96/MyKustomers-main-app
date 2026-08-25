@@ -1,11 +1,12 @@
 # Platform Admin Security
 
-STATUS: ADMIN PHASE 0/1 VERIFIED IN DEVELOPMENT
+STATUS: ADMIN PHASE 0/1 VERIFIED IN PRODUCTION; ADMIN PHASE 2 IMPLEMENTED -
+PRODUCTION DEPLOYMENT VERIFICATION PENDING
 
 This document defines the security boundary for My Customers platform
 administration. It is intentionally narrower than a complete admin-console
-design. Production rollout remains separately controlled and is not authorized
-by this implementation.
+design. The only implemented administrative capability is read-only. Later
+phases remain separately controlled and are not authorized by this work.
 
 ## Permanent Authorization Invariant
 
@@ -64,6 +65,12 @@ The route guard uses the caller's normal RLS-aware Supabase server client. It
 does not import the service-role client. No generic privileged query utility or
 database console is introduced.
 
+`public.get_platform_admin_overview` is the Phase 2 privileged read. It repeats
+the active-`SUPER_ADMIN` check, has the same empty-search-path and grant posture,
+and returns aggregate counts plus a timestamp only. It does not return row IDs,
+identity/contact data, booking terms, or monetary values. The application calls
+it through `features/admin/queries.ts` only after the route guard.
+
 Future platform-data functions must authorize the active admin before any
 privileged query and must expose only a narrow operation or projection.
 
@@ -105,7 +112,10 @@ commit;
 
 The operator aborts instead of committing if the target, inserted role/status,
 or audit event is unexpected. The target then verifies `/admin` through their
-own normal authenticated session. This procedure has not been run in production.
+own normal authenticated session. This procedure was run for the separately
+approved existing production Auth identity. It resulted in exactly one active
+`SUPER_ADMIN` and one creation audit. The identity UUID and email are not
+reproduced in repository documentation.
 
 Later additions use the same reviewed operation until a separately designed
 admin-management workflow exists. Revocation changes status to `DISABLED`;
@@ -146,7 +156,9 @@ boundary, and the database-control-plane bootstrap boundary.
 | Disabled admin retains access | Critical | `ACTIVE` predicate is checked on every admin render; no long-lived admin claim | Add forced session termination before high-risk writes if required |
 | Stolen authenticated admin session | Critical | Normal Supabase session validation and immediate DB status recheck | Require Supabase MFA/AAL policy before privileged write phases |
 | Service-role key leaks to browser or logs | Critical | Existing server-only client, static boundary test, no admin guard import | Rotate immediately and review access if exposure is suspected |
-| Generic admin query crosses tenant boundaries | Critical | No generic privileged client or data browser exists | Require narrow projection/RPC and target-specific tests per feature |
+| Generic admin query crosses tenant boundaries | Critical | Phase 2 uses one aggregate-only RPC; no generic privileged client or data browser exists | Require narrow projection/RPC and target-specific tests per feature |
+| Aggregate leaks PII or financial data | High | RPC returns an allowlisted count object only; static and runtime tests cover its contract | Review every new metric and reject record-level projections |
+| Tenant selection changes global truth | High | Overview ignores business context and tests compare two current-business cookies | Keep platform aggregate functions independent of tenant preference |
 | Destructive mutation lacks audit evidence | Critical | Destructive actions are absent; admin row changes use DB trigger audit | Design audit atomically before enabling each write |
 | Compromised admin account changes authority | Critical | No self-service management UI or callable management RPC | Add MFA, re-authentication, dual control, and notifications first |
 | Admin identities are accidentally enumerated | High | No browser SELECT; RPC returns only active caller | Preserve grant inspection and anonymous/authenticated tests |
@@ -176,7 +188,7 @@ Every proposed platform-admin mutation must define and test:
 
 ## Deferred High-Risk Capabilities
 
-Admin Phase 1 deliberately excludes impersonation, destructive mutations,
+Admin Phases 1 and 2 deliberately exclude impersonation, destructive mutations,
 platform-admin membership administration, hard deletion, billing operations,
 staff management, generic record editing, customer-data search, and a general
 service-role database browser. Each requires a separate threat model and user
@@ -184,11 +196,12 @@ authorization before implementation.
 
 ## Planned Admin Phases
 
-- Admin Phase 2: overview and bounded operational summaries.
+- Admin Phase 2: aggregate-only operations overview (implemented; production UI
+  deployment verification pending).
 - Admin Phase 3: read-only businesses and users.
 - Admin Phase 4: read-only bookings and issues.
 - Admin Phase 5: email operations.
 - Admin Phase 6: narrowly approved safe write operations.
 - Admin Phase 7: security and system health.
 
-These phases are plans, not implementation evidence.
+Phases 3-7 are plans, not implementation evidence.

@@ -518,5 +518,25 @@ Future phase acceptance should generally require appropriate combinations of:
   vendor denial, active zero-business access, refresh persistence, disabled
   denial, and no overflow at 390, 768, and 1440 pixels.
 
+## Platform Admin Operations Overview Coverage
+
+- `tests/unit/admin-overview.test.ts` verifies strict aggregate parsing and
+  deterministic attention-item derivation.
+- `tests/security/platform-admin-overview-migration.test.ts` verifies the narrow
+  RPC, active-admin predicate, grants, count semantics, server-only query
+  boundary, and absence of PII, financial, and write surfaces.
+- `tests/security/platform-admin-overview-runtime.test.ts` creates controlled
+  two-business fixtures and verifies exact deltas for every Phase 2 metric.
+  Amendments and add-ons prove the booking total counts booking rows only. It
+  also proves ordinary multi-business, anonymous, and disabled-admin denial and
+  removes all fixtures.
+- `tests/e2e/platform-admin.spec.ts` additionally verifies aggregate rendering,
+  zero-business access, metrics unchanged across two current-business cookies,
+  vendor-workspace round trip, refresh persistence, and no overflow at 390, 768,
+  1024, and 1440 pixels.
+
 The live suite retains the existing `PHASE2_RUNTIME_VERIFICATION=1` and safe
-`PHASE2_SUPABASE_TARGET` gate. CI requires no static administrator credentials.
+`PHASE2_SUPABASE_TARGET` gate. Runtime-security files execute serially because
+they share one controlled backend, use exact global aggregate baselines, and must
+remain below project-wide Auth request limits. Assertions within each file are
+unchanged. CI requires no static administrator credentials.

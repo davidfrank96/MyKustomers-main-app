@@ -1,7 +1,8 @@
 # Platform Admin Feature Boundary
 
 Admin Phase 0/1 provides platform identity parsing, server authorization, and a
-minimal protected `/admin` shell. It does not provide business-data operations.
+protected `/admin` shell. Admin Phase 2 adds aggregate-only read operations; it
+does not provide record browsing or mutations.
 
 ## Modules
 
@@ -11,7 +12,12 @@ minimal protected `/admin` shell. It does not provide business-data operations.
   `requirePlatformAdmin`, and `requirePlatformAdminRole`.
 - `app/admin/layout.tsx` authenticates and authorizes before rendering its
   separate platform shell.
-- `app/admin/page.tsx` is the only implemented admin destination.
+- `features/admin/overview.ts` parses the allowlisted aggregate contract and
+  derives attention counts without database access.
+- `features/admin/queries.ts` is server-only and invokes the narrow overview RPC
+  after platform authorization.
+- `app/admin/page.tsx` is the only implemented admin destination and renders
+  aggregate operations, loading, and safe unavailable states.
 
 ## Invariants
 
@@ -21,7 +27,8 @@ minimal protected `/admin` shell. It does not provide business-data operations.
 - The guard uses the authenticated caller's self-scoped RPC, not service role.
 - Client state, profile metadata, email, and URL parameters are never authority.
 - Disabled, malformed, missing, duplicate, and failed lookups deny access.
-- Admin writes and broad platform-data reads are absent from this phase.
+- Admin writes, record-level reads, PII, and financial totals are absent.
+- Overview values must be identical for every current-business selection.
 
 ## Adding A Future Capability
 
