@@ -281,5 +281,6 @@ Admin Phase 2 adds a read-only, aggregate-only operations overview for platform
 scale, booking state, open issues, and email outbox state. One narrow
 server-authorized RPC returns counts only; it is independent of current-business
 selection and exposes no customer PII, financial totals, record browser, or
-mutation. Production UI deployment remains pending until the release gates and
-post-deploy smoke test complete. See `docs/ADMIN_SECURITY.md`.
+mutation. Admin Phase 2 is verified in production from merge commit `22e6617`;
+the authenticated overview, active authorization, stable domain, and clean
+runtime logs passed. See `docs/ADMIN_SECURITY.md`.
