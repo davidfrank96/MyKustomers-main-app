@@ -192,6 +192,9 @@ test.describe("platform admin route authorization", () => {
       await page
         .getByRole("searchbox", { name: "Search businesses" })
         .fill("Platform Admin E2E Admin A");
+      await expect
+        .poll(() => new URL(page.url()).searchParams.get("q"))
+        .toBe("Platform Admin E2E Admin A");
       const businessLink = page.getByRole("link", {
         name: /Platform Admin E2E Admin A/,
       });
