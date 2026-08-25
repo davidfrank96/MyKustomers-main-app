@@ -1,6 +1,6 @@
 # Platform Admin Security
 
-STATUS: ADMIN PHASE 0/1 AND ADMIN PHASE 2 VERIFIED IN PRODUCTION
+STATUS: ADMIN PHASE 0/1 AND ADMIN PHASE 2 VERIFIED IN PRODUCTION; ADMIN PHASE 3 VERIFIED - PRODUCTION DEPLOYMENT PENDING
 
 This document defines the security boundary for My Customers platform
 administration. It is intentionally narrower than a complete admin-console
@@ -69,6 +69,16 @@ the active-`SUPER_ADMIN` check, has the same empty-search-path and grant posture
 and returns aggregate counts plus a timestamp only. It does not return row IDs,
 identity/contact data, booking terms, or monetary values. The application calls
 it through `features/admin/queries.ts` only after the route guard.
+
+Admin Phase 3 adds four operation-specific directory/detail functions. They are
+postgres-owned, stable, empty-search-path, and repeat the same active
+`SUPER_ADMIN` check before reading platform-wide records. Business functions
+return support identity, active memberships, and aggregates. User functions
+project only email, safe account timestamps, provider names, membership
+relationships, and the viewed user's specific platform-admin state from the Auth
+schema. They do not grant access to `auth.users` or `auth.identities`, return raw
+Auth rows, or introduce a service-role application module. Every application
+query calls `requirePlatformAdmin()` before the RPC and strictly parses the DTO.
 
 Future platform-data functions must authorize the active admin before any
 privileged query and must expose only a narrow operation or projection.
@@ -187,7 +197,7 @@ Every proposed platform-admin mutation must define and test:
 
 ## Deferred High-Risk Capabilities
 
-Admin Phases 1 and 2 deliberately exclude impersonation, destructive mutations,
+Admin Phases 1 through 3 deliberately exclude impersonation, destructive mutations,
 platform-admin membership administration, hard deletion, billing operations,
 staff management, generic record editing, customer-data search, and a general
 service-role database browser. Each requires a separate threat model and user
@@ -196,10 +206,10 @@ authorization before implementation.
 ## Planned Admin Phases
 
 - Admin Phase 2: aggregate-only operations overview (verified in production).
-- Admin Phase 3: read-only businesses and users.
+- Admin Phase 3: read-only businesses and users (verified; deployment smoke pending).
 - Admin Phase 4: read-only bookings and issues.
 - Admin Phase 5: email operations.
 - Admin Phase 6: narrowly approved safe write operations.
 - Admin Phase 7: security and system health.
 
-Phases 3-7 are plans, not implementation evidence.
+Phases 4-7 are plans, not implementation evidence.

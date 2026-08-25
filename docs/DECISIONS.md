@@ -913,3 +913,26 @@ cannot affect the function.
 Consequences: New metrics require an explicit migration, semantics update, and
 exact runtime regression. Record lists, search, money, exports, and writes remain
 out of scope and cannot be inferred from this boundary.
+
+## ADR-039 - Admin Directories Use Narrow Database Projections
+
+Status: Accepted
+
+Decision: Admin Phase 3 uses four operation-specific, postgres-owned
+`SECURITY DEFINER` functions after `requirePlatformAdmin()`. Business list/detail
+functions return safe identity, membership, and aggregate support data. User
+list/detail functions query `auth.users` and `auth.identities` only inside the
+database boundary and construct explicit DTOs containing safe account fields and
+provider names. They never return raw Auth rows or identity metadata.
+
+Rationale: A database-side page computes all business counts in one call and
+avoids N+1 work. Controlled SQL provides case-insensitive global user search and
+pagination without creating a generic service-role module or sending an Auth
+Admin object through application code. Literal `position` search avoids wildcard
+or PostgREST filter injection.
+
+Consequences: Every function independently rechecks active `SUPER_ADMIN`
+authority, uses stable newest-first ordering, caps page size at 50, and limits
+search to 80 characters. Application pages request 20 rows. No direct grants on
+Auth tables, browser API, audit event, mutation, or current-business dependency
+is introduced. A future higher-volume index requires query-plan evidence.

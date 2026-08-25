@@ -284,3 +284,13 @@ selection and exposes no customer PII, financial totals, record browser, or
 mutation. Admin Phase 2 is verified in production from merge commit `22e6617`;
 the authenticated overview, active authorization, stable domain, and clean
 runtime logs passed. See `docs/ADMIN_SECURITY.md`.
+
+Admin Phase 3 implements read-only Businesses and Users support directories and
+detail routes. Four narrow database projections recheck active `SUPER_ADMIN`
+authority and return allowlisted business, membership, aggregate, profile, and
+Auth identity fields only. Search is server-side and literal, pages contain 20
+records, business rows aggregate counts without N+1 calls, and business/user
+details cross-link. Raw Auth objects, tokens, customer lists, booking details,
+service-role browser access, impersonation, suspension, editing, and deletion
+remain absent. Production-safe SQL reconciliation and a temporary zero-business
+admin browser journey verified the implementation; deployment smoke remains.

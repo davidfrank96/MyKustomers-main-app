@@ -10,7 +10,8 @@ function loadLocalEnv() {
   for (const line of fs.readFileSync(".env", "utf8").split(/\r?\n/)) {
     if (!line || line.trim().startsWith("#")) continue;
     const separator = line.indexOf("=");
-    if (separator > 0) process.env[line.slice(0, separator)] ??= line.slice(separator + 1);
+    if (separator > 0)
+      process.env[line.slice(0, separator)] ??= line.slice(separator + 1);
   }
 }
 
@@ -18,8 +19,8 @@ loadLocalEnv();
 
 const hasSupabaseEnv = Boolean(
   process.env.NEXT_PUBLIC_SUPABASE_URL &&
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY &&
-    process.env.SUPABASE_SERVICE_ROLE_KEY,
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY &&
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
 );
 
 function createAdminClient() {
@@ -60,7 +61,10 @@ test.describe("platform admin route authorization", () => {
   test("denies vendors and disabled admins while rendering global operations for an active admin", async ({
     page,
   }, testInfo) => {
-    test.skip(testInfo.project.name !== "chromium", "The explicit viewport matrix runs once.");
+    test.skip(
+      testInfo.project.name !== "chromium",
+      "The explicit viewport matrix runs once.",
+    );
     test.setTimeout(180_000);
 
     const service = createAdminClient();
@@ -114,12 +118,16 @@ test.describe("platform admin route authorization", () => {
 
       await page.goto("/admin");
       await expect(page).toHaveURL(/\/login\?next=%2Fadmin/);
+      await page.goto("/admin/businesses");
+      await expect(page).toHaveURL(/\/login\?next=%2Fadmin%2Fbusinesses/);
 
       await signIn(page, vendor.email, password);
       await expect(page).toHaveURL(/\/dashboard/);
       await page.goto("/admin");
       await expect(page.getByRole("heading", { name: "Not authorized" })).toBeVisible();
       await expect(page.getByText("My Customers Admin")).toHaveCount(0);
+      await page.goto("/admin/users");
+      await expect(page.getByRole("heading", { name: "Not authorized" })).toBeVisible();
 
       await page.context().clearCookies();
       await signIn(page, activeAdmin.email, password);
@@ -129,7 +137,9 @@ test.describe("platform admin route authorization", () => {
       await expect(page.getByText("Role: Super Admin")).toBeVisible();
       await expect(page.getByRole("heading", { name: "Overview" })).toBeVisible();
       await expect(page.getByRole("heading", { name: "Platform scale" })).toBeVisible();
-      await expect(page.getByRole("heading", { name: "Booking operations" })).toBeVisible();
+      await expect(
+        page.getByRole("heading", { name: "Booking operations" }),
+      ).toBeVisible();
       await expect(page.getByRole("heading", { name: "Needs attention" })).toBeVisible();
       for (const label of [
         "Businesses",
@@ -146,7 +156,7 @@ test.describe("platform admin route authorization", () => {
         await expect(page.locator(`[data-admin-metric="${label}"]`)).toBeVisible();
       }
       const adminNavigation = page.getByRole("navigation", { name: "Admin navigation" });
-      await expect(adminNavigation.getByRole("link")).toHaveCount(2);
+      await expect(adminNavigation.getByRole("link")).toHaveCount(4);
       await expect(page).toHaveURL(/\/admin$/);
 
       await page.reload();
@@ -177,8 +187,61 @@ test.describe("platform admin route authorization", () => {
         );
       expect(adminMembershipsError).toBeNull();
 
+      await page.goto("/admin/businesses");
+      await expect(page.getByRole("heading", { name: "Businesses" })).toBeVisible();
+      await page
+        .getByRole("searchbox", { name: "Search businesses" })
+        .fill("Platform Admin E2E Admin A");
+      const businessLink = page.getByRole("link", {
+        name: /Platform Admin E2E Admin A/,
+      });
+      await expect(businessLink).toBeVisible();
+      await businessLink.click();
+      await expect(
+        page.getByRole("heading", { name: "Platform Admin E2E Admin A" }),
+      ).toBeVisible();
+      await expect(
+        page.getByRole("heading", { name: "Operational summary" }),
+      ).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Memberships" })).toBeVisible();
+
+      const userLink = page.getByRole("link", {
+        name: new RegExp(activeAdmin.email),
+      });
+      await expect(userLink).toBeVisible();
+      await userLink.click();
+      await expect(
+        page.getByRole("heading", { name: "Platform admin E2E active" }),
+      ).toBeVisible();
+      await expect(page.getByText("Platform administrator")).toBeVisible();
+      await expect(
+        page.getByRole("heading", { name: "Business memberships" }),
+      ).toBeVisible();
+      await expect(
+        page.getByRole("link", { name: /Platform Admin E2E Admin A/ }),
+      ).toBeVisible();
+
+      await page.goto("/admin/users");
+      await page.getByRole("searchbox", { name: "Search users" }).fill(activeAdmin.email);
+      await expect(
+        page.getByRole("link", { name: new RegExp(activeAdmin.email) }),
+      ).toBeVisible();
+      await page.getByRole("searchbox", { name: "Search users" }).fill("%_,.'\"()");
+      await expect(page.getByText(/No users match/)).toBeVisible();
+
+      await page.goto(`/admin/businesses/${randomUUID()}`);
+      await expect(
+        page.getByRole("heading", { name: "Business not found" }),
+      ).toBeVisible();
+      await page.goto(`/admin/users/${randomUUID()}`);
+      await expect(page.getByRole("heading", { name: "User not found" })).toBeVisible();
+
       await page.goto("/admin");
       const metricText = await page.locator("[data-admin-metric]").allTextContents();
+      await page.goto("/admin/businesses");
+      const businessDirectoryText = await page
+        .locator('[data-admin-directory="businesses"]')
+        .allTextContents();
       const origin = new URL(page.url()).origin;
       for (const business of adminBusinesses!) {
         await page.context().addCookies([
@@ -195,6 +258,10 @@ test.describe("platform admin route authorization", () => {
         expect(await page.locator("[data-admin-metric]").allTextContents()).toEqual(
           metricText,
         );
+        await page.goto("/admin/businesses");
+        expect(
+          await page.locator('[data-admin-directory="businesses"]').allTextContents(),
+        ).toEqual(businessDirectoryText);
       }
 
       await page.getByRole("link", { name: "Vendor workspace" }).click();
@@ -202,11 +269,20 @@ test.describe("platform admin route authorization", () => {
       await page.goto("/admin");
       await expect(page.getByRole("heading", { name: "Overview" })).toBeVisible();
 
+      const responsiveRoutes = [
+        "/admin",
+        "/admin/businesses",
+        `/admin/businesses/${adminBusinesses![0].id}`,
+        "/admin/users",
+        `/admin/users/${activeAdmin.id}`,
+      ];
       for (const width of [390, 768, 1024, 1440]) {
         await page.setViewportSize({ width, height: width < 768 ? 844 : 1000 });
-        await page.goto("/admin");
-        await expect(page.getByRole("heading", { name: "Overview" })).toBeVisible();
-        await expectNoOverflow(page, width);
+        for (const route of responsiveRoutes) {
+          await page.goto(route);
+          await expect(page.locator("h1")).toBeVisible();
+          await expectNoOverflow(page, width);
+        }
       }
 
       const { error: disableError } = await service
@@ -217,6 +293,10 @@ test.describe("platform admin route authorization", () => {
       await page.reload();
       await expect(page.getByRole("heading", { name: "Not authorized" })).toBeVisible();
       await expect(page.getByText("My Customers Admin")).toHaveCount(0);
+      await page.goto("/admin/businesses");
+      await expect(page.getByRole("heading", { name: "Not authorized" })).toBeVisible();
+      await page.goto("/admin/users");
+      await expect(page.getByRole("heading", { name: "Not authorized" })).toBeVisible();
     } finally {
       const { data: audits } = await service
         .from("audit_logs")

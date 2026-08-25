@@ -354,3 +354,12 @@ contains no row-level or financial data.
 Privileged platform reads must remain narrow, server-only operations after
 `requirePlatformAdminRole`. A generic unrestricted admin data client is not an
 accepted architecture. See `docs/ADMIN_SECURITY.md` and ADR-037.
+
+Admin Phase 3 keeps that architecture. `features/admin/queries.ts` authorizes
+first, then makes exactly one authenticated RPC call for each directory or
+detail request. Database-side materialized page sets aggregate business owners
+and counts without N+1 calls. User functions project only allowlisted fields from
+the privileged Auth schema; no service-role client or raw Auth object enters the
+route tree. `features/admin/directory.ts` strictly parses every JSON shape and
+fails closed on extra fields. Search and page state remain in the URL, and the
+current-business cookie is not read anywhere in this boundary.

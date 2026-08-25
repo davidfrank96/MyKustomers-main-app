@@ -1,8 +1,9 @@
 # Platform Admin Feature Boundary
 
 Admin Phase 0/1 provides platform identity parsing, server authorization, and a
-protected `/admin` shell. Admin Phase 2 adds aggregate-only read operations; it
-does not provide record browsing or mutations.
+protected `/admin` shell. Admin Phase 2 adds aggregate-only read operations.
+Admin Phase 3 adds narrow read-only business and user support directories and
+details; it does not provide mutations.
 
 ## Modules
 
@@ -14,10 +15,12 @@ does not provide record browsing or mutations.
   separate platform shell.
 - `features/admin/overview.ts` parses the allowlisted aggregate contract and
   derives attention counts without database access.
-- `features/admin/queries.ts` is server-only and invokes the narrow overview RPC
-  after platform authorization.
-- `app/admin/page.tsx` is the only implemented admin destination and renders
-  aggregate operations, loading, and safe unavailable states.
+- `features/admin/directory.ts` strictly parses bounded business/user page and
+  detail DTOs and formats provider names.
+- `features/admin/queries.ts` is server-only and invokes one narrow RPC per
+  overview, directory, or detail after platform authorization.
+- `app/admin` implements Overview, Businesses, and Users with structural loading,
+  safe unavailable/not-found states, and cross-linked support details.
 
 ## Invariants
 
@@ -27,8 +30,12 @@ does not provide record browsing or mutations.
 - The guard uses the authenticated caller's self-scoped RPC, not service role.
 - Client state, profile metadata, email, and URL parameters are never authority.
 - Disabled, malformed, missing, duplicate, and failed lookups deny access.
-- Admin writes, record-level reads, PII, and financial totals are absent.
+- Admin writes, customer/booking row browsing, raw Auth data, and financial
+  totals are absent.
 - Overview values must be identical for every current-business selection.
+- Directory values must be identical for every current-business selection.
+- User Auth projections expose provider names only, never identity payloads,
+  metadata, credentials, tokens, or sessions.
 
 ## Adding A Future Capability
 

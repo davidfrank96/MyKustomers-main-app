@@ -271,7 +271,13 @@ A platform administrator operates My Customers itself and is not a tenant
 business role. Admin authorization recognizes only an `ACTIVE SUPER_ADMIN` record in
 `platform_admins`. Owning or belonging to any number of businesses grants no
 platform authority, and an administrator may have zero business memberships.
-The implemented Phase 2 surface is a protected, read-only operations overview
-containing aggregate platform, booking, issue, and email-state counts. It does
-not expose identities, customer details, financial totals, record-level
-browsing, or mutations. Phase 3 remains unstarted.
+The verified Phase 2 surface is a protected, read-only operations overview.
+Admin Phase 3 adds read-only, searchable, server-paginated Businesses and Users
+support views. Business views expose business identity, active memberships, and
+aggregate operations only. User views expose an explicit safe projection of
+profile name, email, account timestamps, provider names, membership relations,
+and the viewed user's own platform-admin badge where applicable. Raw Auth rows,
+identity payloads, sessions, tokens, customer lists, booking terms, financial
+totals, impersonation, editing, suspension, and deletion are not product
+capabilities. The Phase 3 read-only data contract and browser journey are
+verified; production deployment smoke remains.

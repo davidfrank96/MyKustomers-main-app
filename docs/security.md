@@ -653,3 +653,21 @@ disabled callers. It returns only aggregate counts and a server timestamp.
 Current-business cookies do not influence its result. No PII, monetary totals,
 record identifiers, service-role credential, mutation, or generic privileged
 query reaches the admin page.
+
+Admin Phase 3 uses four additional postgres-owned `SECURITY DEFINER` functions
+with the same empty search path and active-`SUPER_ADMIN` recheck. The normal
+authenticated server client invokes them only after `requirePlatformAdmin()`.
+Business projections contain business contacts, active membership identity, and
+aggregate counts needed for support; they never contain customer rows, booking
+terms, feedback text, audit payloads, or delivery recipient data. User
+projections contain ID, profile name, email, account timestamps, provider names,
+membership relationships, and only the target user's specific admin role/status.
+They exclude password hashes, tokens, sessions, Auth metadata, and provider
+identity payloads. Browser roles receive no new table grants.
+
+Search is bounded and uses literal substring comparison rather than wildcard or
+client-composed PostgREST expressions. UUID route parameters are validated.
+Directory/detail reads produce no audit events. Ordinary users, business owners,
+anonymous users, and disabled administrators must fail both route and direct-RPC
+checks. No write, impersonation, suspension, credential, or membership control
+is present.

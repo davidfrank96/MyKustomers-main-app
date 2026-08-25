@@ -1,4 +1,4 @@
-import { ArrowLeft, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Building2, ShieldCheck, Users } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import {
@@ -74,6 +74,20 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
             <span className="font-medium text-foreground">Role: Super Admin</span>
             <Link href="/admin" className="font-medium text-primary">
               Overview
+            </Link>
+            <Link
+              href="/admin/businesses"
+              className="inline-flex items-center gap-1.5 font-medium text-primary"
+            >
+              <Building2 className="size-4" aria-hidden="true" />
+              Businesses
+            </Link>
+            <Link
+              href="/admin/users"
+              className="inline-flex items-center gap-1.5 font-medium text-primary"
+            >
+              <Users className="size-4" aria-hidden="true" />
+              Users
             </Link>
             <Link
               href="/dashboard"

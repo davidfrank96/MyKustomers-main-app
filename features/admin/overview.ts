@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const aggregateCount = z
+export const adminCountSchema = z
   .union([z.number().int(), z.string().regex(/^\d+$/)])
   .transform((value) => Number(value))
   .refine((value) => Number.isSafeInteger(value) && value >= 0, {
@@ -8,19 +8,19 @@ const aggregateCount = z
   });
 
 const adminOverviewSchema = z.object({
-  businesses: aggregateCount,
-  platform_users: aggregateCount,
-  customers: aggregateCount,
-  bookings: aggregateCount,
-  active_bookings: aggregateCount,
-  due_today: aggregateCount,
-  overdue: aggregateCount,
-  completed: aggregateCount,
-  open_issues: aggregateCount,
-  email_pending: aggregateCount,
-  email_sending: aggregateCount,
-  email_sent: aggregateCount,
-  email_failed: aggregateCount,
+  businesses: adminCountSchema,
+  platform_users: adminCountSchema,
+  customers: adminCountSchema,
+  bookings: adminCountSchema,
+  active_bookings: adminCountSchema,
+  due_today: adminCountSchema,
+  overdue: adminCountSchema,
+  completed: adminCountSchema,
+  open_issues: adminCountSchema,
+  email_pending: adminCountSchema,
+  email_sending: adminCountSchema,
+  email_sent: adminCountSchema,
+  email_failed: adminCountSchema,
   refreshed_at: z.string().datetime({ offset: true }),
 });
 

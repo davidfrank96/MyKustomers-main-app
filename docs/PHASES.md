@@ -889,4 +889,33 @@ Implemented scope:
 Excluded: PII, financial totals, record lists, search, exports, mutations,
 impersonation, admin membership management, billing, and destructive controls.
 
-Future Admin Phases 3-7 remain planned as defined in `docs/ADMIN_SECURITY.md`.
+## Admin Phase 3 - Read-Only Businesses And Users Directory
+
+STATUS: VERIFIED
+
+Implemented scope:
+
+- `/admin/businesses` and `/admin/users` server-rendered directories with
+  debounced URL search, 20-row server pagination, and stable newest-first order;
+- business detail with safe identity, all active memberships, and aggregate
+  customer, booking, issue, and email-state counts;
+- user detail with a narrow Auth projection, provider names only, all business
+  memberships, and a specific platform-admin badge when present;
+- business-to-user and user-to-business support navigation;
+- four postgres-owned, active-admin-only `SECURITY DEFINER` RPCs, with no direct
+  Auth-table grant and no service-role code path;
+- unit, static security, opt-in runtime, E2E, and responsive regression coverage.
+
+Verification used production-safe read-only reconciliation plus one temporary
+zero-business admin account that was fully removed after the browser journey.
+Ordinary and anonymous direct-RPC denial were reverified. Disabled-admin and
+business-owner authority denial rely on the unchanged platform-admin boundary
+and its prior verified runtime/revocation coverage; production authority was not
+mutated to repeat disablement. The destructive isolated-fixture suite remains
+environment-gated and was not used against production.
+
+Excluded: customer/booking row browsing, recent activity, exports, editing,
+impersonation, suspension, password controls, membership mutation, hard deletion,
+billing, and all Admin Phase 4 work.
+
+Admin Phase 4 remains planned as defined in `docs/ADMIN_SECURITY.md`.
