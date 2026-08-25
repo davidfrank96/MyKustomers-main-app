@@ -293,4 +293,6 @@ records, business rows aggregate counts without N+1 calls, and business/user
 details cross-link. Raw Auth objects, tokens, customer lists, booking details,
 service-role browser access, impersonation, suspension, editing, and deletion
 remain absent. Production-safe SQL reconciliation and a temporary zero-business
-admin browser journey verified the implementation; deployment smoke remains.
+admin browser journey verified the implementation. PR #15 merged as `4437a161`;
+Vercel deployed that exact `main` commit and the production read-only smoke,
+session, responsive, and cleanup checks passed.

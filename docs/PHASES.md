@@ -891,7 +891,7 @@ impersonation, admin membership management, billing, and destructive controls.
 
 ## Admin Phase 3 - Read-Only Businesses And Users Directory
 
-STATUS: VERIFIED
+STATUS: VERIFIED IN PRODUCTION
 
 Implemented scope:
 
@@ -913,6 +913,13 @@ business-owner authority denial rely on the unchanged platform-admin boundary
 and its prior verified runtime/revocation coverage; production authority was not
 mutated to repeat disablement. The destructive isolated-fixture suite remains
 environment-gated and was not used against production.
+
+PR #15 passed all executable CI checks and merged as `4437a161`. Vercel deployed
+that exact `main` commit, after which a fresh controlled zero-business admin
+passed production overview, directory search/pagination, details, bidirectional
+cross-links, refresh, logout, authorization redirect, and 390/768/1024/1440
+responsive checks. Independent cleanup confirmed zero temporary Auth users and
+profiles and restored the single approved active production `SUPER_ADMIN`.
 
 Excluded: customer/booking row browsing, recent activity, exports, editing,
 impersonation, suspension, password controls, membership mutation, hard deletion,

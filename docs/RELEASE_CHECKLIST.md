@@ -322,7 +322,7 @@ production-readiness work.
 - [x] Phase 3 static/unit coverage and route/RPC denial cases are implemented.
 - [x] Phase 3 database lint, production-safe count reconciliation, direct caller
       denial, and temporary zero-business admin browser verification pass.
-- [ ] Phase 3 required CI, Vercel deployment, and production read-only smoke pass.
+- [x] Phase 3 required CI, Vercel deployment, and production read-only smoke pass.
 - [ ] MFA is enforced before any high-risk platform write capability is enabled.
 - [ ] No generic privileged database browser, impersonation, destructive
       mutation, membership-management UI, or hard deletion shipped implicitly.

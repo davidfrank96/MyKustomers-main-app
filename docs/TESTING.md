@@ -582,6 +582,15 @@ removed its admin row, Auth user, profile cascade, and test-only authority audit
 an independent query confirmed zero leftovers and exactly one active production
 admin.
 
+After PR #15 passed all executable CI gates and merged as `4437a161`, Vercel
+deployed that exact commit. A newly created controlled zero-business admin then
+passed the same read-only journey against the production URL, including both
+page-two transitions, bounded search, details, bidirectional cross-links,
+refresh, logout, anonymous redirect, and 390/768/1024/1440 responsive checks.
+The test deleted its authority row, Auth user, profile, and any actor audit rows;
+an independent follow-up found zero matching temporary users/profiles and the
+single approved active production `SUPER_ADMIN`.
+
 The destructive 22-business runtime fixture suite remains available and gated
 but was not run against production. Production currently has no multi-owner
 business, so plural-owner preservation is verified statically and with a
