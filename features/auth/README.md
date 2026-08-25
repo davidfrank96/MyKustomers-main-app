@@ -5,18 +5,17 @@ Auth, server actions, and App Router auth routes.
 
 This feature must not store passwords or session tokens in application tables.
 Business onboarding is implemented separately in the businesses feature. Staff
-invitations and role management remain future work. Public signup confirmation
-and reset-password completion remain verification-pending because they require
-a controlled inbox and successful Supabase Auth email delivery; login, logout,
-session handling, route protection, redirect safety, and tenant/RLS boundaries
-have runtime evidence.
+invitations and role management remain future work. Public signup confirmation,
+reset-password completion, old/new password behavior, login, logout, session
+handling, route protection, redirect safety, and tenant/RLS boundaries have
+runtime evidence.
 
 Production Site URL is `https://mykustomers.com`. Exact apex callback entries
 for dashboard and password recovery coexist with the retained Vercel and local
 callbacks. Supabase Auth email is separate from the application Brevo API
 adapter. Production custom SMTP is enabled with the verified My Kustomers sender
-through Brevo. Signup and recovery email remain verification-pending until
-controlled inbox delivery and callback completion are reverified.
+through Brevo. Controlled signup and recovery emails reached the inbox and
+completed through the canonical callbacks.
 
 The authenticated shell exposes a compact account menu at mobile and desktop
 widths. It links to the real Settings surface and existing `/logout` route;

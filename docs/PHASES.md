@@ -141,11 +141,11 @@ Security impact: High. Must implement server authorization and RLS carefully.
 
 UI impact: Auth routes and authenticated boundary states.
 
-Testing requirements: Auth validation, route protection, static migration/RLS review, service-role boundary review, E2E smoke tests, and runtime Supabase RLS/security tests. Runtime Supabase database/RLS verification succeeded in Phase 2V. Public signup and reset-password completion remain partial because the configured development Supabase project hit email/default-inbox constraints during verification.
+Testing requirements: Auth validation, route protection, static migration/RLS review, service-role boundary review, E2E smoke tests, and runtime Supabase RLS/security tests. Runtime Supabase database/RLS verification succeeded in Phase 2V. Controlled production signup confirmation and reset-password completion passed through Brevo custom SMTP on 2026-08-25.
 
 Documentation requirements: Update MASTER_PLAN, PHASES, DATA_MODEL, SECURITY, TESTING, CHANGELOG, and README if behavior changes.
 
-Acceptance criteria: Authenticated platform user can access only authorized tenant scope. Runtime tenant isolation, RLS, grants, helper functions, profile isolation, owner/member authorization, audit boundaries, login, session persistence, logout, protected-route behavior, and redirect safety have verification evidence. Phase 2 overall remains VERIFICATION PENDING until public signup confirmation and reset-password flows can be completed end to end with a safe inbox.
+Acceptance criteria: Authenticated platform user can access only authorized tenant scope. Runtime tenant isolation, RLS, grants, helper functions, profile isolation, owner/member authorization, audit boundaries, login, session persistence, logout, protected-route behavior, redirect safety, public signup confirmation, and reset-password completion have verification evidence. Phase 2 is VERIFIED.
 
 Known risks: Incorrect tenant assumptions, weak RLS, or exposing service-role credentials.
 
@@ -990,12 +990,13 @@ Admin Phase 6 remains planned and is not started.
 
 ## Transactional Email Provider Activation
 
-Status: IMPLEMENTED - PRODUCTION DELIVERY VERIFICATION PENDING
+Status: VERIFIED - PRODUCTION
 
 The provider-neutral outbox supports development/no-network, Brevo, and Resend
 adapters. Brevo is configured as Production primary with verified sender/domain;
-Resend is configured standby with no automatic failover. Deployment and one
-controlled new-event delivery remain before Production delivery is verified.
+Resend is configured standby with no automatic failover. One controlled new
+event passed durable claim, Brevo acceptance, provider delivery, inbox receipt,
+and Admin Email Operations verification after deployment.
 This phase adds no migration, retry control, webhook ingestion, marketing
 contact synchronization, infrastructure, or Admin Phase 6 capability.
 

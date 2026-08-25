@@ -1,6 +1,6 @@
 # Transactional Email
 
-Status: IMPLEMENTED - PRODUCTION DELIVERY VERIFICATION PENDING
+Status: VERIFIED - PRODUCTION
 
 My Customers uses its own durable transactional outbox. Supabase Auth email is
 a separate system. Business-domain workflows must never call an email vendor
@@ -50,7 +50,8 @@ use the exact Brevo-supplied Brevo code, DKIM, and DMARC records. SPF is not add
 unless Brevo supplies it for the actual account configuration, such as a
 dedicated-IP setup. The account, sender identity, root domain, and Production-only
 Vercel configuration are active. Activation cannot be called verified until a
-newly deployed controlled event is accepted and the operator inbox is checked.
+newly deployed controlled event is accepted and the operator inbox is checked;
+that controlled production verification passed on 2026-08-25.
 Reply-To remains unset because the product has no reviewed tenant-safe model.
 
 ## Data And Semantics
@@ -95,5 +96,9 @@ timeout failures, malformed responses, sender validation, and Admin wording.
 Static security tests cover server-only credentials, direct per-message sending,
 domain neutrality, atomic claim preservation, no domain rollback path, no
 logging, no marketing/contact APIs, and retained adapters. Real provider and
-inbox evidence must be recorded only after the reviewed code deploys from
-`main`. Resend readiness does not enable double-send or automatic failover.
+inbox evidence was recorded only after the reviewed code deployed from `main`:
+one `BOOKING_CONFIRMED` event was claimed once, accepted with a provider ID,
+shown in Admin Email Operations, delivered by Brevo, and received in the
+controlled inbox. Its temporary Auth, business, customer, booking, and email
+fixtures were then removed with zero leftovers. Resend readiness does not enable
+double-send or automatic failover.

@@ -1,6 +1,6 @@
 # Domain And Email Infrastructure
 
-Status: IMPLEMENTED - PRODUCTION DELIVERY VERIFICATION PENDING
+Status: VERIFIED - PRODUCTION
 
 ## Public Application Domain
 
@@ -21,7 +21,9 @@ to the Supabase-owned OAuth callback.
 
 `hello@mykustomers.com` is an active Cloudflare Email Routing alias to an
 operator-controlled destination. Catch-all routing remains disabled. The
-destination address and credentials are not repository configuration.
+destination address and credentials are not repository configuration. A
+controlled message was recorded as received and delivered/forwarded by
+Cloudflare.
 
 ## Outbound Application Email
 
@@ -37,15 +39,27 @@ The authenticated root domain and `My Kustomers
 <notifications@mykustomers.com>` sender are verified in Brevo. Resend reports
 the domain and its isolated return-path records verified. Provider credentials
 exist only as Production-scoped Vercel secrets. A provider-accepted `SENT` event
-is not proof of inbox delivery.
+is not proof of inbox delivery. Separate controlled evidence proved Brevo
+acceptance, provider delivery, inbox receipt, and truthful Admin visibility for
+one new booking-confirmation event.
+
+Brevo reports the root domain authenticated with its exact domain code, two DKIM
+records, and DMARC record matched. Its current shared-IP configuration did not
+present an additional account-specific SPF record to add. Resend reports its
+isolated return-path SPF, DKIM, and DMARC checks verified. DNS records are copied
+only from provider-issued values; documentation never invents record contents.
 
 ## Supabase Auth Email
 
 Supabase Auth email is independent from the application outbox. Production
 custom SMTP is enabled with a dedicated Brevo SMTP credential and the verified
-My Kustomers sender. Signup confirmation and password recovery remain
-verification-pending until controlled inbox delivery and callback completion
-are reverified.
+My Kustomers sender. Controlled signup confirmation and password-recovery
+emails reached the inbox; canonical callbacks, password update, old-password
+rejection, new-password login, session establishment, and logout passed.
+
+Google OAuth also completed through the canonical callback after the Production
+`NEXT_PUBLIC_APP_URL` value was recreated as public Config and the current
+`main` deployment was redeployed.
 
 ## Operational Rules
 
