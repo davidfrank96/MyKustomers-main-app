@@ -456,18 +456,30 @@ cross-phase business discoverability and Google authentication support:
 ## Platform Admin Roadmap
 
 Admin Phase 0/1 - Platform Admin Architecture and Authorization Foundation:
-VERIFIED IN DEVELOPMENT.
+VERIFIED IN PRODUCTION.
 
 - A dedicated `platform_admins` model authorizes platform access independently
   from vendor tenant roles.
-- `/admin` has a separate server-protected shell with no business-data tooling,
-  fake metrics, destructive action, impersonation, billing, or staff management.
+- `/admin` has a separate server-protected shell with no destructive action,
+  impersonation, billing, staff management, or generic data browser.
 - Browser roles cannot enumerate or mutate admin records; an authenticated
   function returns only the active caller's own record.
 - Controlled UUID-based bootstrap and admin authority changes are audited.
-- Production rollout and initial production-admin creation are NOT DEPLOYED.
+- The approved existing Auth identity is the sole active production
+  `SUPER_ADMIN`; live disable/re-enable checks proved immediate revocation,
+  restoration, and authority-change audit evidence.
 
-Planned only: Admin Phase 2 operational summaries; Phase 3 read-only businesses
-and users; Phase 4 read-only bookings and issues; Phase 5 email operations;
+Admin Phase 2 - Read-Only Operations Overview: IMPLEMENTED - PRODUCTION
+DEPLOYMENT VERIFICATION PENDING.
+
+- A narrow, active-admin-only database function returns aggregate counts for
+  platform scale, booking operations, open issues, and email delivery states.
+- The page returns no record rows, identity details, customer PII, or financial
+  totals and contains no write operation.
+- Exact live fixture deltas, caller denials, disablement, current-business
+  independence, and responsive behavior are covered by automated tests.
+
+Planned only: Admin Phase 3 read-only businesses and users; Phase 4 read-only
+bookings and issues; Phase 5 email operations;
 Phase 6 reviewed safe writes; Phase 7 security/system health. Each phase requires
 its own threat-model and regression update.

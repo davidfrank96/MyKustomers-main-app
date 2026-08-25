@@ -893,3 +893,23 @@ Consequences: Admin revocation takes effect on the next server render without
 deleting the Auth account. Future admin data reads and writes require narrow
 post-authorization boundaries, operation-specific audit semantics, and runtime
 security tests. MFA should be enforced before high-risk admin writes are enabled.
+
+## ADR-038 - Admin Operational Overview Uses An Aggregate-Only RPC
+
+Status: Accepted
+
+Decision: Admin Phase 2 reads platform operations through one stable,
+`SECURITY DEFINER` database function with an empty search path and an active
+`SUPER_ADMIN` caller check. The normal authenticated server client invokes the
+function after the route guard. The result contains counts and a refresh
+timestamp only; no generic service-role client or record-level query API is
+available to the page.
+
+Rationale: RLS intentionally prevents broad cross-tenant browser reads. A narrow
+database projection keeps privileged access reviewable, avoids transferring PII,
+and computes globally consistent counts in one statement. Current-business state
+cannot affect the function.
+
+Consequences: New metrics require an explicit migration, semantics update, and
+exact runtime regression. Record lists, search, money, exports, and writes remain
+out of scope and cannot be inferred from this boundary.

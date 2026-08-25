@@ -11,7 +11,7 @@
     "lint": "eslint .",
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
-    "test:security:runtime": "vitest run tests/security/*runtime*.test.ts",
+    "test:security:runtime": "vitest run --no-file-parallelism tests/security/*runtime*.test.ts",
     "test:watch": "vitest",
     "test:e2e": "playwright test"
   },

@@ -301,14 +301,19 @@ production-readiness work.
 
 ## Platform Administration
 
-- [ ] Production rollout has explicit user authorization and an identified
+- [x] Production rollout has explicit user authorization and an identified
       migration/version record.
-- [ ] `platform_admins` RLS and grants match `docs/ADMIN_SECURITY.md`.
-- [ ] Ordinary, business-owner, multi-business-owner, disabled, anonymous, and
+- [x] `platform_admins` RLS and grants match `docs/ADMIN_SECURITY.md`.
+- [x] Ordinary, business-owner, multi-business-owner, disabled, anonymous, and
       forged-client runtime denials pass.
-- [ ] Every production bootstrap target UUID and identity was independently
+- [x] Every production bootstrap target UUID and identity was independently
       reviewed; no email is embedded in authorization logic.
-- [ ] Admin role/status change audit evidence was verified without secrets.
+- [x] Admin role/status change audit evidence was verified without secrets.
+- [x] Phase 2 overview uses an aggregate-only active-admin RPC and contains no
+      PII, financial totals, record browser, or mutation.
+- [x] Exact metric deltas, current-business independence, disablement, and
+      390/768/1024/1440 responsive behavior pass locally and against the live DB.
+- [ ] Phase 2 production UI deployment and authenticated smoke test pass.
 - [ ] MFA is enforced before any high-risk platform write capability is enabled.
 - [ ] No generic privileged database browser, impersonation, destructive
       mutation, membership-management UI, or hard deletion shipped implicitly.

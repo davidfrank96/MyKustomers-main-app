@@ -718,6 +718,10 @@ export type Database = {
           status: Database["public"]["Enums"]["platform_admin_status"];
         }[];
       };
+      get_platform_admin_overview: {
+        Args: Record<string, never>;
+        Returns: Json;
+      };
       create_booking_with_customer: {
         Args: {
           p_business_id: string;

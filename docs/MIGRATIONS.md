@@ -73,7 +73,8 @@ not assume repository presence alone proves application.
 | `20260824094523_select_current_business_for_booking_creation.sql`          | Applied; exact active membership now authorizes explicit-business atomic booking creation; second-business write and cross-tenant denial verified live          |
 | `20260824100357_preserve_single_business_booking_compatibility.sql`        | Applied; legacy deployed caller remains available only for exactly one active membership and fails closed for multi-business accounts                          |
 | `20260824133925_trusted_feedback_sharing.sql`                              | Applied; feedback first-open column, truthful audit values, service-only idempotent open RPC, direct-role denial, and live Phase 8 behavior verified            |
-| `20260824223141_platform_admin_authorization_foundation.sql`               | Applied to development only; dedicated admin model, RLS/grants, self-scoped RPC, audit triggers, and live authorization verified                               |
+| `20260824223141_platform_admin_authorization_foundation.sql`               | Applied to the production-backed configured project; dedicated admin model, RLS/grants, self-scoped RPC, audit triggers, sole-admin bootstrap, and live authorization verified |
+| `20260825003000_platform_admin_read_only_overview.sql`                     | Applied to the production-backed configured project; aggregate-only active-admin overview RPC and exact runtime security verification passed                  |
 
 The configured development project's historical CLI migration table remains
 empty because this project predates enforced version tracking. These migrations
@@ -129,15 +130,23 @@ frontend deployment window.
 
 `20260824223141_platform_admin_authorization_foundation.sql` was created with
 the Supabase CLI and applied as one transaction through the configured
-development database URL. It adds only the Phase 1 admin enums, table, RLS/grant
+production-backed database URL. It adds only the Phase 1 admin enums, table, RLS/grant
 boundary, self-scoped active lookup, and authority-change audit trigger. No
 index beyond the user UUID primary key was added because the table is tiny and
 lookups are by that key. Live grant, role/status, self-promotion, vendor-owner,
-disablement, audit, and route tests passed. It has not been applied to a
-separate production database or used to seed a production administrator.
+disablement, audit, and route tests passed.
 
-The current Vercel Production app is documented as using this same configured
-Supabase project. The schema objects therefore exist in that shared backend,
-but no production application code in this task was deployed to call them and
-the table contains no administrator row. A separate production rollout remains
-explicitly unapproved.
+The current Vercel Production app uses this configured Supabase project. The
+approved existing Auth UUID was bootstrapped as the sole active `SUPER_ADMIN` in
+a reviewed transaction. Exactly one creation audit was verified, and a later
+disable/re-enable round trip proved immediate route revocation and restoration.
+No email address or credential is stored in authorization logic.
+
+## 2026-08-25 Platform Admin Read-Only Overview Migration
+
+`20260825003000_platform_admin_read_only_overview.sql` adds one stable,
+aggregate-only `get_platform_admin_overview()` RPC. It uses an empty search path,
+fully qualified relations, an active-`SUPER_ADMIN` caller check, authenticated-
+only execute, and no table grant changes. It returns count fields and a server
+timestamp only. The migration was applied transactionally to the configured
+production-backed project; exact controlled deltas and denial paths passed.

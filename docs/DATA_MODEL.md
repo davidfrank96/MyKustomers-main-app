@@ -416,8 +416,16 @@ the transaction from inferring an unrelated first membership.
 
 ## Platform Administration
 
-`platform_admins`: VERIFIED IN DEVELOPMENT. One row per Auth user, with
+`platform_admins`: VERIFIED IN PRODUCTION. One row per Auth user, with
 `SUPER_ADMIN`, `ACTIVE`/`DISABLED`, creation/update provenance, timestamps, RLS,
 no browser table grants, and an active-caller-only RPC. It has no `business_id`
 and does not derive authority from `business_members`. The user UUID primary key
-is the only index required for the current lookup contract.
+is the only index required for the current lookup contract. Production currently
+has exactly one active administrator.
+
+`get_platform_admin_overview()`: read-only Phase 2 aggregate boundary. It returns
+one JSON object of non-negative counts and a server timestamp after verifying the
+authenticated caller is an active `SUPER_ADMIN`. Counts derive from
+`businesses`, `profiles`, `customers`, `bookings`, `booking_issues`, and
+`email_events`; no row identifiers, identity fields, contact data, booking terms,
+or monetary values are returned.

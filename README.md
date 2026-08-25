@@ -268,10 +268,18 @@ then use that resolved business. The preference is never authorization, and no
 
 ## Platform Administration
 
-Admin Phase 0/1 is verified in the configured development environment. Platform
+Admin Phase 0/1 is verified in production. Platform
 authority is stored in a dedicated `platform_admins` model and is permanently
 separate from tenant `business_members` roles. The server-protected `/admin`
-namespace exposes only a minimal shell to an `ACTIVE SUPER_ADMIN`; ordinary,
+namespace admits only an `ACTIVE SUPER_ADMIN`; ordinary,
 single-business, multi-business, anonymous, disabled, and client-forged callers
-are denied. No production admin was seeded and no privileged admin operations
-were deployed. See `docs/ADMIN_SECURITY.md`.
+are denied. The approved existing Auth identity is the sole active production
+administrator, and a live disable/re-enable round trip proved next-request
+revocation and audit evidence without exposing identity data or credentials.
+
+Admin Phase 2 adds a read-only, aggregate-only operations overview for platform
+scale, booking state, open issues, and email outbox state. One narrow
+server-authorized RPC returns counts only; it is independent of current-business
+selection and exposes no customer PII, financial totals, record browser, or
+mutation. Production UI deployment remains pending until the release gates and
+post-deploy smoke test complete. See `docs/ADMIN_SECURITY.md`.

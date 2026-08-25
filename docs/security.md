@@ -644,3 +644,12 @@ Admin authorization must precede every future privileged platform query. Admin
 creation, role/status changes, and disablement are audited; page navigation is
 not. Bootstrap, threats, MFA readiness, and deferred capabilities are defined in
 `docs/ADMIN_SECURITY.md`.
+
+Admin Phase 2 uses `get_platform_admin_overview()`, a stable `SECURITY DEFINER`
+function with an empty search path, fully qualified relations, and its own
+active-`SUPER_ADMIN` caller check. Execute is limited to `authenticated`; the
+function denies anonymous, ordinary, business-owner, multi-business-owner, and
+disabled callers. It returns only aggregate counts and a server timestamp.
+Current-business cookies do not influence its result. No PII, monetary totals,
+record identifiers, service-role credential, mutation, or generic privileged
+query reaches the admin page.

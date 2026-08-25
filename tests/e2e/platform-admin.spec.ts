@@ -2,6 +2,7 @@ import fs from "node:fs";
 import { randomUUID } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import { expect, test, type Page } from "@playwright/test";
+import { CURRENT_BUSINESS_COOKIE_NAME } from "../../lib/auth/current-business-selection";
 import type { Database } from "@/types/database";
 
 function loadLocalEnv() {
@@ -56,18 +57,18 @@ async function expectNoOverflow(page: Page, width: number) {
 test.describe("platform admin route authorization", () => {
   test.skip(!hasSupabaseEnv, "Requires configured Supabase runtime credentials.");
 
-  test("denies vendors and disabled admins while allowing an active zero-business admin", async ({
+  test("denies vendors and disabled admins while rendering global operations for an active admin", async ({
     page,
   }, testInfo) => {
     test.skip(testInfo.project.name !== "chromium", "The explicit viewport matrix runs once.");
-    test.setTimeout(120_000);
+    test.setTimeout(180_000);
 
     const service = createAdminClient();
     const fixture = `pa-e2e-${Date.now()}-${randomUUID().slice(0, 8)}`;
     const password = `Platform-Admin-${randomUUID()}-A1`;
     const createdUserIds: string[] = [];
     const platformAuditIds: string[] = [];
-    let businessId: string | null = null;
+    const businessIds: string[] = [];
 
     async function createUser(label: string) {
       const email = `${fixture}-${label}@example.com`.toLowerCase();
@@ -97,9 +98,9 @@ test.describe("platform admin route authorization", () => {
         .select("id")
         .single();
       expect(businessError).toBeNull();
-      businessId = business!.id;
+      businessIds.push(business!.id);
       const { error: membershipError } = await service.from("business_members").insert({
-        business_id: businessId,
+        business_id: business!.id,
         user_id: vendor.id,
         role: "owner",
         status: "active",
@@ -126,18 +127,85 @@ test.describe("platform admin route authorization", () => {
       await page.goto("/admin");
       await expect(page.getByText("My Customers Admin")).toBeVisible();
       await expect(page.getByText("Role: Super Admin")).toBeVisible();
-      await expect(page.getByText("System: Admin access verified")).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Overview" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Platform scale" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Booking operations" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Needs attention" })).toBeVisible();
+      for (const label of [
+        "Businesses",
+        "Platform users",
+        "Customers",
+        "Bookings",
+        "Active bookings",
+        "Due today",
+        "Overdue",
+        "Completed",
+        "Failed emails",
+        "Open booking issues",
+      ]) {
+        await expect(page.locator(`[data-admin-metric="${label}"]`)).toBeVisible();
+      }
       const adminNavigation = page.getByRole("navigation", { name: "Admin navigation" });
       await expect(adminNavigation.getByRole("link")).toHaveCount(2);
       await expect(page).toHaveURL(/\/admin$/);
 
       await page.reload();
-      await expect(page.getByText("System: Admin access verified")).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Overview" })).toBeVisible();
 
-      for (const width of [390, 768, 1440]) {
+      const adminBusinessRows = ["Admin A", "Admin B"].map((label, index) => ({
+        name: `Platform Admin E2E ${label}`,
+        slug: `${fixture}-admin-${index + 1}`,
+        category: "Other",
+        onboarding_completed_at: new Date().toISOString(),
+        created_by: activeAdmin.id,
+      }));
+      const { data: adminBusinesses, error: adminBusinessesError } = await service
+        .from("businesses")
+        .insert(adminBusinessRows)
+        .select("id");
+      expect(adminBusinessesError).toBeNull();
+      businessIds.push(...adminBusinesses!.map((row) => row.id));
+      const { error: adminMembershipsError } = await service
+        .from("business_members")
+        .insert(
+          adminBusinesses!.map((row) => ({
+            business_id: row.id,
+            user_id: activeAdmin.id,
+            role: "owner" as const,
+            status: "active" as const,
+          })),
+        );
+      expect(adminMembershipsError).toBeNull();
+
+      await page.goto("/admin");
+      const metricText = await page.locator("[data-admin-metric]").allTextContents();
+      const origin = new URL(page.url()).origin;
+      for (const business of adminBusinesses!) {
+        await page.context().addCookies([
+          {
+            name: CURRENT_BUSINESS_COOKIE_NAME,
+            value: business.id,
+            url: origin,
+            httpOnly: true,
+            sameSite: "Lax",
+          },
+        ]);
+        await page.goto("/admin");
+        await expect(page.locator("[data-admin-metric]")).toHaveCount(metricText.length);
+        expect(await page.locator("[data-admin-metric]").allTextContents()).toEqual(
+          metricText,
+        );
+      }
+
+      await page.getByRole("link", { name: "Vendor workspace" }).click();
+      await expect(page).toHaveURL(/\/dashboard/);
+      await page.goto("/admin");
+      await expect(page.getByRole("heading", { name: "Overview" })).toBeVisible();
+
+      for (const width of [390, 768, 1024, 1440]) {
         await page.setViewportSize({ width, height: width < 768 ? 844 : 1000 });
         await page.goto("/admin");
-        await expect(page.getByText("System: Admin access verified")).toBeVisible();
+        await expect(page.getByRole("heading", { name: "Overview" })).toBeVisible();
         await expectNoOverflow(page, width);
       }
 
@@ -172,9 +240,9 @@ test.describe("platform admin route authorization", () => {
         await service.from("audit_logs").delete().in("id", platformAuditIds);
       }
       await service.from("platform_admins").delete().in("user_id", createdUserIds);
-      if (businessId) {
-        await service.from("audit_logs").delete().eq("business_id", businessId);
-        await service.from("businesses").delete().eq("id", businessId);
+      if (businessIds.length > 0) {
+        await service.from("audit_logs").delete().in("business_id", businessIds);
+        await service.from("businesses").delete().in("id", businessIds);
       }
       await Promise.allSettled(
         createdUserIds.map((userId) => service.auth.admin.deleteUser(userId)),

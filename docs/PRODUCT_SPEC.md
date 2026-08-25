@@ -268,8 +268,10 @@ outside this feature.
 ## Platform Administrator
 
 A platform administrator operates My Customers itself and is not a tenant
-business role. Admin Phase 1 recognizes only an `ACTIVE SUPER_ADMIN` record in
+business role. Admin authorization recognizes only an `ACTIVE SUPER_ADMIN` record in
 `platform_admins`. Owning or belonging to any number of businesses grants no
 platform authority, and an administrator may have zero business memberships.
-The implemented product surface is limited to a protected administration shell;
-platform data browsing and mutation remain deferred.
+The implemented Phase 2 surface is a protected, read-only operations overview
+containing aggregate platform, booking, issue, and email-state counts. It does
+not expose identities, customer details, financial totals, record-level
+browsing, or mutations. Phase 3 remains unstarted.
