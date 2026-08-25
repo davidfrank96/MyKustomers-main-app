@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-08-25 - Booking Journey UX
+
+Status: IMPLEMENTED - VERIFICATION PENDING
+
+- Replaced the ambiguous booking-detail next-step card with one server-derived,
+  accessible lifecycle stepper and contextual action area across draft,
+  confirmation, fulfilment, completion, feedback, and cancellation states.
+- Preserved every transition and capability boundary. Reschedule
+  reconfirmation, pending amendments, and pending add-ons provide explicit
+  context without becoming fake statuses or blocking valid lifecycle work.
+- Clarified Scheduled delivery date, made new total/deposit fields empty, and
+  normalized an empty optional deposit to zero while preserving integer
+  minor-unit validation and populated edit values.
+- Added exhaustive journey/domain and form regressions plus desktop/mobile
+  canonical E2E coverage at 320-1440 pixels. No migration, environment change,
+  public-route redesign, or Admin Phase 6 work is included.
+
 ## 2026-08-25 - Admin Read-Only Email Operations
 
 Status: VERIFIED - PRODUCTION

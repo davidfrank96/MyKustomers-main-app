@@ -142,6 +142,20 @@ through the feedback feature. Submitted feedback is immutable and private to the
 owning business. Vendors can also record internal operational issues on booking
 detail pages and resolve open issues once.
 
+## Vendor Journey Presentation
+
+`journey.ts` centralizes persisted status to user-facing stage, guidance, and
+next-action mapping. Booking detail is server-derived and cannot bypass existing
+confirmation or transition actions. Customer confirmed is not work started;
+`Start work` remains the explicit `CONFIRMED -> IN_PROGRESS` transition.
+Pending amendments and add-ons appear as context while retaining independent
+domain rules. Reschedule reconfirmation returns the current presentation to
+waiting without deleting historical proof.
+
+Permanent invariant: every non-terminal booking state clearly communicates its
+current lifecycle position and either the next valid vendor action or why the
+booking is waiting.
+
 ## Explicit Non-Goals
 
 - Payment processing.

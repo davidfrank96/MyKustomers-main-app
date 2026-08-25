@@ -118,9 +118,7 @@ export function BookingForm({
   const [description, setDescription] = useState(initialValues.description ?? "");
   const [currency, setCurrency] = useState(initialValues.currency ?? "NGN");
   const [totalAmount, setTotalAmount] = useState(initialValues.totalAmount ?? "");
-  const [depositAmount, setDepositAmount] = useState(
-    initialValues.depositAmount ?? "0.00",
-  );
+  const [depositAmount, setDepositAmount] = useState(initialValues.depositAmount ?? "");
   const [internalNotes, setInternalNotes] = useState(initialValues.internalNotes ?? "");
   const [scheduledLocal, setScheduledLocal] = useState(
     toLocalDateTimeValue(initialValues.scheduledFor),
@@ -533,7 +531,7 @@ export function BookingForm({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="scheduledForLocal">Scheduled date</Label>
+          <Label htmlFor="scheduledForLocal">Scheduled delivery date</Label>
           <Input
             id="scheduledForLocal"
             type="datetime-local"
@@ -565,6 +563,7 @@ export function BookingForm({
             inputMode="decimal"
             value={totalAmount}
             onChange={(event) => setTotalAmount(event.target.value)}
+            placeholder="Enter amount"
             required
             disabled={disabled || materialDisabled}
             aria-invalid={Boolean(fieldError(state, "totalAmount"))}
@@ -587,7 +586,7 @@ export function BookingForm({
             inputMode="decimal"
             value={depositAmount}
             onChange={(event) => setDepositAmount(event.target.value)}
-            required
+            placeholder="Optional"
             disabled={disabled || materialDisabled}
             aria-invalid={Boolean(fieldError(state, "depositAmount"))}
             aria-describedby={

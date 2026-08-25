@@ -389,3 +389,17 @@ events, and `deliverEmailEvent` claims and sends synchronously after commit.
 There is no worker or retry scheduler. The default development adapter makes no
 external request, so its `SENT` records are adapter acceptance only. Email
 Operations provides observation only and cannot retry, resend, or alter state.
+
+## Booking Journey Presentation Boundary
+
+`features/bookings/journey.ts` is the single server-safe presentation mapping
+from authoritative booking state to vendor-facing stages, guidance, attention,
+and next action. `components/bookings/booking-journey.tsx` renders that derived
+contract; it does not own lifecycle state or write directly. Booking detail
+reuses its existing parallel query set, so the stepper adds no status-step
+queries or client hydration boundary.
+
+Transition actions remain revalidated server actions backed by the existing
+database transition RPC. Confirmation, amendment, add-on, and feedback links
+retain their own capability models. Feedback completion is projected into the
+journey but never stored as a booking status.

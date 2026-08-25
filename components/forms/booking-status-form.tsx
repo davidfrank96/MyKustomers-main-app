@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 type BookingStatusFormProps = {
   action: (formData: FormData) => Promise<void>;
   label: string;
+  pendingLabel?: string;
   variant?: "primary" | "secondary" | "destructive";
   confirmMessage?: string;
   cancellationReason?: boolean;
@@ -14,16 +15,24 @@ type BookingStatusFormProps = {
 
 function SubmitButton({
   label,
+  pendingLabel,
   variant,
 }: {
   label: string;
+  pendingLabel: string;
   variant: "primary" | "secondary" | "destructive";
 }) {
   const { pending } = useFormStatus();
 
   return (
-    <Button type="submit" variant={variant} size="sm" disabled={pending}>
-      {pending ? "Please wait..." : label}
+    <Button
+      type="submit"
+      variant={variant}
+      size="sm"
+      className="w-full sm:w-fit"
+      disabled={pending}
+    >
+      {pending ? pendingLabel : label}
     </Button>
   );
 }
@@ -31,6 +40,7 @@ function SubmitButton({
 export function BookingStatusForm({
   action,
   label,
+  pendingLabel = "Please wait...",
   variant = "secondary",
   confirmMessage,
   cancellationReason = false,
@@ -58,7 +68,7 @@ export function BookingStatusForm({
           required={cancellationReasonRequired}
         />
       ) : null}
-      <SubmitButton label={label} variant={variant} />
+      <SubmitButton label={label} pendingLabel={pendingLabel} variant={variant} />
     </form>
   );
 }

@@ -509,3 +509,17 @@ raw failures, or provider configuration. Current evidence is `OUTBOX ACTIVE -
 EXTERNAL DELIVERY NOT CONFIGURED`; one pending event is older than the documented
 15-minute potential-stuck threshold. There is no retry scheduler. Admin Phase 6
 safe writes and Phase 7 system health remain planned.
+
+## Booking Journey UX Maintenance
+
+The vendor booking-detail experience derives one typed journey model from the
+authoritative booking status and existing confirmation, amendment, add-on, and
+feedback summaries. Persisted enum names and database transitions do not change.
+The permanent UX invariant is: every non-terminal booking state must clearly
+communicate its current lifecycle position and either the next valid vendor
+action or why the booking is waiting.
+
+Customer confirmation records approval of terms; it is not evidence that work
+started. Fulfilment still begins only through the explicit controlled
+`CONFIRMED -> IN_PROGRESS` action. Feedback remains a derived post-completion
+journey step and is not a booking status.

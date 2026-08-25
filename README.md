@@ -60,6 +60,12 @@ customer-confirmed add-ons contribute to derived current value, deposit, balance
 and analytics. Add-ons inherit the parent currency and current delivery schedule,
 use a separate 24-hour hash-only confirmation capability, and never rewrite the
 original booking or amendment evidence.
+Booking detail now presents the persisted lifecycle as a server-derived vendor
+journey: Booking created, Customer confirmation, Work in progress, Ready for
+delivery, Delivered, Completed, and the derived post-completion Feedback step.
+Every non-terminal state identifies either its one valid next action or why it
+is waiting. Customer confirmation never starts work automatically; the vendor
+must use the existing controlled `CONFIRMED -> IN_PROGRESS` transition.
 
 ## Stack
 

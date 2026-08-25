@@ -306,3 +306,17 @@ ingest delivery, bounce, open, or read evidence. Retry/resend and every outbox
 mutation remain Admin Phase 6 work after MFA, authorization, idempotency, reason,
 and audit review. The Phase 5 migration is applied and runtime verified; product
 deployment remains pending.
+
+## Vendor Booking Journey
+
+Booking detail uses these vendor-facing stages without renaming persisted
+statuses: Booking created, Customer confirmation, Work in progress, Ready for
+delivery, Delivered, Completed, and Feedback. Waiting confirmation, pending
+amendments, pending add-ons, and reschedule reconfirmation are contextual states,
+not additional booking statuses. Cancellation is terminal and must not imply
+future fulfilment.
+
+Every non-terminal booking must show its current lifecycle position and either
+the next valid vendor action or a clear reason it is waiting. Customer confirmed
+does not mean work started; the vendor intentionally starts fulfilment. Feedback
+is the post-completion journey close and remains separate from booking status.

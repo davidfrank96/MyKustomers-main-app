@@ -982,3 +982,25 @@ delivery is invoked immediately after commit and no retry scheduler exists.
 Retry/resend remains Admin Phase 6 work requiring MFA, write authorization,
 idempotency, reason/audit semantics, and external-side-effect review. No index is
 added at current volume; a future index requires measured query-plan evidence.
+
+## ADR-042 - Booking Journey Is A Derived Presentation Model
+
+Status: Accepted
+
+Decision: Vendor booking detail derives one typed journey model on the server
+from persisted booking status and already-loaded confirmation, amendment,
+add-on, operational timestamp, and feedback summaries. The model owns
+user-facing stage labels, current guidance, attention context, and the one
+primary next action. Execution continues through existing server actions and
+controlled database RPCs.
+
+Rationale: A badge and scattered controls do not adequately explain lifecycle
+position and next action. Central derivation prevents duplicated React switches
+and a client-only lifecycle diverging from persisted truth. Customer
+confirmation and work start remain distinct facts.
+
+Consequences: No migration or lifecycle semantic changes are introduced.
+Feedback is a derived post-completion step, cancellation is terminal, pending
+amendments/add-ons remain separate capability state, and rescheduling can return
+the presentation to waiting without erasing history. Every non-terminal state
+must expose an action or a clear waiting reason.

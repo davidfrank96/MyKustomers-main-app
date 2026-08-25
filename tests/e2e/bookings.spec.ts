@@ -318,9 +318,12 @@ test.describe("booking engine", () => {
 
     await page.locator("#customerId").click();
     await page.locator('[role="option"]').filter({ hasText: customerName }).click();
+    await expect(page.getByLabel("Scheduled delivery date")).toBeVisible();
+    await expect(page.getByLabel("Agreed total")).toHaveValue("");
+    await expect(page.getByLabel("Deposit recorded")).toHaveValue("");
     await page.getByLabel("Booking title").fill(bookingTitle);
     await page.getByLabel("Description").fill("Created through Phase 5 E2E.");
-    await page.getByLabel("Scheduled date").fill(futureLocalDateTime());
+    await page.getByLabel("Scheduled delivery date").fill(futureLocalDateTime());
     await page.getByLabel("Agreed total").fill("45000");
     await page.getByLabel("Deposit recorded").fill("5000");
     await page.getByLabel("Internal notes").fill("Private E2E note.");
@@ -332,6 +335,28 @@ test.describe("booking engine", () => {
     await expect(page.getByRole("heading", { name: bookingTitle })).toBeVisible();
     await expect(page.getByText(/MC-[0-9]{6}-[A-F0-9]{6}/)).toBeVisible();
     await expect(page.getByText("Booking created.")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Booking created" })).toBeVisible();
+    await expect(
+      page.locator('[aria-current="step"]').getByText("Booking created"),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: "Generate confirmation link" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: "Generate confirmation link" }),
+    ).toHaveCSS("color", "rgb(255, 255, 255)");
+    await expect(page.getByRole("button", { name: "Start work" })).toHaveCount(0);
+
+    const journeyViewport = page.viewportSize();
+    for (const width of [320, 360, 375, 390, 430, 768, 1024, 1440]) {
+      await page.setViewportSize({ width, height: width < 768 ? 900 : 1000 });
+      await expectNoPageOverflow(page);
+      await expect(page.getByRole("heading", { name: "Booking created" })).toBeVisible();
+      await expect(
+        page.getByRole("link", { name: "Generate confirmation link" }),
+      ).toBeVisible();
+    }
+    if (journeyViewport) await page.setViewportSize(journeyViewport);
 
     await page.getByLabel("Booking title").fill(updatedTitle);
     await page.getByLabel("Internal notes").fill("Updated private E2E note.");
@@ -348,6 +373,10 @@ test.describe("booking engine", () => {
     await expect(
       page.locator("span").filter({ hasText: /^Awaiting customer$/ }),
     ).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Waiting for customer confirmation" }),
+    ).toBeVisible();
+    await expect(page.getByRole("button", { name: "Start work" })).toHaveCount(0);
 
     await page.getByRole("button", { name: "Share with customer" }).click();
     await expect(
@@ -565,6 +594,9 @@ test.describe("booking engine", () => {
         .first(),
     ).toBeVisible();
     await expect(page.getByText("customer-confirmation@example.com")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Customer confirmed" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Start work" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Mark as delivered" })).toHaveCount(0);
     await expect(page.getByText("sent", { exact: true })).toBeVisible();
     await expect(page.getByText(/Copy link selected/)).toBeVisible();
     await expect
@@ -611,6 +643,9 @@ test.describe("booking engine", () => {
     await expect(
       page.getByText("Changes are awaiting customer confirmation."),
     ).toBeVisible({ timeout: serverActionTimeout });
+    await expect(
+      page.getByText("Changes are waiting for customer approval.", { exact: false }),
+    ).toBeVisible();
     const amendmentLinkInput = page.getByLabel("Generated amendment link");
     await expect(amendmentLinkInput).toBeAttached();
     const amendmentUrl = await amendmentLinkInput.inputValue();
@@ -700,6 +735,9 @@ test.describe("booking engine", () => {
         timeout: serverActionTimeout,
       },
     );
+    await expect(
+      page.getByText("An add-on is waiting for customer approval.", { exact: false }),
+    ).toBeVisible();
     const addonLinkInput = page.getByLabel("Generated add-on link");
     await expect(addonLinkInput).toBeAttached();
     const addonUrl = await addonLinkInput.inputValue();
@@ -802,6 +840,13 @@ test.describe("booking engine", () => {
       page.locator("span").filter({ hasText: /^Awaiting customer$/ }),
     ).toBeVisible();
     await expect(page.getByText("Booking rescheduled", { exact: true })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Waiting for customer confirmation" }),
+    ).toBeVisible();
+    await expect(
+      page.getByText("The delivery schedule changed.", { exact: false }),
+    ).toBeVisible();
+    await expect(page.getByRole("button", { name: "Start work" })).toHaveCount(0);
 
     await page
       .getByRole("button", { name: /Generate confirmation link|Regenerate link/ })
@@ -826,6 +871,7 @@ test.describe("booking engine", () => {
         .filter({ hasText: /^Confirmed$/ })
         .first(),
     ).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Customer confirmed" })).toBeVisible();
 
     await page.getByRole("button", { name: "Start work" }).click();
     await expect(page).toHaveURL(/message=status-updated/);
@@ -833,25 +879,30 @@ test.describe("booking engine", () => {
       timeout: serverActionTimeout,
     });
     await expect(page.getByText("Confirmed to In progress")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Work in progress" })).toBeVisible();
 
-    await page.getByRole("button", { name: "Mark ready" }).click();
+    await page.getByRole("button", { name: "Mark as ready" }).click();
     await expect(page.locator("span").filter({ hasText: /^Ready$/ })).toBeVisible({
       timeout: serverActionTimeout,
     });
     await expect(page.getByText("In progress to Ready")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Ready for delivery" })).toBeVisible();
 
-    await page.getByRole("button", { name: "Mark delivered" }).click();
+    await page.getByRole("button", { name: "Mark as delivered" }).click();
     await expect(page.locator("span").filter({ hasText: /^Delivered$/ })).toBeVisible({
       timeout: serverActionTimeout,
     });
     await expect(page.getByText("Ready to Delivered")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Delivered" })).toBeVisible();
 
     page.once("dialog", (dialog) => dialog.accept());
     await page.getByRole("button", { name: "Complete booking" }).click();
-    await expect(page.locator("span").filter({ hasText: /^Completed$/ })).toBeVisible({
-      timeout: serverActionTimeout,
-    });
+    await expect(
+      page.locator("span.inline-flex.w-fit").filter({ hasText: /^Completed$/ }),
+    ).toBeVisible({ timeout: serverActionTimeout });
     await expect(page.getByText("Delivered to Completed")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Booking completed" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Request feedback" })).toBeVisible();
     await expect(
       page.getByText("Completed and cancelled bookings are locked."),
     ).toBeVisible();
@@ -960,6 +1011,8 @@ test.describe("booking engine", () => {
     await expect(page.getByText("5/5")).toBeVisible();
     await expect(page.getByText("Everything was handled privately.")).toBeVisible();
     await expect(page.getByRole("button", { name: "Request feedback" })).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "Feedback received" })).toBeVisible();
+    await expect(page.getByText("The booking journey is complete.")).toBeVisible();
 
     await page.getByLabel("Category").selectOption("LATE_DELIVERY");
     await page
@@ -1106,7 +1159,7 @@ test.describe("booking engine", () => {
     await page.getByLabel("Customer name").fill(inlineCustomerName);
     await page.getByLabel("Email", { exact: true }).fill(duplicateEmail.toUpperCase());
     await page.getByLabel("Booking title").fill(bookingTitle);
-    await page.getByLabel("Scheduled date").fill(futureLocalDateTime());
+    await page.getByLabel("Scheduled delivery date").fill(futureLocalDateTime());
     await page.getByLabel("Agreed total").fill("45000");
     await page.getByLabel("Deposit recorded").fill("5000");
     await page.getByRole("button", { name: "Create booking" }).click();
@@ -1222,7 +1275,7 @@ test.describe("booking engine", () => {
     await page.locator('[role="option"]').filter({ hasText: customerName }).click();
     await page.getByLabel("Booking title").fill(bookingTitle);
     await page.getByLabel("Description").fill("Customer-confirmed cancellation E2E.");
-    await page.getByLabel("Scheduled date").fill(futureLocalDateTime());
+    await page.getByLabel("Scheduled delivery date").fill(futureLocalDateTime());
     await page.getByLabel("Agreed total").fill("500");
     await page.getByLabel("Deposit recorded").fill("100");
     await page.getByLabel("Internal notes").fill("Private note before confirmation.");
@@ -1274,14 +1327,18 @@ test.describe("booking engine", () => {
       timeout: 15_000,
     });
 
+    await page.locator("summary").filter({ hasText: "Other actions" }).click();
     const reasonInput = page.getByLabel("Cancellation reason");
     await expect(reasonInput).toHaveAttribute("required", "");
     await reasonInput.fill(cancellationReason);
     page.once("dialog", (dialog) => dialog.accept());
     await page.getByRole("button", { name: "Cancel booking" }).click();
-    await expect(page.locator("span").filter({ hasText: /^Cancelled$/ })).toBeVisible({
-      timeout: serverActionTimeout,
-    });
+    await expect(
+      page.locator("span.inline-flex.w-fit").filter({ hasText: /^Cancelled$/ }),
+    ).toBeVisible({ timeout: serverActionTimeout });
+    await expect(page.getByRole("heading", { name: "Booking cancelled" })).toBeVisible();
+    await expect(page.getByText("No further fulfilment actions are available.")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Start work" })).toHaveCount(0);
     await expect(
       page.getByText(`Cancellation reason: ${cancellationReason}`),
     ).toBeVisible();
