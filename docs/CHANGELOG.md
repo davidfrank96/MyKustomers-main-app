@@ -2,7 +2,7 @@
 
 ## 2026-08-25 - Admin Read-Only Booking And Issue Operations
 
-Status: IMPLEMENTED - VERIFICATION PENDING
+Status: VERIFIED - PRODUCTION
 
 - Added read-only Bookings and Issues directories/details, debounced search,
   lifecycle/status/category/business filters, stable pagination, loading and
@@ -18,7 +18,9 @@ Status: IMPLEMENTED - VERIFICATION PENDING
   the production-backed Supabase project. Ownership/grants, anonymous denial,
   active-admin real-data reads, exact counts/effective value, safe search/UUIDs,
   session refresh, and four responsive widths pass. No temporary admin or domain
-  fixture was created. CI, deployment, and production-URL smoke remain pending.
+  fixture was created. PR #17 passed all eight checks and merged as `edbef26`;
+  Vercel deployed that exact commit, and authenticated production smoke passed
+  for all four routes with no browser warning or error diagnostics.
 
 ## 2026-08-25 - Admin Read-Only Businesses And Users Directories
 

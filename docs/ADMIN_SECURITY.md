@@ -208,8 +208,8 @@ authorization before implementation.
 - Admin Phase 2: aggregate-only operations overview (verified in production).
 - Admin Phase 3: read-only businesses and users (verified in production from PR
   #15 and merge `4437a161`).
-- Admin Phase 4: read-only bookings and issues (implemented; migration applied
-  and local/live-backend verification passed; deployment verification pending).
+- Admin Phase 4: read-only bookings and issues (verified in production from PR
+  #17 and merge `edbef26`).
 - Admin Phase 5: email operations.
 - Admin Phase 6: narrowly approved safe write operations.
 - Admin Phase 7: security and system health.

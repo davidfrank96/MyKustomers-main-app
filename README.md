@@ -297,7 +297,8 @@ admin browser journey verified the implementation. PR #15 merged as `4437a161`;
 Vercel deployed that exact `main` commit and the production read-only smoke,
 session, responsive, and cleanup checks passed.
 
-Admin Phase 4 is implemented in the feature branch. Approved migration
+Admin Phase 4 is verified in production from PR #17 and merge `edbef26`.
+Approved migration
 `20260825022135_platform_admin_read_only_booking_issue_operations.sql` is applied
 to the production-backed Supabase project and its ownership, grants, internal
 authorization, real-data projections, and anonymous denial are verified. It adds read-only Bookings and Issues
@@ -306,4 +307,6 @@ bounded and excludes contact/private text; detail projections mask confirmation
 contacts and omit internal notes, raw terms, tokens, feedback comments, email
 recipients, provider payloads, and failure payloads. Customer browsing, email
 operations, impersonation, suspension, editing, and deletion remain deferred.
-CI, merge, Vercel deployment, and production-URL UI smoke remain pending.
+All eight PR checks passed, Vercel deployed the exact merge commit, and the
+authenticated production booking/issue directory and detail smoke passed with
+no browser warning or error diagnostics.

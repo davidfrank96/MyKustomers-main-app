@@ -483,10 +483,11 @@ Admin Phase 2 - Read-Only Operations Overview: VERIFIED IN PRODUCTION.
 
 Admin Phase 3 read-only businesses and users is VERIFIED IN PRODUCTION from PR
 #15 and merge `4437a161`. Admin Phase 4 read-only bookings and issues is
-IMPLEMENTED - VERIFICATION PENDING. Its forward RPC migration was explicitly
-approved and applied to the configured production-backed Supabase project. The
-migration, grants, direct anonymous denial, and authenticated local UI against
-live data pass; CI, deployment, and production-URL smoke remain.
+VERIFIED IN PRODUCTION from PR #17 and merge `edbef26`. Its forward RPC migration
+was explicitly approved and applied to the configured production-backed
+Supabase project. The migration, grants, direct anonymous denial, authenticated
+local UI against live data, all eight PR checks, exact Vercel deployment, and
+four-route production smoke pass.
 Phase 5 email
 operations, Phase 6 reviewed safe writes, and Phase 7 security/system health
 remain planned. Each phase requires its own threat-model and regression update.

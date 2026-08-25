@@ -291,6 +291,7 @@ is name-only; there is no customer admin directory. Directories exclude contacts
 and private descriptions, while authorized detail responses omit internal
 notes, raw terms, tokens/hashes, feedback comments, email recipients/provider
 identifiers, and failure payloads. This scope and its production-backed RPCs are
-implemented; database/grant and authenticated local UI verification pass while
-CI, deployment, and production-URL UI smoke remain pending. It adds no write
-capability.
+verified in production: database/grant and authenticated local UI verification
+pass, PR #17 passed all eight checks and merged as `edbef26`, and Vercel deployed
+that exact commit before the four-route production smoke passed. It adds no
+write capability.
