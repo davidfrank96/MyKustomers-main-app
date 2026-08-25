@@ -54,11 +54,12 @@ eight `SENT`, one `PENDING`, zero `SENDING`, and zero `FAILED`. The additional
 event was existing live application activity, not a verification fixture. The
 same backlog and delivery-configuration semantics rendered truthfully.
 
-The Brevo adapter is implemented but is not yet evidence of active Production
-delivery. After account/sender/domain setup and Production-only configuration,
-this page derives its safe provider label from the same server-only selection as
-delivery and may report `External delivery configured - Brevo`. It still cannot
-claim inbox delivery without webhook evidence. The historical pending event was
+The Brevo adapter, authenticated sender/domain, and Production-only selection
+are configured for the next reviewed deployment. This page derives its safe
+provider label from the same server-only selection as delivery and may report
+`External delivery configured - Brevo`. That wording means configuration only;
+it cannot claim inbox delivery without controlled evidence or webhooks. Resend
+is standby and is never invoked automatically. The historical pending event was
 never claimed, has zero attempts and no provider ID, and targets the reserved
 `example.com` domain; activation must not replay it.
 

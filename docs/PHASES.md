@@ -990,12 +990,12 @@ Admin Phase 6 remains planned and is not started.
 
 ## Transactional Email Provider Activation
 
-Status: IMPLEMENTED - CONFIGURATION REQUIRED
+Status: IMPLEMENTED - PRODUCTION DELIVERY VERIFICATION PENDING
 
-The provider-neutral outbox now supports development/no-network, Brevo, and
-Resend adapters. Brevo is the approved Production provider, but it must remain
-inactive until its account, sender/domain authentication, Production-only
-Vercel values, deployment, and one controlled new-event delivery are verified.
+The provider-neutral outbox supports development/no-network, Brevo, and Resend
+adapters. Brevo is configured as Production primary with verified sender/domain;
+Resend is configured standby with no automatic failover. Deployment and one
+controlled new-event delivery remain before Production delivery is verified.
 This phase adds no migration, retry control, webhook ingestion, marketing
 contact synchronization, infrastructure, or Admin Phase 6 capability.
 

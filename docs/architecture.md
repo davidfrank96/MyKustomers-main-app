@@ -31,7 +31,8 @@ read-only repository permission. E2E owns its local Next.js server and may use
 only a dedicated non-production Supabase project. Live runtime security is a
 separate protected-environment job. GitHub Actions does not deploy or apply
 database migrations. Separately, Vercel Git integration deploys merged `main`
-commits to `my-kustomers-main-app.vercel.app`; builds consume the existing schema
+commits to canonical `mykustomers.com`; `www` redirects to the apex and the
+original Vercel hostname remains available. Builds consume the existing schema
 and never mutate it. The initial Vercel runtime uses the existing development
 Supabase project with four Production-only variables documented in
 `docs/DEPLOYMENT.md`; Preview receives no privileged environment values.
@@ -76,6 +77,11 @@ call an email vendor directly: they create durable email events and provider
 adapters own external delivery. The synchronous post-commit invocation fits the
 current Vercel request lifecycle and does not depend on process-local background
 work.
+
+Cloudflare owns DNS and inbound forwarding for `hello@mykustomers.com`; it does
+not proxy authenticated application HTML. Supabase Auth email remains a separate
+provider boundary. Custom Brevo SMTP was attempted but did not persist in the
+Supabase dashboard, so Auth email is not claimed as Brevo-backed.
 
 ## Trusted Confirmation Sharing Boundary
 

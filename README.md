@@ -82,17 +82,19 @@ must use the existing controlled `CONFIRMED -> IN_PROGRESS` transition.
 
 ## Production Deployment
 
-The initial Vercel deployment is live at
-`https://my-kustomers-main-app.vercel.app`. Vercel deploys the `main` branch of
+The canonical Vercel deployment is live at `https://mykustomers.com`, with
+`https://www.mykustomers.com` permanently redirecting to the apex. The retained
+`https://my-kustomers-main-app.vercel.app` hostname continues to work. Vercel deploys the `main` branch of
 `davidfrank96/MyKustomers-main-app`; GitHub Actions remains the pre-merge quality
 gate and does not itself deploy or apply database migrations.
 
-Production email currently remains on the no-network adapter until the Brevo
-account, authenticated sender/domain, Production-only Vercel values, and one
-controlled inbox send are verified. The application now supports development,
-Brevo, and Resend behind the same server-only transactional boundary. See
-`docs/TRANSACTIONAL_EMAIL.md` and `docs/DEPLOYMENT.md` for activation and
-rollback policy.
+Production is configured for Brevo behind the provider-neutral outbox, with a
+scoped Resend key retained as standby and no automatic failover. A controlled
+new-event/inbox send remains required before production delivery is VERIFIED.
+Supabase Auth SMTP is a separate path and remains on the existing Supabase sender
+because its custom SMTP dashboard setting did not persist. See
+`docs/DOMAIN_EMAIL_INFRASTRUCTURE.md`, `docs/TRANSACTIONAL_EMAIL.md`, and
+`docs/DEPLOYMENT.md`.
 
 ## Local Setup
 
@@ -130,8 +132,8 @@ Booking, cancellation, amendment, and add-on email use the server-only
 application email abstraction, not Supabase Auth email. `development` is the
 safe default and records a synthetic provider message ID without making an
 external request. Brevo requires `TRANSACTIONAL_EMAIL_PROVIDER=brevo`,
-`BREVO_API_KEY`, and `TRANSACTIONAL_EMAIL_FROM`; Resend remains available with
-its existing key. External credentials are server-only and Production values
+`BREVO_API_KEY`, and `TRANSACTIONAL_EMAIL_FROM`; Resend requires
+`RESEND_API_KEY` when selected. External credentials are server-only and Production values
 must not be copied into Preview or Development by default.
 
 `E2E_AUTH_EMAIL` and `E2E_AUTH_PASSWORD` are optional local test credentials for

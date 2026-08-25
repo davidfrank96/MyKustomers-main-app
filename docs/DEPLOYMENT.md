@@ -9,7 +9,9 @@ STATUS: VERIFIED
 - Project: `my-kustomers-main-app`
 - Repository: `davidfrank96/MyKustomers-main-app`
 - Production branch: `main`
-- Stable URL: `https://my-kustomers-main-app.vercel.app`
+- Canonical URL: `https://mykustomers.com`
+- Redirect URL: `https://www.mykustomers.com` -> canonical apex
+- Retained Vercel URL: `https://my-kustomers-main-app.vercel.app`
 - Function region: London, `lhr1` (aligned with Supabase AWS `eu-west-2`)
 - Initial verified application commit: `ab90ebc4e808bfba64ce0c13a3db757a629b806b`
 - Initial verified deployment: `CDxVhdJyQ1Lnt6AGm7cXuct9YcTE`
@@ -29,7 +31,7 @@ target an explicitly identified safe environment.
 
 ## Production Environment
 
-Vercel Production currently contains exactly these runtime variables:
+Vercel Production contains these required runtime variables:
 
 | Name                                   | Boundary      | Scope      | Purpose                                 |
 | -------------------------------------- | ------------- | ---------- | --------------------------------------- |
@@ -37,18 +39,21 @@ Vercel Production currently contains exactly these runtime variables:
 | `NEXT_PUBLIC_SUPABASE_URL`             | Public        | Production | Supabase API origin                     |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Public        | Production | Browser-safe Supabase key               |
 | `SUPABASE_SERVICE_ROLE_KEY`            | Server secret | Production | Narrow server-only privileged workflows |
+| `TRANSACTIONAL_EMAIL_PROVIDER`         | Server config | Production | Select Brevo; no automatic failover      |
+| `TRANSACTIONAL_EMAIL_FROM`             | Server config | Production | Verified sender identity                 |
+| `BREVO_API_KEY`                        | Server secret | Production | Active transactional provider API        |
+| `RESEND_API_KEY`                       | Server secret | Production | Scoped standby provider API              |
 
-Vercel marks all four entries Sensitive. The service-role key has no
-`NEXT_PUBLIC_` prefix and must never be read by a Client Component or included
-in browser output. Values are managed only in Vercel's environment-variable
+Vercel stores API/service credentials as Secret and provider/sender selection as
+Config. The service-role and provider keys have no `NEXT_PUBLIC_` prefix and
+must never be read by a Client Component or included in browser output. Values
+are managed only in Vercel's environment-variable
 configuration and are never committed, printed in logs, or copied into this
 document.
 
-The following local/test/optional names are deliberately not deployed:
+The following local/test names are deliberately not deployed:
 
 - `DATABASE_URL`, `DIRECT_URL`, `DATABASE_POOLER_URL`, `SUPABASE_DB_URL`
-- `BREVO_API_KEY`, `RESEND_API_KEY`, `TRANSACTIONAL_EMAIL_PROVIDER`,
-  `TRANSACTIONAL_EMAIL_FROM` (pending controlled email activation)
 - `E2E_AUTH_EMAIL`, `E2E_AUTH_PASSWORD`, `E2E_SIGNUP_EMAIL`
 - `PHASE2_RUNTIME_VERIFICATION`, `PHASE2_SUPABASE_TARGET`
 
@@ -58,9 +63,12 @@ not belong in the Vercel runtime.
 
 ## Supabase Auth
 
-The Supabase Auth URL configuration for the stable production domain is:
+The Supabase Auth URL configuration for the canonical production domain is:
 
-- Site URL: `https://my-kustomers-main-app.vercel.app`
+- Site URL: `https://mykustomers.com`
+- Allowed redirect: `https://mykustomers.com/auth/callback`
+- Allowed redirect: `https://mykustomers.com/auth/callback?next=/dashboard`
+- Allowed redirect: `https://mykustomers.com/auth/callback?next=/reset-password`
 - Allowed redirect: `https://my-kustomers-main-app.vercel.app/auth/callback?next=/dashboard`
 - Allowed redirect: `https://my-kustomers-main-app.vercel.app/auth/callback?next=/reset-password`
 
@@ -101,28 +109,33 @@ remains a separate lifecycle check.
 
 Supabase Auth continues to own signup-confirmation and password-recovery email.
 Customer booking, cancellation, amendment, and add-on events use the durable
-application outbox. Because no transactional provider variables are deployed,
-the application uses its no-network development adapter:
+application outbox. Production is configured to select Brevo after the reviewed
+`main` deployment. Resend is configured as standby only. Provider selection
+never submits one event to both providers and has no automatic failover.
 
-`OUTBOX ACTIVE - EXTERNAL DELIVERY NOT CONFIGURED`
-
-Do not describe an outbox event as customer delivery. The Brevo adapter is
-implemented, but activation is incomplete until Brevo account access, an
-approved authenticated sender/domain, a controlled inbox, and the required
-Production-only Vercel values are available. Activation adds these names only:
+Do not describe an outbox event as customer delivery. Brevo reports the root
+domain and My Kustomers sender verified; Resend reports its standby domain
+verified. Delivery remains verification-pending until a new controlled event is
+accepted after deployment and its inbox result is checked. Active names are:
 
 | Name                           | Boundary             | Scope      | Purpose                                 |
 | ------------------------------ | -------------------- | ---------- | --------------------------------------- |
 | `TRANSACTIONAL_EMAIL_PROVIDER` | Server configuration | Production | Select `brevo`                          |
 | `BREVO_API_KEY`                | Server secret        | Production | Authenticate direct transactional sends |
 | `TRANSACTIONAL_EMAIL_FROM`     | Server configuration | Production | Verified sender identity                |
+| `RESEND_API_KEY`               | Server secret        | Production | Standby direct transactional sends      |
 
 Do not copy these values into Preview or Development, use a
 `NEXT_PUBLIC_BREVO_API_KEY`, or expose values during configuration. After the
 reviewed deployment, verify one new controlled event and inbox only; never replay
 historical events. Roll back delivery by restoring the prior Production provider
-selection or removing external-provider configuration, then redeploy. Resend
-remains a supported adapter with its existing key but is not the activation target.
+selection or removing external-provider configuration, then redeploy. Resend is
+not automatically invoked after a Brevo failure.
+
+Supabase Auth email is separate from this outbox. The custom Brevo SMTP form did
+not persist after dashboard save attempts, so custom SMTP remains disabled and
+signup/password-recovery email still uses the existing Supabase Auth sender.
+See `docs/DOMAIN_EMAIL_INFRASTRUCTURE.md`.
 
 ## Release Process
 

@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-08-25 - Production Domain And Email Infrastructure
+
+Status: IMPLEMENTED - PRODUCTION DELIVERY VERIFICATION PENDING
+
+- Attached `mykustomers.com` and `www.mykustomers.com` to Vercel Production,
+  issued valid TLS, made the apex canonical, preserved the original Vercel
+  hostname, and added exact custom-domain Supabase Auth callbacks.
+- Verified Cloudflare inbound routing for `hello@mykustomers.com`, Brevo root
+  domain and professional sender authentication, and Resend standby-domain
+  readiness without changing unrelated DNS records.
+- Configured Brevo as Production application provider and Resend as scoped
+  standby through server-only Vercel values. Automatic failover, historical
+  replay, marketing synchronization, infrastructure, and database changes remain
+  absent.
+- Supabase custom SMTP did not persist after automated and manual dashboard save
+  attempts, so Auth email remains on the existing Supabase sender and is not
+  reported as Brevo-backed.
+
 ## 2026-08-25 - Booking Completion And Required Business Logo
 
 Status: VERIFIED - PRODUCTION

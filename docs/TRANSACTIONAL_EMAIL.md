@@ -1,6 +1,6 @@
 # Transactional Email
 
-Status: IMPLEMENTED - CONFIGURATION REQUIRED
+Status: IMPLEMENTED - PRODUCTION DELIVERY VERIFICATION PENDING
 
 My Customers uses its own durable transactional outbox. Supabase Auth email is
 a separate system. Business-domain workflows must never call an email vendor
@@ -13,7 +13,7 @@ delivery.
 
 - `development`: default no-network adapter with a synthetic provider ID.
 - `brevo`: approved Production adapter using Brevo's direct transactional API.
-- `resend`: retained external adapter and rollback option.
+- `resend`: verified standby adapter selected only by an explicit configuration change.
 
 The selected external provider fails closed if its key or sender is missing or
 invalid. It never silently falls back to another external provider. Brevo and
@@ -48,8 +48,9 @@ screenshots, browser bundles, or logs.
 Use a professional transactional sender. Brevo sender/domain authentication must
 use the exact Brevo-supplied Brevo code, DKIM, and DMARC records. SPF is not added
 unless Brevo supplies it for the actual account configuration, such as a
-dedicated-IP setup. Activation cannot be called verified until the account,
-sender identity, domain status, and a controlled operator inbox are available.
+dedicated-IP setup. The account, sender identity, root domain, and Production-only
+Vercel configuration are active. Activation cannot be called verified until a
+newly deployed controlled event is accepted and the operator inbox is checked.
 Reply-To remains unset because the product has no reviewed tenant-safe model.
 
 ## Data And Semantics
@@ -94,4 +95,5 @@ timeout failures, malformed responses, sender validation, and Admin wording.
 Static security tests cover server-only credentials, direct per-message sending,
 domain neutrality, atomic claim preservation, no domain rollback path, no
 logging, no marketing/contact APIs, and retained adapters. Real provider and
-inbox evidence must be recorded only after controlled Production activation.
+inbox evidence must be recorded only after the reviewed code deploys from
+`main`. Resend readiness does not enable double-send or automatic failover.

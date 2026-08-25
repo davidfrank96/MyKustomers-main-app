@@ -11,6 +11,13 @@ a controlled inbox and successful Supabase Auth email delivery; login, logout,
 session handling, route protection, redirect safety, and tenant/RLS boundaries
 have runtime evidence.
 
+Production Site URL is `https://mykustomers.com`. Exact apex callback entries
+for dashboard and password recovery coexist with the retained Vercel and local
+callbacks. Supabase Auth email is separate from the application Brevo API
+adapter. Custom Brevo SMTP did not persist after dashboard save attempts, so
+signup and recovery email remain on the existing Supabase Auth sender and are
+still verification-pending.
+
 The authenticated shell exposes a compact account menu at mobile and desktop
 widths. It links to the real Settings surface and existing `/logout` route;
 that route and Settings both reuse `logoutAction`, so session clearing, audit,

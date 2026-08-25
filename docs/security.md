@@ -43,6 +43,8 @@ Security principles for all future phases:
 - PostgreSQL Row Level Security is required for tenant-owned Supabase tables.
 - No service-role key may be imported into or exposed from client components.
 - Secrets stay in server-only environment variables and are never logged.
+- Transactional provider secrets are Production-only, never `NEXT_PUBLIC_`, and
+  one outbox event is submitted to only the selected provider.
 - External input must be validated before domain logic runs.
 - Output must be encoded by framework-safe rendering primitives.
 - Sensitive public endpoints need rate limiting.
@@ -54,6 +56,12 @@ Security principles for all future phases:
 - Origin and CSRF protections must be considered for state-changing requests.
 - Application logs must not contain credentials, tokens, customer private data,
   or security-sensitive implementation details.
+
+Cloudflare DNS and inbound forwarding, Vercel delivery, application Brevo API,
+Resend standby, and Supabase Auth email are separate trust boundaries. Provider
+activation does not grant database access, alter RLS, replay historical events,
+or authorize marketing contact synchronization. Supabase custom SMTP is not
+active because the dashboard setting did not persist.
 
 Explicit tenant rule:
 

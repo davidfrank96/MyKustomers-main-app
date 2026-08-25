@@ -51,6 +51,8 @@ Rules:
 - No feature is complete merely because it compiles.
 - Update tests when behavior changes.
 - Keep secrets out of source control and browser bundles.
+- Keep local email on the no-network adapter by default. Production Brevo and
+  Resend credentials must not be pulled into Preview or Development.
 
 ## Image Upload Governance
 

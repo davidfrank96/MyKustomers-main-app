@@ -61,6 +61,10 @@ do not reduce the verified tenant/RLS coverage.
 - Static transactional-email boundary tests covering server-only secrets,
   domain neutrality, atomic claims, domain-state isolation, no sensitive
   logging, no contact/marketing APIs, and retained development/Resend support.
+- Production activation requires a new controlled event after deployment. It
+  must prove one claim, Brevo acceptance, bounded provider evidence, truthful
+  Admin wording, and inbox outcome without replaying historical events. Resend
+  standby uses a separate controlled send and never the same event.
 - Static customer-contact/email-outbox migration security tests.
 - Confirmed-term material classification, cancellation reason, recipient
   priority, safe HTML/plain-text cancellation template, and outbox idempotency
