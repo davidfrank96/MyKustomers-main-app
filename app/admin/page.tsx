@@ -109,6 +109,7 @@ function platformMetrics(overview: AdminOverview): Metric[] {
       value: overview.bookings,
       description: "Current booking records.",
       icon: CalendarCheck2,
+      href: "/admin/bookings",
     },
   ];
 }
@@ -120,24 +121,28 @@ function operationsMetrics(overview: AdminOverview): Metric[] {
       value: overview.active_bookings,
       description: "Not completed or cancelled.",
       icon: CalendarClock,
+      href: "/admin/bookings?filter=active",
     },
     {
       label: "Due today",
       value: overview.due_today,
       description: "Scheduled today in UTC and still active.",
       icon: Clock3,
+      href: "/admin/bookings?filter=due_today",
     },
     {
       label: "Overdue",
       value: overview.overdue,
       description: "Past due and not delivered or closed.",
       icon: AlertTriangle,
+      href: "/admin/bookings?filter=overdue",
     },
     {
       label: "Completed",
       value: overview.completed,
       description: "Bookings in the completed state.",
       icon: CheckCircle2,
+      href: "/admin/bookings?filter=completed",
     },
   ];
 }
@@ -198,23 +203,40 @@ export default async function AdminPage() {
           </div>
         </div>
         <dl className="mt-5 divide-y divide-border border-y border-border">
-          {attentionItems.map((item) => (
-            <div
+          {attentionItems.map((item) => {
+            const content = (
+              <>
+                <div>
+                  <dt className="font-medium">{item.label}</dt>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {item.description}
+                  </p>
+                </div>
+                <dd className="text-2xl font-semibold tabular-nums">
+                  {integerFormatter.format(item.value)}
+                </dd>
+              </>
+            );
+            const className = "grid min-h-20 grid-cols-[1fr_auto] items-center gap-4 py-4";
+            return item.label === "Open booking issues" ? (
+              <Link
+                key={item.label}
+                href="/admin/issues?status=OPEN"
+                data-admin-metric={item.label}
+                className={`${className} transition-colors hover:bg-muted/40 sm:px-3`}
+              >
+                {content}
+              </Link>
+            ) : (
+              <div
               key={item.label}
               data-admin-metric={item.label}
-              className="grid min-h-20 grid-cols-[1fr_auto] items-center gap-4 py-4"
+              className={className}
             >
-              <div>
-                <dt className="font-medium">{item.label}</dt>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {item.description}
-                </p>
-              </div>
-              <dd className="text-2xl font-semibold tabular-nums">
-                {integerFormatter.format(item.value)}
-              </dd>
+              {content}
             </div>
-          ))}
+            );
+          })}
         </dl>
       </section>
 

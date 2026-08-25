@@ -598,3 +598,42 @@ two-owner DTO unit test. Disabled-admin and business-owner denial rely on the
 unchanged authorization helper and prior verified platform-admin runtime and
 production revocation evidence. No Docker/local Supabase result is accepted as
 Phase 3 evidence.
+
+## Platform Admin Booking And Issue Operations Coverage
+
+- `tests/unit/admin-operations.test.ts` verifies bounded search/page/filter
+  parsing, strict list/detail DTOs, effective-value fixtures, and rejection of
+  directory descriptions or unexpected private fields.
+- `tests/security/platform-admin-operations-migration.test.ts` verifies the four
+  postgres-owned active-admin RPCs, grants/search paths, literal search, stable
+  pagination, confirmed-add-on totals, minimized projections, read-only pages,
+  and one-call query boundaries.
+- `tests/security/platform-admin-operations-runtime.test.ts` is opt-in and
+  production-safe: it creates temporary Auth/admin authority only, proves
+  anonymous/ordinary/disabled denial and active-admin minimized reads against
+  existing records, then removes authority audits, the admin row, and Auth users.
+  It creates no tenant/domain fixture.
+  Production-backed execution additionally requires the explicit
+  `ADMIN_PHASE4_PRODUCTION_READ_VERIFICATION=1` and
+  `PHASE2_SUPABASE_TARGET=production` pair; other runtime suites retain their
+  existing non-production safe-target gate.
+- `tests/e2e/platform-admin.spec.ts` extends route denial, safe not-found,
+  navigation, and the 390/768/1024/1440 responsive matrix to Bookings and Issues.
+
+The configured Supabase project is production-backed. No Docker stack is used,
+and controlled booking/issue domain fixtures must not be created there for this
+phase. The explicitly approved migration was applied transactionally. Anonymous
+direct calls were denied for all four RPCs, while an existing approved
+zero-business active admin completed the local application journey against live
+data, proving that global reads are independent of vendor current-business state.
+The temporary-admin runtime suite was blocked by execution risk controls before
+it created any account, admin row, audit, or domain record; no workaround was
+used. Ordinary-user, business-owner, and disabled-admin denial therefore rely on
+the unchanged helper and prior verified platform-admin runtime/revocation
+coverage. Existing production data covered effective confirmed-add-on totals,
+cancellation evidence, feedback structure, email-state grouping, issue details,
+search, filters, cross-links, safe not-found behavior, and responsive routes.
+Production has no amendment rows, so amendment rendering remains unit/static
+coverage rather than a manufactured runtime result. No Docker/local Supabase or
+production booking, issue, amendment, add-on, feedback, or email fixture was
+created.

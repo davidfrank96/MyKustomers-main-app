@@ -281,3 +281,16 @@ identity payloads, sessions, tokens, customer lists, booking terms, financial
 totals, impersonation, editing, suspension, and deletion are not product
 capabilities. The Phase 3 read-only data contract and browser journey are
 verified in production from PR #15 and merge `4437a161`.
+
+Admin Phase 4 adds read-only Bookings and Issues support views. Platform admins
+can search and filter booking lifecycle records, inspect confirmation,
+amendment, add-on, change, status, cancellation, structured feedback, issue, and
+email-state summaries, and follow business/booking/user context links. Effective
+value is the canonical booking total plus confirmed add-ons. Customer identity
+is name-only; there is no customer admin directory. Directories exclude contacts
+and private descriptions, while authorized detail responses omit internal
+notes, raw terms, tokens/hashes, feedback comments, email recipients/provider
+identifiers, and failure payloads. This scope and its production-backed RPCs are
+implemented; database/grant and authenticated local UI verification pass while
+CI, deployment, and production-URL UI smoke remain pending. It adds no write
+capability.

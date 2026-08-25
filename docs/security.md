@@ -671,3 +671,22 @@ Directory/detail reads produce no audit events. Ordinary users, business owners,
 anonymous users, and disabled administrators must fail both route and direct-RPC
 checks. No write, impersonation, suspension, credential, or membership control
 is present.
+
+Admin Phase 4 retains both authorization layers: the `/admin` layout checks the
+authenticated identity, every server query calls `requirePlatformAdmin()`, and
+each new postgres-owned RPC invokes the private active-`SUPER_ADMIN` assertion.
+PUBLIC/anonymous execution is revoked, authenticated execution is useful only
+after the internal check, search is literal/bounded, and UUID routes fail safely.
+
+Booking directories omit customer contacts, internal notes, private feedback,
+confirmation evidence, and email payloads. Booking detail masks confirmed
+contact evidence and omits raw terms/hashes, tokens, internal notes, private
+feedback comments, and recipient/provider/failure data. Issue descriptions are
+absent from lists and available only through the independently authorized detail
+RPC. Reads emit no audit event. Ordinary owners, ordinary users, anonymous
+users, and disabled admins remain denied by the unchanged authority predicate.
+The approved migration was applied to the configured production-backed project.
+Anonymous grant-boundary denial and active-admin reads were directly reverified;
+ordinary-user and disabled-admin denial continue to rely on the unchanged helper
+and previously verified platform-admin runtime/revocation coverage rather than
+production authority mutation.

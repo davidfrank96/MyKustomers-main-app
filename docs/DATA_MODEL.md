@@ -442,3 +442,16 @@ remain inaccessible as tables; projections allowlist email, account timestamps,
 and provider names and omit raw metadata, identity payloads, sessions, and
 tokens. No search index is added at current volume; trigram indexing requires a
 measured future plan regression before adoption.
+
+Admin Phase 4 adds no tables, columns, indexes, triggers, or domain mutations.
+Forward migration `20260825022135_platform_admin_read_only_booking_issue_operations.sql`
+defines four read-only JSON projections for booking list/detail and issue
+list/detail. Each invokes the existing private active-admin assertion before
+reading. Booking pages count booking rows once and compute effective totals from
+the canonical booking plus `CONFIRMED` add-ons only. Booking detail exposes
+allowlisted lifecycle evidence; issue description exists only in the issue
+detail projection. Contact evidence is masked and raw terms/hashes, private
+feedback comments, internal notes, recipient/provider/failure payloads are not
+projected. The migration is applied to the production-backed project; all four
+functions are postgres-owned, stable, `SECURITY DEFINER`, use an empty search
+path, deny anonymous invocation, and recheck active admin authority internally.

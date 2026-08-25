@@ -936,3 +936,26 @@ authority, uses stable newest-first ordering, caps page size at 50, and limits
 search to 80 characters. Application pages request 20 rows. No direct grants on
 Auth tables, browser API, audit event, mutation, or current-business dependency
 is introduced. A future higher-volume index requires query-plan evidence.
+
+## ADR-040 - Admin Booking And Issue Operations Use Minimized Evidence Projections
+
+Status: Accepted
+
+Decision: Admin Phase 4 uses four operation-specific read RPCs after
+`requirePlatformAdmin()`: booking list/detail and issue list/detail. Directories
+return only scannable support identity/state fields. Booking detail returns
+bounded persisted evidence, masked confirmation contacts, structured feedback,
+and grouped email status counts. Issue descriptions are detail-only. Effective
+booking value is canonical value plus confirmed add-ons; pending/cancelled
+add-ons never contribute.
+
+Rationale: Database-side page sets avoid N+1 queries and provide platform-wide
+search/pagination without a generic service-role browser. Strict DTOs reject
+unexpected response expansion. Separating status history, material changes,
+amendments, and add-ons preserves domain meaning.
+
+Consequences: No raw terms, hash/token, internal notes, feedback comment, email
+recipient/provider/failure payload, customer contact, write RPC, or audit-on-read
+is introduced. Search is literal and bounded, pages contain 20 records, UUIDs
+are route-validated, and current-business state is irrelevant. Customer browsing
+and full email operations remain future separately authorized scope.

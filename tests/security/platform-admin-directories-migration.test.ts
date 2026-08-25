@@ -93,7 +93,7 @@ describe("platform admin read-only directory boundary", () => {
 
   it("keeps privileged access server-only, admin-first, and independent of vendor context", () => {
     expect(queries.startsWith('import "server-only";')).toBe(true);
-    expect(queries.match(/await requirePlatformAdmin\(\)/g)).toHaveLength(5);
+    expect(queries.match(/await requirePlatformAdmin\(\)/g)).toHaveLength(9);
     for (const functionName of directoryFunctions) {
       expect(queries).toContain(`rpc("${functionName}"`);
     }

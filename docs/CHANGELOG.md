@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-08-25 - Admin Read-Only Booking And Issue Operations
+
+Status: IMPLEMENTED - VERIFICATION PENDING
+
+- Added read-only Bookings and Issues directories/details, debounced search,
+  lifecycle/status/category/business filters, stable pagination, loading and
+  safe not-found states, and business/booking/user cross-links.
+- Added strict minimized DTOs and four active-admin-only read RPC definitions.
+  Booking detail separates confirmation, amendments, add-ons, material changes,
+  status history, cancellation, structured feedback, issues, and grouped email
+  states. Private comments, internal notes, contacts on lists, raw terms,
+  tokens/hashes, and delivery payloads remain excluded.
+- Added unit and static security regressions and expanded admin E2E denial,
+  navigation, invalid-route, and responsive coverage.
+- The forward migration was explicitly approved and applied transactionally to
+  the production-backed Supabase project. Ownership/grants, anonymous denial,
+  active-admin real-data reads, exact counts/effective value, safe search/UUIDs,
+  session refresh, and four responsive widths pass. No temporary admin or domain
+  fixture was created. CI, deployment, and production-URL smoke remain pending.
+
 ## 2026-08-25 - Admin Read-Only Businesses And Users Directories
 
 Status: VERIFIED - PRODUCTION

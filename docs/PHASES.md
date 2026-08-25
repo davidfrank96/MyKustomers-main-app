@@ -925,4 +925,32 @@ Excluded: customer/booking row browsing, recent activity, exports, editing,
 impersonation, suspension, password controls, membership mutation, hard deletion,
 billing, and all Admin Phase 4 work.
 
-Admin Phase 4 remains planned as defined in `docs/ADMIN_SECURITY.md`.
+## Admin Phase 4 - Read-Only Bookings And Issues Operations
+
+STATUS: IMPLEMENTED - VERIFICATION PENDING
+
+Implemented scope:
+
+- `/admin/bookings` and `/admin/issues` server-rendered, debounced-search,
+  filtered, 20-row paginated directories with stable newest-first ordering;
+- booking detail with minimized customer identity, effective values,
+  confirmation evidence, amendments, add-ons, material/status history,
+  cancellation evidence, structured feedback, issues, and grouped email state;
+- issue detail with private description available only after active-admin
+  authorization and linked business, booking, creator, and resolver context;
+- four postgres-owned, empty-search-path, active-admin-only read RPCs and strict
+  fail-closed DTOs, with no service-role browser path or current-business scope;
+- unit, static security, E2E route/denial, loading, not-found, and responsive
+  regression coverage.
+
+Migration `20260825022135_platform_admin_read_only_booking_issue_operations.sql`
+was explicitly approved and applied transactionally to the production-backed
+project. Ownership/grants, active-admin and anonymous paths, exact count/value
+reconciliation, real-data local browser flows, safe search/UUID behavior, and
+390/768/1024/1440 responsive checks pass. CI, deployment, and production-URL
+smoke remain pending.
+Customer directory browsing, private feedback comments, full email operations,
+editing, cancellation, status transitions, issue resolution, impersonation,
+suspension, hard deletion, membership mutation, and billing are excluded.
+
+Admin Phase 5 remains planned as defined in `docs/ADMIN_SECURITY.md`.

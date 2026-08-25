@@ -1,4 +1,11 @@
-import { ArrowLeft, Building2, ShieldCheck, Users } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowLeft,
+  Building2,
+  CalendarDays,
+  ShieldCheck,
+  Users,
+} from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import {
@@ -88,6 +95,20 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
             >
               <Users className="size-4" aria-hidden="true" />
               Users
+            </Link>
+            <Link
+              href="/admin/bookings"
+              className="inline-flex items-center gap-1.5 font-medium text-primary"
+            >
+              <CalendarDays className="size-4" aria-hidden="true" />
+              Bookings
+            </Link>
+            <Link
+              href="/admin/issues"
+              className="inline-flex items-center gap-1.5 font-medium text-primary"
+            >
+              <AlertTriangle className="size-4" aria-hidden="true" />
+              Issues
             </Link>
             <Link
               href="/dashboard"

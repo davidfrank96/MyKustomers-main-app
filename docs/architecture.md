@@ -363,3 +363,13 @@ the privileged Auth schema; no service-role client or raw Auth object enters the
 route tree. `features/admin/directory.ts` strictly parses every JSON shape and
 fails closed on extra fields. Search and page state remain in the URL, and the
 current-business cookie is not read anywhere in this boundary.
+
+Admin Phase 4 extends the same module with `features/admin/operations.ts` and
+four operation-specific RPC calls. Each route performs one structured database
+call after server authorization; list functions join business/customer context
+and aggregate confirmed add-ons/open issues inside a bounded page, avoiding
+per-row reads. Detail functions assemble allowlisted child evidence in one
+statement. URL-backed search/filter/page state is server parsed. No admin route
+loads vendor current-business context, and no service-role client enters the
+application query path. The migration is explicitly approved and applied to the
+production-backed project; deployment of the application routes remains pending.
