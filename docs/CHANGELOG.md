@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-08-25 - Admin Read-Only Email Operations
+
+Status: IMPLEMENTED - PRODUCTION DEPLOYMENT PENDING
+
+- Added `/admin/emails` summary/directory/detail, bounded date/status/event-type
+  filters, search, pagination, delivery-configuration truth, health assessment,
+  event distribution, and business/booking cross-links.
+- Added strict recipient/failure minimization and two active-admin-only read RPC
+  definitions plus one private controlled failure classifier. No table, domain
+  data, index, direct grant, retry, resend, or outbox mutation is introduced.
+- Added unit, static security, gated immutable runtime, and expanded admin E2E
+  coverage. The approved production-backed migration applied transactionally;
+  direct authorization/minimization/immutability checks and the full 35-pass E2E
+  suite pass with zero temporary leftovers. PR/CI, deployment, and production
+  smoke remain pending.
+
 ## 2026-08-25 - Admin Read-Only Booking And Issue Operations
 
 Status: VERIFIED - PRODUCTION

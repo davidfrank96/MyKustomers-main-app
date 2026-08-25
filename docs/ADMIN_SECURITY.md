@@ -1,6 +1,6 @@
 # Platform Admin Security
 
-STATUS: ADMIN PHASE 0/1, ADMIN PHASE 2, AND ADMIN PHASE 3 VERIFIED IN PRODUCTION
+STATUS: ADMIN PHASES 0/1-4 VERIFIED IN PRODUCTION; PHASE 5 IMPLEMENTED, DEPLOYMENT PENDING
 
 This document defines the security boundary for My Customers platform
 administration. It is intentionally narrower than a complete admin-console
@@ -197,7 +197,7 @@ Every proposed platform-admin mutation must define and test:
 
 ## Deferred High-Risk Capabilities
 
-Admin Phases 1 through 4 deliberately exclude impersonation, destructive mutations,
+Admin Phases 1 through 5 deliberately exclude impersonation, destructive mutations,
 platform-admin membership administration, hard deletion, billing operations,
 staff management, generic record editing, customer-data search, and a general
 service-role database browser. Each requires a separate threat model and user
@@ -210,11 +210,12 @@ authorization before implementation.
   #15 and merge `4437a161`).
 - Admin Phase 4: read-only bookings and issues (verified in production from PR
   #17 and merge `edbef26`).
-- Admin Phase 5: email operations.
+- Admin Phase 5: read-only email operations (implemented; production deployment
+  pending).
 - Admin Phase 6: narrowly approved safe write operations.
 - Admin Phase 7: security and system health.
 
-Phases 5-7 are plans, not implementation evidence.
+Phases 6-7 are plans, not implementation evidence.
 
 Admin Phase 4 uses four additional operation-specific functions for booking and
 issue list/detail. Every function repeats the active-admin assertion, has an
@@ -224,3 +225,12 @@ contacts are masked; raw terms, hashes/tokens, booking internal notes, feedback
 comments, email recipients/provider IDs/failure payloads are excluded. Issue
 description is detail-only. Reads are not audited, and no resolve, cancel,
 transition, edit, impersonate, suspend, or delete operation exists.
+
+Admin Phase 5 adds two operation-specific public functions. The directory
+function returns bounded status counts, event-type distribution, and one stable
+page without recipient/failure fields. Detail returns only masked recipient and
+a fixed failure category. Neither exposes content, provider IDs, raw failures,
+customer contact evidence, tokens, or secrets. Reads do not mutate or audit the
+outbox. `SENT` means adapter/provider acceptance only. Retry and resend remain
+Phase 6 privileged writes and require MFA, idempotency, reason, audit, and
+external-side-effect design before implementation.

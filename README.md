@@ -305,8 +305,19 @@ authorization, real-data projections, and anonymous denial are verified. It adds
 directories/details through four active-admin-only RPCs. Directory search is
 bounded and excludes contact/private text; detail projections mask confirmation
 contacts and omit internal notes, raw terms, tokens, feedback comments, email
-recipients, provider payloads, and failure payloads. Customer browsing, email
-operations, impersonation, suspension, editing, and deletion remain deferred.
+recipients, provider payloads, and failure payloads. Customer browsing,
+impersonation, suspension, editing, and deletion remain deferred.
 All eight PR checks passed, Vercel deployed the exact merge commit, and the
 authenticated production booking/issue directory and detail smoke passed with
 no browser warning or error diagnostics.
+
+Admin Phase 5 implements a read-only `/admin/emails` operations surface over the
+existing transactional outbox. It uses the persisted `PENDING`, `SENDING`,
+`SENT`, and `FAILED` states, defaults to the last seven days, and exposes only
+business/booking context, timestamps, attempt counts, and controlled failure
+categories. `SENT` means adapter or provider acceptance, never recipient
+delivery, opening, or reading. Recipient masking is detail-only; message bodies,
+provider identifiers, raw failures, credentials, retry, and resend are excluded.
+The forward RPC migration is applied to the production-backed project and its
+grants, authorization, minimized projections, immutable reads, and temporary
+account cleanup are runtime verified. PR/CI and Vercel deployment remain pending.

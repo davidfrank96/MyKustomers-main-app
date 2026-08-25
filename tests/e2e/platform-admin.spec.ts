@@ -132,6 +132,8 @@ test.describe("platform admin route authorization", () => {
       await expect(page.getByRole("heading", { name: "Not authorized" })).toBeVisible();
       await page.goto("/admin/issues");
       await expect(page.getByRole("heading", { name: "Not authorized" })).toBeVisible();
+      await page.goto("/admin/emails");
+      await expect(page.getByRole("heading", { name: "Not authorized" })).toBeVisible();
 
       await page.context().clearCookies();
       await signIn(page, activeAdmin.email, password);
@@ -160,7 +162,7 @@ test.describe("platform admin route authorization", () => {
         await expect(page.locator(`[data-admin-metric="${label}"]`)).toBeVisible();
       }
       const adminNavigation = page.getByRole("navigation", { name: "Admin navigation" });
-      await expect(adminNavigation.getByRole("link")).toHaveCount(6);
+      await expect(adminNavigation.getByRole("link")).toHaveCount(7);
       await expect(page).toHaveURL(/\/admin$/);
 
       await page.reload();
@@ -243,16 +245,29 @@ test.describe("platform admin route authorization", () => {
       await page.goto(`/admin/users/${randomUUID()}`);
       await expect(page.getByRole("heading", { name: "User not found" })).toBeVisible();
       await page.goto(`/admin/bookings/${randomUUID()}`);
-      await expect(page.getByRole("heading", { name: "Booking not found" })).toBeVisible();
+      await expect(
+        page.getByRole("heading", { name: "Booking not found" }),
+      ).toBeVisible();
       await page.goto(`/admin/issues/${randomUUID()}`);
       await expect(page.getByRole("heading", { name: "Issue not found" })).toBeVisible();
+      await page.goto(`/admin/emails/${randomUUID()}`);
+      await expect(
+        page.getByRole("heading", { name: "Email event not found" }),
+      ).toBeVisible();
 
       await page.goto("/admin");
-      const metricText = await page.locator("[data-admin-metric]").allTextContents();
-      await page.goto("/admin/businesses");
+      const metricIdentities = await page
+        .locator("[data-admin-metric]")
+        .evaluateAll((elements) =>
+          elements.map((element) => element.getAttribute("data-admin-metric")),
+        );
+      const filteredBusinessesUrl = `/admin/businesses?q=${encodeURIComponent(fixture)}`;
+      await page.goto(filteredBusinessesUrl);
       const businessDirectoryText = await page
         .locator('[data-admin-directory="businesses"]')
         .allTextContents();
+      expect(businessDirectoryText.join(" ")).toContain("Platform Admin E2E Admin A");
+      expect(businessDirectoryText.join(" ")).toContain("Platform Admin E2E Admin B");
       const origin = new URL(page.url()).origin;
       for (const business of adminBusinesses!) {
         await page.context().addCookies([
@@ -265,11 +280,14 @@ test.describe("platform admin route authorization", () => {
           },
         ]);
         await page.goto("/admin");
-        await expect(page.locator("[data-admin-metric]")).toHaveCount(metricText.length);
-        expect(await page.locator("[data-admin-metric]").allTextContents()).toEqual(
-          metricText,
-        );
-        await page.goto("/admin/businesses");
+        expect(
+          await page
+            .locator("[data-admin-metric]")
+            .evaluateAll((elements) =>
+              elements.map((element) => element.getAttribute("data-admin-metric")),
+            ),
+        ).toEqual(metricIdentities);
+        await page.goto(filteredBusinessesUrl);
         expect(
           await page.locator('[data-admin-directory="businesses"]').allTextContents(),
         ).toEqual(businessDirectoryText);
@@ -288,6 +306,7 @@ test.describe("platform admin route authorization", () => {
         `/admin/users/${activeAdmin.id}`,
         "/admin/bookings",
         "/admin/issues",
+        "/admin/emails",
       ];
       for (const width of [390, 768, 1024, 1440]) {
         await page.setViewportSize({ width, height: width < 768 ? 844 : 1000 });
@@ -313,6 +332,8 @@ test.describe("platform admin route authorization", () => {
       await page.goto("/admin/bookings");
       await expect(page.getByRole("heading", { name: "Not authorized" })).toBeVisible();
       await page.goto("/admin/issues");
+      await expect(page.getByRole("heading", { name: "Not authorized" })).toBeVisible();
+      await page.goto("/admin/emails");
       await expect(page.getByRole("heading", { name: "Not authorized" })).toBeVisible();
     } finally {
       const { data: audits } = await service

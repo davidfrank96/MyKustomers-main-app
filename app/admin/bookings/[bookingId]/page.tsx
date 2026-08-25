@@ -213,7 +213,7 @@ export default async function AdminBookingDetailPage({ params }: PageProps) {
         </section>
 
         <section aria-labelledby="booking-email-title">
-          <h2 id="booking-email-title" className="text-lg font-semibold">Email event summary</h2>
+          <div className="flex flex-wrap items-center justify-between gap-3"><h2 id="booking-email-title" className="text-lg font-semibold">Email event summary</h2><Link href={`/admin/emails?booking=${booking.id}` as Route} className="text-sm font-medium text-primary">View email operations</Link></div>
           {booking.email_summary.length === 0 ? <p className="mt-4 text-sm text-muted-foreground">No email events recorded.</p> : (
             <dl className="mt-4 divide-y divide-border border-y border-border">
               {booking.email_summary.map((item) => (

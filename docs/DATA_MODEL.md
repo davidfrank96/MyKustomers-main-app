@@ -455,3 +455,15 @@ feedback comments, internal notes, recipient/provider/failure payloads are not
 projected. The migration is applied to the production-backed project; all four
 functions are postgres-owned, stable, `SECURITY DEFINER`, use an empty search
 path, deny anonymous invocation, and recheck active admin authority internally.
+
+Admin Phase 5 adds no tables, columns, enums, policies, triggers, indexes, or
+domain data changes. Forward migration
+`20260825095217_platform_admin_read_only_email_operations.sql` defines a private
+failure-code classifier and two public read-only JSON RPCs. The directory RPC
+joins existing non-null `email_events.business_id` and `booking_id` relations,
+returns a bounded status summary and newest-first page, and omits recipient and
+failure fields. The detail RPC returns the existing masked recipient and one
+allowlisted failure category only. Raw failure text, provider message IDs,
+customer IDs, content, and tokens never enter either DTO. The migration is
+applied transactionally to the production-backed project. The outbox remained
+at eight rows and the sole active `SUPER_ADMIN` remained one across application.

@@ -28,6 +28,16 @@ import {
   type AdminIssueDirectoryParams,
   type AdminIssuePage,
 } from "@/features/admin/operations";
+import {
+  ADMIN_EMAIL_PAGE_SIZE,
+  parseAdminEmailEventDetail,
+  parseAdminEmailOperationsPage,
+  type AdminEmailDeliveryConfiguration,
+  type AdminEmailDirectoryParams,
+  type AdminEmailEventDetail,
+  type AdminEmailOperationsPage,
+} from "@/features/admin/email-operations";
+import { serverEnv } from "@/lib/config/server-env";
 
 export class AdminOverviewUnavailableError extends Error {
   constructor() {
@@ -47,6 +57,13 @@ export class AdminOperationsUnavailableError extends Error {
   constructor() {
     super("Platform operations data is currently unavailable.");
     this.name = "AdminOperationsUnavailableError";
+  }
+}
+
+export class AdminEmailOperationsUnavailableError extends Error {
+  constructor() {
+    super("Platform email operations data is currently unavailable.");
+    this.name = "AdminEmailOperationsUnavailableError";
   }
 }
 
@@ -210,3 +227,70 @@ export const getAdminIssue = cache(async function getAdminIssue(
   if (!result) throw new AdminOperationsUnavailableError();
   return result;
 });
+
+export async function listAdminEmailOperations(
+  params: AdminEmailDirectoryParams,
+): Promise<AdminEmailOperationsPage> {
+  await requirePlatformAdmin();
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("get_platform_admin_email_operations", {
+    p_search: params.q || null,
+    p_status: params.status,
+    p_event_type: params.eventType,
+    p_range: params.range,
+    p_business_id: params.businessId ?? null,
+    p_booking_id: params.bookingId ?? null,
+    p_page: params.page,
+    p_page_size: ADMIN_EMAIL_PAGE_SIZE,
+  });
+  const result = error ? null : parseAdminEmailOperationsPage(data);
+
+  if (!result) throw new AdminEmailOperationsUnavailableError();
+  return result;
+}
+
+export const getAdminEmailEvent = cache(async function getAdminEmailEvent(
+  emailEventId: string,
+): Promise<AdminEmailEventDetail | null> {
+  await requirePlatformAdmin();
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("get_platform_admin_email_event", {
+    p_email_event_id: emailEventId,
+  });
+
+  if (error) throw new AdminEmailOperationsUnavailableError();
+  if (data === null) return null;
+
+  const result = parseAdminEmailEventDetail(data);
+  if (!result) throw new AdminEmailOperationsUnavailableError();
+  return result;
+});
+
+export function getAdminEmailDeliveryConfiguration(): AdminEmailDeliveryConfiguration {
+  if (serverEnv.TRANSACTIONAL_EMAIL_PROVIDER === "development") {
+    return {
+      status: "development",
+      label: "Outbox active — external delivery not configured",
+      description:
+        "Sent means the configured development adapter accepted the event; it does not mean recipient delivery.",
+    };
+  }
+
+  if (serverEnv.RESEND_API_KEY && serverEnv.TRANSACTIONAL_EMAIL_FROM) {
+    return {
+      status: "configured",
+      label: "External delivery configured",
+      description:
+        "Sent means the configured provider accepted the request; delivery, opening, and reading are not tracked.",
+    };
+  }
+
+  return {
+    status: "incomplete",
+    label: "External delivery unavailable — provider configuration incomplete",
+    description:
+      "The selected external provider is missing required server-only configuration.",
+  };
+}

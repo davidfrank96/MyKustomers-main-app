@@ -295,3 +295,14 @@ verified in production: database/grant and authenticated local UI verification
 pass, PR #17 passed all eight checks and merged as `edbef26`, and Vercel deployed
 that exact commit before the four-route production smoke passed. It adds no
 write capability.
+
+Admin Phase 5 adds read-only Email Operations. The default last-seven-days view
+shows the four authoritative outbox states, actual implemented event types,
+literal bounded search, server pagination, event-type distribution, and safe
+business/booking links. Directory responses omit recipients entirely; event
+detail may expose only the existing masked recipient plus a controlled failure
+category. `SENT` is adapter/provider acceptance because the product does not
+ingest delivery, bounce, open, or read evidence. Retry/resend and every outbox
+mutation remain Admin Phase 6 work after MFA, authorization, idempotency, reason,
+and audit review. The Phase 5 migration is applied and runtime verified; product
+deployment remains pending.

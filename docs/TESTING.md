@@ -648,3 +648,28 @@ grouped email state, private issue detail, and cross-links were present as
 designed. Browser diagnostics contained no warnings or errors. This production
 smoke was read-only and created no Auth, admin, audit, booking, issue, amendment,
 add-on, feedback, or email record.
+
+## Platform Admin Email Operations Coverage
+
+- `tests/unit/admin-email-operations.test.ts` verifies bounded URL presets,
+  punctuation search, strict summary/detail DTOs, count normalization,
+  pagination, health precedence, and rejection of privileged payload expansion.
+- `tests/security/platform-admin-email-operations-migration.test.ts` verifies
+  ownership, empty search paths, active-admin checks, grants, bounded literal
+  filtering, stable pagination, one-call query boundaries, data minimization,
+  and absence of writes or retry controls.
+- `tests/security/platform-admin-email-operations-runtime.test.ts` is gated to
+  explicitly safe non-production targets. It proves anonymous/ordinary/disabled
+  denial, active-admin reads, strict output minimization, and before/after outbox
+  immutability without creating email events.
+- `tests/e2e/platform-admin.spec.ts` covers Email Operations route denial,
+  navigation, malformed/not-found detail, current admin regression, and the
+  390/768/1024/1440 responsive matrix after the migration is available.
+
+Exact four-state/filter fixture creation is not run against production and no
+Docker/local Supabase stack is used. Production verification is read-only over
+existing outbox data. Direct runtime checks pass for anonymous/ordinary/disabled
+denial, active-admin projections, filters, data minimization, and outbox
+immutability. Full Playwright passes with 35 tests and 7 intentional skips,
+including the admin route and 390/768/1024/1440 matrix. Cleanup confirms zero
+temporary admin/Auth leftovers and exactly one approved active `SUPER_ADMIN`.

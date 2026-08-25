@@ -693,3 +693,26 @@ production authority mutation.
 PR #17 subsequently passed all eight checks and merged as `edbef26`; Vercel
 deployed that exact commit and the authenticated production read-only smoke
 passed for all four routes without creating authority or domain fixtures.
+
+SEC-049 - Platform Email Operations Minimizes Customer Communication Evidence
+
+Status: IMPLEMENTED - PRODUCTION DEPLOYMENT PENDING
+
+Email Operations is authorized twice: the server route requires the active
+platform administrator, and each postgres-owned `SECURITY DEFINER` RPC invokes
+the database active-`SUPER_ADMIN` assertion with an empty search path. PUBLIC and
+anonymous execution remain revoked; authenticated execution does not bypass the
+internal authority check. Browser roles receive no `email_events` table grant.
+
+Directory payloads contain no recipient, customer contact, message content,
+provider identifier, raw failure, request/response, token, or secret. Detail may
+return only `private.mask_contact_email` output and one fixed failure category.
+Reads are platform-wide, independent of tenant selection, immutable, and not
+audited. Retry/resend is absent because it would trigger customer communication
+and durable state mutation.
+
+The approved migration applied transactionally with unchanged outbox and active
+admin counts. Anonymous, ordinary-user, and disabled-admin invocation is denied;
+an active temporary zero-business admin could read summary/list/detail; before
+and after outbox state was identical; and temporary authority/Auth cleanup
+returned to zero leftovers and one approved active production admin.

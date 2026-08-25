@@ -48,3 +48,13 @@ synthetic message ID. Real delivery requires
 `BOOKING_ADDON_CONFIRMED` exist now. PDF attachments,
 retries/scheduling, bounce handling, and ready/progress/completion/feedback
 emails are deferred.
+
+Admin Phase 5 observes this existing outbox through narrow read-only RPCs. Its
+default window is seven days; Today and 30-day presets are also available.
+`SENT` is presented as adapter/provider acceptance and never as delivered,
+opened, or read. Pending or sending events are called potentially stuck only
+after 15 minutes because delivery is invoked immediately after commit and there
+is currently no retry worker or scheduler. Directory rows omit recipients and
+failures; detail exposes only a masked recipient and controlled failure category.
+Message bodies, provider IDs, raw provider/failure payloads, and credentials are
+never returned. Retry/resend remains deferred to Admin Phase 6.

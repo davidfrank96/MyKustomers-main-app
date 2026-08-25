@@ -375,3 +375,17 @@ application query path. The migration is explicitly approved and applied to the
 production-backed project. PR #17 passed all checks and merged as `edbef26`;
 Vercel deployed that exact commit and the four production routes passed
 authenticated read-only smoke.
+
+Admin Phase 5 adds `features/admin/email-operations.ts`, one combined summary and
+directory RPC, and one event-detail RPC. Both database functions repeat the
+active-admin assertion; application code still uses the normal authenticated
+server client after `requirePlatformAdmin()`. The combined RPC performs bounded
+date/status/type/context filtering, aggregation, joins, and newest-first
+pagination in one statement. Strict DTOs keep recipients out of directory rows
+and accept only a masked recipient plus fixed failure category on detail.
+
+The outbox delivery path is unchanged: domain transactions create durable
+events, and `deliverEmailEvent` claims and sends synchronously after commit.
+There is no worker or retry scheduler. The default development adapter makes no
+external request, so its `SENT` records are adapter acceptance only. Email
+Operations provides observation only and cannot retry, resend, or alter state.

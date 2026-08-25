@@ -334,3 +334,9 @@ production-readiness work.
 - [ ] MFA is enforced before any high-risk platform write capability is enabled.
 - [x] No generic privileged database browser, impersonation, destructive
       mutation, membership-management UI, or hard deletion shipped implicitly.
+- [x] Admin Phase 5 read-only email operations migration definition created.
+- [x] Admin Phase 5 migration explicitly approved and applied to the configured
+      production-backed project.
+- [x] Email Operations uses acceptance terminology and exposes no message body,
+      full recipient, provider identifier, raw failure, or retry control.
+- [ ] Admin Phase 5 PR/CI, Vercel deployment, and production route smoke pass.
