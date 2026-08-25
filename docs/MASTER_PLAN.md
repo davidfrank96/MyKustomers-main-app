@@ -498,9 +498,10 @@ canonical booking value plus confirmed add-ons only. Directories are minimized;
 detail evidence is allowlisted and never returns raw tokens/hashes, internal
 notes, feedback comments, or email delivery payloads. No admin write exists.
 
-Admin Phase 5 email operations is implemented in the repository. Its read-only
-RPC migration is applied to the production-backed project and runtime verified;
-PR/CI and Vercel deployment remain pending.
+Admin Phase 5 email operations is verified in production from PR #19 and merge
+`52a1820`. Its read-only RPC migration is applied to the production-backed
+project, runtime verified, deployed by Vercel from that exact commit, and
+authenticated production smoke verified the minimized live routes.
 `/admin/emails` provides a bounded platform-wide summary, event distribution,
 search, filters, stable pagination, business/booking links, and safe event
 detail. It never returns message content, full recipients, provider identifiers,

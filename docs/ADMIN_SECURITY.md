@@ -210,8 +210,8 @@ authorization before implementation.
   #15 and merge `4437a161`).
 - Admin Phase 4: read-only bookings and issues (verified in production from PR
   #17 and merge `edbef26`).
-- Admin Phase 5: read-only email operations (implemented; production deployment
-  pending).
+- Admin Phase 5: read-only email operations (verified in production from PR #19
+  and merge `52a1820`).
 - Admin Phase 6: narrowly approved safe write operations.
 - Admin Phase 7: security and system health.
 

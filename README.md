@@ -320,4 +320,7 @@ delivery, opening, or reading. Recipient masking is detail-only; message bodies,
 provider identifiers, raw failures, credentials, retry, and resend are excluded.
 The forward RPC migration is applied to the production-backed project and its
 grants, authorization, minimized projections, immutable reads, and temporary
-account cleanup are runtime verified. PR/CI and Vercel deployment remain pending.
+account cleanup are runtime verified. PR #19 passed its required checks and
+merged as `52a1820`; Vercel deployed that exact commit and authenticated
+production summary/list/detail smoke passed over existing live events without
+creating email or domain fixtures.

@@ -957,7 +957,7 @@ suspension, hard deletion, membership mutation, and billing are excluded.
 
 ## Admin Phase 5 - Read-Only Email Operations
 
-Status: IMPLEMENTED - PRODUCTION DEPLOYMENT PENDING
+Status: VERIFIED - PRODUCTION
 
 Objective: Provide truthful platform-wide outbox visibility without exposing
 customer communications or enabling external side effects.
@@ -979,6 +979,11 @@ Verification status: the approved production-backed migration applied
 transactionally. Ownership, search paths, grants, anonymous/ordinary/disabled
 denial, active-admin reads, filters, data minimization, outbox immutability, and
 temporary-account cleanup pass. The full Playwright suite passes with 35 tests
-and 7 intentional skips. PR/CI, Vercel deployment, and production route smoke
-remain pending. Docker is not used. Admin Phase 6 remains planned and is not
-started.
+and 7 intentional skips. PR #19 passed its required checks and merged as
+`52a1820`; all `main` push checks passed apart from the intentional safe-target
+Runtime Security skip, and Vercel deployed that exact commit. Authenticated
+production smoke over nine existing events passed summary/list/detail, search,
+filters, pagination, recipient masking, cross-links, absence of write controls,
+and desktop overflow checks. Failed temporary Auth creation left zero matching
+users; exactly one approved active `SUPER_ADMIN` remains. Docker is not used.
+Admin Phase 6 remains planned and is not started.
