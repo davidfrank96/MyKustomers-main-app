@@ -429,3 +429,16 @@ authenticated caller is an active `SUPER_ADMIN`. Counts derive from
 `businesses`, `profiles`, `customers`, `bookings`, `booking_issues`, and
 `email_events`; no row identifiers, identity fields, contact data, booking terms,
 or monetary values are returned.
+
+Admin Phase 3 adds no domain tables. Migration
+`20260825003219_platform_admin_read_only_directories.sql` adds four read-only
+JSON projections: paginated business summaries, one business detail, paginated
+safe Auth user summaries, and one safe Auth user detail. A private helper checks
+`auth.uid()` against an `ACTIVE SUPER_ADMIN` before every privileged read.
+Functions are postgres-owned, use an empty search path and fully qualified
+relations, revoke PUBLIC/anonymous execution, and grant authenticated execution
+only behind the internal authority check. `auth.users` and `auth.identities`
+remain inaccessible as tables; projections allowlist email, account timestamps,
+and provider names and omit raw metadata, identity payloads, sessions, and
+tokens. No search index is added at current volume; trigram indexing requires a
+measured future plan regression before adoption.

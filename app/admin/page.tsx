@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { Metadata } from "next";
+import type { Route } from "next";
+import Link from "next/link";
 import {
   getAdminAttentionItems,
   type AdminOverview,
@@ -30,6 +32,7 @@ type Metric = {
   value: number;
   description: string;
   icon: LucideIcon;
+  href?: Route;
 };
 
 const integerFormatter = new Intl.NumberFormat("en");
@@ -45,12 +48,8 @@ function MetricGrid({ metrics }: { metrics: Metric[] }) {
       {metrics.map((metric) => {
         const Icon = metric.icon;
 
-        return (
-          <div
-            key={metric.label}
-            data-admin-metric={metric.label}
-            className="min-h-36 border-b border-r border-border bg-card p-4 sm:p-5"
-          >
+        const content = (
+          <div data-admin-metric={metric.label} className="min-h-36 p-4 sm:p-5">
             <div className="flex items-center gap-2 text-muted-foreground">
               <Icon className="size-4 shrink-0" aria-hidden="true" />
               <dt className="text-sm font-medium">{metric.label}</dt>
@@ -61,6 +60,21 @@ function MetricGrid({ metrics }: { metrics: Metric[] }) {
             <p className="mt-2 text-xs leading-5 text-muted-foreground">
               {metric.description}
             </p>
+          </div>
+        );
+
+        return (
+          <div key={metric.label} className="border-b border-r border-border bg-card">
+            {metric.href ? (
+              <Link
+                href={metric.href}
+                className="block transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+              >
+                {content}
+              </Link>
+            ) : (
+              content
+            )}
           </div>
         );
       })}
@@ -75,12 +89,14 @@ function platformMetrics(overview: AdminOverview): Metric[] {
       value: overview.businesses,
       description: "All business workspaces.",
       icon: Building2,
+      href: "/admin/businesses",
     },
     {
       label: "Platform users",
       value: overview.platform_users,
       description: "Provisioned user profiles.",
       icon: Users,
+      href: "/admin/users",
     },
     {
       label: "Customers",

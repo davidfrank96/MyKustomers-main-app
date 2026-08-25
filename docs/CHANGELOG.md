@@ -1,5 +1,27 @@
 # Changelog
 
+## 2026-08-25 - Admin Read-Only Businesses And Users Directories
+
+Status: VERIFIED - PRODUCTION DEPLOYMENT PENDING
+
+- Added active-admin-only Businesses and Users directories and detail routes,
+  including server search/pagination, plural owner handling, safe cross-links,
+  membership relationships, and aggregate operational support metrics.
+- Added four postgres-owned narrow RPC projections. Auth information is limited
+  to email, timestamps, confirmation state, provider names, and a target-specific
+  platform-admin badge; no raw Auth object, token, session, or identity payload
+  is exposed.
+- Added strict DTOs, loading/not-found behavior, overview links, exact unit and
+  static security contracts, opt-in live fixtures, expanded E2E denial and
+  support journeys, current-business independence, and responsive coverage.
+- Editing, impersonation, suspension, membership mutation, hard deletion,
+  billing, recent operational lists, and Admin Phase 4 remain deferred.
+- Applied and DB-linted the RPC migration, reconciled every returned count and
+  provider projection against production in read-only transactions, and proved
+  ordinary/anonymous denial. A temporary auto-confirmed zero-business admin
+  passed the complete desktop/responsive support journey and was removed with
+  its test-only authority audit; cleanup restored exactly one active admin.
+
 ## 2026-08-25 - Admin Production Bootstrap And Read-Only Operations
 
 - Verified the production admin foundation with the approved existing Auth

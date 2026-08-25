@@ -314,6 +314,15 @@ production-readiness work.
 - [x] Exact metric deltas, current-business independence, disablement, and
       390/768/1024/1440 responsive behavior pass locally and against the live DB.
 - [x] Phase 2 production UI deployment and authenticated smoke test pass.
+- [x] Phase 3 business/user routes are read-only and have no mutation controls.
+- [x] Phase 3 Auth projections exclude raw metadata, identity payloads, sessions,
+      password fields, and tokens.
+- [x] Phase 3 search is bounded/literal, pagination is server-side, and business
+      directory aggregation uses one RPC rather than per-row queries.
+- [x] Phase 3 static/unit coverage and route/RPC denial cases are implemented.
+- [x] Phase 3 database lint, production-safe count reconciliation, direct caller
+      denial, and temporary zero-business admin browser verification pass.
+- [ ] Phase 3 required CI, Vercel deployment, and production read-only smoke pass.
 - [ ] MFA is enforced before any high-risk platform write capability is enabled.
 - [ ] No generic privileged database browser, impersonation, destructive
       mutation, membership-management UI, or hard deletion shipped implicitly.

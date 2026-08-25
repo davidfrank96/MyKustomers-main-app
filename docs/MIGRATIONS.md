@@ -150,3 +150,19 @@ fully qualified relations, an active-`SUPER_ADMIN` caller check, authenticated-
 only execute, and no table grant changes. It returns count fields and a server
 timestamp only. The migration was applied transactionally to the configured
 production-backed project; exact controlled deltas and denial paths passed.
+
+## 2026-08-25 Platform Admin Read-Only Directories Migration
+
+`20260825003219_platform_admin_read_only_directories.sql` adds a private active
+admin assertion and four postgres-owned, stable, empty-search-path
+`SECURITY DEFINER` RPCs for business list/detail and safe user list/detail.
+Execution is revoked from PUBLIC/anonymous and available to authenticated callers
+only behind each function's active-`SUPER_ADMIN` check. No table, enum, policy,
+index, or domain relation changes. Auth tables receive no grants, and only
+allowlisted account fields/provider names can leave the function.
+
+The user explicitly approved application to the configured production-backed
+project. The migration applied transactionally, ownership/grants matched the
+contract, and Supabase DB lint returned no schema errors. Production-safe
+read-only reconciliation verified exact directory/detail totals and projections.
+No domain rows or existing platform authority were changed by that verification.

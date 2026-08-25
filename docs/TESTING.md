@@ -540,3 +540,52 @@ The live suite retains the existing `PHASE2_RUNTIME_VERIFICATION=1` and safe
 they share one controlled backend, use exact global aggregate baselines, and must
 remain below project-wide Auth request limits. Assertions within each file are
 unchanged. CI requires no static administrator credentials.
+
+## Platform Admin Directory Coverage
+
+- `tests/unit/admin-directory.test.ts` verifies bounded URL parameters, count
+  normalization, page totals, provider labels, complete safe DTO parsing, and
+  rejection of unexpectedly broad privileged responses.
+- `tests/security/platform-admin-directories-migration.test.ts` verifies all
+  four postgres-owned RPCs, active-admin checks, empty search paths, grants,
+  allowlisted Auth fields, literal bounded search, server-only authorization,
+  current-business independence, and the absence of writes or unsafe data.
+- `tests/security/platform-admin-directories-runtime.test.ts` is retained behind
+  the existing safe-target flags. It creates 22 businesses and four users,
+  including multiple owners, a member, and a no-business user; verifies exact
+  page/search/membership/operational counts and ordinary/anonymous/disabled
+  denial; then removes all controlled fixtures.
+- `tests/e2e/platform-admin.spec.ts` covers anonymous/vendor/disabled denial,
+  active directory/detail access, debounced punctuation search, safe not-found,
+  business-user-business cross-links, current-business independence, refresh,
+  and no overflow at 390, 768, 1024, and 1440 pixels.
+
+The runtime provider assertion covers password/email identities. Google provider
+labeling is unit-covered; creating or linking a Google identity through service
+fixtures would not be a faithful OAuth test and is therefore not manufactured.
+Existing real Google OAuth E2E remains the vendor authentication regression.
+
+Phase 3 accepted runtime evidence is non-destructive. Read-only production SQL
+reconciled page totals, stable order, all directory and detail counts, all
+implemented business search fields, user membership counts, and Auth provider
+names against authoritative rows. It also proved case-insensitive/literal
+punctuation search and business-user cross-link consistency. All four RPCs denied
+an ordinary authenticated user, and anonymous execution failed at the grant
+boundary.
+
+One temporary auto-confirmed Auth user with zero business memberships received
+exactly one temporary `ACTIVE SUPER_ADMIN` row. The actual local application
+then passed overview, business/user search and pagination, both details,
+bidirectional cross-links, current-business independence, refresh, logout, and
+390/768/1024/1440 responsive checks against the configured project. Cleanup
+removed its admin row, Auth user, profile cascade, and test-only authority audit;
+an independent query confirmed zero leftovers and exactly one active production
+admin.
+
+The destructive 22-business runtime fixture suite remains available and gated
+but was not run against production. Production currently has no multi-owner
+business, so plural-owner preservation is verified statically and with a
+two-owner DTO unit test. Disabled-admin and business-owner denial rely on the
+unchanged authorization helper and prior verified platform-admin runtime and
+production revocation evidence. No Docker/local Supabase result is accepted as
+Phase 3 evidence.

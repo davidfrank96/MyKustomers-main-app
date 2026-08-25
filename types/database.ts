@@ -722,6 +722,30 @@ export type Database = {
         Args: Record<string, never>;
         Returns: Json;
       };
+      get_platform_admin_businesses: {
+        Args: {
+          p_search?: string | null;
+          p_page?: number;
+          p_page_size?: number;
+        };
+        Returns: Json;
+      };
+      get_platform_admin_business: {
+        Args: { p_business_id: string };
+        Returns: Json;
+      };
+      get_platform_admin_users: {
+        Args: {
+          p_search?: string | null;
+          p_page?: number;
+          p_page_size?: number;
+        };
+        Returns: Json;
+      };
+      get_platform_admin_user: {
+        Args: { p_user_id: string };
+        Returns: Json;
+      };
       create_booking_with_customer: {
         Args: {
           p_business_id: string;

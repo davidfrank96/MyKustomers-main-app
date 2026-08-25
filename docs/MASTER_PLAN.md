@@ -481,7 +481,7 @@ Admin Phase 2 - Read-Only Operations Overview: VERIFIED IN PRODUCTION.
   deployment current and ready, authenticated `/admin` rendered live aggregates,
   and the deployment log view reported zero warning/error/fatal events.
 
-Planned only: Admin Phase 3 read-only businesses and users; Phase 4 read-only
-bookings and issues; Phase 5 email operations;
+Admin Phase 3 read-only businesses and users is VERIFIED, with production
+deployment smoke pending. Phase 4 read-only bookings and issues, Phase 5 email operations,
 Phase 6 reviewed safe writes; Phase 7 security/system health. Each phase requires
 its own threat-model and regression update.
