@@ -166,3 +166,10 @@ booking is waiting.
 
 See `docs/DATA_MODEL.md`, `docs/security.md`, and `docs/DECISIONS.md` for the
 booking data and security decisions.
+
+Lifecycle-critical confirmations must use accessible application-owned
+confirmation UI rather than browser-native confirm/alert/prompt dialogs.
+`DELIVERED -> COMPLETED` opens the in-app completion dialog and only the final
+button invokes the existing transition RPC. Pending submission is single-shot;
+safe failures remain in the dialog for retry. Cancellation follows the same
+owned-dialog rule and remains a separate transition.

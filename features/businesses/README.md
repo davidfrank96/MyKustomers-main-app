@@ -46,3 +46,19 @@ onboarding, one-business routing, multi-business current-workspace resolution,
 switching, refresh persistence, and logout through a real Google-authenticated
 local session. The merged production deployment repeated the callback,
 multi-business resolution, switching, persistence, and logout journey.
+
+Every newly created business must complete a valid optimized business-logo
+upload before setup is considered complete. First and additional creation
+require a logo selection before the atomic creation RPC. The returned business
+uses the existing onboarding-completion field to persist a pending state and is
+excluded from normal current-business resolution/switching. A short-lived
+HTTP-only marker preserves the same-browser route while the shared logo component
+posts to the existing owner-authorized route. Only a server re-read of
+`logo_path` completes setup, updates the completion timestamp, and selects the
+business. Invalid or storage failures remain resumable across refresh and reuse
+the same business. No raw file enters the RPC and no schema change is required.
+
+Existing legacy businesses without logos remain usable and keep initials
+fallback plus Business-page upload, replace, and remove. Removal is therefore a
+known legacy-policy inconsistency with the new-creation invariant; changing
+active businesses to replacement-only requires a separate product decision.

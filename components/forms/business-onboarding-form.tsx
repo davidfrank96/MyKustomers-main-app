@@ -1,19 +1,30 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState, useTransition } from "react";
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
+import { useRouter } from "next/navigation";
 import { AlertCircle, ArrowRight, CheckCircle2 } from "lucide-react";
+import { BusinessLogoForm } from "@/components/forms/business-logo-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import {
   initialBusinessActionState,
   type BusinessActionState,
 } from "@/features/businesses/action-state";
-import { businessCategories, slugifyBusinessSlug } from "@/features/businesses/validation";
+import {
+  businessCategories,
+  slugifyBusinessSlug,
+} from "@/features/businesses/validation";
 
 type BusinessFormValues = {
   name?: string;
@@ -36,6 +47,8 @@ type BusinessOnboardingFormProps = {
   mode: "create" | "edit";
   initialValues?: BusinessFormValues;
   isOwner?: boolean;
+  initialState?: BusinessActionState;
+  completeAction?: (businessId: string) => Promise<BusinessActionState>;
 };
 
 function fieldError(state: BusinessActionState, name: string) {
@@ -53,9 +66,15 @@ function FormStatusMessage({ state }: { state: BusinessActionState }) {
       role={state.status === "error" ? "alert" : "status"}
     >
       {state.status === "error" ? (
-        <AlertCircle className="mt-0.5 size-4 shrink-0 text-destructive" aria-hidden="true" />
+        <AlertCircle
+          className="mt-0.5 size-4 shrink-0 text-destructive"
+          aria-hidden="true"
+        />
       ) : (
-        <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
+        <CheckCircle2
+          className="mt-0.5 size-4 shrink-0 text-primary"
+          aria-hidden="true"
+        />
       )}
       <span className="text-muted-foreground">{state.message}</span>
     </div>
@@ -79,18 +98,101 @@ export function BusinessOnboardingForm({
   mode,
   initialValues = {},
   isOwner = true,
+  initialState = initialBusinessActionState,
+  completeAction,
 }: BusinessOnboardingFormProps) {
-  const [state, formAction] = useActionState(action, initialBusinessActionState);
+  const router = useRouter();
+  const [state, formAction] = useActionState(action, initialState);
+  const [finalizing, startFinalizing] = useTransition();
   const [name, setName] = useState(initialValues.name ?? "");
   const [slug, setSlug] = useState(initialValues.slug ?? "");
   const [slugTouched, setSlugTouched] = useState(Boolean(initialValues.slug));
+  const [logoSelected, setLogoSelected] = useState(false);
+  const [logoError, setLogoError] = useState<string | null>(null);
+  const [completionError, setCompletionError] = useState<string | null>(null);
   const visibleSlug = slugTouched ? slug : slugifyBusinessSlug(name);
+  const pendingBusiness = state.pendingBusiness;
 
-  const disabled = !isOwner;
+  const disabled = !isOwner || Boolean(pendingBusiness);
+
+  const finishSetup = useCallback(() => {
+    if (!pendingBusiness || !completeAction || finalizing) {
+      return;
+    }
+
+    setCompletionError(null);
+    startFinalizing(async () => {
+      const result = await completeAction(pendingBusiness.id);
+      if (result.status === "success") {
+        router.push("/dashboard");
+        router.refresh();
+        return;
+      }
+      setCompletionError(result.message ?? "Business setup could not be completed.");
+    });
+  }, [completeAction, finalizing, pendingBusiness, router]);
 
   return (
-    <form action={formAction} className="space-y-6" noValidate>
+    <form
+      action={formAction}
+      className="space-y-6"
+      noValidate
+      onSubmit={(event) => {
+        if (mode === "create" && !pendingBusiness && !logoSelected) {
+          event.preventDefault();
+          setLogoError("Choose a business logo before creating your business.");
+          document.getElementById("business-logo")?.focus();
+        }
+      }}
+    >
       <FormStatusMessage state={state} />
+
+      {mode === "create" ? (
+        <div className="space-y-2 border-b border-border pb-6">
+          <div>
+            <h2 className="text-base font-semibold">Business logo *</h2>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">
+              Upload your logo so customers can recognize your business when you send
+              booking confirmations.
+            </p>
+          </div>
+          <BusinessLogoForm
+            businessId={pendingBusiness?.id ?? null}
+            businessName={pendingBusiness?.name ?? (name.trim() || "Your business")}
+            currentLogoUrl={pendingBusiness?.logoUrl ?? null}
+            isOwner={isOwner}
+            mode="onboarding"
+            onSelectionChange={(selected) => {
+              setLogoSelected(selected);
+              if (selected) setLogoError(null);
+            }}
+            onPersisted={finishSetup}
+          />
+          <input
+            type="hidden"
+            name="logoSelected"
+            value={logoSelected ? "true" : "false"}
+          />
+          {logoError ? (
+            <p className="text-sm text-destructive" role="alert">
+              {logoError}
+            </p>
+          ) : null}
+          {finalizing ? (
+            <p className="text-sm text-muted-foreground" role="status">
+              Finishing business setup…
+            </p>
+          ) : null}
+          {completionError ? (
+            <div className="space-y-3" role="alert">
+              <p className="text-sm text-destructive">{completionError}</p>
+              <Button type="button" variant="secondary" onClick={finishSetup}>
+                Finish setup
+              </Button>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
 
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2 md:col-span-2">
@@ -139,8 +241,15 @@ export function BusinessOnboardingForm({
 
         <div className="space-y-2">
           <Label htmlFor="category">Category</Label>
-          <Select name="category" defaultValue={initialValues.category ?? ""} disabled={disabled}>
-            <SelectTrigger id="category" aria-invalid={Boolean(fieldError(state, "category"))}>
+          <Select
+            name="category"
+            defaultValue={initialValues.category ?? ""}
+            disabled={disabled}
+          >
+            <SelectTrigger
+              id="category"
+              aria-invalid={Boolean(fieldError(state, "category"))}
+            >
               <SelectValue placeholder="Choose a category" />
             </SelectTrigger>
             <SelectContent>
@@ -152,7 +261,9 @@ export function BusinessOnboardingForm({
             </SelectContent>
           </Select>
           {fieldError(state, "category") ? (
-            <p className="text-sm leading-5 text-destructive">{fieldError(state, "category")}</p>
+            <p className="text-sm leading-5 text-destructive">
+              {fieldError(state, "category")}
+            </p>
           ) : null}
         </div>
 
@@ -215,7 +326,9 @@ export function BusinessOnboardingForm({
             autoComplete="tel"
             disabled={disabled}
             aria-invalid={Boolean(fieldError(state, "whatsapp"))}
-            aria-describedby={fieldError(state, "whatsapp") ? "whatsapp-error" : undefined}
+            aria-describedby={
+              fieldError(state, "whatsapp") ? "whatsapp-error" : undefined
+            }
           />
           {fieldError(state, "whatsapp") ? (
             <p id="whatsapp-error" className="text-sm leading-5 text-destructive">
@@ -233,7 +346,9 @@ export function BusinessOnboardingForm({
             autoComplete="off"
             disabled={disabled}
             aria-invalid={Boolean(fieldError(state, "instagram"))}
-            aria-describedby={fieldError(state, "instagram") ? "instagram-error" : undefined}
+            aria-describedby={
+              fieldError(state, "instagram") ? "instagram-error" : undefined
+            }
           />
           {fieldError(state, "instagram") ? (
             <p id="instagram-error" className="text-sm leading-5 text-destructive">
@@ -280,7 +395,7 @@ export function BusinessOnboardingForm({
         </div>
       </div>
 
-      {isOwner ? <SubmitButton mode={mode} /> : null}
+      {isOwner && !pendingBusiness ? <SubmitButton mode={mode} /> : null}
     </form>
   );
 }

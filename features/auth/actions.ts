@@ -23,6 +23,7 @@ import {
 } from "@/features/auth/oauth";
 import { setOAuthNextPath } from "@/features/auth/oauth-next";
 import { isGoogleAuthEnabled } from "@/features/auth/provider-status";
+import { clearPendingBusinessOnboardingId } from "@/features/businesses/pending-onboarding";
 
 function formValue(formData: FormData, key: string) {
   return formData.get(key);
@@ -197,6 +198,7 @@ export async function logoutAction() {
   }
 
   await clearSelectedBusinessId();
+  await clearPendingBusinessOnboardingId();
 
   redirect("/login?message=signed-out" as Route);
 }

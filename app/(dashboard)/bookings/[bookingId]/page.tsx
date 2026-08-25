@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
+  completeBookingStatusAction,
   rescheduleBookingAction,
   transitionBookingStatusAction,
   updateBookingAction,
@@ -230,8 +231,8 @@ export default async function BookingDetailPage({
   const canRequestFeedback = isFeedbackEligibleStatus(booking.status) && !feedback;
   const confirmationEverCompleted = Boolean(
     confirmationSummary.confirmedAt ||
-      booking.customer_confirmed_at ||
-      history.some((event) => event.to_status === "CONFIRMED"),
+    booking.customer_confirmed_at ||
+    history.some((event) => event.to_status === "CONFIRMED"),
   );
   const reconfirmationRequired =
     booking.status === "AWAITING_CUSTOMER" &&
@@ -322,6 +323,7 @@ export default async function BookingDetailPage({
       <BookingJourney
         journey={journey}
         transitionAction={transitionBookingStatusAction.bind(null, booking.id)}
+        completionAction={completeBookingStatusAction.bind(null, booking.id)}
         canCancel={allowedTransitions.includes("CANCELLED")}
         cancellationReasonRequired={cancellationReasonRequired}
         canReschedule={rescheduleEligible}

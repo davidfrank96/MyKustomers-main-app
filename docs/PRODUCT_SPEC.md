@@ -320,3 +320,18 @@ Every non-terminal booking must show its current lifecycle position and either
 the next valid vendor action or a clear reason it is waiting. Customer confirmed
 does not mean work started; the vendor intentionally starts fulfilment. Feedback
 is the post-completion journey close and remains separate from booking status.
+
+## Lifecycle Confirmation And New-Business Branding
+
+Lifecycle-critical confirmations must use accessible application-owned
+confirmation UI rather than browser-native confirm/alert/prompt dialogs.
+Completing a delivered booking requires an in-app confirmation and only its
+final action may invoke the controlled transition. Cancellation follows the
+same application-owned interaction rule.
+
+Every newly created business must complete a valid optimized business-logo
+upload before business setup is considered complete. Existing legacy businesses
+remain supported. This applies to first-business onboarding and
+additional-business creation. A selected local file is insufficient: the
+optimized object and the business `logo_path` must be persisted before the new
+workspace becomes current.

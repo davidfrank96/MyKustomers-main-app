@@ -352,3 +352,15 @@ production-readiness work.
 - [x] Email Operations uses acceptance terminology and exposes no message body,
       full recipient, provider identifier, raw failure, or retry control.
 - [x] Admin Phase 5 PR/CI, Vercel deployment, and production route smoke pass.
+
+## Booking Completion And Required Business Logo
+
+- [x] First and additional business setup cannot submit without a selected logo.
+- [x] Setup becomes complete/current only after the optimized object and
+      `businesses.logo_path` are persisted through the existing owner/RLS route.
+- [x] Failed logo upload remains resumable and does not repeat business creation.
+- [x] Existing legacy no-logo businesses remain usable; Business settings retain
+      upload, replace, remove, and fallback behavior.
+- [x] Booking completion and cancellation use application-owned accessible
+      confirmation dialogs with no browser-native blocking prompt dependency.
+- [ ] Controlled production completion/onboarding smoke and fixture cleanup pass.

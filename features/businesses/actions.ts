@@ -13,6 +13,16 @@ import { recordAuditEvent } from "@/lib/security/audit";
 import { createClient } from "@/lib/supabase/server";
 import type { BusinessActionState } from "@/features/businesses/action-state";
 import { businessProfileSchema } from "@/features/businesses/validation";
+import { getBusinessLogoPublicUrl } from "@/features/businesses/logo-public";
+import {
+  clearPendingBusinessOnboardingId,
+  getPendingBusinessOnboardingId,
+  setPendingBusinessOnboardingId,
+} from "@/features/businesses/pending-onboarding";
+import {
+  isBusinessOnboardingPending,
+  PENDING_BUSINESS_ONBOARDING_TIMESTAMP,
+} from "@/features/businesses/onboarding";
 
 function formValue(formData: FormData, key: string) {
   return formData.get(key);
@@ -58,6 +68,14 @@ function parseBusinessForm(formData: FormData) {
 }
 
 async function createBusiness(formData: FormData): Promise<BusinessActionState | string> {
+  if (formValue(formData, "logoSelected") !== "true") {
+    return {
+      status: "error",
+      message: "Add a business logo before creating your business.",
+      fieldErrors: { logo: ["Choose a business logo."] },
+    };
+  }
+
   const parsed = parseBusinessForm(formData);
   if (!parsed.success) {
     return validationError(parsed.error);
@@ -87,6 +105,43 @@ async function createBusiness(formData: FormData): Promise<BusinessActionState |
   return data;
 }
 
+function pendingBusinessState(business: {
+  id: string;
+  name: string;
+  logoPath: string | null;
+}): BusinessActionState {
+  return {
+    status: "logo_required",
+    message: business.logoPath
+      ? "Logo saved. Finishing business setup…"
+      : "Business details saved. Upload the required logo to finish setup.",
+    pendingBusiness: {
+      id: business.id,
+      name: business.name,
+      logoUrl: getBusinessLogoPublicUrl(business.logoPath),
+    },
+  };
+}
+
+async function markBusinessOnboardingPending(businessId: string) {
+  const supabase = await createClient();
+  await supabase
+    .from("businesses")
+    .update({ onboarding_completed_at: PENDING_BUSINESS_ONBOARDING_TIMESTAMP })
+    .eq("id", businessId);
+}
+
+function findPendingBusiness(
+  context: Awaited<ReturnType<typeof getCurrentBusinessContext>>,
+  pendingBusinessId: string | null,
+) {
+  return (
+    context.pendingBusinesses.find(
+      (business) => business.id === pendingBusinessId && business.role === "owner",
+    ) ?? context.pendingBusinesses.find((business) => business.role === "owner")
+  );
+}
+
 export async function createBusinessAction(
   _previousState: BusinessActionState,
   formData: FormData,
@@ -94,6 +149,13 @@ export async function createBusinessAction(
   const user = await requireUser("/onboarding");
 
   const existingContext = await getCurrentBusinessContext(user);
+  const pendingBusinessId = await getPendingBusinessOnboardingId();
+  const pendingBusiness = findPendingBusiness(existingContext, pendingBusinessId);
+
+  if (pendingBusiness) {
+    return pendingBusinessState(pendingBusiness);
+  }
+
   if (existingContext.currentBusiness) {
     redirect("/dashboard" as Route);
   }
@@ -103,9 +165,14 @@ export async function createBusinessAction(
     return result;
   }
 
-  await setSelectedBusinessId(result);
-  revalidatePath("/", "layout");
-  redirect("/dashboard" as Route);
+  await markBusinessOnboardingPending(result);
+  await setPendingBusinessOnboardingId(result);
+
+  return pendingBusinessState({
+    id: result,
+    name: parsedBusinessName(formData),
+    logoPath: null,
+  });
 }
 
 export async function createAdditionalBusinessAction(
@@ -114,6 +181,12 @@ export async function createAdditionalBusinessAction(
 ): Promise<BusinessActionState> {
   const user = await requireUser("/business/new");
   const existingContext = await getCurrentBusinessContext(user);
+  const pendingBusinessId = await getPendingBusinessOnboardingId();
+  const pendingBusiness = findPendingBusiness(existingContext, pendingBusinessId);
+
+  if (pendingBusiness) {
+    return pendingBusinessState(pendingBusiness);
+  }
 
   if (!existingContext.currentBusiness) {
     redirect("/onboarding" as Route);
@@ -124,9 +197,64 @@ export async function createAdditionalBusinessAction(
     return result;
   }
 
-  await setSelectedBusinessId(result);
+  await markBusinessOnboardingPending(result);
+  await setPendingBusinessOnboardingId(result);
+
+  return pendingBusinessState({
+    id: result,
+    name: parsedBusinessName(formData),
+    logoPath: null,
+  });
+}
+
+function parsedBusinessName(formData: FormData) {
+  const name = formValue(formData, "name");
+  return typeof name === "string" && name.trim() ? name.trim() : "New business";
+}
+
+export async function completeBusinessOnboardingAction(
+  businessId: string,
+): Promise<BusinessActionState> {
+  const user = await requireUser("/onboarding");
+  await requireBusinessRole(businessId, ["owner"], user);
+  const supabase = await createClient();
+  const { data: business, error } = await supabase
+    .from("businesses")
+    .select("logo_path, onboarding_completed_at")
+    .eq("id", businessId)
+    .maybeSingle();
+
+  if (
+    error ||
+    !business?.logo_path ||
+    !isBusinessOnboardingPending(business.onboarding_completed_at)
+  ) {
+    return {
+      status: "error",
+      message: "This business setup cannot be finalized. Refresh and try again.",
+    };
+  }
+
+  const { error: completionError } = await supabase
+    .from("businesses")
+    .update({ onboarding_completed_at: new Date().toISOString() })
+    .eq("id", businessId);
+
+  if (completionError) {
+    return {
+      status: "error",
+      message: "Business setup could not be finalized. Please try again.",
+    };
+  }
+
+  await setSelectedBusinessId(businessId);
+  await clearPendingBusinessOnboardingId();
   revalidatePath("/", "layout");
-  redirect("/dashboard" as Route);
+
+  return {
+    status: "success",
+    message: "Business setup complete.",
+  };
 }
 
 export async function updateBusinessProfileAction(

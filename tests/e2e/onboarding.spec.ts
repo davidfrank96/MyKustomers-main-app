@@ -2,6 +2,7 @@ import fs from "node:fs";
 import { randomUUID } from "node:crypto";
 import { expect, test } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
+import sharp from "sharp";
 
 function loadLocalEnv() {
   if (!fs.existsSync(".env")) {
@@ -28,8 +29,8 @@ loadLocalEnv();
 
 const hasSupabaseEnv = Boolean(
   process.env.NEXT_PUBLIC_SUPABASE_URL &&
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY &&
-    process.env.SUPABASE_SERVICE_ROLE_KEY,
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY &&
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
 );
 
 const createdEmails = new Set<string>();
@@ -82,11 +83,18 @@ test.describe("business onboarding", () => {
     if (createdBusinessSlugs.size > 0) {
       const { data: businesses } = await admin
         .from("businesses")
-        .select("id")
+        .select("id, logo_path")
         .in("slug", [...createdBusinessSlugs]);
       const businessIds = businesses?.map((business) => business.id) ?? [];
+      const logoPaths =
+        businesses?.flatMap((business) =>
+          business.logo_path ? [business.logo_path] : [],
+        ) ?? [];
 
       if (businessIds.length > 0) {
+        if (logoPaths.length > 0) {
+          await admin.storage.from("business-logos").remove(logoPaths);
+        }
         await admin.from("audit_logs").delete().in("business_id", businessIds);
         await admin.from("businesses").delete().in("id", businessIds);
       }
@@ -118,7 +126,9 @@ test.describe("business onboarding", () => {
     await page.getByRole("button", { name: "Log in" }).click();
 
     await expect(page).toHaveURL(/\/onboarding/);
-    await expect(page.getByRole("heading", { name: "Set up your business" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Set up your business" }),
+    ).toBeVisible();
 
     await page.getByLabel("Business name").fill("Phase 3 E2E Bakery");
     await page.getByLabel("Business slug").fill(slug);
@@ -130,12 +140,83 @@ test.describe("business onboarding", () => {
     await page.getByLabel("WhatsApp").fill("+353 01 555 0188");
     await page.getByLabel("Instagram").fill("@phase3e2e");
     await page.getByLabel("Address").fill("Dublin");
-    await page.getByRole("button", { name: "Create business" }).click();
 
-    await expect(page).toHaveURL(/\/dashboard/);
+    await page.getByRole("button", { name: "Create business" }).click();
+    await expect(
+      page.getByText("Choose a business logo before creating your business."),
+    ).toBeVisible();
+    const admin = createAdminClient();
+    const { count: businessCountWithoutLogo } = await admin
+      .from("businesses")
+      .select("id", { count: "exact", head: true })
+      .eq("slug", slug);
+    expect(businessCountWithoutLogo).toBe(0);
+
+    await page.getByLabel("Logo image").setInputFiles({
+      name: "not-an-image.png",
+      mimeType: "image/png",
+      buffer: Buffer.from("not an image"),
+    });
+    await page.getByRole("button", { name: "Create business" }).click();
+    await expect(
+      page.getByText("The uploaded file is not a valid supported image."),
+    ).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(page).toHaveURL(/\/onboarding/);
+
+    const { data: stagedBusiness } = await admin
+      .from("businesses")
+      .select("id, logo_path, onboarding_completed_at")
+      .eq("slug", slug)
+      .single();
+    expect(stagedBusiness).not.toBeNull();
+    if (!stagedBusiness) throw new Error("Staged business was not created.");
+    expect(stagedBusiness.logo_path).toBeNull();
+    expect(new Date(stagedBusiness.onboarding_completed_at).getTime()).toBe(0);
+
+    await page.context().clearCookies({
+      name: "my-customers-pending-business-onboarding",
+    });
+    await page.reload();
+    await expect(page).toHaveURL(/\/onboarding/);
+    await expect(
+      page.getByText("Business details saved. Upload the required logo to finish setup."),
+    ).toBeVisible();
+
+    const logo = await sharp({
+      create: {
+        width: 720,
+        height: 360,
+        channels: 4,
+        background: { r: 24, g: 96, b: 76, alpha: 1 },
+      },
+    })
+      .png()
+      .toBuffer();
+    await page.getByLabel("Logo image").setInputFiles({
+      name: "phase3-logo.png",
+      mimeType: "image/png",
+      buffer: logo,
+    });
+
+    await expect(page).toHaveURL(/\/dashboard/, { timeout: 20_000 });
     await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Phase 3 E2E Bakery" })).toBeVisible();
     await expect(page.getByText(`Slug: ${slug}`)).toBeVisible();
+
+    const { data: completedBusiness } = await admin
+      .from("businesses")
+      .select("id, logo_path, onboarding_completed_at")
+      .eq("slug", slug)
+      .single();
+    expect(completedBusiness).not.toBeNull();
+    if (!completedBusiness) throw new Error("Completed business was not found.");
+    expect(completedBusiness.id).toBe(stagedBusiness.id);
+    expect(completedBusiness.logo_path).toBe(`${completedBusiness.id}/logo.webp`);
+    expect(new Date(completedBusiness.onboarding_completed_at).getTime()).toBeGreaterThan(
+      0,
+    );
 
     await page.goto("/onboarding");
     await expect(page).toHaveURL(/\/dashboard/);
