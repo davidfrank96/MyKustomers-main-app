@@ -363,4 +363,6 @@ production-readiness work.
       upload, replace, remove, and fallback behavior.
 - [x] Booking completion and cancellation use application-owned accessible
       confirmation dialogs with no browser-native blocking prompt dependency.
-- [ ] Controlled production completion/onboarding smoke and fixture cleanup pass.
+- [x] PR #23 required CI, conflict-free merge `9dae103`, exact Vercel deployment,
+      controlled production completion/onboarding smoke, and zero-fixture cleanup
+      pass.

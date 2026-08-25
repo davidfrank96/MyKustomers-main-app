@@ -341,3 +341,11 @@ validation, WebP optimization, deterministic path, Storage RLS, and public
 fallback remain unchanged. Existing legacy businesses without logos remain
 usable. No migration is included, and transactional-provider activation and
 Admin Phase 6 remain paused.
+
+PR #23 passed Quality, Tests, Build, E2E, and Dependency Security and merged
+conflict-free as `9dae103`. Vercel deployed that exact `main` commit. A
+controlled production Auth user verified no-logo rejection without row
+creation, optimized first/additional-business logo persistence, workspace
+switching, booking completion cancel/final confirmation at 320px, feedback
+guidance, and logo replace/remove/restore. Cleanup confirmed zero temporary
+Auth-user or business leftovers.

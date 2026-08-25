@@ -125,7 +125,7 @@ Known risks: Documents must stay maintained as future implementation changes rep
 
 ## Phase 2 - Authentication and Multi-Tenancy Foundation
 
-Status: IMPLEMENTED - VERIFICATION PENDING
+Status: VERIFIED - PRODUCTION
 
 Objective: Implement Supabase Auth and tenant-aware platform access.
 
@@ -1020,3 +1020,12 @@ logo mandatory for every newly created first or additional business. Existing
 RPCs, booking transitions, the owner-authorized logo route, Storage RLS, and
 legacy no-logo behavior are preserved. No database migration, email-provider
 configuration, broad redesign, or Admin Phase 6 scope is included.
+
+PR #23 passed every required executable CI job and merged conflict-free as
+`9dae103`; Vercel deployed that exact `main` commit. Controlled production
+smoke verified no-logo rejection without row creation, optimized first and
+additional business logos, current-business switching, the booking completion
+dialog Cancel/final paths and feedback handoff at 320px, and existing logo
+replace/remove/restore behavior. Cleanup confirmed zero temporary Auth or
+business leftovers. Runtime Security was intentionally skipped by the
+protected-backend safe-target policy, with no Docker or bypass.
