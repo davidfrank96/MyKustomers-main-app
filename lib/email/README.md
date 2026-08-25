@@ -39,9 +39,10 @@ are recorded information and My Customers did not process payment. Delivery
 failure never changes add-on state.
 
 The default `development` provider performs no external request and returns a
-synthetic message ID. Real delivery requires
-`TRANSACTIONAL_EMAIL_PROVIDER=resend`, `RESEND_API_KEY`, and
-`TRANSACTIONAL_EMAIL_FROM` in server-only configuration.
+synthetic message ID. Brevo delivery requires
+`TRANSACTIONAL_EMAIL_PROVIDER=brevo`, `BREVO_API_KEY`, and
+`TRANSACTIONAL_EMAIL_FROM`; Resend remains supported with its existing key. All
+external configuration is server-only.
 
 `BOOKING_CONFIRMED`, `BOOKING_CANCELLED`, `BOOKING_AMENDMENT_REQUESTED`,
 `BOOKING_AMENDMENT_CONFIRMED`, `BOOKING_ADDON_REQUESTED`, and
@@ -58,3 +59,8 @@ is currently no retry worker or scheduler. Directory rows omit recipients and
 failures; detail exposes only a masked recipient and controlled failure category.
 Message bodies, provider IDs, raw provider/failure payloads, and credentials are
 never returned. Retry/resend remains deferred to Admin Phase 6.
+
+Provider modules in `lib/email/providers` use bounded HTTP timeouts and return
+only a safe provider message ID or bounded failure. See
+`docs/TRANSACTIONAL_EMAIL.md` for activation, sender authentication, privacy,
+historical-event, and deferred webhook/retry rules.

@@ -87,10 +87,12 @@ The initial Vercel deployment is live at
 `davidfrank96/MyKustomers-main-app`; GitHub Actions remains the pre-merge quality
 gate and does not itself deploy or apply database migrations.
 
-Production currently uses the existing development Supabase project and the
-no-network transactional email adapter. This is an explicit initial-release
-limitation. See `docs/DEPLOYMENT.md` for environment names, Supabase Auth URLs,
-verification evidence, release steps, and rollback policy.
+Production email currently remains on the no-network adapter until the Brevo
+account, authenticated sender/domain, Production-only Vercel values, and one
+controlled inbox send are verified. The application now supports development,
+Brevo, and Resend behind the same server-only transactional boundary. See
+`docs/TRANSACTIONAL_EMAIL.md` and `docs/DEPLOYMENT.md` for activation and
+rollback policy.
 
 ## Local Setup
 
@@ -113,6 +115,7 @@ NEXT_PUBLIC_APP_URL=
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
+BREVO_API_KEY=
 RESEND_API_KEY=
 TRANSACTIONAL_EMAIL_PROVIDER=development
 TRANSACTIONAL_EMAIL_FROM=
@@ -123,11 +126,13 @@ E2E_AUTH_PASSWORD=
 Client-safe values are validated separately from server-only secrets in
 `lib/config`.
 
-Booking confirmation and cancellation email use the server-only application email abstraction,
-not Supabase Auth email. `development` is the safe default and records a
-synthetic provider message ID without making an external request. Set
-`TRANSACTIONAL_EMAIL_PROVIDER=resend`, `RESEND_API_KEY`, and
-`TRANSACTIONAL_EMAIL_FROM` together to enable real delivery.
+Booking, cancellation, amendment, and add-on email use the server-only
+application email abstraction, not Supabase Auth email. `development` is the
+safe default and records a synthetic provider message ID without making an
+external request. Brevo requires `TRANSACTIONAL_EMAIL_PROVIDER=brevo`,
+`BREVO_API_KEY`, and `TRANSACTIONAL_EMAIL_FROM`; Resend remains available with
+its existing key. External credentials are server-only and Production values
+must not be copied into Preview or Development by default.
 
 `E2E_AUTH_EMAIL` and `E2E_AUTH_PASSWORD` are optional local test credentials for
 real Supabase authentication E2E tests. Do not commit real values.

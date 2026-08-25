@@ -120,6 +120,7 @@ export type AdminEmailOperationsPage = z.infer<typeof adminEmailOperationsPageSc
 };
 export type AdminEmailDeliveryConfiguration = {
   status: "development" | "configured" | "incomplete";
+  provider: string;
   label: string;
   description: string;
 };
@@ -206,4 +207,38 @@ export function formatEmailFailureCategory(value: string | null) {
     .split("_")
     .map((part) => part[0]?.toUpperCase() + part.slice(1))
     .join(" ");
+}
+
+export function describeAdminEmailDeliveryConfiguration(selection: {
+  label: string;
+  external: boolean;
+  configured: boolean;
+}): AdminEmailDeliveryConfiguration {
+  if (!selection.external) {
+    return {
+      status: "development",
+      provider: selection.label,
+      label: "Outbox active — external delivery not configured",
+      description:
+        "Sent means the configured development adapter accepted the event; it does not mean recipient delivery.",
+    };
+  }
+
+  if (selection.configured) {
+    return {
+      status: "configured",
+      provider: selection.label,
+      label: `External delivery configured — ${selection.label}`,
+      description:
+        "Sent means the configured provider accepted the request; delivery, opening, and reading are not tracked.",
+    };
+  }
+
+  return {
+    status: "incomplete",
+    provider: selection.label,
+    label: "External delivery unavailable — provider configuration incomplete",
+    description:
+      "The selected external provider is missing required server-only configuration.",
+  };
 }

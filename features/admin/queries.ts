@@ -30,6 +30,7 @@ import {
 } from "@/features/admin/operations";
 import {
   ADMIN_EMAIL_PAGE_SIZE,
+  describeAdminEmailDeliveryConfiguration,
   parseAdminEmailEventDetail,
   parseAdminEmailOperationsPage,
   type AdminEmailDeliveryConfiguration,
@@ -37,7 +38,7 @@ import {
   type AdminEmailEventDetail,
   type AdminEmailOperationsPage,
 } from "@/features/admin/email-operations";
-import { serverEnv } from "@/lib/config/server-env";
+import { getTransactionalEmailProviderSelection } from "@/lib/email/provider";
 
 export class AdminOverviewUnavailableError extends Error {
   constructor() {
@@ -269,28 +270,7 @@ export const getAdminEmailEvent = cache(async function getAdminEmailEvent(
 });
 
 export function getAdminEmailDeliveryConfiguration(): AdminEmailDeliveryConfiguration {
-  if (serverEnv.TRANSACTIONAL_EMAIL_PROVIDER === "development") {
-    return {
-      status: "development",
-      label: "Outbox active — external delivery not configured",
-      description:
-        "Sent means the configured development adapter accepted the event; it does not mean recipient delivery.",
-    };
-  }
-
-  if (serverEnv.RESEND_API_KEY && serverEnv.TRANSACTIONAL_EMAIL_FROM) {
-    return {
-      status: "configured",
-      label: "External delivery configured",
-      description:
-        "Sent means the configured provider accepted the request; delivery, opening, and reading are not tracked.",
-    };
-  }
-
-  return {
-    status: "incomplete",
-    label: "External delivery unavailable — provider configuration incomplete",
-    description:
-      "The selected external provider is missing required server-only configuration.",
-  };
+  return describeAdminEmailDeliveryConfiguration(
+    getTransactionalEmailProviderSelection(),
+  );
 }

@@ -64,9 +64,18 @@ audit linkage, and one `BOOKING_CONFIRMED` outbox event together.
 External email is never sent inside that transaction. After commit,
 `lib/email/outbox.ts` atomically claims the event, renders HTML and plain text
 from the immutable terms snapshot, and calls a provider-neutral interface. The
-development adapter makes no external request; the optional Resend adapter is
+development adapter makes no external request; the Brevo and Resend adapters are
 enabled only by explicit server environment configuration. Delivery failure is
 recorded on the event and never reverts the confirmed booking.
+
+Brevo delivery uses the direct transactional send API with one recipient,
+existing HTML/plain-text templates, a bounded timeout, a deterministic provider
+idempotency value, and only the returned message ID. The database claim remains
+the authoritative concurrency boundary. Business-domain workflows must never
+call an email vendor directly: they create durable email events and provider
+adapters own external delivery. The synchronous post-commit invocation fits the
+current Vercel request lifecycle and does not depend on process-local background
+work.
 
 ## Trusted Confirmation Sharing Boundary
 

@@ -31,12 +31,12 @@ target an explicitly identified safe environment.
 
 Vercel Production currently contains exactly these runtime variables:
 
-| Name | Boundary | Scope | Purpose |
-| --- | --- | --- | --- |
-| `NEXT_PUBLIC_APP_URL` | Public | Production | Stable absolute application URL |
-| `NEXT_PUBLIC_SUPABASE_URL` | Public | Production | Supabase API origin |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Public | Production | Browser-safe Supabase key |
-| `SUPABASE_SERVICE_ROLE_KEY` | Server secret | Production | Narrow server-only privileged workflows |
+| Name                                   | Boundary      | Scope      | Purpose                                 |
+| -------------------------------------- | ------------- | ---------- | --------------------------------------- |
+| `NEXT_PUBLIC_APP_URL`                  | Public        | Production | Stable absolute application URL         |
+| `NEXT_PUBLIC_SUPABASE_URL`             | Public        | Production | Supabase API origin                     |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Public        | Production | Browser-safe Supabase key               |
+| `SUPABASE_SERVICE_ROLE_KEY`            | Server secret | Production | Narrow server-only privileged workflows |
 
 Vercel marks all four entries Sensitive. The service-role key has no
 `NEXT_PUBLIC_` prefix and must never be read by a Client Component or included
@@ -47,7 +47,8 @@ document.
 The following local/test/optional names are deliberately not deployed:
 
 - `DATABASE_URL`, `DIRECT_URL`, `DATABASE_POOLER_URL`, `SUPABASE_DB_URL`
-- `RESEND_API_KEY`, `TRANSACTIONAL_EMAIL_PROVIDER`, `TRANSACTIONAL_EMAIL_FROM`
+- `BREVO_API_KEY`, `RESEND_API_KEY`, `TRANSACTIONAL_EMAIL_PROVIDER`,
+  `TRANSACTIONAL_EMAIL_FROM` (pending controlled email activation)
 - `E2E_AUTH_EMAIL`, `E2E_AUTH_PASSWORD`, `E2E_SIGNUP_EMAIL`
 - `PHASE2_RUNTIME_VERIFICATION`, `PHASE2_SUPABASE_TARGET`
 
@@ -105,9 +106,23 @@ the application uses its no-network development adapter:
 
 `OUTBOX ACTIVE - EXTERNAL DELIVERY NOT CONFIGURED`
 
-Do not describe an outbox event as customer delivery. Enabling Resend later
-requires reviewed Production values for all three optional email variables and
-a new delivery verification pass.
+Do not describe an outbox event as customer delivery. The Brevo adapter is
+implemented, but activation is incomplete until Brevo account access, an
+approved authenticated sender/domain, a controlled inbox, and the required
+Production-only Vercel values are available. Activation adds these names only:
+
+| Name                           | Boundary             | Scope      | Purpose                                 |
+| ------------------------------ | -------------------- | ---------- | --------------------------------------- |
+| `TRANSACTIONAL_EMAIL_PROVIDER` | Server configuration | Production | Select `brevo`                          |
+| `BREVO_API_KEY`                | Server secret        | Production | Authenticate direct transactional sends |
+| `TRANSACTIONAL_EMAIL_FROM`     | Server configuration | Production | Verified sender identity                |
+
+Do not copy these values into Preview or Development, use a
+`NEXT_PUBLIC_BREVO_API_KEY`, or expose values during configuration. After the
+reviewed deployment, verify one new controlled event and inbox only; never replay
+historical events. Roll back delivery by restoring the prior Production provider
+selection or removing external-provider configuration, then redeploy. Resend
+remains a supported adapter with its existing key but is not the activation target.
 
 ## Release Process
 

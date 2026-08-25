@@ -57,6 +57,7 @@ describe("confirmation contact and email", () => {
 
   it("maps provider exceptions to a safe failure result", async () => {
     const provider: TransactionalEmailProvider = {
+      name: "development",
       async send() {
         throw new Error("provider response with sensitive details");
       },

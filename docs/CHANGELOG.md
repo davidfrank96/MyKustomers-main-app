@@ -26,6 +26,24 @@ Status: VERIFIED - PRODUCTION
   or business fixtures. Runtime Security remained intentionally skipped by the
   protected-backend safe-target policy; no Docker or gate bypass was used.
 
+## 2026-08-25 - Brevo Transactional Email Adapter
+
+Status: IMPLEMENTED - CONFIGURATION REQUIRED
+
+- Added a server-only Brevo direct transactional adapter with bounded timeout,
+  safe provider-error mapping, deterministic provider idempotency, and minimized
+  response handling while retaining development/no-network and Resend adapters.
+- Made Admin Email Operations derive truthful provider/configuration wording from
+  the delivery selection. `SENT` continues to mean provider acceptance only.
+- Added unit and static security regressions for provider switching, HTTP/network
+  failures, secrets, atomic claiming, domain-state isolation, privacy, logging,
+  and absence of marketing/contact synchronization. No migration, dependency,
+  infrastructure, webhook, retry control, historical replay, or Admin Phase 6
+  work is included.
+- Production activation remains blocked on authenticated Brevo account access,
+  approved sender/domain authentication, Production-only Vercel values, and one
+  controlled new-event/inbox verification.
+
 ## 2026-08-25 - Booking Journey UX
 
 Status: VERIFIED - PRODUCTION

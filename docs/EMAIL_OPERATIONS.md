@@ -54,6 +54,14 @@ eight `SENT`, one `PENDING`, zero `SENDING`, and zero `FAILED`. The additional
 event was existing live application activity, not a verification fixture. The
 same backlog and delivery-configuration semantics rendered truthfully.
 
+The Brevo adapter is implemented but is not yet evidence of active Production
+delivery. After account/sender/domain setup and Production-only configuration,
+this page derives its safe provider label from the same server-only selection as
+delivery and may report `External delivery configured - Brevo`. It still cannot
+claim inbox delivery without webhook evidence. The historical pending event was
+never claimed, has zero attempts and no provider ID, and targets the reserved
+`example.com` domain; activation must not replay it.
+
 ## Security And Deferred Writes
 
 The server requires platform-admin authorization before invoking either narrow

@@ -88,7 +88,7 @@ export default async function AdminEmailsPage({ searchParams }: PageProps) {
         aria-labelledby="email-delivery-state-title"
         className="border-y border-border py-5"
       >
-        <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="flex flex-wrap items-start justify-between gap-6">
           <div>
             <p className="text-sm text-muted-foreground">Delivery configuration</p>
             <h2 id="email-delivery-state-title" className="mt-1 font-semibold">
@@ -98,9 +98,15 @@ export default async function AdminEmailsPage({ searchParams }: PageProps) {
               {delivery.description}
             </p>
           </div>
-          <Badge variant={delivery.status === "incomplete" ? "accent" : "outline"}>
-            {formatOperationLabel(delivery.status)}
-          </Badge>
+          <div className="flex items-center gap-4">
+            <div>
+              <p className="text-sm text-muted-foreground">Transactional provider</p>
+              <p className="mt-1 font-semibold">{delivery.provider}</p>
+            </div>
+            <Badge variant={delivery.status === "incomplete" ? "accent" : "outline"}>
+              {formatOperationLabel(delivery.status)}
+            </Badge>
+          </div>
         </div>
       </section>
 
@@ -139,7 +145,7 @@ export default async function AdminEmailsPage({ searchParams }: PageProps) {
                 </dd>
                 {status === "SENT" ? (
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Accepted by configured adapter
+                    Accepted by configured provider
                   </p>
                 ) : null}
               </Link>

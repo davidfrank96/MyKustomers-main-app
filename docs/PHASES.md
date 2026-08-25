@@ -988,6 +988,17 @@ and desktop overflow checks. Failed temporary Auth creation left zero matching
 users; exactly one approved active `SUPER_ADMIN` remains. Docker is not used.
 Admin Phase 6 remains planned and is not started.
 
+## Transactional Email Provider Activation
+
+Status: IMPLEMENTED - CONFIGURATION REQUIRED
+
+The provider-neutral outbox now supports development/no-network, Brevo, and
+Resend adapters. Brevo is the approved Production provider, but it must remain
+inactive until its account, sender/domain authentication, Production-only
+Vercel values, deployment, and one controlled new-event delivery are verified.
+This phase adds no migration, retry control, webhook ingestion, marketing
+contact synchronization, infrastructure, or Admin Phase 6 capability.
+
 ## 2026-08-25 Booking Journey UX Maintenance
 
 Status: VERIFIED - PRODUCTION

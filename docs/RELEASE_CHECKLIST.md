@@ -247,7 +247,17 @@ production-readiness work.
 
 ## Email
 
-- [ ] Resend configured.
+- [x] Development, Brevo, and Resend resolve behind one server-only provider boundary.
+- [x] Brevo success, auth, rate-limit, provider, network, timeout, malformed-response,
+      sender-validation, idempotency, and privacy boundaries have regression coverage.
+- [ ] Brevo account, professional sender/domain authentication, and controlled inbox verified.
+- [ ] Production-only `TRANSACTIONAL_EMAIL_PROVIDER`, `BREVO_API_KEY`, and
+      `TRANSACTIONAL_EMAIL_FROM` configured without exposing values.
+- [ ] One new controlled event accepted by Brevo, provider evidence stored, inbox
+      receipt checked, and Admin Email Operations verified after deployment.
+- [x] Historical events, including the never-claimed reserved-domain pending event,
+      are excluded from activation replay.
+- [ ] Resend configured (optional retained adapter, not current activation target).
 - [x] Provider-neutral booking-confirmed HTML/plain-text templates reviewed.
 - [x] Durable booking-confirmed event and post-commit failure behavior verified.
 - [x] Provider-neutral booking-cancelled HTML/plain-text template reviewed.
@@ -259,7 +269,7 @@ production-readiness work.
       request content omits add-on terms, confirmation shows recorded effective
       totals, and provider failure does not roll back state.
 - [ ] Failed-event retry worker/schedule configured.
-- [ ] Bounce/error handling planned.
+- [ ] Delivery/bounce webhook ingestion implemented.
 
 ## Billing
 

@@ -304,8 +304,10 @@ detail may expose only the existing masked recipient plus a controlled failure
 category. `SENT` is adapter/provider acceptance because the product does not
 ingest delivery, bounce, open, or read evidence. Retry/resend and every outbox
 mutation remain Admin Phase 6 work after MFA, authorization, idempotency, reason,
-and audit review. The Phase 5 migration is applied and runtime verified; product
-deployment remains pending.
+and audit review. The Phase 5 migration and product deployment are verified.
+The read-only surface now derives its provider label from the same server-only
+selection as delivery. Brevo support is implemented, but Production activation
+still requires verified sender/domain configuration and a controlled live send.
 
 ## Vendor Booking Journey
 
