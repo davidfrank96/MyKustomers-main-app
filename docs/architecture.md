@@ -80,8 +80,8 @@ work.
 
 Cloudflare owns DNS and inbound forwarding for `hello@mykustomers.com`; it does
 not proxy authenticated application HTML. Supabase Auth email remains a separate
-provider boundary. Custom Brevo SMTP was attempted but did not persist in the
-Supabase dashboard, so Auth email is not claimed as Brevo-backed.
+provider boundary and uses Brevo custom SMTP in Production. This is independent
+from the application outbox, which uses the Brevo transactional API.
 
 ## Trusted Confirmation Sharing Boundary
 

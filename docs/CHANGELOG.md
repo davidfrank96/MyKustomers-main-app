@@ -14,9 +14,8 @@ Status: IMPLEMENTED - PRODUCTION DELIVERY VERIFICATION PENDING
   standby through server-only Vercel values. Automatic failover, historical
   replay, marketing synchronization, infrastructure, and database changes remain
   absent.
-- Supabase custom SMTP did not persist after automated and manual dashboard save
-  attempts, so Auth email remains on the existing Supabase sender and is not
-  reported as Brevo-backed.
+- Enabled Supabase custom SMTP with the verified My Kustomers sender through
+  Brevo. Controlled signup and recovery delivery remain verification-pending.
 
 ## 2026-08-25 - Booking Completion And Required Business Logo
 

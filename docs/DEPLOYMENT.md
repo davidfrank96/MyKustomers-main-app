@@ -132,9 +132,10 @@ historical events. Roll back delivery by restoring the prior Production provider
 selection or removing external-provider configuration, then redeploy. Resend is
 not automatically invoked after a Brevo failure.
 
-Supabase Auth email is separate from this outbox. The custom Brevo SMTP form did
-not persist after dashboard save attempts, so custom SMTP remains disabled and
-signup/password-recovery email still uses the existing Supabase Auth sender.
+Supabase Auth email is separate from this outbox. Production custom SMTP is
+enabled with the verified My Kustomers sender through Brevo. Signup and
+password-recovery delivery remain verification-pending until controlled inbox
+and callback tests complete.
 See `docs/DOMAIN_EMAIL_INFRASTRUCTURE.md`.
 
 ## Release Process

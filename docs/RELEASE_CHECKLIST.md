@@ -261,7 +261,8 @@ production-readiness work.
 - [x] Resend verified and configured as standby without automatic failover.
 - [x] Canonical apex/www TLS, retained Vercel hostname, exact Supabase callbacks,
       and Cloudflare inbound alias configured.
-- [ ] Supabase custom SMTP persistence and controlled signup/reset email verified.
+- [x] Supabase custom SMTP configuration persisted with the verified sender.
+- [ ] Controlled signup/reset email delivery and callbacks verified.
 - [x] Provider-neutral booking-confirmed HTML/plain-text templates reviewed.
 - [x] Durable booking-confirmed event and post-commit failure behavior verified.
 - [x] Provider-neutral booking-cancelled HTML/plain-text template reviewed.

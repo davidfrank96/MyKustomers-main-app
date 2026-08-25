@@ -60,8 +60,8 @@ Security principles for all future phases:
 Cloudflare DNS and inbound forwarding, Vercel delivery, application Brevo API,
 Resend standby, and Supabase Auth email are separate trust boundaries. Provider
 activation does not grant database access, alter RLS, replay historical events,
-or authorize marketing contact synchronization. Supabase custom SMTP is not
-active because the dashboard setting did not persist.
+or authorize marketing contact synchronization. Supabase Auth uses Brevo custom
+SMTP with the verified sender, independently from the application outbox API.
 
 Explicit tenant rule:
 

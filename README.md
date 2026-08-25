@@ -91,8 +91,9 @@ gate and does not itself deploy or apply database migrations.
 Production is configured for Brevo behind the provider-neutral outbox, with a
 scoped Resend key retained as standby and no automatic failover. A controlled
 new-event/inbox send remains required before production delivery is VERIFIED.
-Supabase Auth SMTP is a separate path and remains on the existing Supabase sender
-because its custom SMTP dashboard setting did not persist. See
+Supabase Auth SMTP is a separate path. Production custom SMTP is enabled with
+the verified My Kustomers sender through Brevo; controlled signup and recovery
+delivery remain verification-pending. See
 `docs/DOMAIN_EMAIL_INFRASTRUCTURE.md`, `docs/TRANSACTIONAL_EMAIL.md`, and
 `docs/DEPLOYMENT.md`.
 

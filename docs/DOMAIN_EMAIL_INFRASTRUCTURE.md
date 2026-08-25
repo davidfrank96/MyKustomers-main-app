@@ -41,12 +41,11 @@ is not proof of inbox delivery.
 
 ## Supabase Auth Email
 
-Supabase Auth email is independent from the application outbox. A dedicated
-Brevo SMTP credential was generated and the dashboard form was populated, but
-Supabase did not persist the custom SMTP toggle after automated and manual save
-attempts. Custom SMTP therefore remains disabled and must not be described as
-active. Signup confirmation and password recovery remain on the existing
-Supabase Auth sender until this limitation is resolved and reverified.
+Supabase Auth email is independent from the application outbox. Production
+custom SMTP is enabled with a dedicated Brevo SMTP credential and the verified
+My Kustomers sender. Signup confirmation and password recovery remain
+verification-pending until controlled inbox delivery and callback completion
+are reverified.
 
 ## Operational Rules
 

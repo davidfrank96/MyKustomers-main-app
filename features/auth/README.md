@@ -14,9 +14,9 @@ have runtime evidence.
 Production Site URL is `https://mykustomers.com`. Exact apex callback entries
 for dashboard and password recovery coexist with the retained Vercel and local
 callbacks. Supabase Auth email is separate from the application Brevo API
-adapter. Custom Brevo SMTP did not persist after dashboard save attempts, so
-signup and recovery email remain on the existing Supabase Auth sender and are
-still verification-pending.
+adapter. Production custom SMTP is enabled with the verified My Kustomers sender
+through Brevo. Signup and recovery email remain verification-pending until
+controlled inbox delivery and callback completion are reverified.
 
 The authenticated shell exposes a compact account menu at mobile and desktop
 widths. It links to the real Settings surface and existing `/logout` route;
