@@ -2,7 +2,7 @@
 
 ## 2026-08-25 - Booking Journey UX
 
-Status: IMPLEMENTED - VERIFICATION PENDING
+Status: VERIFIED - PRODUCTION
 
 - Replaced the ambiguous booking-detail next-step card with one server-derived,
   accessible lifecycle stepper and contextual action area across draft,
@@ -16,6 +16,14 @@ Status: IMPLEMENTED - VERIFICATION PENDING
 - Added exhaustive journey/domain and form regressions plus desktop/mobile
   canonical E2E coverage at 320-1440 pixels. No migration, environment change,
   public-route redesign, or Admin Phase 6 work is included.
+- PR #21 passed Build, Tests, E2E, Dependency Security, and Quality, then merged
+  conflict-free as `b26f0c4`. Vercel deployed that exact `main` commit, and a
+  controlled production owner/business/customer/booking verified empty new
+  money inputs, Scheduled delivery date, confirmed progress, Start work, Ready,
+  Delivered, Complete, feedback guidance, and 320-1440 responsive containment.
+  Cleanup verified zero temporary business or Auth-user leftovers. The protected
+  configured backend kept runtime fixture suites intentionally skipped by their
+  safe-target gate; static security and authenticated lifecycle coverage passed.
 
 ## 2026-08-25 - Admin Read-Only Email Operations
 

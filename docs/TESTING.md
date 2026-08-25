@@ -687,3 +687,11 @@ temporary admin/Auth leftovers and exactly one approved active `SUPER_ADMIN`.
   absent-invalid actions, reconfirmation, attention context, feedback close,
   cancellation hierarchy, and zero overflow at 320, 360, 375, 390, 430, 768,
   1024, and 1440 pixels in desktop and mobile projects.
+- Required CI passed Build, Tests, E2E, Dependency Security, and Quality for PR
+  #21. Runtime Security was intentionally skipped by the protected configured
+  backend's safe-target gate, matching the local 18-suite safe skip; the gate
+  was not bypassed. After Vercel deployed merge `b26f0c4`, controlled production
+  smoke used one isolated owner/business/customer/booking to verify the new form
+  and `CONFIRMED -> IN_PROGRESS -> READY -> DELIVERED -> COMPLETED` UI path,
+  feedback guidance, and all eight responsive widths. Cleanup verified zero
+  temporary business or Auth-user leftovers.

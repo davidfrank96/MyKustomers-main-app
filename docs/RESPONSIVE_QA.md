@@ -63,3 +63,7 @@ The 2026-08-25 booking-journey pass exercised authenticated booking detail at
 320, 360, 375, 390, 430, 768, 1024, and 1440 pixels inside canonical desktop and
 mobile lifecycle journeys. Current-step semantics, primary-action fit, secondary
 cancellation access, attention copy, and document overflow passed.
+The post-deployment production smoke repeated document-overflow checks at all
+eight widths against merge `b26f0c4`; desktop and mobile production captures
+confirmed the two-column and action-first vertical compositions without crushed
+labels or horizontal overflow. Controlled fixtures were removed afterward.

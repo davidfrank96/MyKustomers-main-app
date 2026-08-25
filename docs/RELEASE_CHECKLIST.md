@@ -28,7 +28,7 @@ production-readiness work.
 - [x] New total/deposit empty-state and persisted edit-value regressions pass.
 - [x] Desktop/mobile canonical, reconfirmation, cancellation, and 320-1440
       responsive journey checks pass locally.
-- [ ] Required CI, production deployment, and controlled production smoke pass.
+- [x] Required CI, production deployment, and controlled production smoke pass.
 
 ## Database
 
