@@ -469,8 +469,7 @@ VERIFIED IN PRODUCTION.
   `SUPER_ADMIN`; live disable/re-enable checks proved immediate revocation,
   restoration, and authority-change audit evidence.
 
-Admin Phase 2 - Read-Only Operations Overview: IMPLEMENTED - PRODUCTION
-DEPLOYMENT VERIFICATION PENDING.
+Admin Phase 2 - Read-Only Operations Overview: VERIFIED IN PRODUCTION.
 
 - A narrow, active-admin-only database function returns aggregate counts for
   platform scale, booking operations, open issues, and email delivery states.
@@ -478,6 +477,9 @@ DEPLOYMENT VERIFICATION PENDING.
   totals and contains no write operation.
 - Exact live fixture deltas, caller denials, disablement, current-business
   independence, and responsive behavior are covered by automated tests.
+- PR #13 passed CI and merged as `22e6617`; Vercel marked that exact production
+  deployment current and ready, authenticated `/admin` rendered live aggregates,
+  and the deployment log view reported zero warning/error/fatal events.
 
 Planned only: Admin Phase 3 read-only businesses and users; Phase 4 read-only
 bookings and issues; Phase 5 email operations;

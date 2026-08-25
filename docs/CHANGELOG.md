@@ -12,8 +12,10 @@
   overview, structural loading state, safe unavailable state, and truthful
   database/authorization/outbox status.
 - Added exact unit, static security, live runtime-security, cross-business E2E,
-  and 390/768/1024/1440 responsive regression coverage. Production UI deployment
-  remains pending the release and post-deploy verification steps.
+  and 390/768/1024/1440 responsive regression coverage. PR #13 passed CI and
+  merged as `22e6617`; its Vercel production deployment is current and ready,
+  the authenticated overview passed, and runtime logs contained no warning,
+  error, or fatal events.
 
 ## 2026-08-24 - Platform Admin Authorization Foundation
 

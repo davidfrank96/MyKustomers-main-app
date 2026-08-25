@@ -313,7 +313,7 @@ production-readiness work.
       PII, financial totals, record browser, or mutation.
 - [x] Exact metric deltas, current-business independence, disablement, and
       390/768/1024/1440 responsive behavior pass locally and against the live DB.
-- [ ] Phase 2 production UI deployment and authenticated smoke test pass.
+- [x] Phase 2 production UI deployment and authenticated smoke test pass.
 - [ ] MFA is enforced before any high-risk platform write capability is enabled.
 - [ ] No generic privileged database browser, impersonation, destructive
       mutation, membership-management UI, or hard deletion shipped implicitly.
