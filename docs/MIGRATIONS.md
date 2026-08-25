@@ -75,6 +75,8 @@ not assume repository presence alone proves application.
 | `20260824133925_trusted_feedback_sharing.sql`                              | Applied; feedback first-open column, truthful audit values, service-only idempotent open RPC, direct-role denial, and live Phase 8 behavior verified            |
 | `20260824223141_platform_admin_authorization_foundation.sql`               | Applied to the production-backed configured project; dedicated admin model, RLS/grants, self-scoped RPC, audit triggers, sole-admin bootstrap, and live authorization verified |
 | `20260825003000_platform_admin_read_only_overview.sql`                     | Applied to the production-backed configured project; aggregate-only active-admin overview RPC and exact runtime security verification passed                  |
+| `20260825003219_platform_admin_read_only_directories.sql`                  | Applied to the production-backed configured project; four narrow business/user directory/detail RPCs and production read-only verification passed             |
+| `20260825022135_platform_admin_read_only_booking_issue_operations.sql`     | Explicitly approved and applied transactionally to the production-backed project; ownership, grants, active/anonymous behavior, and real-data projections verified |
 
 The configured development project's historical CLI migration table remains
 empty because this project predates enforced version tracking. These migrations
@@ -166,3 +168,15 @@ project. The migration applied transactionally, ownership/grants matched the
 contract, and Supabase DB lint returned no schema errors. Production-safe
 read-only reconciliation verified exact directory/detail totals and projections.
 No domain rows or existing platform authority were changed by that verification.
+
+## 2026-08-25 Platform Admin Read-Only Booking And Issue Operations Migration
+
+`20260825022135_platform_admin_read_only_booking_issue_operations.sql` reuses
+the private active-admin assertion and adds no table, column, index, trigger,
+write, or data mutation. It defines four minimized read projections, grants
+invocation only to authenticated callers subject to the internal active-admin
+check, and reloads the PostgREST schema cache. The configured project is
+production-backed; the user explicitly approved this exact file and it applied
+transactionally. Post-apply inspection confirmed postgres ownership, stable
+security-definer execution, empty search paths, authenticated-only grants,
+internal active-admin checks, and one unchanged active production admin.

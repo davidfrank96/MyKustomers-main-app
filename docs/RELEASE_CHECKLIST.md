@@ -323,6 +323,14 @@ production-readiness work.
 - [x] Phase 3 database lint, production-safe count reconciliation, direct caller
       denial, and temporary zero-business admin browser verification pass.
 - [x] Phase 3 required CI, Vercel deployment, and production read-only smoke pass.
+- [x] Admin Phase 4 Bookings/Issues routes, strict DTOs, RPC migration, unit,
+      static security, and E2E route coverage are implemented.
+- [x] Admin Phase 4 privacy review excludes internal notes, raw confirmation
+      terms/hashes, private feedback comments, and email delivery payloads.
+- [x] Admin Phase 4 RPC migration explicitly approved and applied to the
+      production-backed Supabase project.
+- [ ] Admin Phase 4 safe runtime denial/positive checks, CI, Vercel deployment,
+      and production read-only smoke pass.
 - [ ] MFA is enforced before any high-risk platform write capability is enabled.
 - [ ] No generic privileged database browser, impersonation, destructive
       mutation, membership-management UI, or hard deletion shipped implicitly.

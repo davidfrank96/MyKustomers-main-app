@@ -127,9 +127,15 @@ export default async function AdminBusinessDetailPage({
       </section>
 
       <section aria-labelledby="business-operations-title">
-        <h2 id="business-operations-title" className="text-lg font-semibold">
-          Operational summary
-        </h2>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 id="business-operations-title" className="text-lg font-semibold">
+            Operational summary
+          </h2>
+          <div className="flex flex-wrap gap-4 text-sm font-medium">
+            <Link href={`/admin/bookings?business=${business.id}` as Route} className="text-primary">View bookings</Link>
+            <Link href={`/admin/issues?business=${business.id}` as Route} className="text-primary">View issues</Link>
+          </div>
+        </div>
         <dl className="mt-4 grid grid-cols-2 gap-px bg-border lg:grid-cols-4">
           {metrics.map(([label, value]) => (
             <div key={label} data-admin-business-metric={label} className="bg-card p-4">

@@ -128,6 +128,10 @@ test.describe("platform admin route authorization", () => {
       await expect(page.getByText("My Customers Admin")).toHaveCount(0);
       await page.goto("/admin/users");
       await expect(page.getByRole("heading", { name: "Not authorized" })).toBeVisible();
+      await page.goto("/admin/bookings");
+      await expect(page.getByRole("heading", { name: "Not authorized" })).toBeVisible();
+      await page.goto("/admin/issues");
+      await expect(page.getByRole("heading", { name: "Not authorized" })).toBeVisible();
 
       await page.context().clearCookies();
       await signIn(page, activeAdmin.email, password);
@@ -156,7 +160,7 @@ test.describe("platform admin route authorization", () => {
         await expect(page.locator(`[data-admin-metric="${label}"]`)).toBeVisible();
       }
       const adminNavigation = page.getByRole("navigation", { name: "Admin navigation" });
-      await expect(adminNavigation.getByRole("link")).toHaveCount(4);
+      await expect(adminNavigation.getByRole("link")).toHaveCount(6);
       await expect(page).toHaveURL(/\/admin$/);
 
       await page.reload();
@@ -238,6 +242,10 @@ test.describe("platform admin route authorization", () => {
       ).toBeVisible();
       await page.goto(`/admin/users/${randomUUID()}`);
       await expect(page.getByRole("heading", { name: "User not found" })).toBeVisible();
+      await page.goto(`/admin/bookings/${randomUUID()}`);
+      await expect(page.getByRole("heading", { name: "Booking not found" })).toBeVisible();
+      await page.goto(`/admin/issues/${randomUUID()}`);
+      await expect(page.getByRole("heading", { name: "Issue not found" })).toBeVisible();
 
       await page.goto("/admin");
       const metricText = await page.locator("[data-admin-metric]").allTextContents();
@@ -278,6 +286,8 @@ test.describe("platform admin route authorization", () => {
         `/admin/businesses/${adminBusinesses![0].id}`,
         "/admin/users",
         `/admin/users/${activeAdmin.id}`,
+        "/admin/bookings",
+        "/admin/issues",
       ];
       for (const width of [390, 768, 1024, 1440]) {
         await page.setViewportSize({ width, height: width < 768 ? 844 : 1000 });
@@ -299,6 +309,10 @@ test.describe("platform admin route authorization", () => {
       await page.goto("/admin/businesses");
       await expect(page.getByRole("heading", { name: "Not authorized" })).toBeVisible();
       await page.goto("/admin/users");
+      await expect(page.getByRole("heading", { name: "Not authorized" })).toBeVisible();
+      await page.goto("/admin/bookings");
+      await expect(page.getByRole("heading", { name: "Not authorized" })).toBeVisible();
+      await page.goto("/admin/issues");
       await expect(page.getByRole("heading", { name: "Not authorized" })).toBeVisible();
     } finally {
       const { data: audits } = await service

@@ -746,6 +746,35 @@ export type Database = {
         Args: { p_user_id: string };
         Returns: Json;
       };
+      get_platform_admin_bookings: {
+        Args: {
+          p_search?: string | null;
+          p_filter?: string;
+          p_business_id?: string | null;
+          p_page?: number;
+          p_page_size?: number;
+        };
+        Returns: Json;
+      };
+      get_platform_admin_booking: {
+        Args: { p_booking_id: string };
+        Returns: Json;
+      };
+      get_platform_admin_issues: {
+        Args: {
+          p_search?: string | null;
+          p_status?: string;
+          p_category?: string;
+          p_business_id?: string | null;
+          p_page?: number;
+          p_page_size?: number;
+        };
+        Returns: Json;
+      };
+      get_platform_admin_issue: {
+        Args: { p_issue_id: string };
+        Returns: Json;
+      };
       create_booking_with_customer: {
         Args: {
           p_business_id: string;

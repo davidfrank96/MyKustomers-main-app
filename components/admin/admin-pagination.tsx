@@ -3,8 +3,17 @@ import type { Route } from "next";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
-function pageHref(basePath: string, page: number, q: string) {
-  const params = new URLSearchParams();
+function pageHref(
+  basePath: string,
+  page: number,
+  q: string,
+  preservedParams: Record<string, string | undefined>,
+) {
+  const params = new URLSearchParams(
+    Object.entries(preservedParams).filter((entry): entry is [string, string] =>
+      Boolean(entry[1]),
+    ),
+  );
   params.set("page", String(page));
   if (q) params.set("q", q);
   return `${basePath}?${params.toString()}` as Route;
@@ -16,12 +25,14 @@ export function AdminPagination({
   q,
   total,
   totalPages,
+  preservedParams = {},
 }: {
   basePath: string;
   page: number;
   q: string;
   total: number;
   totalPages: number;
+  preservedParams?: Record<string, string | undefined>;
 }) {
   return (
     <nav
@@ -34,7 +45,10 @@ export function AdminPagination({
       <div className="flex gap-2">
         {page > 1 ? (
           <Button asChild variant="secondary" size="sm">
-            <Link href={pageHref(basePath, page - 1, q)} aria-label="Previous page">
+            <Link
+              href={pageHref(basePath, page - 1, q, preservedParams)}
+              aria-label="Previous page"
+            >
               <ChevronLeft className="size-4" aria-hidden="true" />
               Previous
             </Link>
@@ -47,7 +61,10 @@ export function AdminPagination({
         )}
         {page < totalPages ? (
           <Button asChild variant="secondary" size="sm">
-            <Link href={pageHref(basePath, page + 1, q)} aria-label="Next page">
+            <Link
+              href={pageHref(basePath, page + 1, q, preservedParams)}
+              aria-label="Next page"
+            >
               Next
               <ChevronRight className="size-4" aria-hidden="true" />
             </Link>

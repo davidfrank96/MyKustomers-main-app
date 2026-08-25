@@ -482,6 +482,17 @@ Admin Phase 2 - Read-Only Operations Overview: VERIFIED IN PRODUCTION.
   and the deployment log view reported zero warning/error/fatal events.
 
 Admin Phase 3 read-only businesses and users is VERIFIED IN PRODUCTION from PR
-#15 and merge `4437a161`. Phase 4 read-only bookings and issues, Phase 5 email operations,
-Phase 6 reviewed safe writes; Phase 7 security/system health. Each phase requires
-its own threat-model and regression update.
+#15 and merge `4437a161`. Admin Phase 4 read-only bookings and issues is
+IMPLEMENTED - VERIFICATION PENDING. Its forward RPC migration was explicitly
+approved and applied to the configured production-backed Supabase project. The
+migration, grants, direct anonymous denial, and authenticated local UI against
+live data pass; CI, deployment, and production-URL smoke remain.
+Phase 5 email
+operations, Phase 6 reviewed safe writes, and Phase 7 security/system health
+remain planned. Each phase requires its own threat-model and regression update.
+
+Admin Phase 4 keeps the existing authorization boundary and adds global,
+server-paginated booking and issue operations. Booking value means current
+canonical booking value plus confirmed add-ons only. Directories are minimized;
+detail evidence is allowlisted and never returns raw tokens/hashes, internal
+notes, feedback comments, or email delivery payloads. No admin write exists.

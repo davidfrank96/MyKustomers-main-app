@@ -197,7 +197,7 @@ Every proposed platform-admin mutation must define and test:
 
 ## Deferred High-Risk Capabilities
 
-Admin Phases 1 through 3 deliberately exclude impersonation, destructive mutations,
+Admin Phases 1 through 4 deliberately exclude impersonation, destructive mutations,
 platform-admin membership administration, hard deletion, billing operations,
 staff management, generic record editing, customer-data search, and a general
 service-role database browser. Each requires a separate threat model and user
@@ -208,9 +208,19 @@ authorization before implementation.
 - Admin Phase 2: aggregate-only operations overview (verified in production).
 - Admin Phase 3: read-only businesses and users (verified in production from PR
   #15 and merge `4437a161`).
-- Admin Phase 4: read-only bookings and issues.
+- Admin Phase 4: read-only bookings and issues (implemented; migration applied
+  and local/live-backend verification passed; deployment verification pending).
 - Admin Phase 5: email operations.
 - Admin Phase 6: narrowly approved safe write operations.
 - Admin Phase 7: security and system health.
 
-Phases 4-7 are plans, not implementation evidence.
+Phases 5-7 are plans, not implementation evidence.
+
+Admin Phase 4 uses four additional operation-specific functions for booking and
+issue list/detail. Every function repeats the active-admin assertion, has an
+empty search path, is postgres-owned, and exposes no generic SQL or table access.
+Lists omit contacts and private text. Detail access is minimized: confirmation
+contacts are masked; raw terms, hashes/tokens, booking internal notes, feedback
+comments, email recipients/provider IDs/failure payloads are excluded. Issue
+description is detail-only. Reads are not audited, and no resolve, cancel,
+transition, edit, impersonate, suspend, or delete operation exists.
