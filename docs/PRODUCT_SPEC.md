@@ -280,4 +280,4 @@ and the viewed user's own platform-admin badge where applicable. Raw Auth rows,
 identity payloads, sessions, tokens, customer lists, booking terms, financial
 totals, impersonation, editing, suspension, and deletion are not product
 capabilities. The Phase 3 read-only data contract and browser journey are
-verified; production deployment smoke remains.
+verified in production from PR #15 and merge `4437a161`.

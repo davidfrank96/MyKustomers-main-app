@@ -1,6 +1,6 @@
 # Platform Admin Security
 
-STATUS: ADMIN PHASE 0/1 AND ADMIN PHASE 2 VERIFIED IN PRODUCTION; ADMIN PHASE 3 VERIFIED - PRODUCTION DEPLOYMENT PENDING
+STATUS: ADMIN PHASE 0/1, ADMIN PHASE 2, AND ADMIN PHASE 3 VERIFIED IN PRODUCTION
 
 This document defines the security boundary for My Customers platform
 administration. It is intentionally narrower than a complete admin-console
@@ -206,7 +206,8 @@ authorization before implementation.
 ## Planned Admin Phases
 
 - Admin Phase 2: aggregate-only operations overview (verified in production).
-- Admin Phase 3: read-only businesses and users (verified; deployment smoke pending).
+- Admin Phase 3: read-only businesses and users (verified in production from PR
+  #15 and merge `4437a161`).
 - Admin Phase 4: read-only bookings and issues.
 - Admin Phase 5: email operations.
 - Admin Phase 6: narrowly approved safe write operations.

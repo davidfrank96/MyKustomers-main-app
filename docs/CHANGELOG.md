@@ -2,7 +2,7 @@
 
 ## 2026-08-25 - Admin Read-Only Businesses And Users Directories
 
-Status: VERIFIED - PRODUCTION DEPLOYMENT PENDING
+Status: VERIFIED - PRODUCTION
 
 - Added active-admin-only Businesses and Users directories and detail routes,
   including server search/pagination, plural owner handling, safe cross-links,
@@ -21,6 +21,13 @@ Status: VERIFIED - PRODUCTION DEPLOYMENT PENDING
   ordinary/anonymous denial. A temporary auto-confirmed zero-business admin
   passed the complete desktop/responsive support journey and was removed with
   its test-only authority audit; cleanup restored exactly one active admin.
+- PR #15 passed Quality, Tests, Build, Dependency Security, E2E, and Vercel
+  checks and merged as `4437a161`. Vercel deployed that exact `main` commit; a
+  fresh production-only read-only browser smoke passed overview, both
+  directories, search, pagination, details, bidirectional cross-links, refresh,
+  logout, authorization redirect, and four responsive widths. Independent
+  cleanup found zero temporary Auth users/profiles and one approved active
+  production `SUPER_ADMIN`.
 
 ## 2026-08-25 - Admin Production Bootstrap And Read-Only Operations
 
