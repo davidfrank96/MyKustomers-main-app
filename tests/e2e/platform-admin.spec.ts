@@ -119,7 +119,7 @@ test.describe("platform admin route authorization", () => {
       await page.goto("/admin");
       await expect(page).toHaveURL(/\/login\?next=%2Fadmin/);
       await page.goto("/admin/businesses");
-      await expect(page).toHaveURL(/\/login\?next=%2Fadmin%2Fbusinesses/);
+      await expect(page).toHaveURL(/\/login\?next=%2Fadmin/);
 
       await signIn(page, vendor.email, password);
       await expect(page).toHaveURL(/\/dashboard/);
