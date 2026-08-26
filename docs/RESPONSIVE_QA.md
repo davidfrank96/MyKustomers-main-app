@@ -30,6 +30,7 @@ planned broad visual redesign or Phase 11 PWA/UX hardening.
 | Dialog/sheet primitives                   | Short mobile viewport | No explicit viewport-height scroll boundary                                                   | Added max-height/vertical scrolling                                                                                          | Static inspection; no current product dialog journey                                                              | IMPLEMENTED |
 | Authenticated shell/account               | 320-430               | Logout and Settings were not discoverable below `sm`                                          | Added compact header account menu; retained five primary nav items                                                           | Authenticated mobile Settings/logout E2E                                                                          | VERIFIED    |
 | Business identity form                    | 320-1440              | New logo preview/file/actions and website required bounded wrapping                           | Responsive preview and stacked mobile actions with shrink-safe fields                                                        | Required-width authenticated route matrix plus real upload/replace/remove                                         | VERIFIED    |
+| Large business-logo preparation           | 390-1440              | Phone-sized sources must not freeze controls or exceed the serverless request ceiling          | Shared bounded preparation state, replaceable native input, <=3 MiB transport, and recoverable error/status announcement      | Exact-5 MiB onboarding at desktop plus 4.8 MiB replacement and >5 MiB rejection at 390px                         | IMPLEMENTED |
 | Dashboard metric tiles                    | 320-1440              | Static summaries had no data destination                                                      | Full semantic Link targets with visible focus and supported filters                                                          | Active/overdue/customers/insights browser navigation                                                              | VERIFIED    |
 | Public confirmation identity              | 320 mobile            | Logo/fallback and external links needed to remain secondary and wrap safely                   | Compact identity row with bounded logo and wrapping links                                                                    | Branded and fallback confirmation E2E                                                                             | VERIFIED    |
 | Live list and customer-picker search      | 320-1440              | Clear/pending controls and automatic candidates must not widen fields or reset booking values | Overlay icon controls, bounded candidate list, and shrink-safe search wrappers                                               | Authenticated Bookings/Customers/New Booking live-search journeys at all required widths                          | VERIFIED    |
@@ -97,3 +98,11 @@ authenticated route matrix continues covering 320, 360, 375, 390, 430, 768,
 `faad4cb`, the controlled production smoke passed onboarding and existing-
 business upload at 1440px plus replacement and removal at 390px without browser
 errors or overflow; cleanup left no controlled fixture records or objects.
+
+The 5 MiB source follow-up keeps the same contained preview and stacked mobile
+actions. Browser coverage adds an exact-boundary desktop onboarding source and a
+4.8 MiB replacement at 390px, asserts the visible preparation state settles,
+inspects the actual multipart body, and proves an over-limit selection creates
+no request. Physical low-memory iPhone/PWA acceptance remains release-hardening
+work; the implementation uses `createImageBitmap` with an Image/object-URL
+fallback and introduces no image-processing dependency.

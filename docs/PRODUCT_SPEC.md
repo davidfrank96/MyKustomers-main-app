@@ -232,8 +232,12 @@ only implemented account/session and business-profile destinations.
 
 A business may optionally store a normalized HTTP/HTTPS website, its existing
 Instagram handle, and one current logo. Logo input is raster-only and is
-server-validated, resized without distortion, converted to bounded WebP, and
-stored as a public business asset with owner-only mutations. Secure booking
+selectable up to 5 MiB. Sources above the 3 MiB transport boundary are reduced
+in the browser before upload to stay below Vercel's request ceiling. The server
+independently validates received content, resizes without distortion, converts
+to metadata-free WebP no larger than 512px/200 KiB, and stores one public
+business asset with owner-only mutations. Client preprocessing is not an
+authorization or image-validation boundary. Secure booking
 confirmation pages may display business name, logo/fallback initials, website,
 and Instagram as secondary trust links; booking review and confirmation remain
 the primary customer task. WhatsApp remains a business contact field and is not

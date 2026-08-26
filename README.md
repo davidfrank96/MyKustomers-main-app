@@ -15,8 +15,11 @@ verification evidence. Private tenant analytics are derived from stored records
 with currency-specific value grouping and documented metric definitions.
 Authenticated users can reach Settings and the existing logout flow from a
 compact account menu at mobile widths. Business owners can manage a normalized
-website and one compressed public logo, and secure confirmation pages show that
-public identity without exposing private business contacts. Dashboard summary
+website and one compressed public logo. The shared browser flow accepts
+supported sources up to 5 MiB and reduces risky large requests before upload,
+while the server remains authoritative for validation and the final 512px/
+200 KiB WebP. Secure confirmation pages show that public identity without
+exposing private business contacts. Dashboard summary
 tiles navigate to supported customer, booking-filter, business, or insights
 destinations. Newly generated confirmation links now open a contextual,
 editable sharing flow with native share, WhatsApp, Telegram, copy-message, and

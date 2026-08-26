@@ -1184,3 +1184,34 @@ capability.
 
 Consequences: no multi-email profile, preferred-contact workflow, ownership
 verification, deduplication, database migration, or broad redesign is created.
+
+## ADR-051 - Business Logo Sources Use Client Transport Preprocessing
+
+Status: Accepted
+
+Date: 2026-08-26
+
+Context: The product must accept a user-selected logo source up to 5 MiB, while
+Vercel Functions reject request bodies around 4.5 MB and multipart overhead
+makes a near-ceiling upload unsafe. Increasing the route byte constant cannot
+make a raw 5 MiB request reach application code.
+
+Decision: Keep the current direct application route and Storage model. One
+shared browser helper accepts PNG/JPEG/WebP sources up to 5 MiB, leaves sources
+at or below 3 MiB unchanged, and preprocesses larger sources to a
+metadata-free, <=2048px JPEG/WebP intermediate no larger than 3 MiB. It checks
+the original 6000px-per-edge/25-megapixel policy for legitimate clients before
+resizing. The route and Sharp processor independently validate the actual
+received intermediate and retain the 512px/200 KiB WebP persistence contract.
+
+Rationale: Logos do not benefit from transmitting full phone-camera resolution
+when the authoritative output is 512px. A conservative transport target avoids
+the platform ceiling and materially reduces mobile bandwidth without adding a
+raw-image bucket, upload service, or heavy browser dependency.
+
+Consequences: Client preprocessing is a transport optimization only. Server-side
+image decoding, validation, normalization, compression, authorization, and
+persisted-size enforcement remain authoritative. A malicious client can bypass
+the product source limit only by submitting a server-safe intermediate; the
+oversized original never reaches Sharp. No database, bucket, environment, or
+Admin Phase 7 change is introduced.

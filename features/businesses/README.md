@@ -12,19 +12,29 @@ Business creation goes through the `create_business_onboarding` Supabase RPC so
 the business row and owner membership are created atomically. The RPC derives
 ownership from `auth.uid()` and does not trust a client-submitted owner ID.
 
-Logo source policy is PNG/JPEG/WebP, 2 MB, 6000px per edge, and 25 megapixels.
-The authenticated route validates decoded content, strips source metadata,
-preserves aspect ratio, and persists WebP no larger than 512px/200 KB at
-`{business_id}/logo.webp`. Only active owners can list/write/delete through
-Storage RLS. Replacement overwrites the deterministic object; removal clears
-`logo_path` before cleanup and falls back to business initials. No original is
-stored.
+Users may select a PNG/JPEG/WebP logo source up to 5 MiB. Sources above the
+3 MiB transport boundary are decoded in the browser, checked against the
+6000px-per-edge/25-megapixel product policy, stripped of metadata by canvas,
+and reduced to a 2048px-or-smaller JPEG/WebP intermediate before transmission.
+This exists because Vercel Functions reject raw requests around 4.5 MB and
+multipart overhead makes a near-limit target unsafe. The intermediate is never
+persisted.
 
-Onboarding and Business settings both render the shared `BusinessLogoForm`, post
-multipart data to `/api/businesses/{business_id}/logo`, and therefore use this
-same authorization, validation, Sharp conversion, Storage, database-reference,
-audit, and revalidation boundary. The browser does not resize or persist a raw
-alternative. Requests have a Nigeria-mobile-tolerant 120-second bound; timeout,
+Client preprocessing is a transport optimization only. The authenticated route
+independently enforces a 3 MiB received-file boundary, validates the received
+content rather than trusting MIME, extension, or client dimensions, decodes it
+with Sharp, strips metadata, preserves aspect ratio, and persists WebP no larger
+than 512px/200 KiB at `{business_id}/logo.webp`. Only active owners can
+list/write/delete through Storage RLS. Replacement overwrites the deterministic
+object; removal clears `logo_path` before cleanup and falls back to business
+initials. No original is stored.
+
+Onboarding and Business settings both render the shared `BusinessLogoForm` and
+use `prepareBusinessLogoForUpload` before posting multipart data to
+`/api/businesses/{business_id}/logo`. They therefore share the same preparation,
+authorization, validation, Sharp conversion, Storage, database-reference,
+audit, and revalidation boundary. Requests have a Nigeria-mobile-tolerant
+120-second network bound and a separate 30-second preparation bound; timeout,
 network failure, invalid server response, and validation errors restore controls
 and preserve a retryable selected file without staging another business.
 Successful upload/replacement uses a fresh query version for the current browser
@@ -34,6 +44,11 @@ immediately after upsert; the underlying Storage path remains stable.
 Permanent invariant: "Every business-logo creation, replacement, or onboarding
 upload must use the same validated, authorized, metadata-stripping, bounded
 compression pipeline before persistence."
+
+Permanent transport invariant: "Client-side business-logo preprocessing is a
+transport optimization only. Server-side image decoding, validation,
+normalization, compression, authorization, and persisted-size enforcement
+remain authoritative."
 
 Permanent pending-state invariant: "Image upload UI must terminate into success
 or a recoverable error state. It must never remain indefinitely pending after

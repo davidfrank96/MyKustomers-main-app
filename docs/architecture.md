@@ -149,6 +149,14 @@ decoding where possible, validates raster content with Sharp, preserves aspect
 ratio, emits metadata-stripped WebP no larger than 512px/200 KB, and stores one
 deterministic object. No raw source is persisted.
 
+The shared browser form accepts supported source images up to 5 MiB. Because a
+raw 5 MiB multipart request exceeds Vercel's Function body ceiling, the shared
+client helper preprocesses sources above 3 MiB to a <=2048px, <=3 MiB JPEG/WebP
+transport intermediate. Onboarding, upload, and replacement all use this same
+helper. The server does not trust its MIME, dimensions, or byte metadata and
+repeats decoding, validation, normalization, compression, authorization, and
+persisted-size enforcement. No raw or intermediate source reaches Storage.
+
 The `business-logos` bucket is public only for object retrieval. Authenticated
 owner policies protect exact-path listing, upload, replacement, and deletion;
 anonymous listing/writes and cross-tenant writes remain unavailable. Public
