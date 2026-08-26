@@ -377,7 +377,7 @@ production-readiness work.
 - [x] Privileged confirmation, bounded optional reason, allowlisted audit
       evidence, and controlled sole-admin recovery are documented.
 - [x] Failed-email retry and all other privileged admin mutations remain absent.
-- [ ] Controlled temporary-admin TOTP enrollment/challenge/AAL2, invalid-code,
+- [x] Controlled temporary-admin TOTP enrollment/challenge/AAL2, invalid-code,
       logout/login, cleanup, PR/CI, deployment, and production smoke pass.
 
 ## Booking Completion And Required Business Logo

@@ -720,6 +720,24 @@ admin. Cleanup must remove factor, admin row, profile, Auth user, and test-only
 audits where safe. Docker is prohibited. A secret, QR payload, OTP, session, or
 token must never appear in test output.
 
+The controlled production-backed run followed that procedure. It proved native
+TOTP enrollment, a safely rejected invalid code, verified-factor/AAL2 elevation,
+the central privileged gate, immediate denial after temporary admin disablement,
+logout/login reset to AAL1, a fresh successful challenge, and existing read-only
+admin access at AAL1. Cleanup left zero matching Auth users, profiles, factors,
+platform-admin rows, or actor audits and did not modify the approved production
+admin or create business/domain fixtures. No Docker was used.
+
+Local final gates passed: lint, typecheck, 318 tests with 18 intentional skips,
+34 E2E tests with 8 intentional skips, build, zero moderate audit findings, and
+`git diff --check`; runtime-security suites safely skipped under the configured
+target guard. Codex Security reviewed all ten changed source surfaces with zero
+findings. PR #27 and the separate `main` run passed Quality, Tests, Dependency
+Security, Build, and E2E; Runtime Security remained intentionally skipped by its
+configured CI gate. Vercel deployed merge `b90ab5f`, and authenticated production
+security/read/session/vendor/responsive smoke passed at 390, 768, 1024, and 1440
+pixels without browser warnings or errors.
+
 ## Booking Journey UX Coverage
 
 - `tests/unit/booking-journey.test.ts` exhaustively maps every booking status,

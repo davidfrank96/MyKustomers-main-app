@@ -986,11 +986,11 @@ production smoke over nine existing events passed summary/list/detail, search,
 filters, pagination, recipient masking, cross-links, absence of write controls,
 and desktop overflow checks. Failed temporary Auth creation left zero matching
 users; exactly one approved active `SUPER_ADMIN` remains. Docker is not used.
-Admin Phase 6A is implemented below; no Phase 6B write or Admin Phase 7 work is started.
+Admin Phase 6A is verified in production below; no Phase 6B write or Admin Phase 7 work is started.
 
 ## Admin Phase 6A - MFA And Privileged-Action Security Framework
 
-STATUS: IMPLEMENTED - VERIFICATION PENDING
+STATUS: VERIFIED - PRODUCTION
 
 Objective: Establish the mandatory security boundary for future platform-admin
 writes without implementing a write.
@@ -1018,6 +1018,17 @@ service-role application path, factor-removal UI, retry operation, or other
 admin mutation is introduced. Failed-email retry remains explicitly deferred to
 Admin Phase 6B with independent idempotency, eligibility, audit, and side-effect
 review.
+
+Verification evidence: a controlled temporary zero-business admin passed native
+TOTP enrollment, invalid-code denial, challenge/AAL2, immediate disabled-status
+revocation, logout/login assurance reset, repeat challenge, and complete Auth,
+profile, factor, admin, and actor-audit cleanup. PR #27 passed required
+executable checks, was conflict-free, and merged as `b90ab5f`; the separate
+`main` CI run and Vercel Production deployment passed. Authenticated production
+smoke verified the Security route, read-only admin routes, session persistence,
+vendor onboarding resolution, response protections, no browser diagnostics,
+and responsive containment at 390, 768, 1024, and 1440 pixels. The approved
+production admin was not enrolled or otherwise changed.
 
 ## Transactional Email Provider Activation
 
