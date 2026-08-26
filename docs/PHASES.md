@@ -1166,7 +1166,7 @@ memberships, or Auth users. No Docker or environment change was used.
 
 ## Product Detour - Booking Detail Clarity And Contact Email UX
 
-Status: IMPLEMENTED - VERIFICATION PENDING
+Status: VERIFIED - PRODUCTION
 
 The public confirmation form now labels the required email and explains that it
 receives updates for this booking. Existing confirmation semantics remain
@@ -1181,3 +1181,9 @@ section. Anchor actions open their target; user collapse state is not
 continuously overridden. No migration, environment change, Docker, multi-email
 model, lifecycle rewrite, or broad redesign is included. Admin Phase 6B remains
 `IMPLEMENTED - VERIFICATION PENDING`; Admin Phase 7 is not started.
+
+PR #33 passed required CI and merged conflict-free as `84aa736`. Vercel deployed
+the exact merge. Controlled production desktop and mobile canonical journeys and
+the desktop repeat-booking/different-contact path passed with real Brevo
+acceptance IDs. Cleanup confirmed zero controlled businesses, bookings,
+payments, email events, profiles, memberships, or Auth users.

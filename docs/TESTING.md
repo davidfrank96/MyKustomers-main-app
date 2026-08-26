@@ -899,3 +899,7 @@ pixels without browser warnings or errors.
   without overwhelming the shared guarded backend with unrelated fixture writes.
 - No database migration or Docker fixture is required. Protected runtime suites
   retain their existing safe-target guards.
+- Production verification ran the full canonical booking journey in desktop and
+  Pixel 5 projects plus the desktop repeat-booking/different-contact path against
+  `https://mykustomers.com`. All three passed with real Brevo provider acceptance,
+  and the final controlled-fixture audit returned zero records and Auth users.

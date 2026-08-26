@@ -37,7 +37,7 @@ planned broad visual redesign or Phase 11 PWA/UX hardening.
 | Business switch pending                   | Mobile/desktop        | Previous tenant content could remain visible while the next workspace resolved                | Opaque fixed pending layer driven by the shared switch form status                                                           | Multi-business desktop/mobile E2E and component review                                                            | VERIFIED    |
 | Booking journey stepper/action            | 320-1440              | Seven lifecycle labels and a primary action needed hierarchy without horizontal compression   | Vertical semantic stepper, two-column desktop composition, full-width mobile primary action, and secondary action disclosure | Canonical booking and cancellation E2E in desktop/mobile projects at 320, 360, 375, 390, 430, 768, 1024, and 1440 | VERIFIED    |
 | Completion dialog and required logo setup | 320-1440              | Terminal confirmation and logo controls must remain visible without browser UI or overflow    | Radix dialog with stacked mobile actions; bounded shared logo preview/input and staged setup                                 | Booking cancel/confirm at 320 plus onboarding and full responsive route matrix                                    | VERIFIED    |
-| Booking detail progressive disclosure     | 320-1440              | Accumulated operational sections made the initial page excessively long                       | Persistent journey plus 56px disclosure headers, concise summaries, contextual default-open logic, and independent expansion | Canonical desktop/Pixel 5 journey plus 320/360/375/390/430/768/1024/1440 overflow checks                          | IMPLEMENTED |
+| Booking detail progressive disclosure     | 320-1440              | Accumulated operational sections made the initial page excessively long                       | Persistent journey plus 56px disclosure headers, concise summaries, contextual default-open logic, and independent expansion | Canonical desktop/Pixel 5 journey plus 320/360/375/390/430/768/1024/1440 overflow checks                          | VERIFIED    |
 
 ## Evidence
 
@@ -85,4 +85,5 @@ collapses secondary payment, progress, confirmation, changes, add-ons, feedback,
 issues, reschedule, details, and timeline content. Chromium and Pixel 5
 canonical journeys passed, including the explicit eight-width overflow matrix,
 minimum-height disclosure targets, current-context opening, and manual access to
-every preserved action. Production verification remains pending.
+every preserved action. PR #33 passed required CI, deployed as merge `84aa736`,
+and the controlled production desktop and mobile canonical journeys passed.
