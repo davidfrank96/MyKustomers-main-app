@@ -226,7 +226,7 @@ authorization before implementation.
 - Admin Phase 6B: MFA-gated safe failed-email retry (implemented; production
   deployment verification pending).
 - Admin Phase 7: read-only security/system health and operational observability
-  (implemented; production verification pending).
+  (verified in production from PR #39 and merge `d5bfb8f`).
 
 Phase 7 uses two independently authorized bounded RPCs, strict minimized DTOs,
 and the existing current-admin MFA/session read. It introduces no write, no

@@ -518,9 +518,11 @@ production-readiness work.
 - [x] Full local gates pass: lint, typecheck, 436-test Vitest suite, guarded
       runtime-security command, 34-pass/10-skip E2E, build, zero-vulnerability
       moderate audit, and whitespace/secret-value checks.
-- [ ] PR is conflict-free and every required executable CI check passes.
-- [ ] Vercel deploys the exact merge commit to Production.
-- [ ] Authenticated production smoke and authoritative aggregate comparison pass
-      at 390, 768, 1024, and 1440 pixels with no write side effects.
-- [ ] The planned foundational admin roadmap is closed without beginning Admin
+- [x] PR #39 was conflict-free and every required executable CI check passed;
+      Runtime Security retained its expected protected-target skip.
+- [x] Vercel deployed exact merge `d5bfb8f` to Production.
+- [x] Authenticated canonical production smoke and an independent authoritative
+      aggregate comparison passed with no write side effects; the exact deployed
+      code passed E2E containment at 390, 768, 1024, and 1440 pixels.
+- [x] The planned foundational admin roadmap is closed without beginning Admin
       Phase 8.
