@@ -413,6 +413,7 @@ production-readiness work.
 - [x] PR #23 required CI, conflict-free merge `9dae103`, exact Vercel deployment,
       controlled production completion/onboarding smoke, and zero-fixture cleanup
       pass.
+
 ## Booking Lifecycle And Payment Recording Detour
 
 - [x] Approved enum then schema migrations applied unchanged; catalog, frozen
@@ -437,3 +438,18 @@ production-readiness work.
 - [x] Admin Phase 6B remains `IMPLEMENTED - VERIFICATION PENDING` with its
       documented external Supabase Auth Admin `createUser` HTTP 500 blocker;
       Admin Phase 7 remains not started.
+
+## Booking Detail Clarity And Contact Email UX Detour
+
+- [x] Public confirmation email is explicitly labeled and explained without an
+      ownership-verification claim; optional phone remains secondary.
+- [x] Empty-profile, same-email, different-email, and repeat-booking contact
+      behavior preserve booking-specific evidence and notification authority.
+- [x] Booking Journey remains visible; all ten secondary sections are accessible
+      disclosures with contextual default-open logic and truthful summaries.
+- [x] Manual collapse, independent expansion, anchor opening, keyboard/ARIA
+      semantics, live-update behavior, and 320-1440 containment are covered.
+- [x] No migration, multi-email schema, lifecycle rewrite, Docker, environment
+      change, broad redesign, or Admin Phase 7 scope was introduced.
+- [ ] PR/CI, Vercel deployment, controlled production desktop/mobile smoke, and
+      zero-fixture cleanup are pending.

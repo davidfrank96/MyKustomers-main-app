@@ -2,6 +2,10 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import type { Route } from "next";
 import { ArrowLeft } from "lucide-react";
+import {
+  BookingDetailSection,
+  BookingDetailSections,
+} from "@/components/bookings/booking-detail-section";
 import { BookingJourney } from "@/components/bookings/booking-journey";
 import { BookingLiveSync } from "@/components/bookings/booking-live-sync";
 import { BookingPayments } from "@/components/bookings/booking-payments";
@@ -14,7 +18,6 @@ import { ConfirmationLinkPanel } from "@/components/forms/confirmation-link-pane
 import { FeedbackLinkPanel } from "@/components/forms/feedback-link-panel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   completeBookingStatusAction,
   recordBookingPaymentAction,
@@ -23,7 +26,8 @@ import {
   updateBookingAction,
   updateBookingInternalNotesAction,
 } from "@/features/bookings/actions";
-import { minorUnitsToInput } from "@/features/bookings/money";
+import { formatMoneyMinor, minorUnitsToInput } from "@/features/bookings/money";
+import { getDefaultOpenBookingDetailSection } from "@/features/bookings/detail-sections";
 import { deriveBookingJourney } from "@/features/bookings/journey";
 import {
   getBookingForBusiness,
@@ -268,6 +272,23 @@ export default async function BookingDetailPage({
     customerConfirmedAt: booking.customer_confirmed_at,
     feedbackSubmittedAt: feedback?.submitted_at ?? null,
   });
+  const defaultOpenSection = getDefaultOpenBookingDetailSection({
+    status: booking.status,
+    feedbackReceived: Boolean(feedback),
+    pendingAmendment: amendmentSummary.displayStatus === "pending",
+    awaitingAddon: addonSummary.hasAwaitingAddon,
+  });
+  const openIssueCount = issues.filter((issue) => issue.status === "OPEN").length;
+  const confirmationSectionSummary = confirmationSummary.confirmedAt
+    ? "Customer confirmed"
+    : confirmationSummary.status === "active"
+      ? "Confirmation link ready - awaiting customer"
+      : "Awaiting customer confirmation";
+  const paymentSectionSummary = paymentState.summary
+    ? paymentState.summary.outstandingAmountMinor > 0
+      ? `${formatMoneyMinor(paymentState.summary.outstandingAmountMinor, paymentState.summary.currency)} outstanding`
+      : "Payment fully recorded"
+    : "Payment status unavailable";
 
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-5 py-6 sm:px-8 lg:px-10">
@@ -350,20 +371,34 @@ export default async function BookingDetailPage({
         cancellationReason={booking.cancellation_reason}
       />
 
-      <BookingPayments
-        summary={paymentState.summary}
-        payments={paymentState.payments}
-        canRecordPayment={["IN_PROGRESS", "READY", "DELIVERED"].includes(
-          booking.status,
-        )}
-        action={recordBookingPaymentAction.bind(null, booking.id)}
-      />
+      <BookingDetailSections>
+        <BookingDetailSection
+          id="booking-payments"
+          title="Payment & completion"
+          summary={paymentSectionSummary}
+          defaultOpen={defaultOpenSection === "booking-payments"}
+          attention={
+            booking.status === "DELIVERED" &&
+            (paymentState.summary?.outstandingAmountMinor ?? 0) > 0
+          }
+        >
+          <BookingPayments
+            summary={paymentState.summary}
+            payments={paymentState.payments}
+            canRecordPayment={["IN_PROGRESS", "READY", "DELIVERED"].includes(
+              booking.status,
+            )}
+            action={recordBookingPaymentAction.bind(null, booking.id)}
+            embedded
+          />
+        </BookingDetailSection>
 
-      <Card id="operational-progress" className="scroll-mt-6">
-        <CardHeader>
-          <CardTitle>Operational progress</CardTitle>
-        </CardHeader>
-        <CardContent>
+        <BookingDetailSection
+          id="operational-progress"
+          title="Operational progress"
+          summary={getBookingStatusLabel(booking.status)}
+          defaultOpen={defaultOpenSection === "operational-progress"}
+        >
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
             <div>
               <p className="text-xs font-medium text-muted-foreground">Started</p>
@@ -391,31 +426,40 @@ export default async function BookingDetailPage({
               Cancellation reason: {booking.cancellation_reason}
             </p>
           ) : null}
-        </CardContent>
-      </Card>
+        </BookingDetailSection>
 
-      <Card id="customer-confirmation" className="scroll-mt-6">
-        <CardHeader>
-          <CardTitle>Customer confirmation</CardTitle>
-        </CardHeader>
-        <CardContent>
+        <BookingDetailSection
+          id="customer-confirmation"
+          title="Customer confirmation"
+          summary={confirmationSectionSummary}
+          defaultOpen={defaultOpenSection === "customer-confirmation"}
+          attention={booking.status === "AWAITING_CUSTOMER"}
+        >
           <ConfirmationLinkPanel
             summary={confirmationSummary}
             canManage={isConfirmationEligibleStatus(booking.status)}
             businessName={currentBusiness.name}
             customerName={booking.customer?.name ?? null}
+            customerProfileEmail={booking.customer?.email ?? null}
             generateAction={generateConfirmationLinkAction.bind(null, booking.id)}
             revokeAction={revokeConfirmationLinkAction.bind(null, booking.id)}
             recordShareAction={recordConfirmationShareAction.bind(null, booking.id)}
           />
-        </CardContent>
-      </Card>
+        </BookingDetailSection>
 
-      <Card id="booking-changes" className="scroll-mt-6">
-        <CardHeader>
-          <CardTitle>Booking changes</CardTitle>
-        </CardHeader>
-        <CardContent>
+        <BookingDetailSection
+          id="booking-changes"
+          title="Booking changes"
+          summary={
+            amendmentSummary.displayStatus === "pending"
+              ? "Customer action required"
+              : amendmentSummary.history.length === 0
+                ? "No changes"
+                : `${amendmentSummary.history.length} change request${amendmentSummary.history.length === 1 ? "" : "s"}`
+          }
+          defaultOpen={defaultOpenSection === "booking-changes"}
+          attention={amendmentSummary.displayStatus === "pending"}
+        >
           <BookingAmendmentPanel
             summary={amendmentSummary}
             canPropose={
@@ -439,14 +483,21 @@ export default async function BookingDetailPage({
             )}
             recordShareAction={recordAmendmentShareAction.bind(null, booking.id)}
           />
-        </CardContent>
-      </Card>
+        </BookingDetailSection>
 
-      <Card id="booking-addons" className="scroll-mt-6">
-        <CardHeader>
-          <CardTitle>Booking add-ons</CardTitle>
-        </CardHeader>
-        <CardContent>
+        <BookingDetailSection
+          id="booking-addons"
+          title="Booking add-ons"
+          summary={
+            addonSummary.hasAwaitingAddon
+              ? "Customer action required"
+              : addonSummary.confirmedAddonCount > 0
+                ? `${addonSummary.confirmedAddonCount} confirmed`
+                : "No confirmed add-ons"
+          }
+          defaultOpen={defaultOpenSection === "booking-addons"}
+          attention={addonSummary.hasAwaitingAddon}
+        >
           <BookingAddonPanel
             summary={addonSummary}
             canCreate={isAmendableBookingStatus(booking.status)}
@@ -464,14 +515,23 @@ export default async function BookingDetailPage({
             cancelAction={cancelBookingAddonAction.bind(null, booking.id)}
             recordShareAction={recordAddonShareAction.bind(null, booking.id)}
           />
-        </CardContent>
-      </Card>
+        </BookingDetailSection>
 
-      <Card id="private-feedback" className="scroll-mt-6">
-        <CardHeader>
-          <CardTitle>Private feedback</CardTitle>
-        </CardHeader>
-        <CardContent>
+        <BookingDetailSection
+          id="private-feedback"
+          title="Private feedback"
+          summary={
+            feedback
+              ? "Feedback received"
+              : booking.status === "COMPLETED"
+                ? feedbackSummary.status === "active"
+                  ? "Feedback request ready"
+                  : "Not requested"
+                : "Available after completion"
+          }
+          defaultOpen={defaultOpenSection === "private-feedback"}
+          attention={booking.status === "COMPLETED" && !feedback}
+        >
           {feedback ? (
             <div className="space-y-4">
               <div className="grid gap-3 sm:grid-cols-3">
@@ -514,72 +574,79 @@ export default async function BookingDetailPage({
               recordShareAction={recordFeedbackShareAction.bind(null, booking.id)}
             />
           )}
-        </CardContent>
-      </Card>
+        </BookingDetailSection>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Operational issues</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-5">
-          <BookingIssueForm action={createBookingIssueAction.bind(null, booking.id)} />
+        <BookingDetailSection
+          id="operational-issues"
+          title="Operational issues"
+          summary={
+            openIssueCount > 0
+              ? `${openIssueCount} open issue${openIssueCount === 1 ? "" : "s"}`
+              : issues.length > 0
+                ? "No open issues"
+                : "No issues recorded"
+          }
+          attention={openIssueCount > 0}
+        >
+          <div className="space-y-5">
+            <BookingIssueForm action={createBookingIssueAction.bind(null, booking.id)} />
 
-          {issues.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No issues recorded.</p>
-          ) : (
-            <ol className="space-y-3">
-              {issues.map((issue) => (
-                <li
-                  key={issue.id}
-                  className="rounded-md border border-border p-3 text-sm"
-                >
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                    <div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="font-medium">
-                          {issueCategoryLabels[issue.category]}
+            {issues.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No issues recorded.</p>
+            ) : (
+              <ol className="space-y-3">
+                {issues.map((issue) => (
+                  <li
+                    key={issue.id}
+                    className="rounded-md border border-border p-3 text-sm"
+                  >
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="font-medium">
+                            {issueCategoryLabels[issue.category]}
+                          </p>
+                          <Badge variant={issue.status === "OPEN" ? "accent" : "outline"}>
+                            {issue.status === "OPEN" ? "Open" : "Resolved"}
+                          </Badge>
+                        </div>
+                        <p className="mt-2 leading-6 text-muted-foreground">
+                          {issue.description}
                         </p>
-                        <Badge variant={issue.status === "OPEN" ? "accent" : "outline"}>
-                          {issue.status === "OPEN" ? "Open" : "Resolved"}
-                        </Badge>
+                        <p className="mt-2 text-xs text-muted-foreground">
+                          Created {formatDateTime(issue.created_at)}
+                          {issue.resolved_at
+                            ? ` · Resolved ${formatDateTime(issue.resolved_at)}`
+                            : ""}
+                        </p>
                       </div>
-                      <p className="mt-2 leading-6 text-muted-foreground">
-                        {issue.description}
-                      </p>
-                      <p className="mt-2 text-xs text-muted-foreground">
-                        Created {formatDateTime(issue.created_at)}
-                        {issue.resolved_at
-                          ? ` · Resolved ${formatDateTime(issue.resolved_at)}`
-                          : ""}
-                      </p>
+                      {issue.status === "OPEN" ? (
+                        <form
+                          action={resolveBookingIssueAction.bind(
+                            null,
+                            booking.id,
+                            issue.id,
+                            issue.status,
+                          )}
+                        >
+                          <Button type="submit" variant="secondary" size="sm">
+                            Resolve
+                          </Button>
+                        </form>
+                      ) : null}
                     </div>
-                    {issue.status === "OPEN" ? (
-                      <form
-                        action={resolveBookingIssueAction.bind(
-                          null,
-                          booking.id,
-                          issue.id,
-                          issue.status,
-                        )}
-                      >
-                        <Button type="submit" variant="secondary" size="sm">
-                          Resolve
-                        </Button>
-                      </form>
-                    ) : null}
-                  </div>
-                </li>
-              ))}
-            </ol>
-          )}
-        </CardContent>
-      </Card>
+                  </li>
+                ))}
+              </ol>
+            )}
+          </div>
+        </BookingDetailSection>
 
-      <Card id="reschedule" className="scroll-mt-6">
-        <CardHeader>
-          <CardTitle>Reschedule</CardTitle>
-        </CardHeader>
-        <CardContent>
+        <BookingDetailSection
+          id="reschedule"
+          title="Reschedule"
+          summary={`Scheduled ${formatDateTime(booking.scheduled_for)}`}
+        >
           <BookingRescheduleForm
             action={rescheduleBookingAction.bind(null, booking.id)}
             currentScheduledFor={booking.scheduled_for}
@@ -590,20 +657,19 @@ export default async function BookingDetailPage({
               Rescheduling is only available before operational work starts.
             </p>
           ) : null}
-        </CardContent>
-      </Card>
+        </BookingDetailSection>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            {locked
+        <BookingDetailSection
+          id="booking-details"
+          title={
+            locked
               ? "Booking details"
               : materialLocked
                 ? "Customer-confirmed details"
-                : "Edit booking"}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
+                : "Edit booking"
+          }
+          summary={`${booking.reference} - ${formatDateTime(booking.scheduled_for)}`}
+        >
           <BookingForm
             action={(materialLocked
               ? updateBookingInternalNotesAction
@@ -635,14 +701,13 @@ export default async function BookingDetailPage({
               reconfirmation workflow.
             </p>
           ) : null}
-        </CardContent>
-      </Card>
+        </BookingDetailSection>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Operational timeline</CardTitle>
-        </CardHeader>
-        <CardContent>
+        <BookingDetailSection
+          id="operational-timeline"
+          title="Operational timeline"
+          summary={`${timeline.length} event${timeline.length === 1 ? "" : "s"}`}
+        >
           {timeline.length === 0 ? (
             <p className="text-sm text-muted-foreground">No timeline events recorded.</p>
           ) : (
@@ -661,8 +726,8 @@ export default async function BookingDetailPage({
               ))}
             </ol>
           )}
-        </CardContent>
-      </Card>
+        </BookingDetailSection>
+      </BookingDetailSections>
     </main>
   );
 }

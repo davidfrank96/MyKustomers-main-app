@@ -19,15 +19,13 @@ import {
   type BookingActionState,
 } from "@/features/bookings/action-state";
 import { formatMoneyMinor, minorUnitsToInput } from "@/features/bookings/money";
-import type {
-  BookingPayment,
-  BookingPaymentSummary,
-} from "@/features/bookings/queries";
+import type { BookingPayment, BookingPaymentSummary } from "@/features/bookings/queries";
 
 type BookingPaymentsProps = {
   summary: BookingPaymentSummary | null;
   payments: BookingPayment[];
   canRecordPayment: boolean;
+  embedded?: boolean;
   action: (
     previousState: BookingActionState,
     formData: FormData,
@@ -95,7 +93,8 @@ function PaymentDialog({
               autoFocus
             />
             <p id="booking-payment-balance" className="text-sm text-muted-foreground">
-              Outstanding: {formatMoneyMinor(summary.outstandingAmountMinor, summary.currency)}
+              Outstanding:{" "}
+              {formatMoneyMinor(summary.outstandingAmountMinor, summary.currency)}
             </p>
             {state.fieldErrors?.amount?.map((message) => (
               <p
@@ -141,17 +140,25 @@ export function BookingPayments({
   summary,
   payments,
   canRecordPayment,
+  embedded = false,
   action,
 }: BookingPaymentsProps) {
   return (
-    <section id="booking-payments" className="scroll-mt-6 border-y border-border py-5 sm:py-6">
+    <div
+      id={embedded ? undefined : "booking-payments"}
+      className={embedded ? undefined : "scroll-mt-6 border-y border-border py-5 sm:py-6"}
+    >
       <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <p className="text-xs font-medium uppercase text-muted-foreground">Payments</p>
-          <h2 className="mt-1 text-lg font-semibold">Payment record</h2>
+          {embedded ? (
+            <h3 className="mt-1 text-lg font-semibold">Payment record</h3>
+          ) : (
+            <h2 className="mt-1 text-lg font-semibold">Payment record</h2>
+          )}
           <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
-            A record of amounts reported as received. My Kustomers does not process
-            these payments.
+            A record of amounts reported as received. My Kustomers does not process these
+            payments.
           </p>
         </div>
         {summary && canRecordPayment && summary.outstandingAmountMinor > 0 ? (
@@ -188,7 +195,10 @@ export function BookingPayments({
 
           {summary.outstandingAmountMinor === 0 ? (
             <div className="mt-5 flex items-start gap-2 border-l-2 border-primary pl-3">
-              <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
+              <CheckCircle2
+                className="mt-0.5 size-4 shrink-0 text-primary"
+                aria-hidden="true"
+              />
               <div>
                 <p className="text-sm font-medium">Payment complete</p>
                 <p className="mt-1 text-sm text-muted-foreground">
@@ -233,11 +243,14 @@ export function BookingPayments({
           </div>
         </>
       ) : (
-        <p className="mt-5 rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive" role="alert">
+        <p
+          className="mt-5 rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive"
+          role="alert"
+        >
           Payment status is temporarily unavailable. Payment recording and booking
           completion are disabled until it can be verified.
         </p>
       )}
-    </section>
+    </div>
   );
 }

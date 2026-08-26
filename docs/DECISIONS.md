@@ -1161,3 +1161,26 @@ verify payments. Operation IDs prevent duplicate submissions. Direct ordinary
 insert/update/delete, overpayment, post-terminal recording, force-completion,
 negative corrections, refunds, credits, and waivers are absent. Historical
 completion is never treated as proof of full payment.
+
+## ADR-050 - Confirmation Contact Is Booking Evidence And Detail Uses Progressive Disclosure
+
+Status: Accepted
+
+Decision: Treat normalized customer-provided confirmation email as immutable
+booking-scoped contact evidence. Populate an empty customer profile email, but
+never replace a different existing profile email implicitly. Continue selecting
+booking confirmation contact before the legacy profile fallback for subsequent
+booking notifications.
+
+Keep Booking Journey visible as the orientation and current-action layer. Render
+secondary booking operations as independent accessible disclosures with concise
+summaries and one server-derived default-open section. Disclosure state is local
+UI state and cannot mutate lifecycle or persist to the database.
+
+Rationale: A customer may legitimately use a different address for one booking,
+while the vendor's directory identity remains deliberate. Progressive disclosure
+reduces mobile page length without hiding current action or deleting operational
+capability.
+
+Consequences: no multi-email profile, preferred-contact workflow, ownership
+verification, deduplication, database migration, or broad redesign is created.

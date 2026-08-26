@@ -31,3 +31,8 @@ or phone from customer-provided contact. Existing non-empty values are
 preserved, even when the submitted booking contact differs. The submitted value
 remains immutable evidence on `booking_confirmations`; it is not described as
 verified contact ownership.
+
+Repeat bookings may therefore retain different booking contacts for the same
+customer without changing or duplicating the customer directory record. No
+preferred contact, customer email history, ownership verification, or automatic
+deduplication model exists in this detour.

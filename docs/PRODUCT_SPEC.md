@@ -133,6 +133,13 @@ overwritten. A booking-confirmed email event is committed atomically and
 delivered after commit; delivery failure does not change the confirmed booking.
 Customers still do not create accounts or complete OTP verification.
 
+The submitted email is authoritative for that booking and remains the first
+recipient source for later booking communications. It is separate from the
+vendor-managed customer profile contact: a different submission is shown as
+booking-specific evidence but does not promote itself to the canonical profile.
+No preferred-contact, multi-email, ownership-verification, merge, or hidden
+contact-history model is implied.
+
 Once customer-confirmed, material booking terms cannot be silently edited.
 Customer, title, customer-facing description, currency, total, deposit, and
 schedule are agreement fields. Internal notes remain internal and editable
@@ -344,6 +351,14 @@ confirmation preserves immutable agreement evidence and atomically activates
 `IN_PROGRESS`; there is no normal Start work action. Delivered bookings require
 authoritative outstanding payment to be zero before completion. Feedback is the
 post-completion journey close and remains separate from booking status.
+
+The Booking Journey remains visible on booking detail. Secondary operational
+sections use independent accessible disclosures with concise summaries. A fresh
+page load opens only the section derived from authoritative current context:
+confirmation while waiting, operational progress during fulfilment, payment and
+completion after delivery, feedback after completion, or a blocking pending
+amendment/add-on. The vendor may close that panel and open any other section;
+disclosure state never changes booking data.
 
 When an authenticated vendor keeps booking detail open, customer confirmation
 and private feedback may become visible without manual reload. The client checks

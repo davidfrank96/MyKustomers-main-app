@@ -36,18 +36,19 @@ export function PublicConfirmationForm({ action }: PublicConfirmationFormProps) 
   return (
     <form action={formAction} className="mt-6 space-y-4" noValidate>
       <div className="space-y-2">
-        <Label htmlFor="contact_email">Where should we send updates about this booking?</Label>
+        <Label htmlFor="contact_email">Email address</Label>
         <Input
           id="contact_email"
           name="contact_email"
           type="email"
           autoComplete="email"
+          placeholder="you@example.com"
           required
           aria-invalid={Boolean(state.fieldErrors?.contactEmail)}
           aria-describedby="contact-email-help contact-email-error"
         />
         <p id="contact-email-help" className="text-xs leading-5 text-muted-foreground">
-          We&apos;ll use this email for confirmation and updates about this booking.
+          Please enter a valid email address where we can send updates about this booking.
         </p>
         {state.fieldErrors?.contactEmail?.[0] ? (
           <p id="contact-email-error" className="text-sm text-destructive">
@@ -74,8 +75,8 @@ export function PublicConfirmationForm({ action }: PublicConfirmationFormProps) 
       </div>
 
       <p className="text-sm leading-6 text-muted-foreground">
-        By confirming, you acknowledge that these are the booking details agreed with
-        the business.
+        By confirming, you acknowledge that these are the booking details agreed with the
+        business.
       </p>
 
       {state.message ? (

@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-08-26 - Booking Detail Clarity And Contact Email UX
+
+Status: IMPLEMENTED - VERIFICATION PENDING
+
+- Replaced the public confirmation question-style email label with a required
+  `Email address` label, `you@example.com` placeholder, and concise explanation
+  that the address receives updates for this booking.
+- Preserved the existing contact model: empty profiles may be enriched, different
+  existing profile emails remain unchanged, and each booking retains its own
+  immutable confirmation contact for notification selection.
+- Kept Booking Journey visible and converted ten secondary booking-detail areas
+  into independently accessible disclosures with concise summaries, one
+  contextual default-open section, and journey-anchor opening.
+- Added unit, integration, static security, repeat-booking E2E, live-update, and
+  320-1440 responsive regression coverage. No migration, environment change,
+  Docker, lifecycle rewrite, multi-email model, or Admin Phase 7 work was added.
+
 ## 2026-08-26 - Booking Lifecycle Simplification And Payment Recording
 
 Status: VERIFIED - PRODUCTION
