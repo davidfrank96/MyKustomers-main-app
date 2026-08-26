@@ -2,7 +2,7 @@
 
 ## 2026-08-26 - Business Logo 5 MiB Source Transport Pipeline
 
-Status: IMPLEMENTED - VERIFICATION PENDING
+Status: VERIFIED - PRODUCTION
 
 - Raised the user-selected PNG/JPEG/WebP source limit to 5 MiB without sending a
   raw 5 MiB multipart body through Vercel. One browser-native helper leaves
@@ -19,6 +19,15 @@ Status: IMPLEMENTED - VERIFICATION PENDING
   >5 MiB no-request, and focused client/server regression coverage. No database,
   Storage-bucket, environment, dependency, Docker, or Admin Phase 7 change is
   included.
+- PR #37 passed seven executable GitHub/Vercel checks with the protected Runtime
+  Security job safely skipped, remained conflict-free, and merged as `dd0fe2c`.
+  Vercel deployed that exact commit to Production. On `mykustomers.com`, an
+  exact 5 MiB EXIF-oriented source produced a 2,146,239-byte multipart request
+  and 58,946-byte 384x512 WebP; a 4.8 MiB mobile replacement produced a
+  2,147,355-byte request and 58,838-byte 384x512 WebP in 15.049 seconds under a
+  controlled 1.2 Mbps upload profile. A 5 MiB-plus-one-byte selection sent zero
+  requests. No metadata, console errors, overflow, or 413 occurred, and cleanup
+  confirmed zero temporary Auth, profile, business, or Storage leftovers.
 
 ## 2026-08-26 - Business Logo Upload Pending-State Hotfix
 

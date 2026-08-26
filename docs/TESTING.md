@@ -126,6 +126,13 @@ do not reduce the verified tenant/RLS coverage.
   a 4.8 MiB mobile replacement, inspects the actual multipart bodies below the
   3 MiB file plus bounded overhead, and proves a 5 MiB-plus-one-byte selection
   causes no logo request.
+  Post-merge Production verification for `dd0fe2c` repeated exact-5 MiB
+  onboarding and a 4.8 MiB 390px replacement. Multipart requests measured
+  2,146,239 and 2,147,355 bytes; metadata-free final WebP objects measured
+  58,946 and 58,838 bytes at 384x512. The replacement settled in 15.049 seconds
+  under 180ms latency/1.2 Mbps upload throttling, >5 MiB sent no request, no
+  console/overflow/413 failure occurred, and independent cleanup found zero
+  controlled Auth, profile, business, or Storage leftovers.
   The post-merge production smoke for `faad4cb` repeated these checks at 1440px
   and 390px: four logo API operations returned 200, optimized objects decoded as
   WebP within policy, public reads returned 200, and independent cleanup found

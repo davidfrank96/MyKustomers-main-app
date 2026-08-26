@@ -487,5 +487,12 @@ production-readiness work.
       remain authoritative.
 - [x] No raw/intermediate Storage, database migration, bucket, environment,
       dependency, Docker, or Admin Phase 7 change is included.
-- [ ] Full gates, CI, exact production deployment, controlled >4 MiB/exact-5 MiB
+- [x] Full gates, CI, exact production deployment, controlled >4 MiB/exact-5 MiB
       production UI smoke, >5 MiB no-request proof, and fixture cleanup pass.
+- [x] PR #37 passed seven executable checks with one expected protected Runtime
+      Security skip, merged conflict-free as `dd0fe2c`, and Vercel deployed that
+      exact commit to Production.
+- [x] Exact 5 MiB and 4.8 MiB sources produced 2,146,239-byte and
+      2,147,355-byte multipart requests; final metadata-free 384x512 WebP files
+      were 58,946 and 58,838 bytes. The constrained replacement settled in
+      15.049 seconds, >5 MiB sent no request, and cleanup left zero fixtures.
