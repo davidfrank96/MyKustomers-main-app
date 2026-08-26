@@ -14,6 +14,7 @@ const queries = fs.readFileSync(path.join(root, "features/admin/queries.ts"), "u
 const pages = ["app/admin/emails/page.tsx", "app/admin/emails/[emailEventId]/page.tsx"]
   .map((file) => fs.readFileSync(path.join(root, file), "utf8"))
   .join("\n");
+const listPage = fs.readFileSync(path.join(root, "app/admin/emails/page.tsx"), "utf8");
 
 const directoryFunction = migration.slice(
   migration.indexOf(
@@ -83,7 +84,7 @@ describe("platform admin read-only email operations boundary", () => {
     expect(queries).not.toMatch(
       /createServiceRoleClient|getCurrentBusinessContext|getSelectedBusinessId/,
     );
-    expect(pages).not.toMatch(
+    expect(listPage).not.toMatch(
       /retry|resend|send again|mark pending|mark failed|mark sent/i,
     );
   });

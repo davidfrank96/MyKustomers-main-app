@@ -47,8 +47,8 @@ external configuration is server-only.
 `BOOKING_CONFIRMED`, `BOOKING_CANCELLED`, `BOOKING_AMENDMENT_REQUESTED`,
 `BOOKING_AMENDMENT_CONFIRMED`, `BOOKING_ADDON_REQUESTED`, and
 `BOOKING_ADDON_CONFIRMED` exist now. PDF attachments,
-retries/scheduling, bounce handling, and ready/progress/completion/feedback
-emails are deferred.
+automatic retries/scheduling, bounce handling, and
+ready/progress/completion/feedback emails are deferred.
 
 Admin Phase 5 observes this existing outbox through narrow read-only RPCs. Its
 default window is seven days; Today and 30-day presets are also available.
@@ -58,7 +58,15 @@ after 15 minutes because delivery is invoked immediately after commit and there
 is currently no retry worker or scheduler. Directory rows omit recipients and
 failures; detail exposes only a masked recipient and controlled failure category.
 Message bodies, provider IDs, raw provider/failure payloads, and credentials are
-never returned. Retry/resend remains deferred to Admin Phase 6.
+never returned.
+
+Admin Phase 6B adds manual retry on event detail only. A centralized policy
+classifies a matching latest failed attempt as retryable, ambiguous, or
+non-retryable. Only proven transient non-acceptance can pass. The AAL2 server
+action requires an active `SUPER_ADMIN` and bounded reason, then atomically
+appends an attempt on the same event through the original provider. Prior
+attempts remain immutable evidence. There is no retry for ambiguous outcomes,
+automatic schedule, provider failover, bulk/force resend, or domain mutation.
 
 Provider modules in `lib/email/providers` use bounded HTTP timeouts and return
 only a safe provider message ID or bounded failure. See

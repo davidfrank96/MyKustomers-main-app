@@ -62,13 +62,13 @@ describe("privileged platform admin policy", () => {
     });
   });
 
-  it("defines failed-email retry as deferred and independently protected", () => {
+  it("defines failed-email retry as implemented and independently protected", () => {
     expect(PRIVILEGED_ACTIONS.RETRY_FAILED_EMAIL).toEqual({
       requiredRole: "SUPER_ADMIN",
       requiresAal2: true,
       requiresReason: true,
       targetType: "EMAIL_EVENT",
-      implemented: false,
+      implemented: true,
     });
   });
 
@@ -78,6 +78,9 @@ describe("privileged platform admin policy", () => {
     );
     expect(privilegedReasonSchema.safeParse("   ").success).toBe(false);
     expect(privilegedReasonSchema.safeParse("x".repeat(501)).success).toBe(false);
+    expect(
+      privilegedReasonSchema.parse("  Retry after Brevo 429; operator verified.  "),
+    ).toBe("Retry after Brevo 429; operator verified.");
   });
 
   it("builds bounded audit evidence without arbitrary secret metadata", () => {

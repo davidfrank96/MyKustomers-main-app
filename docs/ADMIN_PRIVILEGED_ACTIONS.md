@@ -1,9 +1,9 @@
 # Admin Privileged Actions
 
-Status: ADMIN PHASE 6A VERIFIED - PRODUCTION
+Status: ADMIN PHASE 6B IMPLEMENTED - PRODUCTION DEPLOYMENT VERIFICATION PENDING
 
-This document defines the security framework that every future platform-admin
-mutation must use. It does not authorize or implement a mutation by itself.
+This document defines the security framework for platform-admin mutations and
+the one separately approved Phase 6B action.
 
 ## Permanent Invariant
 
@@ -85,21 +85,37 @@ as successes. Phase 6A does not add audit enum values because it introduces no
 privileged domain mutation. Each later action must review its database event and
 transaction semantics before implementation.
 
-## First Deferred Policy
+## Implemented Phase 6B Policy
 
-`RETRY_FAILED_EMAIL` is defined only as a non-functional policy fixture:
+`RETRY_FAILED_EMAIL` is the only implemented privileged write:
 
 - role: `SUPER_ADMIN`;
 - assurance: AAL2;
 - target: `EMAIL_EVENT`;
-- eligible state: `FAILED` (to be validated in Phase 6B);
+- eligible state: `FAILED` plus matching provider-pinned attempt evidence and a
+  proven retryable non-acceptance class;
 - explicit confirmation: required;
 - reason: required;
 - audit and idempotency: required;
-- implemented: false.
+- implemented: true.
 
-There is no retry action, endpoint, RPC, button, scheduler, or automatic provider
-failover in Phase 6A.
+`FAILED` alone is insufficient. Proven 429, pre-submission connection failure,
+and unaccepted 5xx are retryable. Timeout, uncertain network outcome, malformed
+response, exception, state-update uncertainty, and unknown failures are
+ambiguous and denied. Permanent 4xx, invalid recipient/sender/configuration, and
+invalid message data are non-retryable. `SENT`, `PENDING`, and `SENDING` are
+always denied.
+
+The action re-reads the event and latest attempt after the AAL2 gate. A
+service-role-only RPC locks and checks exact status, attempt count, failure code,
+original provider, active admin, and reason before appending an `ADMIN_RETRY`
+attempt. Two tabs cannot claim twice. Finalization records either provider
+acceptance or the new bounded failure and writes matching audit evidence. The
+original provider is retained; there is no fallback.
+
+Permanent invariant: A failed transactional email may be manually retried only
+when the system can establish a safe retryable failure class. Ambiguous provider
+outcomes must not be retried automatically or through normal admin controls.
 
 ## Recovery And Lockout
 
@@ -118,7 +134,7 @@ authentication, and new TOTP enrollment.
 
 ## Separately Reviewed Actions
 
-The framework does not approve email retry, business or user suspension,
+The framework does not approve arbitrary resend, business or user suspension,
 membership mutation, user security changes, booking overrides, ownership
 changes, hard deletion, or impersonation. Each needs its own domain validation,
 side-effect/idempotency analysis, audit event, runtime fixtures, UI, and explicit

@@ -20,7 +20,7 @@ export const PRIVILEGED_ACTIONS = {
     requiresAal2: true,
     requiresReason: true,
     targetType: "EMAIL_EVENT",
-    implemented: false,
+    implemented: true,
   },
 } as const;
 

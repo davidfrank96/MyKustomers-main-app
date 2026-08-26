@@ -2,9 +2,10 @@
 
 Status: VERIFIED - PRODUCTION
 
-`/admin/emails` is the platform administrator's read-only view of the existing
-My Customers transactional email outbox. It does not create a second delivery
-architecture and it does not expose customer communications.
+`/admin/emails` is the platform administrator's operational view of the existing
+My Customers transactional email outbox. Lists and reads remain side-effect
+free. Phase 6B adds one detail-only privileged retry action without creating a
+second delivery architecture or exposing customer communications.
 
 ## Authoritative Semantics
 
@@ -29,7 +30,7 @@ Directory responses contain event ID/type/status, safe business and booking
 identity, attempt count, and timestamps. They contain no recipient or failure
 fields. Detail may add only the existing masked recipient and one controlled
 failure category: invalid recipient, rate limited, configuration error, provider
-rejected, temporary provider failure, or unknown failure.
+rejected, temporary provider failure, ambiguous outcome, or unknown failure.
 
 Neither response contains message HTML/text, provider message IDs, provider
 requests/responses, raw failure code/message, customer contact evidence, tokens,
@@ -63,6 +64,22 @@ is standby and is never invoked automatically. The historical pending event was
 never claimed, has zero attempts and no provider ID, and targets the reserved
 `example.com` domain; activation must not replay it.
 
+## Safe Manual Retry
+
+The detail route derives retry eligibility from the event and latest persisted
+attempt using one server policy. `FAILED` is necessary but not sufficient.
+Only proven transient non-acceptance is `RETRYABLE`; ambiguous outcomes and
+permanent/configuration/recipient failures show a readable unavailable reason.
+The action requires active `SUPER_ADMIN`, AAL2, explicit confirmation, and a
+trimmed reason of at most 500 characters.
+
+The database atomically rechecks exact event, attempt, failure, provider, admin,
+and reason evidence. A retry appends an attempt to the same logical event and
+uses the original provider with an attempt-scoped idempotency key. It never
+changes booking/customer state. Success means “Accepted by provider,” not
+delivery. There is no force/bulk retry, provider switch/failover, recipient or
+content editing, automatic schedule, or retry on list rows.
+
 ## Security And Deferred Writes
 
 The server requires platform-admin authorization before invoking either narrow
@@ -71,10 +88,9 @@ path, is postgres-owned, and grants execute only to `authenticated` after PUBLIC
 and anonymous revocation. No direct `email_events` table grant is added. Reads
 are platform-wide, current-business independent, non-mutating, and not audited.
 
-Retry/resend could communicate externally and mutate durable outbox state. It is
-deferred to Admin Phase 6 until MFA, privileged write authorization, idempotency,
-reason capture, atomic audit semantics, and notification side effects receive a
-separate review. No Phase 6 work is part of this implementation.
+Browser roles cannot mutate the attempt table or invoke retry/finalize RPCs.
+Arbitrary resend, ambiguous override, automatic retry, and every non-email admin
+write remain deferred.
 
 ## Verification Evidence
 

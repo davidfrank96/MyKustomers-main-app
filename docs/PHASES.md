@@ -1030,6 +1030,40 @@ vendor onboarding resolution, response protections, no browser diagnostics,
 and responsive containment at 390, 768, 1024, and 1440 pixels. The approved
 production admin was not enrolled or otherwise changed.
 
+## Admin Phase 6B - MFA-Gated Safe Failed-Email Retry
+
+STATUS: IMPLEMENTED - PRODUCTION DEPLOYMENT VERIFICATION PENDING
+
+Objective: Add exactly one privileged write that retries the same logical email
+event only when prior provider non-acceptance can be established safely.
+
+Implemented scope:
+
+- one centralized `RETRYABLE` / `AMBIGUOUS` / `NON_RETRYABLE` policy;
+- active `SUPER_ADMIN` plus server-verified AAL2 and required 500-character
+  bounded reason;
+- detail-only application confirmation with no browser-native prompt;
+- atomic stale-safe retry claim, provider pinning, preserved attempt history,
+  and truthful requested/succeeded/failed audit evidence;
+- attempt-scoped provider idempotency without Brevo-to-Resend fallback;
+- safe diagnostics and responsive/accessibility coverage at 390/768/1024/1440.
+
+Permanent invariant: A failed transactional email may be manually retried only
+when the system can establish a safe retryable failure class. Ambiguous provider
+outcomes must not be retried automatically or through normal admin controls.
+
+Runtime evidence: the reviewed migration applied transactionally without
+changing the 19 existing email events or sole active super-admin. A controlled
+temporary AAL2 admin and isolated communication fixture proved AAL1 denial,
+native TOTP elevation, two-tab concurrency with exactly one provider invocation,
+attempt/audit preservation, truthful acceptance UX, domain-state isolation, and
+complete cleanup. Docker was not used. Production Brevo smoke, CI, merge, and
+Vercel deployment remain required before this status can become verified.
+
+Not included: automatic/scheduled retry, bulk or force retry, provider failover,
+recipient/content editing, arbitrary resend, quota monitoring, suspension,
+membership mutation, impersonation, hard deletion, or Admin Phase 7.
+
 ## Transactional Email Provider Activation
 
 Status: VERIFIED - PRODUCTION

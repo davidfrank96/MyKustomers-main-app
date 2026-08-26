@@ -1,9 +1,18 @@
-import { ArrowLeft, Building2, CalendarDays, Mail } from "lucide-react";
+import {
+  ArrowLeft,
+  Building2,
+  CalendarDays,
+  Mail,
+  RotateCw,
+  ShieldAlert,
+} from "lucide-react";
 import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { Badge } from "@/components/ui/badge";
+import { PrivilegedActionDialog } from "@/components/admin/privileged-action-dialog";
+import { retryFailedEmailAction } from "@/features/admin/email-retry-actions";
 import { formatEmailFailureCategory } from "@/features/admin/email-operations";
 import { formatOperationLabel } from "@/features/admin/operations";
 import { getAdminEmailEvent } from "@/features/admin/queries";
@@ -52,8 +61,9 @@ export default async function AdminEmailEventPage({ params }: PageProps) {
           Email event
         </h1>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-          Read-only operational metadata. Message content, provider identifiers, and raw
-          provider responses are not exposed.
+          Minimized operational metadata and one narrowly authorized delivery action.
+          Message content, provider identifiers, and raw provider responses are not
+          exposed.
         </p>
       </header>
 
@@ -130,6 +140,89 @@ export default async function AdminEmailEventPage({ params }: PageProps) {
           Accepted timestamps indicate adapter or provider acceptance only. Recipient
           delivery, opening, and reading are not tracked.
         </p>
+      </section>
+
+      <section
+        aria-labelledby="email-retry-title"
+        className="border-y border-border py-6"
+      >
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              {event.retry_eligibility.eligible ? (
+                <RotateCw className="size-5 shrink-0" aria-hidden="true" />
+              ) : (
+                <ShieldAlert className="size-5 shrink-0" aria-hidden="true" />
+              )}
+              <h2 id="email-retry-title" className="text-lg font-semibold">
+                {event.retry_eligibility.eligible
+                  ? "Retry delivery"
+                  : "Retry unavailable"}
+              </h2>
+            </div>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+              {event.retry_eligibility.explanation}
+            </p>
+            <p className="mt-2 text-xs font-medium uppercase text-muted-foreground">
+              Classification:{" "}
+              {formatOperationLabel(event.retry_eligibility.classification)}
+            </p>
+          </div>
+          {event.retry_eligibility.eligible ? (
+            <PrivilegedActionDialog
+              actionTitle="Retry this email delivery?"
+              consequence="This will make another delivery attempt for the existing transactional email through its original provider."
+              triggerLabel="Retry delivery"
+              confirmLabel="Retry delivery"
+              requiresReason
+              action={retryFailedEmailAction.bind(null, event.id)}
+            />
+          ) : null}
+        </div>
+      </section>
+
+      <section aria-labelledby="email-attempt-history-title">
+        <h2 id="email-attempt-history-title" className="text-lg font-semibold">
+          Delivery attempts
+        </h2>
+        {event.delivery_attempts.length === 0 ? (
+          <p className="mt-3 text-sm leading-6 text-muted-foreground">
+            Provider-pinned attempt history is unavailable for this legacy event.
+          </p>
+        ) : (
+          <ol className="mt-4 divide-y divide-border border-y border-border">
+            {event.delivery_attempts.map((attempt) => (
+              <li
+                key={attempt.attempt_number}
+                className="grid gap-3 py-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:px-3"
+              >
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge variant={attempt.status === "FAILED" ? "accent" : "outline"}>
+                      {formatOperationLabel(attempt.status)}
+                    </Badge>
+                    <span className="text-sm font-medium">
+                      Attempt {attempt.attempt_number.toLocaleString("en")}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {formatOperationLabel(attempt.origin)} ·{" "}
+                    {formatOperationLabel(attempt.provider)}
+                  </p>
+                  {attempt.failure_category ? (
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {formatEmailFailureCategory(attempt.failure_category)}
+                    </p>
+                  ) : null}
+                </div>
+                <div className="text-sm text-muted-foreground sm:text-right">
+                  <p>{formatDate(attempt.started_at)}</p>
+                  <p className="mt-1">Completed {formatDate(attempt.completed_at)}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        )}
       </section>
     </section>
   );

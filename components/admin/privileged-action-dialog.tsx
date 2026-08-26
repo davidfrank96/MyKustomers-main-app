@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useActionState, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -46,6 +47,7 @@ export function PrivilegedActionDialog({
   requiresReason = false,
   action,
 }: PrivilegedActionDialogProps) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [state, formAction, pending] = useActionState(
     action,
@@ -89,7 +91,11 @@ export function PrivilegedActionDialog({
           <div className="mt-5" role="status" aria-live="polite">
             <p className="text-sm font-medium">{state.message ?? "Action completed."}</p>
             <DialogClose asChild>
-              <Button type="button" className="mt-4 w-full sm:w-fit">
+              <Button
+                type="button"
+                className="mt-4 w-full sm:w-fit"
+                onClick={() => router.refresh()}
+              >
                 Close
               </Button>
             </DialogClose>

@@ -38,7 +38,10 @@ import {
   type AdminEmailEventDetail,
   type AdminEmailOperationsPage,
 } from "@/features/admin/email-operations";
-import { getTransactionalEmailProviderSelection } from "@/lib/email/provider";
+import {
+  getTransactionalEmailProviderSelection,
+  getTransactionalEmailProviderSelectionForName,
+} from "@/lib/email/provider";
 
 export class AdminOverviewUnavailableError extends Error {
   constructor() {
@@ -264,7 +267,10 @@ export const getAdminEmailEvent = cache(async function getAdminEmailEvent(
   if (error) throw new AdminEmailOperationsUnavailableError();
   if (data === null) return null;
 
-  const result = parseAdminEmailEventDetail(data);
+  const result = parseAdminEmailEventDetail(
+    data,
+    (provider) => getTransactionalEmailProviderSelectionForName(provider).configured,
+  );
   if (!result) throw new AdminEmailOperationsUnavailableError();
   return result;
 });

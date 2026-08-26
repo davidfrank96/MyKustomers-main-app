@@ -1,5 +1,10 @@
 import { z } from "zod";
 import { adminCountSchema } from "@/features/admin/overview";
+import {
+  getEmailRetryEligibility,
+  type EmailRetryEligibility,
+} from "@/lib/email/retry-policy";
+import type { TransactionalEmailProviderName } from "@/lib/email/types";
 
 export const ADMIN_EMAIL_PAGE_SIZE = 20;
 export const ADMIN_EMAIL_SEARCH_LIMIT = 80;
@@ -93,19 +98,34 @@ const adminEmailOperationsPageSchema = z
   })
   .strict();
 
-const adminEmailEventDetailSchema = adminEmailSummaryRowSchema
+const failureCategorySchema = z.enum([
+  "provider_rejected",
+  "configuration_error",
+  "temporary_provider_failure",
+  "invalid_recipient",
+  "rate_limited",
+  "ambiguous_outcome",
+  "unknown_failure",
+]);
+const deliveryAttemptSchema = z
+  .object({
+    attempt_number: adminCountSchema,
+    provider: z.enum(["development", "brevo", "resend", "unknown"]),
+    origin: z.enum(["DOMAIN_EVENT", "ADMIN_RETRY"]),
+    status: z.enum(["SENDING", "SENT", "FAILED"]),
+    started_at: timestampSchema,
+    completed_at: nullableTimestampSchema,
+    failure_category: failureCategorySchema.nullable(),
+    retry_failure_code: z.string().min(1).max(80).nullable(),
+  })
+  .strict();
+
+const adminEmailEventDetailSourceSchema = adminEmailSummaryRowSchema
   .extend({
     recipient_masked: z.string().max(254).nullable(),
-    failure_category: z
-      .enum([
-        "provider_rejected",
-        "configuration_error",
-        "temporary_provider_failure",
-        "invalid_recipient",
-        "rate_limited",
-        "unknown_failure",
-      ])
-      .nullable(),
+    failure_category: failureCategorySchema.nullable(),
+    retry_failure_code: z.string().min(1).max(80).nullable(),
+    delivery_attempts: z.array(deliveryAttemptSchema).max(20),
   })
   .strict();
 
@@ -114,7 +134,18 @@ export type AdminEmailEventType = (typeof adminEmailEventTypes)[number];
 export type AdminEmailRange = (typeof adminEmailRanges)[number];
 export type AdminEmailSummary = z.infer<typeof adminEmailSummarySchema>;
 export type AdminEmailEventSummary = z.infer<typeof adminEmailSummaryRowSchema>;
-export type AdminEmailEventDetail = z.infer<typeof adminEmailEventDetailSchema>;
+type AdminEmailEventDetailSource = z.infer<typeof adminEmailEventDetailSourceSchema>;
+export type AdminEmailDeliveryAttempt = Omit<
+  z.infer<typeof deliveryAttemptSchema>,
+  "retry_failure_code"
+>;
+export type AdminEmailEventDetail = Omit<
+  AdminEmailEventDetailSource,
+  "retry_failure_code" | "delivery_attempts"
+> & {
+  delivery_attempts: AdminEmailDeliveryAttempt[];
+  retry_eligibility: EmailRetryEligibility;
+};
 export type AdminEmailOperationsPage = z.infer<typeof adminEmailOperationsPageSchema> & {
   totalPages: number;
 };
@@ -177,9 +208,49 @@ export function parseAdminEmailOperationsPage(
   };
 }
 
-export function parseAdminEmailEventDetail(value: unknown): AdminEmailEventDetail | null {
-  const result = adminEmailEventDetailSchema.safeParse(value);
-  return result.success ? result.data : null;
+export function parseAdminEmailEventDetail(
+  value: unknown,
+  isProviderConfigured: (provider: TransactionalEmailProviderName) => boolean = () =>
+    false,
+): AdminEmailEventDetail | null {
+  const result = adminEmailEventDetailSourceSchema.safeParse(value);
+  if (!result.success) return null;
+
+  const {
+    retry_failure_code: failureCode,
+    delivery_attempts: attempts,
+    ...detail
+  } = result.data;
+  const latestAttempt = attempts[0] ?? null;
+  const retryEligibility = getEmailRetryEligibility({
+    status: detail.status,
+    eventType: detail.event_type,
+    attemptCount: detail.attempt_count,
+    failureCode,
+    latestAttempt: latestAttempt
+      ? {
+          attemptNumber: latestAttempt.attempt_number,
+          provider: latestAttempt.provider,
+          status: latestAttempt.status,
+          failureCode: latestAttempt.retry_failure_code,
+        }
+      : null,
+    isProviderConfigured,
+  });
+
+  return {
+    ...detail,
+    delivery_attempts: attempts.map((attempt) => ({
+      attempt_number: attempt.attempt_number,
+      provider: attempt.provider,
+      origin: attempt.origin,
+      status: attempt.status,
+      started_at: attempt.started_at,
+      completed_at: attempt.completed_at,
+      failure_category: attempt.failure_category,
+    })),
+    retry_eligibility: retryEligibility,
+  };
 }
 
 export function getAdminEmailHealth(summary: AdminEmailSummary) {

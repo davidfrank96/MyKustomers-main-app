@@ -358,14 +358,15 @@ production-readiness work.
       production-backed Supabase project.
 - [x] Admin Phase 4 safe runtime denial/positive checks, CI, Vercel deployment,
       and production read-only smoke pass.
-- [ ] MFA is enforced before any high-risk platform write capability is enabled.
+- [x] MFA is enforced before the Phase 6B failed-email retry capability.
 - [x] No generic privileged database browser, impersonation, destructive
       mutation, membership-management UI, or hard deletion shipped implicitly.
 - [x] Admin Phase 5 read-only email operations migration definition created.
 - [x] Admin Phase 5 migration explicitly approved and applied to the configured
       production-backed project.
 - [x] Email Operations uses acceptance terminology and exposes no message body,
-      full recipient, provider identifier, raw failure, or retry control.
+      full recipient, provider identifier, or raw failure. Retry is detail-only
+      and available only from server-derived safe eligibility.
 - [x] Admin Phase 5 PR/CI, Vercel deployment, and production route smoke pass.
 - [x] Admin Phase 6A uses native Supabase TOTP and adds no custom OTP storage.
 - [x] Existing admin reads retain active-admin authorization; future writes use
@@ -376,7 +377,13 @@ production-readiness work.
       audit evidence, storage, repository files, and screenshots.
 - [x] Privileged confirmation, bounded optional reason, allowlisted audit
       evidence, and controlled sole-admin recovery are documented.
-- [x] Failed-email retry and all other privileged admin mutations remain absent.
+- [x] Failed-email retry requires active `SUPER_ADMIN`, AAL2, bounded reason,
+      atomic evidence recheck, original-provider pinning, and preserved history.
+- [x] `SENT`, `PENDING`, `SENDING`, ambiguous, recipient/configuration, and
+      permanent failures cannot be retried; bulk/force retry and failover remain
+      absent.
+- [ ] Admin Phase 6B PR/CI, Vercel deployment, controlled Brevo smoke, and final
+      zero-fixture cleanup pass.
 - [x] Controlled temporary-admin TOTP enrollment/challenge/AAL2, invalid-code,
       logout/login, cleanup, PR/CI, deployment, and production smoke pass.
 

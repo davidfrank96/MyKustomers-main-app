@@ -1072,6 +1072,29 @@ client forgery and stale elevated sessions after admin disablement.
 Consequences: `/admin/security` may enroll and challenge TOTP without requiring
 vendors to use MFA. One verified factor is sufficient in V1; self-service
 removal is deferred for sole-admin safety. Reasons are policy-specific, bounded
-to 500 characters, and audit evidence is allowlisted. Failed-email retry remains
-a non-functional Phase 6B policy fixture. No migration, environment variable,
-generic mutation layer, or privileged domain write is introduced.
+to 500 characters, and audit evidence is allowlisted. Phase 6B may use this
+framework only through its separately reviewed narrow action.
+
+## ADR-046 - Failed Email Retry Requires Proven Non-Acceptance
+
+Status: Accepted
+
+Decision: A failed transactional email may be manually retried only when the
+system can establish a safe retryable failure class. Ambiguous provider outcomes
+must not be retried automatically or through normal admin controls. The action
+requires an active `SUPER_ADMIN` at AAL2, a bounded reason, server-derived
+eligibility, and an atomic provider-pinned claim on the same logical event.
+
+Rationale: `FAILED` does not prove that a provider rejected or never received a
+request. Timeouts, post-submission disconnects, malformed responses, and unknown
+errors can hide an accepted message. Retrying those cases could duplicate a
+customer communication. Exact status/failure/attempt/provider predicates plus a
+row lock make concurrent tabs stale-safe.
+
+Consequences: proven 429, pre-submission connection, and unaccepted 5xx failures
+may be retried manually. `SENT`, `PENDING`, `SENDING`, ambiguous, permanent,
+invalid-recipient/sender/configuration, and unreconstructable secure-link events
+are denied. Each retry appends an attempt with an attempt-scoped provider
+idempotency key and requested/result audits. Provider switching, automatic
+failover, force/bulk retry, recipient/content editing, and scheduled retry remain
+out of scope.

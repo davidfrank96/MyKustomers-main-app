@@ -347,8 +347,9 @@ active platform admins. Existing reads retain their current authorization;
 future writes must additionally pass `requirePrivilegedPlatformAdmin()` with a
 signature-verified AAL2 session, current `ACTIVE` role, explicit confirmation,
 action-specific validation, required reason where applicable, audit evidence,
-and regression coverage. Vendors are not required to enroll MFA. Failed-email
-retry and every other privileged mutation remain deferred.
+and regression coverage. Vendors are not required to enroll MFA. Phase 6A did
+not enable a write; Phase 6B's separately reviewed failed-email retry is
+described below and every other privileged mutation remains deferred.
 Controlled production-backed verification used a temporary zero-business admin
 to prove enrollment, invalid-code denial, challenge/verify, AAL2, immediate
 disabled-admin denial, logout/login assurance reset, and cleanup. PR #27 passed
@@ -357,6 +358,17 @@ deployed that exact `main` commit. Authenticated production smoke verified the
 Security page, session persistence, read-only admin navigation, vendor onboarding
 resolution, security headers, and 390/768/1024/1440 containment. The approved
 production admin was not enrolled or modified.
+
+Admin Phase 6B implements the first and only privileged write: manual retry of
+a safely classified failed transactional email. An active `SUPER_ADMIN` must be
+at AAL2, provide a bounded reason, and confirm in the application dialog. The
+server re-derives eligibility and the database atomically locks the same logical
+event; one provider-pinned attempt is appended without erasing prior evidence.
+Only proven 429, pre-submission connection, or unaccepted 5xx failures are
+retryable. Ambiguous outcomes, permanent/configuration/recipient failures, and
+`PENDING`, `SENDING`, or `SENT` events cannot be retried. There is no provider
+switch, automatic failover, bulk retry, recipient/content editing, or domain
+state mutation.
 
 Booking completion now uses an accessible application-owned confirmation
 dialog. The final `DELIVERED -> COMPLETED` mutation runs only after confirmation

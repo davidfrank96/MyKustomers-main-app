@@ -413,11 +413,19 @@ accepts a concrete server action rather than an arbitrary action name. The
 policy/audit modules define bounded inputs but do not execute a domain mutation.
 See ADR-045 and `docs/ADMIN_PRIVILEGED_ACTIONS.md`.
 
-The outbox delivery path is unchanged: domain transactions create durable
-events, and `deliverEmailEvent` claims and sends synchronously after commit.
-There is no worker or retry scheduler. The default development adapter makes no
-external request, so its `SENT` records are adapter acceptance only. Email
-Operations provides observation only and cannot retry, resend, or alter state.
+Domain transactions still create durable events, and `deliverEmailEvent` claims
+and sends synchronously after commit. Each claim now appends a provider-pinned
+`email_delivery_attempts` row; finalization updates the attempt and logical event
+without changing booking/customer state. Normal claims remain `PENDING`-only.
+
+Admin Phase 6B adds a separate server-only retry path. The AAL2 action re-reads
+the event and latest attempt, applies the centralized policy, then invokes a
+service-role-only atomic claim that locks the event and checks exact status,
+attempt count, failure code, original provider, current active super-admin, and
+reason. Concurrent requests cannot create a second attempt. The claimed attempt
+uses an attempt-scoped provider idempotency key and finalizes through the same
+provider only. There is no worker, retry scheduler, provider failover, or domain
+mutation. `SENT` remains provider/adapter acceptance only.
 
 ## Booking Journey Presentation Boundary
 

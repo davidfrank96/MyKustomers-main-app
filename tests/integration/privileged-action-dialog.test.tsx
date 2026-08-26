@@ -5,6 +5,10 @@ import {
   type PrivilegedActionState,
 } from "@/components/admin/privileged-action-dialog";
 
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ refresh: vi.fn() }),
+}));
+
 describe("PrivilegedActionDialog", () => {
   it("uses an accessible application dialog with bounded reason capture", async () => {
     const action = vi.fn(async (): Promise<PrivilegedActionState> => ({

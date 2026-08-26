@@ -17,6 +17,7 @@ import {
 } from "@/lib/email/templates/booking-addon";
 import { getTransactionalEmailProvider } from "@/lib/email/provider";
 import { sendWithProviderBoundary } from "@/lib/email/send";
+import { buildEmailAttemptIdempotencyKey } from "@/lib/email/retry-policy";
 import type {
   TransactionalEmailMessage,
   TransactionalEmailProvider,
@@ -94,31 +95,62 @@ type EmailDeliveryContext = { amendmentUrl?: string; addonUrl?: string };
 
 async function failEmailEvent({
   emailEventId,
+  attemptId,
   code,
   message,
 }: {
   emailEventId: string;
+  attemptId: string | null;
   code: string;
   message: string;
 }) {
   const supabase = createServiceRoleClient();
-  await supabase
-    .from("email_events")
-    .update({
-      status: "FAILED",
-      failure_code: code.slice(0, 80),
-      failure_message: message.slice(0, 500),
-    })
-    .eq("id", emailEventId)
-    .eq("status", "SENDING");
+  if (!attemptId) {
+    const { error } = await supabase
+      .from("email_events")
+      .update({
+        status: "FAILED",
+        failure_code: code.slice(0, 80),
+        failure_message: message.slice(0, 500),
+      })
+      .eq("id", emailEventId)
+      .eq("status", "SENDING");
 
-  return { status: "failed", code } as const;
+    return {
+      status: "failed",
+      code: error ? "delivery_state_update_failed" : code,
+    } as const;
+  }
+
+  const { data: finalized, error } = await supabase.rpc(
+    "finalize_email_delivery_attempt",
+    {
+      p_email_event_id: emailEventId,
+      p_attempt_id: attemptId,
+      p_result: "FAILED",
+      p_failure_code: code,
+      p_failure_message: message,
+    },
+  );
+
+  return {
+    status: "failed",
+    code: error || !finalized ? "delivery_state_update_failed" : code,
+  } as const;
 }
 
 export type EmailDeliveryResult =
   | { status: "sent" }
   | { status: "failed"; code: string }
   | { status: "skipped"; reason: "service-role-unavailable" | "not-claimable" };
+
+function persistedProviderName(provider: TransactionalEmailProvider) {
+  return provider.name === "development" ||
+    provider.name === "brevo" ||
+    provider.name === "resend"
+    ? provider.name
+    : "unknown";
+}
 
 export async function deliverEmailEvent(
   emailEventId: string,
@@ -130,15 +162,115 @@ export async function deliverEmailEvent(
   }
 
   const supabase = createServiceRoleClient();
-  const { data: claimedEvents, error: claimError } = await supabase.rpc(
+  let { data: claimedEvents, error: claimError } = await supabase.rpc(
     "claim_email_event",
-    { p_email_event_id: emailEventId },
+    {
+      p_email_event_id: emailEventId,
+      p_provider: persistedProviderName(provider),
+    },
   );
+
+  let legacyClaim = false;
+  if (claimError?.code === "PGRST202") {
+    const legacyResult = await supabase.rpc("claim_email_event", {
+      p_email_event_id: emailEventId,
+    });
+    claimedEvents = legacyResult.data;
+    claimError = legacyResult.error;
+    legacyClaim = true;
+  }
+
   const event = claimedEvents?.[0];
 
   if (claimError || !event) {
     return { status: "skipped", reason: "not-claimable" };
   }
+
+  if (legacyClaim) {
+    return deliverClaimedEmailEvent({
+      emailEventId: event.id,
+      attemptId: null,
+      provider,
+      context,
+    });
+  }
+
+  const { data: attempt, error: attemptError } = await supabase
+    .from("email_delivery_attempts")
+    .select("id")
+    .eq("email_event_id", event.id)
+    .eq("attempt_number", event.attempt_count)
+    .maybeSingle();
+
+  if (attemptError || !attempt) {
+    return { status: "failed", code: "delivery_state_update_failed" };
+  }
+
+  return deliverClaimedEmailEvent({
+    emailEventId: event.id,
+    attemptId: attempt.id,
+    provider,
+    context,
+  });
+}
+
+export async function deliverClaimedEmailEvent({
+  emailEventId,
+  attemptId,
+  provider,
+  context = {},
+}: {
+  emailEventId: string;
+  attemptId: string | null;
+  provider: TransactionalEmailProvider;
+  context?: EmailDeliveryContext;
+}): Promise<EmailDeliveryResult> {
+  if (!canUseServiceRoleClient()) {
+    return { status: "skipped", reason: "service-role-unavailable" };
+  }
+
+  const supabase = createServiceRoleClient();
+  const { data: event } = await supabase
+    .from("email_events")
+    .select("*")
+    .eq("id", emailEventId)
+    .eq("status", "SENDING")
+    .maybeSingle();
+  const { data: persistedAttempt } = attemptId
+    ? await supabase
+        .from("email_delivery_attempts")
+        .select("id, attempt_number, provider, status")
+        .eq("id", attemptId)
+        .eq("email_event_id", emailEventId)
+        .eq("status", "SENDING")
+        .maybeSingle()
+    : { data: null };
+  const attempt =
+    persistedAttempt ??
+    (event && !attemptId
+      ? {
+          id: null,
+          attempt_number: event.attempt_count,
+          provider: persistedProviderName(provider),
+          status: "SENDING" as const,
+        }
+      : null);
+
+  if (
+    !event ||
+    !attempt ||
+    attempt.attempt_number !== event.attempt_count ||
+    attempt.provider !== persistedProviderName(provider)
+  ) {
+    return { status: "skipped", reason: "not-claimable" };
+  }
+
+  const failClaimedEmailEvent = (failure: { code: string; message: string }) =>
+    failEmailEvent({
+      emailEventId: event.id,
+      attemptId,
+      ...failure,
+    });
 
   let message: TransactionalEmailMessage;
 
@@ -147,8 +279,7 @@ export async function deliverEmailEvent(
     event.event_type === "BOOKING_ADDON_CONFIRMED"
   ) {
     if (!event.booking_addon_id) {
-      return failEmailEvent({
-        emailEventId: event.id,
+      return failClaimedEmailEvent({
         code: "invalid_addon_event",
         message: "The booking add-on email data is unavailable.",
       });
@@ -166,8 +297,7 @@ export async function deliverEmailEvent(
       !parsed.success ||
       parsed.data.confirmation_contact_email !== event.recipient_email
     ) {
-      return failEmailEvent({
-        emailEventId: event.id,
+      return failClaimedEmailEvent({
         code: "invalid_addon_event",
         message: "The booking add-on email data is unavailable.",
       });
@@ -185,15 +315,13 @@ export async function deliverEmailEvent(
       try {
         addonUrl = new URL(context.addonUrl ?? "");
       } catch {
-        return failEmailEvent({
-          emailEventId: event.id,
+        return failClaimedEmailEvent({
           code: "addon_url_unavailable",
           message: "The secure booking add-on URL is unavailable.",
         });
       }
       if (!addonUrl.pathname.startsWith("/x/")) {
-        return failEmailEvent({
-          emailEventId: event.id,
+        return failClaimedEmailEvent({
           code: "addon_url_invalid",
           message: "The secure booking add-on URL is invalid.",
         });
@@ -218,8 +346,7 @@ export async function deliverEmailEvent(
           .eq("status", "CONFIRMED"),
       ]);
       if (!booking || booking.currency !== snapshot.currency) {
-        return failEmailEvent({
-          emailEventId: event.id,
+        return failClaimedEmailEvent({
           code: "invalid_addon_event",
           message: "The booking add-on totals are unavailable.",
         });
@@ -241,8 +368,7 @@ export async function deliverEmailEvent(
     event.event_type === "BOOKING_AMENDMENT_CONFIRMED"
   ) {
     if (!event.booking_amendment_id) {
-      return failEmailEvent({
-        emailEventId: event.id,
+      return failClaimedEmailEvent({
         code: "invalid_amendment_event",
         message: "The booking amendment email data is unavailable.",
       });
@@ -262,8 +388,7 @@ export async function deliverEmailEvent(
       !parsed.success ||
       parsed.data.contact_email !== event.recipient_email
     ) {
-      return failEmailEvent({
-        emailEventId: event.id,
+      return failClaimedEmailEvent({
         code: "invalid_amendment_event",
         message: "The booking amendment email data is unavailable.",
       });
@@ -285,15 +410,13 @@ export async function deliverEmailEvent(
       try {
         amendmentUrl = new URL(context.amendmentUrl ?? "");
       } catch {
-        return failEmailEvent({
-          emailEventId: event.id,
+        return failClaimedEmailEvent({
           code: "amendment_url_unavailable",
           message: "The secure booking amendment URL is unavailable.",
         });
       }
       if (!amendmentUrl.pathname.startsWith("/a/")) {
-        return failEmailEvent({
-          emailEventId: event.id,
+        return failClaimedEmailEvent({
           code: "amendment_url_invalid",
           message: "The secure booking amendment URL is invalid.",
         });
@@ -307,8 +430,7 @@ export async function deliverEmailEvent(
     }
   } else {
     if (!event.booking_confirmation_id) {
-      return failEmailEvent({
-        emailEventId: event.id,
+      return failClaimedEmailEvent({
         code: "invalid_confirmation_event",
         message: "The booking confirmation email data is unavailable.",
       });
@@ -324,8 +446,7 @@ export async function deliverEmailEvent(
     const snapshot = bookingSnapshotSchema.safeParse(confirmation?.terms_snapshot);
 
     if (confirmationError || !snapshot.success) {
-      return failEmailEvent({
-        emailEventId: event.id,
+      return failClaimedEmailEvent({
         code: "invalid_confirmation_snapshot",
         message: "The booking confirmation email data is unavailable.",
       });
@@ -377,8 +498,7 @@ export async function deliverEmailEvent(
         !cancelledBooking.success ||
         authoritativeRecipient !== event.recipient_email
       ) {
-        return failEmailEvent({
-          emailEventId: event.id,
+        return failClaimedEmailEvent({
           code: "invalid_cancellation_event",
           message: "The booking cancellation email data is unavailable.",
         });
@@ -397,35 +517,78 @@ export async function deliverEmailEvent(
     }
   }
 
-  const result = await sendWithProviderBoundary(provider, message);
+  const result = await sendWithProviderBoundary(provider, {
+    ...message,
+    idempotencyKey: buildEmailAttemptIdempotencyKey(
+      message.idempotencyKey,
+      attempt.attempt_number,
+    ),
+  });
 
   if (result.status === "sent") {
-    const { error } = await supabase
-      .from("email_events")
-      .update({
-        status: "SENT",
-        provider_message_id: result.messageId.slice(0, 255),
-        sent_at: new Date().toISOString(),
-        failure_code: null,
-        failure_message: null,
-      })
-      .eq("id", event.id)
-      .eq("status", "SENDING");
+    if (!attemptId) {
+      const { error } = await supabase
+        .from("email_events")
+        .update({
+          status: "SENT",
+          provider_message_id: result.messageId.slice(0, 255),
+          sent_at: new Date().toISOString(),
+          failure_code: null,
+          failure_message: null,
+        })
+        .eq("id", event.id)
+        .eq("status", "SENDING");
 
-    return error
+      return error
+        ? { status: "failed", code: "delivery_state_update_failed" }
+        : { status: "sent" };
+    }
+
+    const { data: finalized, error } = await supabase.rpc(
+      "finalize_email_delivery_attempt",
+      {
+        p_email_event_id: event.id,
+        p_attempt_id: attemptId,
+        p_result: "SENT",
+        p_provider_message_id: result.messageId,
+      },
+    );
+
+    return error || !finalized
       ? { status: "failed", code: "delivery_state_update_failed" }
       : { status: "sent" };
   }
 
-  await supabase
-    .from("email_events")
-    .update({
-      status: "FAILED",
-      failure_code: result.code.slice(0, 80),
-      failure_message: result.message.slice(0, 500),
-    })
-    .eq("id", event.id)
-    .eq("status", "SENDING");
+  if (!attemptId) {
+    const { error } = await supabase
+      .from("email_events")
+      .update({
+        status: "FAILED",
+        failure_code: result.code.slice(0, 80),
+        failure_message: result.message.slice(0, 500),
+      })
+      .eq("id", event.id)
+      .eq("status", "SENDING");
 
-  return { status: "failed", code: result.code };
+    return {
+      status: "failed",
+      code: error ? "delivery_state_update_failed" : result.code,
+    };
+  }
+
+  const { data: finalized, error } = await supabase.rpc(
+    "finalize_email_delivery_attempt",
+    {
+      p_email_event_id: event.id,
+      p_attempt_id: attemptId,
+      p_result: "FAILED",
+      p_failure_code: result.code,
+      p_failure_message: result.message,
+    },
+  );
+
+  return {
+    status: "failed",
+    code: error || !finalized ? "delivery_state_update_failed" : result.code,
+  };
 }

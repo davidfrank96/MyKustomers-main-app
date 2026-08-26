@@ -696,8 +696,8 @@ temporary admin/Auth leftovers and exactly one approved active `SUPER_ADMIN`.
 - `tests/unit/privileged-platform-admin-policy.test.ts` covers ordinary AAL1,
   ordinary AAL2, business-owner AAL2, disabled-admin AAL2, active-admin AAL1,
   and active-admin AAL2 decisions. It also proves forged client fields are
-  ignored, reasons are trimmed/bounded, failed-email retry remains unimplemented,
-  and audit evidence has no arbitrary secret metadata.
+  ignored, reasons are trimmed/bounded, failed-email retry is independently
+  protected, and audit evidence has no arbitrary secret metadata.
 - `tests/unit/admin-mfa-security.test.ts` accepts only supported assurance values,
   counts only verified TOTP factors, distinguishes incomplete enrollment, and
   ignores unrelated factor types.
@@ -813,3 +813,27 @@ pixels without browser warnings or errors.
   failure classes and Resend standby behavior. No new test was required for this
   documentation-only verification follow-up because application behavior did not
   change after the already tested and merged implementation.
+
+## Admin Safe Email Retry Coverage
+
+- `tests/unit/email-retry-policy.test.ts` covers 429/5xx/proven connect failures,
+  401/403/other 4xx, invalid recipient/sender/configuration, timeout, network,
+  malformed response, unknown failures, evidence mismatch, every non-failed
+  state, provider configuration, secure-link reconstruction limits, and
+  attempt-scoped idempotency.
+- `tests/unit/admin-email-retry-action.test.ts` mocks the provider boundary and
+  proves one pinned-provider invocation, truthful success/failure results, no
+  fallback, stale-claim denial, AAL1 denial before reads, and reason validation.
+- `tests/security/admin-email-retry-migration.test.ts` locks RLS/grants,
+  PENDING-only normal claims, event/attempt row locking, stale predicates,
+  service-role-only mutation, sanitized audits, detail-only UI, and absence of
+  bulk retry, provider switching, or domain writes.
+- `tests/e2e/admin-email-retry.spec.ts` is explicitly opt-in. It creates a unique
+  temporary Auth/admin/communication fixture, proves AAL1 denial, native TOTP
+  AAL2, the 390/768/1024/1440 dialog matrix, and two-tab concurrency yielding
+  exactly one development-provider invocation and one appended attempt. It
+  checks booking immutability and audit privacy, then deletes all fixtures.
+- Production-backed verification must never alter a real admin or historical
+  customer event. Docker is prohibited. A final cleanup query must show zero
+  `phase6b-*` users/businesses, zero temporary attempts, and one approved active
+  `SUPER_ADMIN`.

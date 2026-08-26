@@ -21,8 +21,9 @@ Resend requests have bounded timeouts; 401/403, 429, other 4xx, 5xx, network,
 timeout, and malformed-success responses map to safe internal failures. Raw
 provider failure payloads are neither parsed nor exposed.
 
-The outbox claim is the authoritative concurrency boundary. The Brevo adapter
-also derives a deterministic UUID from the event idempotency key for the
+The outbox claim is the authoritative concurrency boundary. Every new delivery
+claim appends provider-pinned attempt evidence. The Brevo adapter derives a
+deterministic UUID from the attempt-scoped event idempotency key for the
 provider's idempotency field. Provider failure marks only the email event
 according to the existing failure path. External provider failure must never
 reverse an already committed booking/customer domain transaction.
@@ -84,9 +85,12 @@ not activation input.
 
 Feedback sharing currently creates no email event, so this phase adds no feedback
 email. There is no automatic retry worker or scheduler; failed events remain
-durable operational evidence. Brevo supports delivery and bounce webhooks, but
-secure ingestion, delivered/bounce state semantics, scheduled retries, quota
-telemetry, MFA, and Admin Retry are deferred to a separate authorized phase.
+durable operational evidence. Phase 6B permits a manual AAL2 retry only for a
+proven retryable non-acceptance class. It preserves the logical event and prior
+attempts, pins the original provider, and denies ambiguous outcomes. Brevo
+supports delivery and bounce webhooks, but secure ingestion, delivered/bounce
+state semantics, scheduled/automatic retries, quota telemetry, force/bulk retry,
+and provider failover remain deferred.
 
 ## Verification
 

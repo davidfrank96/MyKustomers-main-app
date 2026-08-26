@@ -528,11 +528,18 @@ PRODUCTION.
   conflict-free merge `b90ab5f`, Vercel Production deployment, and authenticated
   production security/read/responsive smoke passed. The approved production
   admin was not modified.
-- Failed-email retry remains Phase 6B. There is no retry endpoint, button,
-  scheduler, automatic failover, suspension, deletion, membership mutation, or
-  impersonation.
+- Admin Phase 6B implements one MFA-gated write on email-event detail: retry a
+  `FAILED` event only when the centralized policy proves a non-accepted
+  transient failure. The server and atomic claim recheck status, attempt,
+  provider, failure evidence, current admin authority, and the required reason.
+- Prior attempts remain immutable evidence. Retry stays on the original provider
+  with an attempt-scoped idempotency key; ambiguous outcomes, `SENT`, `PENDING`,
+  `SENDING`, invalid recipient/sender/configuration, and secure-link request
+  events are denied.
+- There is no scheduler, automatic failover, bulk/force retry, recipient/content
+  editing, suspension, deletion, membership mutation, or impersonation.
 
-Phase 6B safe writes and Phase 7 system health remain planned.
+Admin Phase 7 system health remains planned and is not started.
 
 ## Booking Journey UX Maintenance
 
