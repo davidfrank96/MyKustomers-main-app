@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-08-26 - Admin MFA And Privileged-Action Framework
+
+Status: IMPLEMENTED - VERIFICATION PENDING
+
+- Added active-admin-only `/admin/security` using native Supabase TOTP
+  enrollment, factor listing, challenge/verify, verified-factor status, and
+  current/next assurance without persisting MFA secrets.
+- Added `requirePrivilegedPlatformAdmin()` to combine current database-backed
+  `ACTIVE SUPER_ADMIN` authority with signature-verified AAL2. Existing admin
+  reads continue at their established authorization level.
+- Added a reusable accessible privileged confirmation dialog, optional bounded
+  reason capture, a typed allowlisted audit-evidence contract, and an explicit
+  unimplemented failed-email retry policy for later Phase 6B review.
+- Added authorization-matrix, client-forgery, factor parsing, secret/logging,
+  cache-header, dialog, E2E route, and production-fixture guard regressions.
+- Added the sole-admin recovery runbook. No migration, environment variable,
+  vendor MFA requirement, retry, suspension, deletion, membership mutation,
+  booking override, impersonation, Docker, or new infrastructure is included.
+
 ## 2026-08-25 - Production Domain And Email Infrastructure
 
 Status: VERIFIED - PRODUCTION

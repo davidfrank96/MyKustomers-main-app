@@ -367,6 +367,18 @@ production-readiness work.
 - [x] Email Operations uses acceptance terminology and exposes no message body,
       full recipient, provider identifier, raw failure, or retry control.
 - [x] Admin Phase 5 PR/CI, Vercel deployment, and production route smoke pass.
+- [x] Admin Phase 6A uses native Supabase TOTP and adds no custom OTP storage.
+- [x] Existing admin reads retain active-admin authorization; future writes use
+      the centralized active-role plus signature-verified AAL2 gate.
+- [x] Ordinary/owner AAL2, disabled-admin AAL2, active-admin AAL1, active-admin
+      AAL2, and client-forgery policy cases have regression coverage.
+- [x] MFA QR/secret/code are transient, private/no-store, and excluded from logs,
+      audit evidence, storage, repository files, and screenshots.
+- [x] Privileged confirmation, bounded optional reason, allowlisted audit
+      evidence, and controlled sole-admin recovery are documented.
+- [x] Failed-email retry and all other privileged admin mutations remain absent.
+- [ ] Controlled temporary-admin TOTP enrollment/challenge/AAL2, invalid-code,
+      logout/login, cleanup, PR/CI, deployment, and production smoke pass.
 
 ## Booking Completion And Required Business Logo
 

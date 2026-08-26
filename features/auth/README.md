@@ -56,3 +56,10 @@ this does not change Auth sessions, callback routing, or provider behavior.
 The same-browser pending-setup marker is cleared by the existing logout action
 alongside the current-business preference; durable pending status remains on the
 business until its owner completes the logo step.
+
+Admin Phase 6A uses the same Supabase session for native TOTP assurance. Password
+and Google OAuth establish AAL1 unless Supabase reports otherwise; neither is
+treated as an application-owned second factor. Challenge/verify elevates the
+Supabase session to AAL2, and logout removes that session without preserving a
+client MFA flag. This policy applies only to future platform-admin writes and
+does not require ordinary vendors to enroll MFA.

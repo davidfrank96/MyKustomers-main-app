@@ -986,7 +986,38 @@ production smoke over nine existing events passed summary/list/detail, search,
 filters, pagination, recipient masking, cross-links, absence of write controls,
 and desktop overflow checks. Failed temporary Auth creation left zero matching
 users; exactly one approved active `SUPER_ADMIN` remains. Docker is not used.
-Admin Phase 6 remains planned and is not started.
+Admin Phase 6A is implemented below; no Phase 6B write or Admin Phase 7 work is started.
+
+## Admin Phase 6A - MFA And Privileged-Action Security Framework
+
+STATUS: IMPLEMENTED - VERIFICATION PENDING
+
+Objective: Establish the mandatory security boundary for future platform-admin
+writes without implementing a write.
+
+Implemented scope:
+
+- native Supabase TOTP enrollment and challenge at `/admin/security`;
+- verified-factor and current/next assurance display with no secret persistence;
+- `requirePrivilegedPlatformAdmin()` combining current `ACTIVE` platform
+  authority with signature-verified AAL2;
+- explicit read-versus-write authorization separation;
+- reusable accessible privileged confirmation and bounded reason UI;
+- typed allowlisted privileged audit evidence and action-policy fixture;
+- sole-admin factor-loss recovery procedure with no public bypass;
+- authorization-matrix, client-forgery, MFA-safety, UI, header, and route tests.
+
+Security impact: MFA increases authentication assurance but never creates admin
+authority. An ordinary or business-owner user at AAL2 remains denied. A disabled
+admin at AAL2 remains denied. An active admin at AAL1 receives `MFA_REQUIRED`.
+Only a current active allowed role at AAL2 passes the privileged gate. Read-only
+admin operations retain their existing AAL1 policy.
+
+No database migration, Supabase-wide vendor MFA policy, Vercel variable,
+service-role application path, factor-removal UI, retry operation, or other
+admin mutation is introduced. Failed-email retry remains explicitly deferred to
+Admin Phase 6B with independent idempotency, eligibility, audit, and side-effect
+review.
 
 ## Transactional Email Provider Activation
 

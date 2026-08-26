@@ -399,6 +399,20 @@ date/status/type/context filtering, aggregation, joins, and newest-first
 pagination in one statement. Strict DTOs keep recipients out of directory rows
 and accept only a masked recipient plus fixed failure category on detail.
 
+Admin Phase 6A adds a second, deliberately stricter server boundary without
+changing those reads. `requirePrivilegedPlatformAdmin()` composes the existing
+current platform-authority lookup with the `aal` value from signature-verified
+Supabase claims. The pure policy layer returns `MFA_REQUIRED` for an active AAL1
+admin and denies callers who have AAL2 but no active admin row. The route never
+trusts a client role, factor flag, query, tenant cookie, or business membership.
+
+`/admin/security` uses the normal authenticated browser client only for native
+Supabase TOTP enrollment and challenge. Secrets remain transient in the browser;
+status rendering contains factor metadata only. `PrivilegedActionDialog`
+accepts a concrete server action rather than an arbitrary action name. The
+policy/audit modules define bounded inputs but do not execute a domain mutation.
+See ADR-045 and `docs/ADMIN_PRIVILEGED_ACTIONS.md`.
+
 The outbox delivery path is unchanged: domain transactions create durable
 events, and `deliverEmailEvent` claims and sends synchronously after commit.
 There is no worker or retry scheduler. The default development adapter makes no

@@ -249,6 +249,7 @@ The repository documentation is the source of truth for future implementation:
 - Documentation governance: `docs/DOCUMENTATION_GOVERNANCE.md`.
 - Migration process and ledger: `docs/MIGRATIONS.md`.
 - Platform-admin threat model and bootstrap: `docs/ADMIN_SECURITY.md`.
+- Privileged admin action framework: `docs/ADMIN_PRIVILEGED_ACTIONS.md`.
 - Responsive verification: `docs/RESPONSIVE_QA.md`.
 - Continuous integration and merge policy: `docs/CI.md`.
 - Vercel deployment and rollback runbook: `docs/DEPLOYMENT.md`.
@@ -340,6 +341,15 @@ merged as `52a1820`; Vercel deployed that exact commit and authenticated
 production summary/list/detail smoke passed over existing live events without
 creating email or domain fixtures.
 
+Admin Phase 6A implements the mandatory MFA and privileged-action framework
+without enabling an admin write. `/admin/security` uses native Supabase TOTP for
+active platform admins. Existing reads retain their current authorization;
+future writes must additionally pass `requirePrivilegedPlatformAdmin()` with a
+signature-verified AAL2 session, current `ACTIVE` role, explicit confirmation,
+action-specific validation, required reason where applicable, audit evidence,
+and regression coverage. Vendors are not required to enroll MFA. Failed-email
+retry and every other privileged mutation remain deferred.
+
 Booking completion now uses an accessible application-owned confirmation
 dialog. The final `DELIVERED -> COMPLETED` mutation runs only after confirmation
 inside My Customers; browser-native confirm, alert, and prompt dialogs are not
@@ -348,8 +358,7 @@ one successfully persisted optimized logo before the workspace is selected and
 setup is considered complete. The existing owner-authorized logo API,
 validation, WebP optimization, deterministic path, Storage RLS, and public
 fallback remain unchanged. Existing legacy businesses without logos remain
-usable. No migration is included, and transactional-provider activation and
-Admin Phase 6 remain paused.
+usable. No migration is included.
 
 PR #23 passed Quality, Tests, Build, E2E, and Dependency Security and merged
 conflict-free as `9dae103`. Vercel deployed that exact `main` commit. A

@@ -2,6 +2,7 @@ import "server-only";
 import { cache } from "react";
 import {
   getAuthenticatedUser,
+  getAuthenticatedAssuranceLevel,
   requireUser,
   type AuthenticatedUser,
 } from "@/lib/auth/server";
@@ -13,11 +14,26 @@ import {
 } from "@/lib/admin/access-policy";
 import { createClient } from "@/lib/supabase/server";
 import type { PlatformAdminRole } from "@/types/database";
+import { evaluatePrivilegedPlatformAdminAccess } from "@/lib/admin/privileged-access-policy";
 
 export class PlatformAdminAuthorizationError extends Error {
   constructor() {
     super("You are not authorized to access platform administration.");
     this.name = "PlatformAdminAuthorizationError";
+  }
+}
+
+export type PrivilegedPlatformAdminAuthorizationCode =
+  "UNAUTHENTICATED" | "NOT_AUTHORIZED" | "MFA_REQUIRED";
+
+export class PrivilegedPlatformAdminAuthorizationError extends Error {
+  constructor(public readonly code: PrivilegedPlatformAdminAuthorizationCode) {
+    super(
+      code === "MFA_REQUIRED"
+        ? "Additional verification required."
+        : "You are not authorized to perform this platform action.",
+    );
+    this.name = "PrivilegedPlatformAdminAuthorizationError";
   }
 }
 
@@ -65,4 +81,26 @@ export async function requirePlatformAdminRole(
   }
 
   return access;
+}
+
+export async function requirePrivilegedPlatformAdmin(
+  allowedRoles: readonly PlatformAdminRole[],
+): Promise<PlatformAdminAccess & { assuranceLevel: "aal2" }> {
+  const user = await getAuthenticatedUser();
+  const [access, currentLevel] = await Promise.all([
+    user ? getPlatformAdmin(user) : Promise.resolve(null),
+    getAuthenticatedAssuranceLevel(),
+  ]);
+  const decision = evaluatePrivilegedPlatformAdminAccess({
+    authenticatedUserId: user?.id ?? null,
+    platformAdmin: access,
+    currentLevel,
+    requiredRoles: allowedRoles,
+  });
+
+  if (!decision.allowed) {
+    throw new PrivilegedPlatformAdminAuthorizationError(decision.reason);
+  }
+
+  return { ...access!, assuranceLevel: "aal2" };
 }

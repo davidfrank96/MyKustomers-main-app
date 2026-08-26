@@ -3,6 +3,7 @@ import {
   ArrowLeft,
   Building2,
   CalendarDays,
+  KeyRound,
   Mail,
   ShieldCheck,
   Users,
@@ -117,6 +118,13 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
             >
               <Mail className="size-4" aria-hidden="true" />
               Email Operations
+            </Link>
+            <Link
+              href="/admin/security"
+              className="inline-flex items-center gap-1.5 font-medium text-primary"
+            >
+              <KeyRound className="size-4" aria-hidden="true" />
+              Security
             </Link>
             <Link
               href="/dashboard"

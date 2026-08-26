@@ -510,7 +510,25 @@ raw failures, or provider configuration. Production selects Brevo, and a new
 controlled event passed provider acceptance, inbox receipt, and Admin listing.
 The historical pending event was never claimed, has zero attempts,
 targets the reserved `example.com` domain, and will not be replayed. There is no
-retry scheduler. Admin Phase 6 safe writes and Phase 7 system health remain planned.
+retry scheduler.
+
+Admin Phase 6A - MFA And Privileged-Action Security Framework: IMPLEMENTED,
+VERIFICATION PENDING.
+
+- Native Supabase TOTP enrollment and challenge are available only to active
+  platform admins at `/admin/security`.
+- Existing read-only pages continue to require an `ACTIVE SUPER_ADMIN`; future
+  writes additionally require signature-verified AAL2 through one central
+  server helper.
+- Ordinary or owner AAL2 users, disabled admins, active AAL1 admins, and forged
+  client flags fail closed under the tested authorization matrix.
+- Reusable explicit confirmation, bounded optional reason, allowlisted audit
+  evidence, and sole-admin recovery rules are defined without adding a mutation.
+- Failed-email retry remains Phase 6B. There is no retry endpoint, button,
+  scheduler, automatic failover, suspension, deletion, membership mutation, or
+  impersonation.
+
+Phase 6B safe writes and Phase 7 system health remain planned.
 
 ## Booking Journey UX Maintenance
 

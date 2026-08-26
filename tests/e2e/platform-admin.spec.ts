@@ -22,6 +22,18 @@ const hasSupabaseEnv = Boolean(
   process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY &&
   process.env.SUPABASE_SERVICE_ROLE_KEY,
 );
+const safeTargets = new Set([
+  "local",
+  "dev",
+  "development",
+  "test",
+  "testing",
+  "staging",
+]);
+const canRunMutatingAdminE2e =
+  hasSupabaseEnv &&
+  process.env.PHASE2_RUNTIME_VERIFICATION === "1" &&
+  safeTargets.has((process.env.PHASE2_SUPABASE_TARGET ?? "").toLowerCase());
 
 function createAdminClient() {
   return createClient<Database>(
@@ -56,7 +68,10 @@ async function expectNoOverflow(page: Page, width: number) {
 }
 
 test.describe("platform admin route authorization", () => {
-  test.skip(!hasSupabaseEnv, "Requires configured Supabase runtime credentials.");
+  test.skip(
+    !canRunMutatingAdminE2e,
+    "Requires explicit runtime opt-in and a non-production Supabase target.",
+  );
 
   test("denies vendors and disabled admins while rendering global operations for an active admin", async ({
     page,
@@ -134,6 +149,8 @@ test.describe("platform admin route authorization", () => {
       await expect(page.getByRole("heading", { name: "Not authorized" })).toBeVisible();
       await page.goto("/admin/emails");
       await expect(page.getByRole("heading", { name: "Not authorized" })).toBeVisible();
+      await page.goto("/admin/security");
+      await expect(page.getByRole("heading", { name: "Not authorized" })).toBeVisible();
 
       await page.context().clearCookies();
       await signIn(page, activeAdmin.email, password);
@@ -162,7 +179,11 @@ test.describe("platform admin route authorization", () => {
         await expect(page.locator(`[data-admin-metric="${label}"]`)).toBeVisible();
       }
       const adminNavigation = page.getByRole("navigation", { name: "Admin navigation" });
-      await expect(adminNavigation.getByRole("link")).toHaveCount(7);
+      await expect(adminNavigation.getByRole("link")).toHaveCount(8);
+      await adminNavigation.getByRole("link", { name: "Security" }).click();
+      await expect(page.getByRole("heading", { name: "Admin security" })).toBeVisible();
+      await expect(page.getByText("Not configured")).toBeVisible();
+      await page.goto("/admin");
       await expect(page).toHaveURL(/\/admin$/);
 
       await page.reload();
@@ -307,6 +328,7 @@ test.describe("platform admin route authorization", () => {
         "/admin/bookings",
         "/admin/issues",
         "/admin/emails",
+        "/admin/security",
       ];
       for (const width of [390, 768, 1024, 1440]) {
         await page.setViewportSize({ width, height: width < 768 ? 844 : 1000 });
@@ -334,6 +356,8 @@ test.describe("platform admin route authorization", () => {
       await page.goto("/admin/issues");
       await expect(page.getByRole("heading", { name: "Not authorized" })).toBeVisible();
       await page.goto("/admin/emails");
+      await expect(page.getByRole("heading", { name: "Not authorized" })).toBeVisible();
+      await page.goto("/admin/security");
       await expect(page.getByRole("heading", { name: "Not authorized" })).toBeVisible();
     } finally {
       const { data: audits } = await service

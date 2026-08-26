@@ -6,15 +6,25 @@ Admin Phase 3 adds narrow read-only business and user support directories and
 details. Admin Phase 4 adds narrow read-only booking and issue operations; it
 does not provide mutations. Phase 4 is verified in production from PR #17 and
 merge `edbef26`.
-Admin Phase 5 adds read-only email operations. Its production-backed RPC
-migration is applied and runtime verified; application deployment is pending.
+Admin Phase 5 adds verified production read-only email operations. Admin Phase
+6A adds native TOTP enrollment and the mandatory privileged-write security
+framework, but no write operation.
 
 ## Modules
 
 - `lib/admin/access-policy.ts` owns the explicit role/status parser and role
   comparison. It has no database or browser dependency.
 - `lib/admin/server.ts` is server-only and owns `getPlatformAdmin`,
-  `requirePlatformAdmin`, and `requirePlatformAdminRole`.
+  `requirePlatformAdmin`, `requirePlatformAdminRole`, and the stricter
+  `requirePrivilegedPlatformAdmin` AAL2 gate.
+- `lib/admin/privileged-access-policy.ts` owns the pure authorization matrix,
+  bounded reason schema, deferred action policy, and allowlisted audit evidence.
+- `features/admin/security.ts` parses factor/assurance metadata, while
+  `features/admin/security-server.ts` protects the status read.
+- `app/admin/security` and `components/admin/admin-mfa-security.tsx` implement
+  Supabase-native TOTP enrollment/challenge without persisting the secret.
+- `components/admin/privileged-action-dialog.tsx` provides reusable explicit
+  confirmation and optional reason UX for concrete future server actions.
 - `app/admin/layout.tsx` authenticates and authorizes before rendering its
   separate platform shell.
 - `features/admin/overview.ts` parses the allowlisted aggregate contract and
@@ -39,6 +49,8 @@ migration is applied and runtime verified; application deployment is pending.
 - The current-business cookie is irrelevant to `/admin`.
 - The guard uses the authenticated caller's self-scoped RPC, not service role.
 - Client state, profile metadata, email, and URL parameters are never authority.
+- MFA does not create platform authority; privileged writes require both a
+  current active admin record and signature-verified AAL2.
 - Disabled, malformed, missing, duplicate, and failed lookups deny access.
 - Admin writes, customer directory browsing, raw Auth data, and generic database
   browsing are absent.
@@ -53,14 +65,18 @@ migration is applied and runtime verified; application deployment is pending.
 - Email directories expose no recipient or failure fields. Detail exposes only
   masked recipient and a controlled failure category; content, provider IDs,
   raw failures, retry, resend, and status mutation remain absent.
+- There is no self-service MFA removal, generic action dispatcher, retry
+  endpoint, suspension, deletion, membership mutation, or impersonation.
 
 ## Adding A Future Capability
 
-Before adding a page or operation, update `docs/ADMIN_SECURITY.md` with its
+Before adding a page or operation, update `docs/ADMIN_SECURITY.md` and
+`docs/ADMIN_PRIVILEGED_ACTIONS.md` with its
 assets, authorization, audit, disclosure, and revocation analysis. Implement a
-narrow server-only query or RPC after `requirePlatformAdminRole`; do not expose a
-generic service-role client. Add unit/static coverage and live denial/positive
-tests at the runtime-security and E2E layers appropriate to the risk.
+narrow server-only query or RPC after the appropriate read or privileged-write
+guard; do not expose a generic service-role client. Add unit/static coverage and
+live denial/positive tests at the runtime-security and E2E layers appropriate to
+the risk.
 
 Do not add dead navigation. Only implemented destinations belong in the admin
 shell.
