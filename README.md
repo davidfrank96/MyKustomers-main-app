@@ -18,7 +18,9 @@ compact account menu at mobile widths. Business owners can manage a normalized
 website and one compressed public logo. The shared browser flow accepts
 supported sources up to 5 MiB and reduces risky large requests before upload,
 while the server remains authoritative for validation and the final 512px/
-200 KiB WebP. Secure confirmation pages show that public identity without
+200 KiB WebP. PR #37 and Production merge `dd0fe2c` verified exact-5 MiB
+onboarding, constrained-mobile replacement, >5 MiB no-request rejection, and
+zero-fixture cleanup. Secure confirmation pages show that public identity without
 exposing private business contacts. Dashboard summary
 tiles navigate to supported customer, booking-filter, business, or insights
 destinations. Newly generated confirmation links now open a contextual,

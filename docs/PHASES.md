@@ -1190,7 +1190,7 @@ payments, email events, profiles, memberships, or Auth users.
 
 ## 2026-08-26 Business Logo 5 MiB Source Support Detour
 
-Status: IMPLEMENTED - VERIFICATION PENDING
+Status: VERIFIED - PRODUCTION
 
 This narrow maintenance detour accepts a user-selected business-logo source up
 to 5 MiB through shared client transport preprocessing while preserving the
@@ -1199,3 +1199,10 @@ contract. The 3 MiB transport target avoids Vercel's non-configurable request
 ceiling and reduces mobile bandwidth. No database, Storage-bucket, environment,
 dependency, Docker, lifecycle, email, or admin capability changes are included.
 Admin Phase 7 remains not started.
+
+PR #37 passed seven executable checks with the protected Runtime Security job
+safely skipped, merged conflict-free as `dd0fe2c`, and deployed that exact
+commit to Vercel Production. Controlled `mykustomers.com` evidence passed exact
+5 MiB onboarding, >5 MiB zero-request rejection, 4.8 MiB replacement under a
+constrained mobile upload profile, bounded multipart bytes, metadata-free
+384x512 WebP persistence, no overflow/console errors, and zero-fixture cleanup.

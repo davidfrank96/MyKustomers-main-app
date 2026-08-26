@@ -217,3 +217,20 @@ business logo upload/replacement/public retrieval/removal, 390px and 1440px
 layout checks, HTTPS health/manifest/icon checks, protected-route behavior, and
 the public capability metadata/cache controls. The verification traffic
 produced no Warning, Error, or Fatal Vercel runtime log entries.
+
+## Business Logo 5 MiB Production Verification
+
+PR #37 passed seven executable checks, with Runtime Security safely skipped by
+the protected-target policy, and merged conflict-free as `dd0fe2c`. Vercel
+reported the exact merge deployment `Ready` for Production with `main`,
+`mykustomers.com`, and retained Vercel aliases attached. No environment, region,
+domain, bucket, database, or infrastructure configuration changed.
+
+Controlled canonical-domain smoke accepted an exact 5 MiB EXIF-oriented source
+without a Vercel 413, reduced it to a 2,146,239-byte multipart request, and
+persisted a 58,946-byte 384x512 metadata-free WebP. A 4.8 MiB mobile replacement
+used 2,147,355 transport bytes and settled in 15.049 seconds under 180ms latency
+and 1.2 Mbps upload throttling. A 5 MiB-plus-one-byte selection sent no request.
+The `business-logos` bucket remained public-read, WebP-only, and limited to
+204,800 bytes. Cleanup confirmed zero controlled Auth, profile, business, or
+Storage leftovers.

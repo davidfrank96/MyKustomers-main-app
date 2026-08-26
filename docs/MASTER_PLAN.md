@@ -615,7 +615,7 @@ no migration, environment change, Docker stack, or Admin Phase 6 work occurred.
 
 ## 2026-08-26 Business Logo 5 MiB Source Support
 
-Status: IMPLEMENTED - VERIFICATION PENDING
+Status: VERIFIED - PRODUCTION
 
 The existing logo route remains the single server-authoritative boundary, but a
 shared browser-native preprocessor now lets onboarding and Business settings
@@ -624,3 +624,10 @@ a raw request above Vercel's Function ceiling. Files above 3 MiB become bounded
 <=2048px JPEG/WebP transport intermediates; Sharp still validates and emits the
 only persisted 512px/200 KiB WebP object. No schema, bucket, environment,
 dependency, Docker, or Admin Phase 7 change is included.
+
+PR #37 passed all seven executable checks, retained the expected protected
+Runtime Security skip, merged conflict-free as `dd0fe2c`, and deployed that
+exact commit to Vercel Production. Controlled canonical-domain smoke passed
+exact-5 MiB onboarding, >5 MiB no-request rejection, and 4.8 MiB replacement at
+390px under 1.2 Mbps upload throttling. Both requests stayed near 2.15 MB, final
+WebP objects stayed under 59 KB at 384x512, and cleanup proved zero fixtures.
