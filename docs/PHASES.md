@@ -1206,3 +1206,35 @@ commit to Vercel Production. Controlled `mykustomers.com` evidence passed exact
 5 MiB onboarding, >5 MiB zero-request rejection, 4.8 MiB replacement under a
 constrained mobile upload profile, bounded multipart bytes, metadata-free
 384x512 WebP persistence, no overflow/console errors, and zero-fixture cleanup.
+
+## Admin Phase 7 - Security Health And Operational Observability
+
+Status: IMPLEMENTED - PRODUCTION VERIFICATION PENDING
+
+Scope: read-only `/admin/security`, one bounded health-summary RPC, one bounded
+allowlisted security-activity RPC, deterministic health states, operational
+attention, current admin MFA/security posture, safe configuration presence, and
+manual server refresh.
+
+Authorization: page/server reads and both database RPCs require a current active
+platform admin. AAL1 and AAL2 may read. Anonymous callers, ordinary users,
+business owners, disabled admins, forged client authority, and current-business
+selection provide no access or influence.
+
+Data-model impact: two read-only functions only. No table, row, index, enum,
+policy, domain, or environment change. The preserved historical pending email
+remains truthful attention evidence and is not mutated.
+
+Verification: strict unit/component contracts, static migration/security tests,
+safe-target runtime authorization coverage, admin E2E, full gates, CI, exact
+Vercel deployment, and authenticated production smoke. No Docker/local Supabase
+or destructive production fixture is permitted.
+
+Deferred: uptime history, SIEM, vulnerability scanning, provider-delivery
+guarantees/webhooks, RUM, error-monitoring vendor, automatic remediation,
+scheduled/bulk retry, provider failover, infrastructure control, suspension,
+membership mutation, impersonation, and hard deletion.
+
+Completion closes the planned foundational admin roadmap. Do not automatically
+create Admin Phase 8. Admin Phase 6B remains `IMPLEMENTED - VERIFICATION
+PENDING` until separately proven with a controlled live AAL2 retry.

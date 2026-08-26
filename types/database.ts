@@ -790,6 +790,14 @@ export type Database = {
         Args: Record<string, never>;
         Returns: Json;
       };
+      get_platform_admin_health_summary: {
+        Args: Record<string, never>;
+        Returns: Json;
+      };
+      get_platform_admin_security_activity: {
+        Args: { p_limit?: number };
+        Returns: Json;
+      };
       get_platform_admin_businesses: {
         Args: {
           p_search?: string | null;

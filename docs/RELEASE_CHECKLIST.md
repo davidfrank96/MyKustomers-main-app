@@ -496,3 +496,31 @@ production-readiness work.
       2,147,355-byte multipart requests; final metadata-free 384x512 WebP files
       were 58,946 and 58,838 bytes. The constrained replacement settled in
       15.049 seconds, >5 MiB sent no request, and cleanup left zero fixtures.
+
+## Admin Phase 7 Security & Health
+
+- [x] Approved read-only RPC migration contains no table, row, index, enum, RLS,
+      or existing-data mutation.
+- [x] Both RPCs are postgres-owned `SECURITY DEFINER`, use empty search paths,
+      repeat active-admin authorization, and deny PUBLIC/anonymous execution.
+- [x] Active-admin production reads, ordinary-user direct-RPC denial, and
+      anonymous grant denial are verified without fixtures.
+- [x] Strict DTOs exclude customer/contact/content/provider-failure/token/session/
+      TOTP/secret material.
+- [x] State definitions and precedence are deterministic; unavailable evidence
+      is `UNKNOWN`, not green.
+- [x] AAL1 reads remain allowed; Phase 6B remains the sole AAL2-gated write and
+      retains verification-pending status.
+- [x] No provider probe, automatic polling, service-worker cache, page-view audit,
+      remediation, provider switch, or infrastructure action exists.
+- [x] The 15-minute stale-outbox threshold is documented; the historical pending
+      event is not replayed or mutated.
+- [x] Full local gates pass: lint, typecheck, 436-test Vitest suite, guarded
+      runtime-security command, 34-pass/10-skip E2E, build, zero-vulnerability
+      moderate audit, and whitespace/secret-value checks.
+- [ ] PR is conflict-free and every required executable CI check passes.
+- [ ] Vercel deploys the exact merge commit to Production.
+- [ ] Authenticated production smoke and authoritative aggregate comparison pass
+      at 390, 768, 1024, and 1440 pixels with no write side effects.
+- [ ] The planned foundational admin roadmap is closed without beginning Admin
+      Phase 8.

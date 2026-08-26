@@ -124,7 +124,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
               className="inline-flex items-center gap-1.5 font-medium text-primary"
             >
               <KeyRound className="size-4" aria-hidden="true" />
-              Security
+              Security &amp; Health
             </Link>
             <Link
               href="/dashboard"

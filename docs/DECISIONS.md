@@ -1215,3 +1215,26 @@ persisted-size enforcement remain authoritative. A malicious client can bypass
 the product source limit only by submitting a server-safe intermediate; the
 oversized original never reaches Sharp. No database, bucket, environment, or
 Admin Phase 7 change is introduced.
+
+## ADR-052 - Admin Health Is Bounded Read-Only Evidence
+
+Status: Accepted
+
+Date: 2026-08-26
+
+Context: Platform operators need situational awareness without turning the
+application into Supabase Studio, Vercel, an infrastructure console, or a source
+of unsupported security and uptime claims.
+
+Decision: Implement one active-admin-only health-summary RPC, one separately
+bounded allowlisted security-activity RPC, strict server DTO parsing, and a
+private server-first `/admin/security` page. Use the deterministic states
+`OPERATIONAL`, `ATTENTION`, `DEGRADED`, and `UNKNOWN`; unavailable evidence is
+unknown, not healthy. Configuration checks expose presence/names only. Page
+loads and refreshes are read-only and create no audit event.
+
+Consequences: Current operational evidence is available at bounded query cost
+without provider probes, N+1 actor reads, shared/private caching, or a new health
+history table. Historical uptime, SIEM, vulnerability scanning, RUM, provider
+delivery guarantees, remediation, and infrastructure control remain outside the
+product. Phase 6B remains the sole privileged admin write and retains AAL2.

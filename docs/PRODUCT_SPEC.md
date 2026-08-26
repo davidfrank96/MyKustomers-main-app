@@ -390,3 +390,18 @@ remain supported. This applies to first-business onboarding and
 additional-business creation. A selected local file is insufficient: the
 optimized object and the business `logo_path` must be persisted before the new
 workspace becomes current.
+
+## Admin Security & Health
+
+An active platform administrator can open `/admin/security` for current,
+read-only situational awareness. The surface prioritizes overall state and
+conditions needing attention, then shows core service evidence, transactional
+email aggregates, booking/issue integrity signals, recent allowlisted security
+activity, MFA/account posture, and safe deployment context.
+
+The product uses `OPERATIONAL`, `ATTENTION`, `DEGRADED`, and `UNKNOWN`. A missing
+signal is never shown as healthy. Email `SENT` means provider acceptance, not
+recipient delivery. Health is platform-wide and does not depend on the selected
+business. Refresh re-reads data but does not create an audit event or mutate
+state. Detection never authorizes repair, provider switching, admin creation,
+or any other write.

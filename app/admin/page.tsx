@@ -1,5 +1,6 @@
 import {
   AlertTriangle,
+  ArrowRight,
   Building2,
   CalendarCheck2,
   CalendarClock,
@@ -17,10 +18,7 @@ import type { LucideIcon } from "lucide-react";
 import type { Metadata } from "next";
 import type { Route } from "next";
 import Link from "next/link";
-import {
-  getAdminAttentionItems,
-  type AdminOverview,
-} from "@/features/admin/overview";
+import { getAdminAttentionItems, type AdminOverview } from "@/features/admin/overview";
 import { getAdminOverview } from "@/features/admin/queries";
 
 export const metadata: Metadata = {
@@ -208,16 +206,15 @@ export default async function AdminPage() {
               <>
                 <div>
                   <dt className="font-medium">{item.label}</dt>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {item.description}
-                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">{item.description}</p>
                 </div>
                 <dd className="text-2xl font-semibold tabular-nums">
                   {integerFormatter.format(item.value)}
                 </dd>
               </>
             );
-            const className = "grid min-h-20 grid-cols-[1fr_auto] items-center gap-4 py-4";
+            const className =
+              "grid min-h-20 grid-cols-[1fr_auto] items-center gap-4 py-4";
             return item.label === "Open booking issues" ? (
               <Link
                 key={item.label}
@@ -228,13 +225,9 @@ export default async function AdminPage() {
                 {content}
               </Link>
             ) : (
-              <div
-              key={item.label}
-              data-admin-metric={item.label}
-              className={className}
-            >
-              {content}
-            </div>
+              <div key={item.label} data-admin-metric={item.label} className={className}>
+                {content}
+              </div>
             );
           })}
         </dl>
@@ -270,11 +263,20 @@ export default async function AdminPage() {
         </section>
 
         <section aria-labelledby="system-status-title">
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="size-5 text-primary" aria-hidden="true" />
-            <h2 id="system-status-title" className="text-lg font-semibold">
-              System status
-            </h2>
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="size-5 text-primary" aria-hidden="true" />
+              <h2 id="system-status-title" className="text-lg font-semibold">
+                System status
+              </h2>
+            </div>
+            <Link
+              href="/admin/security"
+              className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
+            >
+              View security &amp; health
+              <ArrowRight className="size-4" aria-hidden="true" />
+            </Link>
           </div>
           <dl className="mt-4 divide-y divide-border border-y border-border">
             <div className="flex min-h-16 items-center justify-between gap-4 py-3">
@@ -286,7 +288,10 @@ export default async function AdminPage() {
             </div>
             <div className="flex min-h-16 items-center justify-between gap-4 py-3">
               <dt className="flex items-center gap-2 text-sm">
-                <ShieldCheck className="size-4 text-muted-foreground" aria-hidden="true" />
+                <ShieldCheck
+                  className="size-4 text-muted-foreground"
+                  aria-hidden="true"
+                />
                 Admin authorization
               </dt>
               <dd className="font-medium text-foreground">Verified</dd>

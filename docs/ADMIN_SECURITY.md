@@ -225,9 +225,14 @@ authorization before implementation.
   from PR #27 and merge `b90ab5f`; no write).
 - Admin Phase 6B: MFA-gated safe failed-email retry (implemented; production
   deployment verification pending).
-- Admin Phase 7: security and system health.
+- Admin Phase 7: read-only security/system health and operational observability
+  (implemented; production verification pending).
 
-Phase 7 remains a plan, not implementation evidence.
+Phase 7 uses two independently authorized bounded RPCs, strict minimized DTOs,
+and the existing current-admin MFA/session read. It introduces no write, no
+provider probe, no health-history table, and no infrastructure control. The
+full signal, freshness, state, and limitation contract is documented in
+`docs/ADMIN_SECURITY_HEALTH.md`.
 
 Admin Phase 6A runtime verification used a controlled temporary confirmed Auth
 user with exactly one temporary `ACTIVE SUPER_ADMIN` row and no business or
@@ -273,3 +278,18 @@ claim. Only proven transient non-acceptance is retryable. Ambiguous/permanent
 failures and all non-`FAILED` states are denied. Attempts stay on the original
 provider, prior evidence is retained, and requested/result audits exclude full
 recipient, body, TOTP, secrets, and raw provider data.
+
+## Phase 7 Security Review
+
+Assets are platform-wide operational counts, configuration presence, current
+admin MFA posture, and allowlisted platform-security activity. Reads require a
+current `ACTIVE` platform admin at the route, server query, and database RPC
+boundaries. Business ownership and current-business selection provide no
+authority. AAL1 may read; Phase 6B remains AAL2-only.
+
+The activity DTO permits only a safe admin label/email, event type, timestamp,
+target type/reference, bounded retry reason, and result. Customer/contact/email
+content, raw audit metadata, provider responses, tokens, factors, sessions, and
+secret values are structurally absent. Disabled-admin and direct-RPC denials use
+the established revocation boundary. Reads are not audited and cannot remediate
+an anomaly.

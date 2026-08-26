@@ -386,6 +386,17 @@ retryable. Ambiguous outcomes, permanent/configuration/recipient failures, and
 switch, automatic failover, bulk retry, recipient/content editing, or domain
 state mutation.
 
+Admin Phase 7 implements read-only Security & Health at `/admin/security`.
+Active platform admins can inspect deterministic platform status, bounded
+database/authentication/email evidence, operational exceptions, minimized
+security activity, administrator resilience, MFA status, and safe deployment
+context. One health-summary RPC and one bounded activity RPC independently
+repeat active-admin authorization; AAL1 may read, while Phase 6B writes still
+require AAL2. Missing evidence is `UNKNOWN`, provider acceptance is not called
+delivery, and no refresh, page load, or detected anomaly can mutate production.
+The source/freshness/privacy contract is in `docs/ADMIN_SECURITY_HEALTH.md`.
+Implementation awaits final PR/CI/deployment and authenticated production smoke.
+
 ## Live Booking Communication Detour
 
 Booking detail now checks a protected, tenant-filtered minimal state snapshot

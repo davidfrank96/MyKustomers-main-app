@@ -15,11 +15,15 @@ Admin Phase 6B adds exactly one write: an AAL2-gated, reason-required retry of a
 safely classified failed email on event detail. It preserves attempt history,
 pins the original provider, and cannot alter domain state.
 
+Admin Phase 7 adds read-only Security & Health. It uses one bounded summary RPC,
+one bounded allowlisted security-activity RPC, strict minimized DTOs, current
+MFA evidence, and safe configuration-presence data. It adds no write and remains
+independent of current-business selection.
+
 Email Operations also recognizes `BOOKING_RESCHEDULED` and
 `BOOKING_DELIVERED`. Reschedule requests remain non-retryable because the raw
 secure URL is intentionally not persisted. This event-type extension does not
-change Admin Phase 6B's implementation/production-verification-pending status or
-start Admin Phase 7.
+change Admin Phase 6B's implementation/production-verification-pending status.
 
 ## Modules
 
@@ -47,6 +51,11 @@ start Admin Phase 7.
   DTOs and rejects unexpected privileged response fields.
 - `features/admin/email-operations.ts` parses bounded email summary, directory,
   and detail DTOs and derives controlled operational health and retry labels.
+- `features/admin/health.ts` strictly parses minimized summary/activity DTOs and
+  derives deterministic `OPERATIONAL`, `ATTENTION`, `DEGRADED`, and `UNKNOWN`
+  states.
+- `features/admin/health-server.ts` performs the two authenticated RPC reads and
+  reports deployment/configuration presence without exposing values.
 - `lib/email/retry-policy.ts` is the authoritative retryability classifier and
   attempt-scoped idempotency-key builder.
 - `features/admin/email-retry-actions.ts` is the concrete server action. It
@@ -54,10 +63,9 @@ start Admin Phase 7.
   only the original provider after an atomic claim.
 - `features/admin/queries.ts` is server-only and invokes one narrow RPC per
   overview, directory, or detail after platform authorization.
-- `app/admin` implements Overview, Businesses, Users, Bookings, Issues, and
-  Email Operations with
-  structural loading, safe unavailable/not-found states, and cross-linked
-  support details.
+- `app/admin` implements Overview, Businesses, Users, Bookings, Issues, Email
+  Operations, and Security & Health with structural loading, safe unavailable
+  states, independent source-failure rendering, and cross-linked support details.
 
 ## Invariants
 
@@ -73,6 +81,8 @@ start Admin Phase 7.
   browsing, raw Auth data, and generic database browsing are absent.
 - Overview values must be identical for every current-business selection.
 - Directory values must be identical for every current-business selection.
+- Security & Health values must be identical for every current-business
+  selection, and unavailable evidence must never become green.
 - User Auth projections expose provider names only, never identity payloads,
   metadata, credentials, tokens, or sessions.
 - Booking/issue projections exclude internal notes, raw terms, hashes/tokens,

@@ -490,9 +490,10 @@ was explicitly approved and applied to the configured production-backed
 Supabase project. The migration, grants, direct anonymous denial, authenticated
 local UI against live data, all eight PR checks, exact Vercel deployment, and
 four-route production smoke pass.
-Phase 5 email
-operations, Phase 6 reviewed safe writes, and Phase 7 security/system health
-remain planned. Each phase requires its own threat-model and regression update.
+Phase 5 email operations and Phase 6 reviewed safe writes are implemented as
+documented. Phase 7 Security & Health is implemented read-only and awaits final
+PR/CI/deployment smoke. Each capability retains its own threat-model and
+regression evidence.
 
 Admin Phase 4 keeps the existing authorization boundary and adds global,
 server-paginated booking and issue operations. Booking value means current
@@ -540,7 +541,21 @@ PRODUCTION.
 - There is no scheduler, automatic failover, bulk/force retry, recipient/content
   editing, suspension, deletion, membership mutation, or impersonation.
 
-Admin Phase 7 system health remains planned and is not started.
+Admin Phase 7 - Security Health And Operational Observability: IMPLEMENTED -
+PRODUCTION VERIFICATION PENDING.
+
+- `/admin/security` combines current service state, prioritized operational
+  attention, minimized security activity, account/MFA posture, and safe support
+  context without adding a mutation.
+- One bounded summary RPC and one bounded activity RPC independently require an
+  active platform admin and remain independent of tenant selection.
+- `OPERATIONAL`, `ATTENTION`, `DEGRADED`, and `UNKNOWN` have deterministic,
+  documented meanings. Unmeasured evidence never becomes healthy.
+- No uptime/SIEM/vulnerability-scanner claim, provider probe, RUM, infrastructure
+  control, remediation, or Admin Phase 8 is introduced.
+- The foundational admin roadmap closes after successful Phase 7 production
+  verification. Further admin work requires demonstrated product/operational
+  need and separate authorization.
 
 Customer communication detour: implemented pending production verification.
 The vendor booking page now refreshes from a current-business-scoped minimal

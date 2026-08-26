@@ -180,8 +180,19 @@ test.describe("platform admin route authorization", () => {
       }
       const adminNavigation = page.getByRole("navigation", { name: "Admin navigation" });
       await expect(adminNavigation.getByRole("link")).toHaveCount(8);
-      await adminNavigation.getByRole("link", { name: "Security" }).click();
-      await expect(page.getByRole("heading", { name: "Admin security" })).toBeVisible();
+      await adminNavigation.getByRole("link", { name: "Security & Health" }).click();
+      await expect(
+        page.getByRole("heading", { name: "Security & Health" }),
+      ).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Core services" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Email delivery" })).toBeVisible();
+      await expect(
+        page.getByRole("heading", { name: "Security activity" }),
+      ).toBeVisible();
+      await expect(
+        page.getByRole("heading", { name: "Admin account security" }),
+      ).toBeVisible();
+      await expect(page.getByRole("button", { name: "Refresh status" })).toBeVisible();
       await expect(page.getByText("Not configured")).toBeVisible();
       await page.goto("/admin");
       await expect(page).toHaveURL(/\/admin$/);
@@ -282,6 +293,8 @@ test.describe("platform admin route authorization", () => {
         .evaluateAll((elements) =>
           elements.map((element) => element.getAttribute("data-admin-metric")),
         );
+      await page.goto("/admin/security");
+      const healthStates = await page.locator("[data-health-state]").allTextContents();
       const filteredBusinessesUrl = `/admin/businesses?q=${encodeURIComponent(fixture)}`;
       await page.goto(filteredBusinessesUrl);
       const businessDirectoryText = await page
@@ -308,6 +321,10 @@ test.describe("platform admin route authorization", () => {
               elements.map((element) => element.getAttribute("data-admin-metric")),
             ),
         ).toEqual(metricIdentities);
+        await page.goto("/admin/security");
+        expect(await page.locator("[data-health-state]").allTextContents()).toEqual(
+          healthStates,
+        );
         await page.goto(filteredBusinessesUrl);
         expect(
           await page.locator('[data-admin-directory="businesses"]').allTextContents(),
