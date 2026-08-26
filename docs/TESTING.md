@@ -35,6 +35,11 @@ do not reduce the verified tenant/RLS coverage.
 - Business website normalization/safe-scheme tests and Sharp-backed PNG/JPEG/
   WebP validation, mismatch, byte, dimension, compression, and output-policy
   tests.
+- Business-logo pending-state integration tests cover a 120-second stalled
+  upload/removal bound, safe network/malformed-response recovery, same-file
+  retry, immediate duplicate-submit prevention, and one-refresh success. Sharp
+  regressions additionally cover EXIF rotation, metadata stripping,
+  transparency, no small-image enlargement, and malformed input.
 - Static business-identity migration/route tests and live Supabase Storage tests
   for owner replacement/removal, member/cross-tenant/anonymous denial, public
   retrieval, and non-enumerable anonymous listing.
@@ -105,6 +110,12 @@ do not reduce the verified tenant/RLS coverage.
   320, 360, 375, 390, 430, 768, 1024, and 1440 pixels, including real logo
   upload/replacement/removal, website persistence, mobile logout, and dashboard
   tile destinations.
+- Logo E2E inspects onboarding and Business-page Storage output rather than only
+  UI text: deterministic `logo.webp`, WebP decode, <=512px, <=200 KB, one object,
+  replacement-content change, public retrieval, database reference, and removal
+  cleanup. Replacement inspection uses a fresh query version because the
+  deterministic public path can transiently return an earlier CDN object.
+  Initial upload runs at desktop width and replacement/removal at mobile width.
 - Public confirmation identity coverage for persisted logo, fallback initials,
   safe website/Instagram links, unchanged booking/contact confirmation, and no
   visible tenant ID.

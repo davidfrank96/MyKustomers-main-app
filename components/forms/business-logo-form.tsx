@@ -1,6 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type MutableRefObject,
+} from "react";
 import { useRouter } from "next/navigation";
 import { ImageUp, Trash2 } from "lucide-react";
 import { BusinessLogo } from "@/components/shared/business-logo";
@@ -13,6 +19,74 @@ type LogoResponse = {
   message: string;
   logoUrl?: string | null;
 };
+
+export const BUSINESS_LOGO_REQUEST_TIMEOUT_MS = 120_000;
+
+class BusinessLogoRequestError extends Error {
+  constructor(public readonly code: "timeout" | "network" | "invalid_response") {
+    super(code);
+    this.name = "BusinessLogoRequestError";
+  }
+}
+
+function isLogoResponse(value: unknown): value is LogoResponse {
+  if (!value || typeof value !== "object") return false;
+  const result = value as Record<string, unknown>;
+  return (
+    (result.status === "success" || result.status === "error") &&
+    typeof result.message === "string" &&
+    (result.logoUrl === undefined ||
+      result.logoUrl === null ||
+      typeof result.logoUrl === "string")
+  );
+}
+
+async function requestBusinessLogo({
+  businessId,
+  method,
+  body,
+  activeRequestRef,
+}: {
+  businessId: string;
+  method: "POST" | "DELETE";
+  body?: FormData;
+  activeRequestRef: MutableRefObject<AbortController | null>;
+}) {
+  const controller = new AbortController();
+  activeRequestRef.current = controller;
+  let timedOut = false;
+  const timeout = window.setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, BUSINESS_LOGO_REQUEST_TIMEOUT_MS);
+
+  try {
+    const response = await fetch(`/api/businesses/${businessId}/logo`, {
+      method,
+      body,
+      signal: controller.signal,
+    });
+    let result: unknown;
+    try {
+      result = await response.json();
+    } catch {
+      throw new BusinessLogoRequestError("invalid_response");
+    }
+    if (!isLogoResponse(result)) {
+      throw new BusinessLogoRequestError("invalid_response");
+    }
+    return { response, result };
+  } catch (error) {
+    if (timedOut) throw new BusinessLogoRequestError("timeout");
+    if (error instanceof BusinessLogoRequestError) throw error;
+    throw new BusinessLogoRequestError("network");
+  } finally {
+    window.clearTimeout(timeout);
+    if (activeRequestRef.current === controller) {
+      activeRequestRef.current = null;
+    }
+  }
+}
 
 export function BusinessLogoForm({
   businessId,
@@ -34,12 +108,18 @@ export function BusinessLogoForm({
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const selectedFileRef = useRef<File | null>(null);
+  const activeRequestRef = useRef<AbortController | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [persistedUrl, setPersistedUrl] = useState(currentLogoUrl);
   const [message, setMessage] = useState<string | null>(null);
   const [status, setStatus] = useState<"idle" | "pending" | "success" | "error">("idle");
   const uploadedBusinessIdRef = useRef<string | null>(null);
   const completionNotifiedRef = useRef(false);
+
+  useEffect(() => {
+    const requestRef = activeRequestRef;
+    return () => requestRef.current?.abort();
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -70,7 +150,7 @@ export function BusinessLogoForm({
       setMessage("Choose a logo image to upload.");
       return;
     }
-    if (!businessId || status === "pending") {
+    if (!businessId || activeRequestRef.current) {
       return;
     }
 
@@ -80,11 +160,12 @@ export function BusinessLogoForm({
     body.set("logo", file);
 
     try {
-      const response = await fetch(`/api/businesses/${businessId}/logo`, {
+      const { response, result } = await requestBusinessLogo({
+        businessId,
         method: "POST",
         body,
+        activeRequestRef,
       });
-      const result = (await response.json()) as LogoResponse;
 
       setStatus(response.ok ? "success" : "error");
       setMessage(result.message);
@@ -100,12 +181,21 @@ export function BusinessLogoForm({
         selectedFileRef.current = null;
         router.refresh();
         onPersisted?.();
+      } else if (inputRef.current) {
+        inputRef.current.value = "";
       }
-    } catch {
+    } catch (error) {
       setStatus("error");
-      setMessage("The logo request could not be completed. Please try again.");
+      setMessage(
+        error instanceof BusinessLogoRequestError && error.code === "timeout"
+          ? "Upload timed out. Please try again."
+          : "Unable to upload the logo. Please try again.",
+      );
+      if (inputRef.current) {
+        inputRef.current.value = "";
+      }
     }
-  }, [businessId, onPersisted, previewUrl, router, status]);
+  }, [businessId, onPersisted, previewUrl, router]);
 
   useEffect(() => {
     if (
@@ -134,17 +224,18 @@ export function BusinessLogoForm({
   }, [businessId, currentLogoUrl, mode, onPersisted]);
 
   async function removeLogo() {
-    if (!businessId) {
+    if (!businessId || activeRequestRef.current) {
       return;
     }
     setStatus("pending");
     setMessage(null);
 
     try {
-      const response = await fetch(`/api/businesses/${businessId}/logo`, {
+      const { response, result } = await requestBusinessLogo({
+        businessId,
         method: "DELETE",
+        activeRequestRef,
       });
-      const result = (await response.json()) as LogoResponse;
 
       setStatus(response.ok ? "success" : "error");
       setMessage(result.message);
@@ -160,15 +251,20 @@ export function BusinessLogoForm({
         selectedFileRef.current = null;
         router.refresh();
       }
-    } catch {
+    } catch (error) {
       setStatus("error");
-      setMessage("The logo request could not be completed. Please try again.");
+      setMessage(
+        error instanceof BusinessLogoRequestError && error.code === "timeout"
+          ? "Request timed out. Please try again."
+          : "Unable to remove the logo. Please try again.",
+      );
     }
   }
 
   return (
     <section
       className="space-y-5"
+      aria-busy={status === "pending"}
       aria-label={
         mode === "onboarding" ? "Required business logo" : "Business logo settings"
       }

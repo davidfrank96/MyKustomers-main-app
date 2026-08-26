@@ -67,6 +67,84 @@ describe("business logo processing", () => {
     expect(Math.max(optimized.width, optimized.height)).toBeLessThanOrEqual(512);
   });
 
+  it("applies EXIF orientation and strips source metadata", async () => {
+    const source = await sharp({
+      create: {
+        width: 40,
+        height: 80,
+        channels: 3,
+        background: { r: 40, g: 80, b: 120 },
+      },
+    })
+      .jpeg()
+      .withMetadata({ orientation: 6 })
+      .toBuffer();
+
+    const optimized = await optimizeBusinessLogo({
+      buffer: source,
+      contentType: "image/jpeg",
+      fileName: "portrait.jpg",
+    });
+    const metadata = await sharp(optimized.buffer).metadata();
+
+    expect([optimized.width, optimized.height]).toEqual([80, 40]);
+    expect(metadata.orientation).toBeUndefined();
+    expect(metadata.exif).toBeUndefined();
+    expect(metadata.icc).toBeUndefined();
+  });
+
+  it("preserves transparency while normalizing PNG input to WebP", async () => {
+    const source = await sharp({
+      create: {
+        width: 120,
+        height: 60,
+        channels: 4,
+        background: { r: 12, g: 34, b: 56, alpha: 0.35 },
+      },
+    })
+      .png()
+      .toBuffer();
+
+    const optimized = await optimizeBusinessLogo({
+      buffer: source,
+      contentType: "image/png",
+      fileName: "transparent.png",
+    });
+
+    expect((await sharp(optimized.buffer).metadata()).hasAlpha).toBe(true);
+  });
+
+  it("does not enlarge a small source logo", async () => {
+    const source = await sharp({
+      create: {
+        width: 32,
+        height: 18,
+        channels: 3,
+        background: "#245c4c",
+      },
+    })
+      .png()
+      .toBuffer();
+
+    const optimized = await optimizeBusinessLogo({
+      buffer: source,
+      contentType: "image/png",
+      fileName: "small.png",
+    });
+
+    expect([optimized.width, optimized.height]).toEqual([32, 18]);
+  });
+
+  it("rejects malformed image bytes with an explicit validation code", async () => {
+    await expect(
+      optimizeBusinessLogo({
+        buffer: Buffer.from("not an image"),
+        contentType: "image/png",
+        fileName: "malformed.png",
+      }),
+    ).rejects.toMatchObject({ code: "invalid_image" });
+  });
+
   it("rejects unsupported types, extension mismatches, and content mismatches", async () => {
     const png = await sourceLogo("png");
 

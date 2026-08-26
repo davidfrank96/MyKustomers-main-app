@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-08-26 - Business Logo Upload Pending-State Hotfix
+
+Status: IMPLEMENTED - PRODUCTION VERIFICATION PENDING
+
+- Bounded the shared onboarding/Business-page logo request at 120 seconds and
+  made network, malformed-response, and timeout failures terminate in a safe,
+  recoverable UI state instead of leaving `Saving...` active indefinitely.
+- Added an immediate in-flight guard, same-file retry support, request abort on
+  unmount, and robust response parsing without changing owner authorization,
+  Storage RLS, deterministic replacement, removal ordering, or image limits.
+- Confirmed both product flows already converge on the same owner-authorized
+  route and Sharp pipeline. Expanded regression coverage for timeout/failure
+  recovery, duplicate submission, EXIF rotation, metadata stripping,
+  transparency, no upscaling, malformed input, and persisted WebP invariants.
+- No database migration, environment change, Docker, raw-original storage,
+  broad UI redesign, or Admin Phase 7 work is included.
+
 ## 2026-08-26 - Booking Detail Clarity And Contact Email UX
 
 Status: VERIFIED - PRODUCTION

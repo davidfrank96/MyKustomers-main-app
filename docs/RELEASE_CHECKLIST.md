@@ -456,3 +456,20 @@ production-readiness work.
 - [x] Controlled production desktop/mobile canonical journeys and the desktop
       repeat-booking/different-contact path passed with real Brevo acceptance;
       cleanup confirmed zero controlled fixture records or Auth users.
+
+## Business Logo Upload Hotfix
+
+- [x] Onboarding and Business settings use one shared client, route, owner gate,
+      Sharp processor, deterministic Storage path, and database reference flow.
+- [x] PNG/JPEG/WebP, spoofing, malformed bytes, source limits, EXIF orientation,
+      metadata stripping, transparency, no upscaling, output dimensions, and
+      persisted byte limits have regression coverage.
+- [x] Timeout, malformed response, failure reset, same-file retry, unmount abort,
+      and immediate duplicate-submit prevention are covered.
+- [x] Storage RLS, owner/member/cross-tenant/anonymous boundaries, public read,
+      deterministic replacement, removal ordering, and no-raw-original policy
+      remain unchanged.
+- [ ] Full local gates, required CI, exact Vercel deployment, controlled
+      desktop/mobile/onboarding production smoke, and zero-fixture cleanup pass.
+- [x] No migration, environment change, Docker, broad redesign, detour rollback,
+      or Admin Phase 7 work is included.

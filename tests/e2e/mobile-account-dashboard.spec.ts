@@ -44,6 +44,33 @@ async function expectNoOverflow(page: Page) {
   expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth + 1);
 }
 
+async function downloadStoredLogo(
+  admin: ReturnType<typeof adminClient>,
+  businessId: string,
+) {
+  const path = `${businessId}/logo.webp`;
+  const {
+    data: { publicUrl },
+  } = admin.storage.from("business-logos").getPublicUrl(path);
+  const response = await fetch(`${publicUrl}?v=${randomUUID()}`, { cache: "no-store" });
+  expect(response.ok).toBe(true);
+  expect(response.headers.get("content-type")).toContain("image/webp");
+  const buffer = Buffer.from(await response.arrayBuffer());
+  const metadata = await sharp(buffer).metadata();
+  expect(metadata.format).toBe("webp");
+  expect(metadata.width).toBeLessThanOrEqual(512);
+  expect(metadata.height).toBeLessThanOrEqual(512);
+  expect(buffer.byteLength).toBeLessThanOrEqual(200 * 1024);
+
+  const { data: objects, error: listError } = await admin.storage
+    .from("business-logos")
+    .list(businessId);
+  expect(listError).toBeNull();
+  expect(objects?.map((object) => object.name)).toEqual(["logo.webp"]);
+
+  return buffer;
+}
+
 test.describe("mobile account and dashboard navigation", () => {
   test.skip(!hasSupabaseEnv, "Requires configured Supabase runtime credentials.");
 
@@ -116,7 +143,7 @@ test.describe("mobile account and dashboard navigation", () => {
         await expect(page.getByRole("link", { name: "View active bookings" })).toBeVisible();
       }
 
-      await page.setViewportSize({ width: 390, height: 844 });
+      await page.setViewportSize({ width: 1440, height: 1000 });
       await page.goto("/business");
       const pngLogo = await sharp({
         create: {
@@ -141,7 +168,9 @@ test.describe("mobile account and dashboard navigation", () => {
           .getByLabel("Mobile Account Business logo")
           .locator("img"),
       ).toBeVisible();
+      const firstStoredLogo = await downloadStoredLogo(admin, business!.id);
 
+      await page.setViewportSize({ width: 390, height: 844 });
       const jpegLogo = await sharp({
         create: {
           width: 700,
@@ -159,6 +188,8 @@ test.describe("mobile account and dashboard navigation", () => {
       });
       await page.getByRole("button", { name: "Replace logo" }).click();
       await expect(page.getByText("Business logo replaced.")).toBeVisible();
+      const replacementStoredLogo = await downloadStoredLogo(admin, business!.id);
+      expect(replacementStoredLogo.equals(firstStoredLogo)).toBe(false);
 
       await page.getByLabel("Website").fill("mobile-account.example.com/profile");
       await page.getByRole("button", { name: "Save changes" }).click();
@@ -178,6 +209,16 @@ test.describe("mobile account and dashboard navigation", () => {
       await expect(
         page.getByRole("main").getByLabel("Mobile Account Business logo").locator("img"),
       ).toHaveCount(0);
+      const { data: removedBusiness } = await admin
+        .from("businesses")
+        .select("logo_path")
+        .eq("id", business!.id)
+        .single();
+      expect(removedBusiness?.logo_path).toBeNull();
+      const { data: remainingLogoObjects } = await admin.storage
+        .from("business-logos")
+        .list(business!.id);
+      expect(remainingLogoObjects ?? []).toHaveLength(0);
 
       await page.goto("/dashboard");
       await page.getByRole("link", { name: "View active bookings" }).click();

@@ -67,6 +67,20 @@ The current business-logo constants live in `features/businesses/logo.ts`:
 PNG/JPEG/WebP input, 2 MB, 6000px per edge, 25 MP, metadata-stripped WebP,
 aspect-preserving resize, 512px maximum, and 200 KB persisted maximum.
 
+Every business-logo creation, replacement, or onboarding upload must use the
+same validated, authorized, metadata-stripping, bounded compression pipeline
+before persistence. Keep image upload requests bounded but tolerant of slower
+mobile networks. Image upload UI must terminate into success or a recoverable
+error state. It must never remain indefinitely pending after request failure or
+timeout. Reset the native file input after failure while retaining an explicit
+same-file retry path, and guard duplicate submissions synchronously.
+
+When diagnosing logo uploads, inspect the browser request and the shared
+`/api/businesses/{business_id}/logo` route before changing Storage policy. A
+timeout or malformed response must not be treated as authorization evidence;
+owner checks and Storage RLS remain authoritative. Never log image bytes,
+credentials, or provider internals.
+
 ## Documentation Definition Of Done
 
 Documentation is part of definition of done. Every material feature, fix,

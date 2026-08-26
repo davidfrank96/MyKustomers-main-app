@@ -20,6 +20,25 @@ Storage RLS. Replacement overwrites the deterministic object; removal clears
 `logo_path` before cleanup and falls back to business initials. No original is
 stored.
 
+Onboarding and Business settings both render the shared `BusinessLogoForm`, post
+multipart data to `/api/businesses/{business_id}/logo`, and therefore use this
+same authorization, validation, Sharp conversion, Storage, database-reference,
+audit, and revalidation boundary. The browser does not resize or persist a raw
+alternative. Requests have a Nigeria-mobile-tolerant 120-second bound; timeout,
+network failure, invalid server response, and validation errors restore controls
+and preserve a retryable selected file without staging another business.
+Successful upload/replacement uses a fresh query version for the current browser
+identity so a deterministic public object URL cannot display the prior CDN copy
+immediately after upsert; the underlying Storage path remains stable.
+
+Permanent invariant: "Every business-logo creation, replacement, or onboarding
+upload must use the same validated, authorized, metadata-stripping, bounded
+compression pipeline before persistence."
+
+Permanent pending-state invariant: "Image upload UI must terminate into success
+or a recoverable error state. It must never remain indefinitely pending after
+request failure or timeout."
+
 Customers, bookings, confirmations, feedback, and insights remain in their own
 feature modules. Staff invitations, galleries, additional social networks,
 subscription billing, customer payment processing, and external messaging
