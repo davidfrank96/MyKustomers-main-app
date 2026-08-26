@@ -14,6 +14,7 @@ import {
 } from "@/features/bookings/status";
 import {
   bookingCreateSchema,
+  bookingPaymentSchema,
   bookingTransitionSchema,
   isBookingReference,
   parseBookingListParams,
@@ -28,6 +29,7 @@ describe("booking domain", () => {
   it("parses user money input into integer minor units", () => {
     expect(parseMoneyToMinorUnits("45,000")).toBe(4_500_000);
     expect(parseMoneyToMinorUnits("45000.50")).toBe(4_500_050);
+    expect(parseMoneyToMinorUnits("90071992547409.91")).toBe(Number.MAX_SAFE_INTEGER);
     expect(parseMoneyToMinorUnits("45.999")).toBeNull();
     expect(parseMoneyToMinorUnits("-1")).toBeNull();
   });
@@ -35,6 +37,23 @@ describe("booking domain", () => {
   it("derives balances without storing a mutable balance", () => {
     expect(deriveBalanceMinor(4_500_000, 500_000)).toBe(4_000_000);
     expect(formatMoneyMinor(4_500_000, "NGN")).toBe("₦45,000");
+  });
+
+  it("validates positive payment amounts and idempotent operation identifiers", () => {
+    const operationId = "00000000-0000-4000-8000-000000000001";
+
+    expect(
+      bookingPaymentSchema.parse({ amount: "1,250.50", operationId }),
+    ).toEqual({ amount: 125_050, operationId });
+    expect(bookingPaymentSchema.safeParse({ amount: "0", operationId }).success).toBe(
+      false,
+    );
+    expect(bookingPaymentSchema.safeParse({ amount: "-1", operationId }).success).toBe(
+      false,
+    );
+    expect(
+      bookingPaymentSchema.safeParse({ amount: "10", operationId: "forged" }).success,
+    ).toBe(false);
   });
 
   it("validates booking forms and rejects impossible financial state", () => {

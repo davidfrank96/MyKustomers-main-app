@@ -449,7 +449,7 @@ if (runtimeVerificationEnabled) {
         .eq("id", bookingAId)
         .single();
       expect(confirmedBookingError).toBeNull();
-      expect(confirmedBooking?.status).toBe("CONFIRMED");
+      expect(confirmedBooking?.status).toBe("IN_PROGRESS");
       expect(confirmedBooking?.customer_confirmed_at).toBeTruthy();
       expect(confirmedBooking?.confirmation_terms_hash).toBe(confirmedTermsHash);
 
@@ -492,7 +492,7 @@ if (runtimeVerificationEnabled) {
         .eq("id", bookingAId)
         .single();
       expect(lockedBookingError).toBeNull();
-      expect(lockedBooking?.status).toBe("CONFIRMED");
+      expect(lockedBooking?.status).toBe("IN_PROGRESS");
       expect(lockedBooking?.customer_confirmed_at).toBeTruthy();
       expect(lockedBooking?.confirmation_terms_hash).toBe(confirmedTermsHash);
 
@@ -579,7 +579,7 @@ if (runtimeVerificationEnabled) {
             .eq("id", emptyContactEvents![0].id)
             .single(),
         ]);
-      expect(bookingAfterDeliveryFailure?.status).toBe("CONFIRMED");
+      expect(bookingAfterDeliveryFailure?.status).toBe("IN_PROGRESS");
       expect(eventAfterFailure).toEqual({
         status: "FAILED",
         attempt_count: 1,
@@ -610,7 +610,7 @@ if (runtimeVerificationEnabled) {
         .select("status, confirmation_terms_hash")
         .eq("id", nonMaterialBookingId)
         .single();
-      expect(afterNotes?.status).toBe("CONFIRMED");
+      expect(afterNotes?.status).toBe("IN_PROGRESS");
       expect(afterNotes?.confirmation_terms_hash).toBe(beforeNotes?.confirmation_terms_hash);
 
       const cancelBookingId = await createBooking(

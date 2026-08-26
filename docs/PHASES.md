@@ -1135,3 +1135,22 @@ dialog Cancel/final paths and feedback handoff at 320px, and existing logo
 replace/remove/restore behavior. Cleanup confirmed zero temporary Auth or
 business leftovers. Runtime Security was intentionally skipped by the
 protected-backend safe-target policy, with no Docker or bypass.
+## Product Detour - Booking Lifecycle Simplification And Payment Recording
+
+Status: IMPLEMENTED - PRODUCTION VERIFICATION PENDING
+
+Scope: Prospective customer confirmation now commits immutable confirmation
+evidence and deterministic `AWAITING_CUSTOMER -> CONFIRMED -> IN_PROGRESS`
+history atomically. Normal vendor UX removes Start work. Existing `CONFIRMED`
+rows remain unchanged with compatibility transition support.
+
+An append-only tenant payment ledger records subsequent amounts received in
+integer minor units. Initial deposits and confirmed add-on deposits contribute
+exactly once; pending add-ons contribute zero. A locked narrow RPC enforces
+lifecycle, authorization, idempotency, and no overpayment. Authoritative
+outstanding blocks `DELIVERED -> COMPLETED` until zero.
+
+Explicit exclusions: payment processing/verification, corrections, refunds,
+credits, waivers, negative records, force-completion, cross-currency totals, and
+historical paid-status fabrication. Admin Phase 6B remains `IMPLEMENTED -
+VERIFICATION PENDING`; Admin Phase 7 is not started.

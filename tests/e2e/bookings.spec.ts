@@ -621,15 +621,13 @@ test.describe("booking engine", () => {
         exact: true,
       }),
     ).toBeVisible({ timeout: serverActionTimeout });
-    await expect(
-      page
-        .locator("span")
-        .filter({ hasText: /^Confirmed$/ })
-        .first(),
-    ).toBeVisible();
+    await expect(page.locator("span").filter({ hasText: /^In progress$/ })).toBeVisible();
     await expect(page.getByText("customer-confirmation@example.com")).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Customer confirmed" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Start work" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Customer confirmed - work in progress" }),
+    ).toBeVisible();
+    await expect(page.getByRole("button", { name: "Start work" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Mark as ready" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Mark as delivered" })).toHaveCount(0);
     await expect(page.getByText("sent", { exact: true })).toBeVisible();
     await expect(page.getByText(/Copy link selected/)).toBeVisible();
@@ -866,6 +864,24 @@ test.describe("booking engine", () => {
     await expect(page.getByText("₦61,000").first()).toBeVisible();
     await expect(page.getByRole("button", { name: "Cancel add-on" })).toHaveCount(0);
 
+    const paymentViewport = page.viewportSize();
+    for (const width of [320, 360, 375, 390, 430, 768, 1024, 1440]) {
+      await page.setViewportSize({ width, height: width < 768 ? 900 : 1000 });
+      await expectNoPageOverflow(page);
+      await expect(page.getByRole("heading", { name: "Payment record" })).toBeVisible();
+      await expect(page.getByRole("button", { name: "Record payment" })).toBeVisible();
+    }
+    if (paymentViewport) await page.setViewportSize(paymentViewport);
+
+    await page.getByRole("button", { name: "Record payment" }).click();
+    const partialPaymentDialog = page.getByRole("dialog", { name: "Record a payment" });
+    await partialPaymentDialog.getByLabel("Payment amount").fill("10000");
+    await partialPaymentDialog.getByRole("button", { name: "Record payment" }).click();
+    await expect(page.getByText("₦22,000").first()).toBeVisible({
+      timeout: serverActionTimeout,
+    });
+    await expect(page.getByText("₦51,000").first()).toBeVisible();
+
     await page.getByLabel("New scheduled date").fill(futureLocalDateTimePlus(2));
     await page.getByRole("button", { name: "Reschedule" }).click();
     await expect(
@@ -916,21 +932,14 @@ test.describe("booking engine", () => {
     await expect(page.getByRole("heading", { name: "Booking confirmed" })).toBeVisible();
 
     await page.goto(bookingDetailUrl);
-    await expect(
-      page
-        .locator("span")
-        .filter({ hasText: /^Confirmed$/ })
-        .first(),
-    ).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Customer confirmed" })).toBeVisible();
-
-    await page.getByRole("button", { name: "Start work" }).click();
-    await expect(page).toHaveURL(/message=status-updated/);
     await expect(page.locator("span").filter({ hasText: /^In progress$/ })).toBeVisible({
       timeout: serverActionTimeout,
     });
-    await expect(page.getByText("Confirmed to In progress")).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Work in progress" })).toBeVisible();
+    await expect(page.getByText("Confirmed to In progress").last()).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Customer confirmed - work in progress" }),
+    ).toBeVisible();
+    await expect(page.getByRole("button", { name: "Start work" })).toHaveCount(0);
 
     await page.getByRole("button", { name: "Mark as ready" }).click();
     await expect(page.locator("span").filter({ hasText: /^Ready$/ })).toBeVisible({
@@ -953,6 +962,17 @@ test.describe("booking engine", () => {
     expect(deliveryEvents).toEqual([
       { event_type: "BOOKING_DELIVERED", status: "SENT", attempt_count: 1 },
     ]);
+
+    await expect(page.getByRole("button", { name: "Complete booking" })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "Record payment" })).toBeVisible();
+    await page.getByRole("button", { name: "Record payment" }).click();
+    const finalPaymentDialog = page.getByRole("dialog", { name: "Record a payment" });
+    await finalPaymentDialog.getByLabel("Payment amount").fill("51000");
+    await finalPaymentDialog.getByRole("button", { name: "Record payment" }).click();
+    await expect(page.getByText("₦73,000").nth(1)).toBeVisible({
+      timeout: serverActionTimeout,
+    });
+    await expect(page.getByText("₦0").first()).toBeVisible();
 
     await page.getByRole("button", { name: "Complete booking" }).click();
     const completionDialog = page.getByRole("dialog", { name: "Complete this booking?" });
@@ -1392,7 +1412,7 @@ test.describe("booking engine", () => {
     });
 
     await page.goto(bookingUrl);
-    await expect(page.locator("span").filter({ hasText: /^Confirmed$/ })).toBeVisible();
+    await expect(page.locator("span").filter({ hasText: /^In progress$/ })).toBeVisible();
     await expect(page.getByLabel("Booking title")).toBeDisabled();
     await expect(page.getByLabel("Description", { exact: true })).toBeDisabled();
     await expect(page.getByLabel("Currency")).toBeDisabled();
@@ -1432,7 +1452,7 @@ test.describe("booking engine", () => {
     await expect(
       page.getByText(`Cancellation reason: ${cancellationReason}`),
     ).toBeVisible();
-    await expect(page.getByText("Confirmed to Cancelled")).toBeVisible();
+    await expect(page.getByText("In progress to Cancelled")).toBeVisible();
     await expect(
       page.getByText("Completed and cancelled bookings are locked."),
     ).toBeVisible();

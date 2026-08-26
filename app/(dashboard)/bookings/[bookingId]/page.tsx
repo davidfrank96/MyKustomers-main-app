@@ -4,6 +4,7 @@ import type { Route } from "next";
 import { ArrowLeft } from "lucide-react";
 import { BookingJourney } from "@/components/bookings/booking-journey";
 import { BookingLiveSync } from "@/components/bookings/booking-live-sync";
+import { BookingPayments } from "@/components/bookings/booking-payments";
 import { BookingForm } from "@/components/forms/booking-form";
 import { BookingAmendmentPanel } from "@/components/forms/booking-amendment-panel";
 import { BookingAddonPanel } from "@/components/forms/booking-addon-panel";
@@ -16,15 +17,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   completeBookingStatusAction,
+  recordBookingPaymentAction,
   rescheduleBookingAction,
   transitionBookingStatusAction,
   updateBookingAction,
   updateBookingInternalNotesAction,
 } from "@/features/bookings/actions";
-import { formatMoneyMinor, minorUnitsToInput } from "@/features/bookings/money";
+import { minorUnitsToInput } from "@/features/bookings/money";
 import { deriveBookingJourney } from "@/features/bookings/journey";
 import {
   getBookingForBusiness,
+  getBookingPaymentState,
   listBookingChangesForBusiness,
   listBookingStatusHistoryForBusiness,
 } from "@/features/bookings/queries";
@@ -123,6 +126,7 @@ export default async function BookingDetailPage({
     feedbackSummary,
     feedback,
     issues,
+    paymentState,
   ] = await Promise.all([
     listBookingStatusHistoryForBusiness(currentBusiness.id, booking.id),
     listBookingChangesForBusiness(currentBusiness.id, booking.id),
@@ -132,6 +136,7 @@ export default async function BookingDetailPage({
     getFeedbackLinkSummaryForBooking(currentBusiness.id, booking.id),
     getFeedbackForBooking(currentBusiness.id, booking.id),
     listBookingIssuesForBooking(currentBusiness.id, booking.id),
+    getBookingPaymentState(currentBusiness.id, booking.id),
   ]);
   const timeline = [
     ...history.map((event) => ({
@@ -217,11 +222,13 @@ export default async function BookingDetailPage({
         : []),
     ]),
   ].sort((a, b) => new Date(a.occurredAt).getTime() - new Date(b.occurredAt).getTime());
-  const rescheduleEligible = ["DRAFT", "AWAITING_CUSTOMER", "CONFIRMED"].includes(
-    booking.status,
-  );
+  const rescheduleEligible = [
+    "DRAFT",
+    "AWAITING_CUSTOMER",
+    "CONFIRMED",
+    "IN_PROGRESS",
+  ].includes(booking.status);
   const scheduleControlled = booking.status !== "DRAFT";
-  const balance = addonSummary.balanceAmountMinor;
   const overdue = isBookingOverdue({
     scheduledFor: booking.scheduled_for,
     status: booking.status,
@@ -253,6 +260,7 @@ export default async function BookingDetailPage({
     reconfirmationRequired,
     pendingAmendment: amendmentSummary.displayStatus === "pending",
     awaitingAddon: addonSummary.hasAwaitingAddon,
+    outstandingAmountMinor: paymentState.summary?.outstandingAmountMinor ?? null,
   });
   const liveState = createBookingLiveState({
     status: booking.status,
@@ -342,40 +350,16 @@ export default async function BookingDetailPage({
         cancellationReason={booking.cancellation_reason}
       />
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle>Current agreed value</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-xl font-semibold">
-              {formatMoneyMinor(addonSummary.totalAmountMinor, booking.currency)}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Current deposit recorded</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-xl font-semibold">
-              {formatMoneyMinor(addonSummary.depositAmountMinor, booking.currency)}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Balance remaining</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-xl font-semibold">
-              {formatMoneyMinor(balance, booking.currency)}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      <BookingPayments
+        summary={paymentState.summary}
+        payments={paymentState.payments}
+        canRecordPayment={["IN_PROGRESS", "READY", "DELIVERED"].includes(
+          booking.status,
+        )}
+        action={recordBookingPaymentAction.bind(null, booking.id)}
+      />
 
-      <Card>
+      <Card id="operational-progress" className="scroll-mt-6">
         <CardHeader>
           <CardTitle>Operational progress</CardTitle>
         </CardHeader>

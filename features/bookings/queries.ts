@@ -12,6 +12,22 @@ export type Booking = Database["public"]["Tables"]["bookings"]["Row"];
 export type BookingStatusHistory =
   Database["public"]["Tables"]["booking_status_history"]["Row"];
 export type BookingChange = Database["public"]["Tables"]["booking_changes"]["Row"];
+export type BookingPayment = Database["public"]["Tables"]["booking_payments"]["Row"];
+
+export type BookingPaymentSummary = {
+  currency: Database["public"]["Enums"]["booking_currency"];
+  effectiveTotalAmountMinor: number;
+  initialDepositAmountMinor: number;
+  confirmedAddonDepositAmountMinor: number;
+  subsequentPaymentAmountMinor: number;
+  recordedPaidAmountMinor: number;
+  outstandingAmountMinor: number;
+};
+
+export type BookingPaymentState = {
+  summary: BookingPaymentSummary | null;
+  payments: BookingPayment[];
+};
 
 const bookingListColumns =
   "id, customer_id, reference, title, currency, total_amount_minor, deposit_amount_minor, scheduled_for, status, created_at" as const;
@@ -249,6 +265,52 @@ export async function listBookingChangesForBusiness(
   }
 
   return data;
+}
+
+export async function getBookingPaymentState(
+  businessId: string,
+  bookingId: string,
+): Promise<BookingPaymentState> {
+  const supabase = await createClient();
+  const [summaryResult, paymentsResult] = await Promise.all([
+    supabase.rpc("get_booking_payment_summary", { p_booking_id: bookingId }),
+    supabase
+      .from("booking_payments")
+      .select("*")
+      .eq("business_id", businessId)
+      .eq("booking_id", bookingId)
+      .order("recorded_at", { ascending: false })
+      .order("id", { ascending: false }),
+  ]);
+
+  const row = summaryResult.data?.[0];
+  const safeAmounts = row
+    ? [
+        row.effective_total_amount_minor,
+        row.initial_deposit_amount_minor,
+        row.confirmed_addon_deposit_amount_minor,
+        row.subsequent_payment_amount_minor,
+        row.recorded_paid_amount_minor,
+        row.outstanding_amount_minor,
+      ].every((value) => Number.isSafeInteger(value) && value >= 0)
+    : false;
+
+  if (summaryResult.error || !row || !safeAmounts) {
+    return { summary: null, payments: [] };
+  }
+
+  return {
+    summary: {
+      currency: row.currency,
+      effectiveTotalAmountMinor: row.effective_total_amount_minor,
+      initialDepositAmountMinor: row.initial_deposit_amount_minor,
+      confirmedAddonDepositAmountMinor: row.confirmed_addon_deposit_amount_minor,
+      subsequentPaymentAmountMinor: row.subsequent_payment_amount_minor,
+      recordedPaidAmountMinor: row.recorded_paid_amount_minor,
+      outstandingAmountMinor: row.outstanding_amount_minor,
+    },
+    payments: paymentsResult.error ? [] : (paymentsResult.data ?? []),
+  };
 }
 
 export async function listActiveBookingCustomerOptions(businessId: string) {

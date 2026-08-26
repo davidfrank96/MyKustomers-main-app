@@ -69,6 +69,7 @@ export type DeriveBookingJourneyInput = {
   reconfirmationRequired: boolean;
   pendingAmendment: boolean;
   awaitingAddon: boolean;
+  outstandingAmountMinor: number | null;
 };
 
 const standardStages: Record<BookingJourneyStageKey, string> = {
@@ -77,7 +78,7 @@ const standardStages: Record<BookingJourneyStageKey, string> = {
   work: "Work in progress",
   ready: "Ready for delivery",
   delivered: "Delivered",
-  completed: "Completed",
+  completed: "Payment & completion",
   feedback: "Feedback",
 };
 
@@ -87,7 +88,7 @@ const statusStageIndex: Record<Exclude<BookingStatus, "CANCELLED">, number> = {
   CONFIRMED: 2,
   IN_PROGRESS: 2,
   READY: 3,
-  DELIVERED: 4,
+  DELIVERED: 5,
   COMPLETED: 6,
 };
 
@@ -190,11 +191,11 @@ function derivePrimaryAction(
       };
     case "CONFIRMED":
       return {
-        kind: "transition",
-        toStatus: "IN_PROGRESS",
-        label: "Start work",
-        pendingLabel: "Starting work...",
-        description: "Start the job when you begin working on it.",
+        kind: "anchor",
+        href: "#operational-progress",
+        label: "Review fulfilment status",
+        description:
+          "This legacy booking keeps its confirmed status for compatibility. New confirmations begin work automatically.",
       };
     case "IN_PROGRESS":
       return {
@@ -214,12 +215,22 @@ function derivePrimaryAction(
         description: "Mark it as delivered once the customer receives the order.",
       };
     case "DELIVERED":
+      if (input.outstandingAmountMinor === null) return null;
+      if (input.outstandingAmountMinor > 0) {
+        return {
+          kind: "anchor",
+          href: "#booking-payments",
+          label: "Record payment",
+          description:
+            "Record the outstanding amount before completing this booking.",
+        };
+      }
       return {
         kind: "transition",
         toStatus: "COMPLETED",
         label: "Complete booking",
         pendingLabel: "Completing booking…",
-        description: "Complete the booking once fulfilment is finished.",
+        description: "Payment is fully recorded. Complete the booking to close fulfilment.",
       };
     case "COMPLETED":
       if (input.feedbackReceived || input.feedbackLinkStatus === "submitted") return null;
@@ -258,12 +269,13 @@ function deriveSummary(input: DeriveBookingJourneyInput) {
     case "CONFIRMED":
       return {
         title: "Customer confirmed",
-        description: "The customer approved the booking. Work has not started yet.",
+        description:
+          "The customer approved this legacy booking. New confirmations move directly into work in progress.",
       };
     case "IN_PROGRESS":
       return {
-        title: "Work in progress",
-        description: "Work has started and fulfilment is underway.",
+        title: "Customer confirmed - work in progress",
+        description: "The customer confirmed and fulfilment is underway.",
       };
     case "READY":
       return {
@@ -346,7 +358,9 @@ export function deriveBookingJourney(
         ? input.reconfirmationRequired
           ? "Work cannot start until the customer confirms the updated delivery schedule."
           : "Work cannot start until the customer confirms this booking."
-        : null,
+        : input.status === "DELIVERED" && input.outstandingAmountMinor === null
+          ? "Completion is unavailable until the current payment status can be verified."
+          : null,
     attention,
     complete,
   };

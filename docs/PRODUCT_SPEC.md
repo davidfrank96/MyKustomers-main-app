@@ -333,15 +333,17 @@ switching are not present.
 
 Booking detail uses these vendor-facing stages without renaming persisted
 statuses: Booking created, Customer confirmation, Work in progress, Ready for
-delivery, Delivered, Completed, and Feedback. Waiting confirmation, pending
+delivery, Delivered, Payment & completion, and Feedback. Waiting confirmation, pending
 amendments, pending add-ons, and reschedule reconfirmation are contextual states,
 not additional booking statuses. Cancellation is terminal and must not imply
 future fulfilment.
 
 Every non-terminal booking must show its current lifecycle position and either
-the next valid vendor action or a clear reason it is waiting. Customer confirmed
-does not mean work started; the vendor intentionally starts fulfilment. Feedback
-is the post-completion journey close and remains separate from booking status.
+the next valid vendor action or a clear reason it is waiting. A new customer
+confirmation preserves immutable agreement evidence and atomically activates
+`IN_PROGRESS`; there is no normal Start work action. Delivered bookings require
+authoritative outstanding payment to be zero before completion. Feedback is the
+post-completion journey close and remains separate from booking status.
 
 When an authenticated vendor keeps booking detail open, customer confirmation
 and private feedback may become visible without manual reload. The client checks

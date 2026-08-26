@@ -852,3 +852,23 @@ pixels without browser warnings or errors.
 - Runtime/E2E uses the configured backend with controlled fixture cleanup.
   Docker/local Supabase is not used. PWA push is not tested because it is not
   implemented.
+## Booking Lifecycle And Payment Recording Coverage
+
+- Unit coverage validates positive minor-unit payment input and high-entropy
+  operation IDs, plus journey behavior for outstanding, paid, and unavailable
+  payment summaries.
+- Integration coverage verifies authoritative totals/history, an accessible
+  application-owned record-payment dialog, empty numeric input, and fail-closed
+  summary behavior.
+- Static migration coverage fixes append-only grants/RLS, composite tenant
+  relationship, amount/idempotency constraints, security-definer search paths,
+  atomic confirmation activation, and completion enforcement.
+- Runtime coverage is guarded to explicit safe targets and uses temporary tenant
+  fixtures only. It proves confirmation race/history, direct-write denial,
+  anonymous/cross-tenant denial, operation retry idempotency, distinct concurrent
+  final-payment serialization, overpayment denial, completion blocking and
+  success, audit privacy, cancellation preservation, and cleanup.
+- Canonical desktop/mobile E2E confirms immediate `IN_PROGRESS`, no Start work,
+  early partial payment persistence through add-on/reschedule/reconfirmation,
+  delivered completion unavailability, final reconciliation, completion, and
+  feedback handoff. Docker/local Supabase is prohibited.

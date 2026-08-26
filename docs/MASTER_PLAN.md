@@ -200,10 +200,11 @@ Implemented and verified in Phase 5:
   avoid weakening the business/customer invariant.
 - Booking lifecycle transitions now route customer confirmation through Phase 6:
   `DRAFT -> AWAITING_CUSTOMER or CANCELLED`, customer confirmation via a valid
-  scoped link moves `AWAITING_CUSTOMER -> CONFIRMED`, then vendor workflow uses
-  `CONFIRMED -> IN_PROGRESS or CANCELLED`, `IN_PROGRESS -> READY or CANCELLED`,
+  scoped link records `AWAITING_CUSTOMER -> CONFIRMED -> IN_PROGRESS`
+  atomically, then vendor workflow uses `IN_PROGRESS -> READY or CANCELLED`,
   `READY -> DELIVERED`, and `DELIVERED -> COMPLETED`. `COMPLETED` and
-  `CANCELLED` are terminal.
+  `CANCELLED` are terminal. The `CONFIRMED -> IN_PROGRESS` RPC edge remains for
+  legacy rows, but new confirmations require no Start work action.
 - Booking status history is recorded by database trigger and authenticated
   browser clients cannot insert or mutate history rows directly.
 - Booking items are deferred. Phase 5 tracks booking-level title, description,
@@ -559,9 +560,11 @@ The permanent UX invariant is: every non-terminal booking state must clearly
 communicate its current lifecycle position and either the next valid vendor
 action or why the booking is waiting.
 
-Customer confirmation records approval of terms; it is not evidence that work
-started. Fulfilment still begins only through the explicit controlled
-`CONFIRMED -> IN_PROGRESS` action. Feedback remains a derived post-completion
+Customer confirmation records immutable approval evidence and, for new
+confirmations, atomically activates the operational `IN_PROGRESS` state. The
+normal journey has no Start work action. Delivered bookings enter a payment and
+completion checkpoint: append-only vendor-recorded receipts must reconcile the
+effective total before completion. Feedback remains a derived post-completion
 journey step and is not a booking status.
 
 Production verification completed on 2026-08-25 after PR #21 passed required CI

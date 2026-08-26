@@ -62,10 +62,20 @@ use a separate 24-hour hash-only confirmation capability, and never rewrite the
 original booking or amendment evidence.
 Booking detail now presents the persisted lifecycle as a server-derived vendor
 journey: Booking created, Customer confirmation, Work in progress, Ready for
-delivery, Delivered, Completed, and the derived post-completion Feedback step.
+delivery, Delivered, Payment & completion, and the derived post-completion
+Feedback step.
 Every non-terminal state identifies either its one valid next action or why it
-is waiting. Customer confirmation never starts work automatically; the vendor
-must use the existing controlled `CONFIRMED -> IN_PROGRESS` transition.
+is waiting. New customer confirmations preserve `CONFIRMED` evidence and then
+advance atomically to `IN_PROGRESS`; the normal Start work action is removed.
+Legacy `CONFIRMED` rows are not rewritten and retain backend transition
+compatibility.
+
+Booking payments are private append-only records of money the vendor reports as
+received outside My Kustomers. Authoritative payment totals include the initial
+booking deposit, confirmed add-on deposits, and subsequent `booking_payments`
+exactly once. Completion is denied while the currency-specific outstanding
+balance is positive. The product does not process, verify, refund, or correct
+payments in this version.
 
 ## Stack
 
@@ -224,7 +234,8 @@ public/              Icons and web manifest
 - Operational issues are internal tenant records and are not customer-facing.
 - Business insights are private tenant aggregates; they must not mix currencies
   or use revenue/accounting terminology.
-- Avoid fake payment functionality before the owning phase.
+- Never describe booking value as payments received. Payment records describe
+  vendor-entered receipts only and do not claim processing or verification.
 - Every user-uploaded image feature must define and enforce input bytes,
   dimensions, MIME/extension allowlists, server-side content validation,
   optimization, persisted limits, access control, replacement cleanup, and

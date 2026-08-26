@@ -1136,3 +1136,28 @@ identifier. Guessing would create misleading or broken chains.
 Consequences: Email clients may group by stable subject, but grouping is not
 guaranteed. A future webhook/retrieve design may persist verified RFC identifiers
 and add standards-based chaining after a separate schema/privacy review.
+
+## ADR-049 - Confirmation Auto-Activates Work And Payments Are Append-Only Evidence
+
+Status: Accepted
+
+Decision: A new successful customer confirmation records the legitimate
+`CONFIRMED` agreement step and immediately advances to `IN_PROGRESS` in the same
+database transaction. Existing `CONFIRMED` rows are not rewritten and retain the
+controlled compatibility transition. Record subsequent money received in
+append-only `booking_payments`; never rewrite customer-agreed deposits.
+
+Authoritative recorded paid is the initial deposit plus confirmed add-on
+deposits plus subsequent payment rows exactly once. Outstanding is the
+nonnegative difference from canonical total plus confirmed add-on totals.
+`DELIVERED -> COMPLETED` is denied while outstanding is positive.
+
+Rationale: Removing Start work avoids a stranded intermediate request while
+preserving agreement evidence. A ledger separates immutable terms from
+operational receipts and supports locked, tenant-derived completion integrity.
+
+Consequences: My Kustomers records vendor assertions but does not process or
+verify payments. Operation IDs prevent duplicate submissions. Direct ordinary
+insert/update/delete, overpayment, post-terminal recording, force-completion,
+negative corrections, refunds, credits, and waivers are absent. Historical
+completion is never treated as proof of full payment.

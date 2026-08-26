@@ -135,6 +135,14 @@ export const bookingInternalNotesSchema = z.object({
   internalNotes: optionalTrimmedString(5000),
 });
 
+export const bookingPaymentSchema = z.object({
+  amount: moneyField("Payment amount").refine(
+    (value) => value > 0,
+    "Payment amount must be greater than zero.",
+  ),
+  operationId: z.string().uuid("Payment operation is invalid. Refresh and try again."),
+});
+
 export const bookingTransitionSchema = z
   .object({
     fromStatus: z.enum(bookingStatuses).optional(),
@@ -202,6 +210,7 @@ export const bookingListParamsSchema = z.object({
 export type BookingCreateInput = z.infer<typeof bookingCreateSchema>;
 export type BookingUpdateInput = z.infer<typeof bookingUpdateSchema>;
 export type BookingRescheduleInput = z.infer<typeof bookingRescheduleSchema>;
+export type BookingPaymentInput = z.infer<typeof bookingPaymentSchema>;
 export type BookingListParams = z.infer<typeof bookingListParamsSchema>;
 
 export function parseBookingListParams(
