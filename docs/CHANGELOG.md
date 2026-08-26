@@ -2,7 +2,7 @@
 
 ## 2026-08-26 - Booking Lifecycle Simplification And Payment Recording
 
-Status: IMPLEMENTED - PRODUCTION VERIFICATION PENDING
+Status: VERIFIED - PRODUCTION
 
 - New customer confirmations now preserve `CONFIRMED` evidence/history and
   atomically finish in `IN_PROGRESS`; normal Start work UI is removed while
@@ -19,6 +19,11 @@ Status: IMPLEMENTED - PRODUCTION VERIFICATION PENDING
   added.
 - Added unit, integration, static migration-security, guarded runtime-security,
   and canonical desktop/mobile E2E regression coverage.
+- PR #31 passed all required CI and merged conflict-free as `c497d2e`. Vercel
+  deployed that exact `main` commit; controlled production desktop/mobile
+  journeys passed the full confirmation, fulfilment, payment reconciliation,
+  completion, and feedback path with real Brevo provider acceptance. Cleanup
+  confirmed zero controlled booking or Auth fixtures remained.
 
 ## 2026-08-26 - Customer Communication And Live Booking Synchronization
 

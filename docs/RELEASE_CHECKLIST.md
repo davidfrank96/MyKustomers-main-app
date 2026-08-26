@@ -431,7 +431,9 @@ production-readiness work.
       closed when authoritative summary is unavailable.
 - [x] Controlled runtime suite, full E2E responsive matrix, build, audit, and
       zero-fixture cleanup pass locally without Docker.
-- [ ] PR/CI, production deployment, and controlled production smoke pass.
+- [x] PR #31 passed all required CI, merged conflict-free as `c497d2e`, and the
+      exact Vercel Production deployment passed controlled desktop/mobile smoke
+      with real provider acceptance and zero-fixture cleanup.
 - [x] Admin Phase 6B remains `IMPLEMENTED - VERIFICATION PENDING` with its
       documented external Supabase Auth Admin `createUser` HTTP 500 blocker;
       Admin Phase 7 remains not started.

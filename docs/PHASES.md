@@ -1137,7 +1137,7 @@ business leftovers. Runtime Security was intentionally skipped by the
 protected-backend safe-target policy, with no Docker or bypass.
 ## Product Detour - Booking Lifecycle Simplification And Payment Recording
 
-Status: IMPLEMENTED - PRODUCTION VERIFICATION PENDING
+Status: VERIFIED - PRODUCTION
 
 Scope: Prospective customer confirmation now commits immutable confirmation
 evidence and deterministic `AWAITING_CUSTOMER -> CONFIRMED -> IN_PROGRESS`
@@ -1154,3 +1154,11 @@ Explicit exclusions: payment processing/verification, corrections, refunds,
 credits, waivers, negative records, force-completion, cross-currency totals, and
 historical paid-status fabrication. Admin Phase 6B remains `IMPLEMENTED -
 VERIFICATION PENDING`; Admin Phase 7 is not started.
+
+PR #31 passed all required CI, merged conflict-free as `c497d2e`, and Vercel
+deployed that exact `main` commit. Controlled production desktop and mobile
+journeys verified automatic `IN_PROGRESS`, no Start work action, early and final
+payment recording, authoritative completion blocking, completion, and feedback.
+Brevo returned real non-development provider acceptance IDs. Cleanup confirmed
+zero controlled test businesses, bookings, payments, email events, profiles,
+memberships, or Auth users. No Docker or environment change was used.
