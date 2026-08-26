@@ -395,7 +395,8 @@ repeat active-admin authorization; AAL1 may read, while Phase 6B writes still
 require AAL2. Missing evidence is `UNKNOWN`, provider acceptance is not called
 delivery, and no refresh, page load, or detected anomaly can mutate production.
 The source/freshness/privacy contract is in `docs/ADMIN_SECURITY_HEALTH.md`.
-Implementation awaits final PR/CI/deployment and authenticated production smoke.
+Admin Phase 7 is verified in production from PR #39 and merge `d5bfb8f`; the
+planned foundational admin roadmap is complete without beginning Admin Phase 8.
 
 ## Live Booking Communication Detour
 

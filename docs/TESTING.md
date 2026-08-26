@@ -965,3 +965,8 @@ pixels without browser warnings or errors.
   Advisor reported zero errors and the existing generic self-authorizing
   `SECURITY DEFINER` warnings. Direct catalog/grant and denial tests remain the
   authoritative boundary evidence for the new RPCs.
+- PR #39 CI passed Quality, Tests, Build, E2E, Dependency Security, and Vercel;
+  Runtime Security retained the expected protected-production skip. The exact
+  merge `d5bfb8f` deployed successfully. Authenticated canonical smoke covered
+  all seven admin destinations, refresh, clean browser diagnostics, and current
+  database-count agreement without creating or mutating a production fixture.

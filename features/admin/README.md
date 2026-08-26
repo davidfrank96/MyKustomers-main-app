@@ -19,6 +19,8 @@ Admin Phase 7 adds read-only Security & Health. It uses one bounded summary RPC,
 one bounded allowlisted security-activity RPC, strict minimized DTOs, current
 MFA evidence, and safe configuration-presence data. It adds no write and remains
 independent of current-business selection.
+Phase 7 is verified in production from PR #39 and merge `d5bfb8f`; Phase 6B
+retains its separate production-verification-pending status.
 
 Email Operations also recognizes `BOOKING_RESCHEDULED` and
 `BOOKING_DELIVERED`. Reschedule requests remain non-retryable because the raw
