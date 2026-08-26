@@ -1,11 +1,13 @@
 # Platform Admin Security
 
-STATUS: ADMIN PHASES 0/1-4 VERIFIED IN PRODUCTION; PHASE 5 IMPLEMENTED, DEPLOYMENT PENDING
+STATUS: ADMIN PHASES 0/1-5 VERIFIED IN PRODUCTION; PHASE 6A IMPLEMENTED, VERIFICATION PENDING
 
 This document defines the security boundary for My Customers platform
 administration. It is intentionally narrower than a complete admin-console
-design. The only implemented administrative capability is read-only. Later
-phases remain separately controlled and are not authorized by this work.
+design. The only implemented operational capability is read-only. Admin Phase
+6A adds native MFA and a privileged-action security framework, but no admin
+mutation. Later actions remain separately controlled and are not authorized by
+this work.
 
 ## Permanent Authorization Invariant
 
@@ -157,30 +159,37 @@ platform operations. Trust boundaries are the browser/server boundary, the
 normal authenticated Supabase client/database boundary, the service-role
 boundary, and the database-control-plane bootstrap boundary.
 
-| Threat | Severity | Current mitigation | Residual action |
-| --- | --- | --- | --- |
-| Ordinary user self-promotes | Critical | No table privileges or policies; self-scoped read-only RPC; metadata ignored | Keep live insert/update and metadata-forgery tests |
-| One or many business owners reach admin | Critical | Separate tables, helpers, route layout, and role types | Never call `requireBusinessRole` for platform authority |
-| Client forges role/status or user ID | High | Server parses authoritative RPC result and matches current Auth user ID | Keep role/status allowlist small and fail closed |
-| Disabled admin retains access | Critical | `ACTIVE` predicate is checked on every admin render; no long-lived admin claim | Add forced session termination before high-risk writes if required |
-| Stolen authenticated admin session | Critical | Normal Supabase session validation and immediate DB status recheck | Require Supabase MFA/AAL policy before privileged write phases |
-| Service-role key leaks to browser or logs | Critical | Existing server-only client, static boundary test, no admin guard import | Rotate immediately and review access if exposure is suspected |
-| Generic admin query crosses tenant boundaries | Critical | Phase 2 uses one aggregate-only RPC; no generic privileged client or data browser exists | Require narrow projection/RPC and target-specific tests per feature |
-| Aggregate leaks PII or financial data | High | RPC returns an allowlisted count object only; static and runtime tests cover its contract | Review every new metric and reject record-level projections |
-| Tenant selection changes global truth | High | Overview ignores business context and tests compare two current-business cookies | Keep platform aggregate functions independent of tenant preference |
-| Destructive mutation lacks audit evidence | Critical | Destructive actions are absent; admin row changes use DB trigger audit | Design audit atomically before enabling each write |
-| Compromised admin account changes authority | Critical | No self-service management UI or callable management RPC | Add MFA, re-authentication, dual control, and notifications first |
-| Admin identities are accidentally enumerated | High | No browser SELECT; RPC returns only active caller | Preserve grant inspection and anonymous/authenticated tests |
-| Bootstrap is raced or misdirected | High | UUID primary key, controlled transaction, independent identity review, audit | Require change approval and two-person review for production |
-| Audit details expose secrets or personal data | High | Minimal UUID/status metadata; no page logging | Keep metadata allowlisted and test for secret-shaped fields |
+| Threat                                        | Severity | Current mitigation                                                                        | Residual action                                                     |
+| --------------------------------------------- | -------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| Ordinary user self-promotes                   | Critical | No table privileges or policies; self-scoped read-only RPC; metadata ignored              | Keep live insert/update and metadata-forgery tests                  |
+| One or many business owners reach admin       | Critical | Separate tables, helpers, route layout, and role types                                    | Never call `requireBusinessRole` for platform authority             |
+| Client forges role/status or user ID          | High     | Server parses authoritative RPC result and matches current Auth user ID                   | Keep role/status allowlist small and fail closed                    |
+| Disabled admin retains access                 | Critical | `ACTIVE` predicate is checked on every admin render; no long-lived admin claim            | Add forced session termination before high-risk writes if required  |
+| Stolen authenticated admin session            | Critical | Normal Supabase session validation and immediate DB status recheck                        | Require Supabase MFA/AAL policy before privileged write phases      |
+| Service-role key leaks to browser or logs     | Critical | Existing server-only client, static boundary test, no admin guard import                  | Rotate immediately and review access if exposure is suspected       |
+| Generic admin query crosses tenant boundaries | Critical | Phase 2 uses one aggregate-only RPC; no generic privileged client or data browser exists  | Require narrow projection/RPC and target-specific tests per feature |
+| Aggregate leaks PII or financial data         | High     | RPC returns an allowlisted count object only; static and runtime tests cover its contract | Review every new metric and reject record-level projections         |
+| Tenant selection changes global truth         | High     | Overview ignores business context and tests compare two current-business cookies          | Keep platform aggregate functions independent of tenant preference  |
+| Destructive mutation lacks audit evidence     | Critical | Destructive actions are absent; admin row changes use DB trigger audit                    | Design audit atomically before enabling each write                  |
+| Compromised admin account changes authority   | Critical | No self-service management UI or callable management RPC                                  | Add MFA, re-authentication, dual control, and notifications first   |
+| Admin identities are accidentally enumerated  | High     | No browser SELECT; RPC returns only active caller                                         | Preserve grant inspection and anonymous/authenticated tests         |
+| Bootstrap is raced or misdirected             | High     | UUID primary key, controlled transaction, independent identity review, audit              | Require change approval and two-person review for production        |
+| Audit details expose secrets or personal data | High     | Minimal UUID/status metadata; no page logging                                             | Keep metadata allowlisted and test for secret-shaped fields         |
 
-## MFA Readiness
+## MFA And Privileged Assurance
 
-Supabase Auth remains the authentication provider, so a future admin policy can
-evaluate Supabase MFA assurance level without creating a separate password
-system. MFA is recommended before any high-risk write, impersonation-like
-capability, credential operation, or destructive control is enabled. Admin
-Phase 1 does not claim MFA enforcement.
+Admin Phase 6A uses native Supabase TOTP. `requirePrivilegedPlatformAdmin()`
+accepts only signature-verified Auth claims at AAL2 and a freshly resolved,
+matching `ACTIVE` platform-admin row. Password and Google OAuth establish AAL1
+unless Supabase reports otherwise. Tenant ownership, client flags, local state,
+and current-business cookies cannot satisfy this gate.
+
+Read-only admin pages retain the existing active-admin boundary at AAL1.
+`/admin/security` is active-admin-only, dynamic, private/no-store, no-referrer,
+and noindex. One verified TOTP factor is sufficient for V1. There is no
+self-service factor removal or public recovery bypass. See
+`docs/ADMIN_PRIVILEGED_ACTIONS.md` for enrollment, challenge, recovery,
+confirmation, reason, and audit rules.
 
 ## Future Privileged Mutation Rule
 
@@ -212,10 +221,11 @@ authorization before implementation.
   #17 and merge `edbef26`).
 - Admin Phase 5: read-only email operations (verified in production from PR #19
   and merge `52a1820`).
-- Admin Phase 6: narrowly approved safe write operations.
+- Admin Phase 6A: MFA and privileged-action framework (implemented; no write).
+- Admin Phase 6B: separately reviewed failed-email retry (deferred).
 - Admin Phase 7: security and system health.
 
-Phases 6-7 are plans, not implementation evidence.
+Phase 6B and Phase 7 are plans, not implementation evidence.
 
 Admin Phase 4 uses four additional operation-specific functions for booking and
 issue list/detail. Every function repeats the active-admin assertion, has an
@@ -234,3 +244,10 @@ customer contact evidence, tokens, or secrets. Reads do not mutate or audit the
 outbox. `SENT` means adapter/provider acceptance only. Retry and resend remain
 Phase 6 privileged writes and require MFA, idempotency, reason, audit, and
 external-side-effect design before implementation.
+
+Admin Phase 6A introduces no public database function, migration, outbox write,
+or service-role application path. Its authorization matrix denies ordinary and
+business-owner AAL2 users, disabled admins at AAL2, and active admins at AAL1;
+only an active role-allowed admin at AAL2 passes. Status revocation is evaluated
+again on every privileged request. The reusable dialog receives an explicit
+server action and cannot dispatch arbitrary client-supplied action names.

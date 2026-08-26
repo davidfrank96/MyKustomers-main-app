@@ -733,6 +733,31 @@ production email/domain fixture was created. Failed temporary Auth creation
 attempts produced no user UUID or residue, and one active production
 `SUPER_ADMIN` remains.
 
+SEC-050 - Privileged Admin Mutations Require AAL2 And Current Authority
+
+Status: IMPLEMENTED - VERIFICATION PENDING
+
+Admin Phase 6A preserves AAL1 access for existing read-only support pages and
+adds one stricter server gate for future writes. The gate accepts only a
+signature-verified Supabase claim at AAL2 plus a freshly resolved matching
+`ACTIVE SUPER_ADMIN` record. MFA does not create authority: ordinary users,
+business owners, and disabled admins remain denied even when their Auth session
+is AAL2. Client `aal`, role, and `mfaVerified` values are never inputs.
+
+Enrollment uses Supabase-native TOTP and requires challenge/verify before a
+factor counts. The QR and manual secret are transient, never persisted or
+logged, and served only on an active-admin route with private no-store,
+no-referrer, and noindex controls. One verified factor is sufficient for V1;
+self-service removal is omitted to reduce sole-admin lockout risk. Recovery is a
+controlled Supabase operator procedure, not an application bypass.
+
+Future writes must use an explicit server action, application confirmation,
+action-specific validation, policy-required bounded reason, and atomic or
+truthfully staged audit evidence. The framework exposes no generic dispatcher
+or arbitrary audit metadata. Failed-email retry is described only as an
+unimplemented policy for Phase 6B. No migration, retry, suspension, deletion,
+membership mutation, booking override, or impersonation exists.
+
 SEC-050 - External Transactional Email Is Server-Only And Minimized
 
 `BREVO_API_KEY` and `RESEND_API_KEY` are accepted only by server environment

@@ -691,6 +691,35 @@ immutability. Full Playwright passes with 35 tests and 7 intentional skips,
 including the admin route and 390/768/1024/1440 matrix. Cleanup confirms zero
 temporary admin/Auth leftovers and exactly one approved active `SUPER_ADMIN`.
 
+## Admin MFA And Privileged-Action Coverage
+
+- `tests/unit/privileged-platform-admin-policy.test.ts` covers ordinary AAL1,
+  ordinary AAL2, business-owner AAL2, disabled-admin AAL2, active-admin AAL1,
+  and active-admin AAL2 decisions. It also proves forged client fields are
+  ignored, reasons are trimmed/bounded, failed-email retry remains unimplemented,
+  and audit evidence has no arbitrary secret metadata.
+- `tests/unit/admin-mfa-security.test.ts` accepts only supported assurance values,
+  counts only verified TOTP factors, distinguishes incomplete enrollment, and
+  ignores unrelated factor types.
+- `tests/security/platform-admin-mfa-boundary.test.ts` locks signature-verified
+  claims, current admin rechecks, native Supabase APIs, private route headers,
+  absence of browser/local authorization flags and logs, explicit dialog action
+  wiring, and the continued absence of retry or other admin mutations.
+- `tests/integration/privileged-action-dialog.test.tsx` verifies the accessible
+  application-owned dialog, consequence copy, explicit confirmation, cancel
+  semantics, and required 500-character reason boundary.
+- `tests/e2e/platform-admin.spec.ts` includes `/admin/security` in ordinary and
+  disabled denial, active navigation, and the 390/768/1024/1440 matrix. Its
+  mutating fixtures now require both explicit runtime opt-in and a declared
+  non-production Supabase target; production credentials alone cannot run it.
+
+Real enrollment verification must use a temporary Auth user plus exactly one
+temporary active platform-admin row. It may create and remove a TOTP factor but
+must not create business/customer/booking data or alter the approved production
+admin. Cleanup must remove factor, admin row, profile, Auth user, and test-only
+audits where safe. Docker is prohibited. A secret, QR payload, OTP, session, or
+token must never appear in test output.
+
 ## Booking Journey UX Coverage
 
 - `tests/unit/booking-journey.test.ts` exhaustively maps every booking status,

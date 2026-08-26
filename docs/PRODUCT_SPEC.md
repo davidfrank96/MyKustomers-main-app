@@ -309,6 +309,20 @@ The read-only surface now derives its provider label from the same server-only
 selection as delivery. Brevo support is implemented, but Production activation
 still requires verified sender/domain configuration and a controlled live send.
 
+Admin Phase 6A adds account protection and a privileged-write security
+framework, not a write capability. Active platform admins can configure a
+Supabase-native TOTP authenticator at `/admin/security`. Existing read-only
+admin pages remain available at normal authenticated assurance. Every future
+platform-admin mutation must additionally pass server-verified AAL2, current
+active admin authorization, action-specific validation, explicit confirmation,
+policy-required reason capture, audit evidence, and regression coverage.
+
+Google OAuth and password authentication remain first-factor methods unless
+Supabase reports an AAL2 session. MFA does not apply to ordinary vendors and
+does not grant platform authority to a business owner. Failed-email retry is
+deferred to Admin Phase 6B; no retry, suspension, membership mutation,
+impersonation, override, or deletion control is present.
+
 ## Vendor Booking Journey
 
 Booking detail uses these vendor-facing stages without renaming persisted

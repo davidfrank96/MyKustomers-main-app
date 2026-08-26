@@ -10,6 +10,8 @@ import { createClient } from "@/lib/supabase/server";
 import type { BusinessMemberRole } from "@/types/database";
 import { isBusinessOnboardingPending } from "@/features/businesses/onboarding";
 
+export type AuthenticatorAssuranceLevel = "aal1" | "aal2";
+
 export type AuthenticatedUser = {
   id: string;
   email?: string;
@@ -60,17 +62,26 @@ export class AuthorizationError extends Error {
   }
 }
 
+const getVerifiedAuthClaims = cache(async function getVerifiedAuthClaims() {
+  if (!isSupabasePublicEnvConfigured()) {
+    return null;
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.getClaims();
+
+  return error || !data?.claims?.sub ? null : data.claims;
+});
+
 export const getAuthenticatedUser = cache(
   async function getAuthenticatedUser(): Promise<AuthenticatedUser | null> {
     if (!isSupabasePublicEnvConfigured()) {
       return null;
     }
 
-    const supabase = await createClient();
-    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims();
-    const claims = claimsData?.claims;
+    const claims = await getVerifiedAuthClaims();
 
-    if (claimsError || !claims?.sub) {
+    if (!claims) {
       return null;
     }
 
@@ -82,6 +93,15 @@ export const getAuthenticatedUser = cache(
           ? claims.user_metadata
           : {},
     };
+  },
+);
+
+export const getAuthenticatedAssuranceLevel = cache(
+  async function getAuthenticatedAssuranceLevel(): Promise<AuthenticatorAssuranceLevel | null> {
+    const claims = await getVerifiedAuthClaims();
+
+    if (!claims) return null;
+    return claims.aal === "aal2" ? "aal2" : "aal1";
   },
 );
 

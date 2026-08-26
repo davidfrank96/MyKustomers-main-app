@@ -1052,3 +1052,26 @@ for one transactional send. Provider acceptance maps to existing `SENT`
 semantics, not inbox delivery. Delivery/bounce webhooks, automatic retries,
 quota telemetry, and Admin Retry remain separately reviewed work. No database
 migration or new infrastructure is introduced.
+
+## ADR-045 - Privileged Admin Writes Require Native AAL2 And Fresh Platform Authority
+
+Status: Accepted
+
+Decision: Preserve `requirePlatformAdmin()` for implemented read-only admin
+surfaces. Every future platform-admin mutation must instead pass the centralized
+`requirePrivilegedPlatformAdmin()` gate, which combines signature-verified
+Supabase Auth AAL2 with a current database-backed `ACTIVE` role check. Use
+Supabase TOTP enrollment/challenge APIs and an application-owned confirmation
+surface. Client role/AAL flags and tenant roles have no authority.
+
+Rationale: MFA proves stronger authentication but does not grant platform
+authorization. Conversely, an active admin row without current second-factor
+verification is insufficient for a write. Rechecking both on the server defeats
+client forgery and stale elevated sessions after admin disablement.
+
+Consequences: `/admin/security` may enroll and challenge TOTP without requiring
+vendors to use MFA. One verified factor is sufficient in V1; self-service
+removal is deferred for sole-admin safety. Reasons are policy-specific, bounded
+to 500 characters, and audit evidence is allowlisted. Failed-email retry remains
+a non-functional Phase 6B policy fixture. No migration, environment variable,
+generic mutation layer, or privileged domain write is introduced.
