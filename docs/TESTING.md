@@ -116,6 +116,10 @@ do not reduce the verified tenant/RLS coverage.
   cleanup. Replacement inspection uses a fresh query version because the
   deterministic public path can transiently return an earlier CDN object.
   Initial upload runs at desktop width and replacement/removal at mobile width.
+  The post-merge production smoke for `faad4cb` repeated these checks at 1440px
+  and 390px: four logo API operations returned 200, optimized objects decoded as
+  WebP within policy, public reads returned 200, and independent cleanup found
+  zero controlled business, profile, Auth-user, or Storage-object leftovers.
 - Public confirmation identity coverage for persisted logo, fallback initials,
   safe website/Instagram links, unchanged booking/contact confirmation, and no
   visible tenant ID.

@@ -469,7 +469,7 @@ production-readiness work.
 - [x] Storage RLS, owner/member/cross-tenant/anonymous boundaries, public read,
       deterministic replacement, removal ordering, and no-raw-original policy
       remain unchanged.
-- [ ] Full local gates, required CI, exact Vercel deployment, controlled
+- [x] Full local gates, required CI, exact Vercel deployment, controlled
       desktop/mobile/onboarding production smoke, and zero-fixture cleanup pass.
 - [x] No migration, environment change, Docker, broad redesign, detour rollback,
       or Admin Phase 7 work is included.
