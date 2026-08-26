@@ -7,6 +7,11 @@ const onboardingForm = fs.readFileSync(
   "utf8",
 );
 const logoForm = fs.readFileSync("components/forms/business-logo-form.tsx", "utf8");
+const businessPage = fs.readFileSync("app/(dashboard)/business/page.tsx", "utf8");
+const logoRoute = fs.readFileSync(
+  "app/api/businesses/[businessId]/logo/route.ts",
+  "utf8",
+);
 const authActions = fs.readFileSync("features/auth/actions.ts", "utf8");
 const authServer = fs.readFileSync("lib/auth/server.ts", "utf8");
 
@@ -36,6 +41,12 @@ describe("new-business logo policy", () => {
     expect(logoForm).toContain("/api/businesses/${businessId}/logo");
     expect(logoForm).toContain('body.set("logo", file)');
     expect(onboardingForm).not.toContain('name="logo"');
+    expect(onboardingForm).toContain("<BusinessLogoForm");
+    expect(businessPage).toContain("<BusinessLogoForm");
+    expect(logoRoute).toContain('requireBusinessRole(parsedBusinessId.data, ["owner"]');
+    expect(logoRoute).toContain("optimizeBusinessLogo({");
+    expect(logoRoute).toContain("businessLogoPath(authorization.businessId)");
+    expect(logoRoute).toContain("upsert: true");
   });
 
   it("clears pending setup state on logout", () => {

@@ -87,3 +87,10 @@ canonical journeys passed, including the explicit eight-width overflow matrix,
 minimum-height disclosure targets, current-context opening, and manual access to
 every preserved action. PR #33 passed required CI, deployed as merge `84aa736`,
 and the controlled production desktop and mobile canonical journeys passed.
+
+The 2026-08-26 business-logo hotfix retains the existing contained preview,
+native picker, and full-width mobile action layout. Automated coverage performs
+initial upload at 1440px and replacement/removal at 390px while asserting that
+pending controls settle and the stored object changes in place. The broader
+authenticated route matrix continues covering 320, 360, 375, 390, 430, 768,
+1024, and 1440 pixels; production smoke remains pending until deployment.

@@ -129,3 +129,10 @@ recoverable errors inside the dialog.
 At mobile widths, dialog actions stack to full width inside the viewport-height
 scroll boundary. File-upload previews and controls must also remain contained at
 320 pixels.
+
+Business-logo controls use the shared bounded preview, native file input, and
+stacked mobile actions. Pending state is announced with `aria-busy`; failures
+use an in-app alert, restore the controls, and provide an explicit retry. The
+120-second request bound accommodates slower mobile uploads without allowing an
+indefinite `Saving...` state. Image quality and storage policy belong to the
+shared server processor, not viewport-specific browser code.

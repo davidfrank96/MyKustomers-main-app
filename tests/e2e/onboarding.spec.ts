@@ -218,6 +218,28 @@ test.describe("business onboarding", () => {
       0,
     );
 
+    const { data: storedLogo, error: storedLogoError } = await admin.storage
+      .from("business-logos")
+      .download(completedBusiness.logo_path);
+    expect(storedLogoError).toBeNull();
+    expect(storedLogo).not.toBeNull();
+    const storedLogoBuffer = Buffer.from(await storedLogo!.arrayBuffer());
+    const storedLogoMetadata = await sharp(storedLogoBuffer).metadata();
+    expect(storedLogoMetadata.format).toBe("webp");
+    expect(storedLogoMetadata.width).toBeLessThanOrEqual(512);
+    expect(storedLogoMetadata.height).toBeLessThanOrEqual(512);
+    expect(storedLogoBuffer.byteLength).toBeLessThanOrEqual(200 * 1024);
+    const { data: storedLogoObjects } = await admin.storage
+      .from("business-logos")
+      .list(completedBusiness.id);
+    expect(storedLogoObjects?.map((object) => object.name)).toEqual(["logo.webp"]);
+    const {
+      data: { publicUrl },
+    } = admin.storage
+      .from("business-logos")
+      .getPublicUrl(completedBusiness.logo_path);
+    expect((await fetch(publicUrl)).ok).toBe(true);
+
     await page.goto("/onboarding");
     await expect(page).toHaveURL(/\/dashboard/);
   });
