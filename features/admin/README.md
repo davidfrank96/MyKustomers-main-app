@@ -11,6 +11,9 @@ Admin Phase 5 adds verified production read-only email operations. Admin Phase
 framework, but no write operation. It is verified in production from PR #27,
 merge `b90ab5f`, controlled temporary-admin runtime evidence, and authenticated
 production smoke.
+Admin Phase 6B adds exactly one write: an AAL2-gated, reason-required retry of a
+safely classified failed email on event detail. It preserves attempt history,
+pins the original provider, and cannot alter domain state.
 
 ## Modules
 
@@ -20,7 +23,8 @@ production smoke.
   `requirePlatformAdmin`, `requirePlatformAdminRole`, and the stricter
   `requirePrivilegedPlatformAdmin` AAL2 gate.
 - `lib/admin/privileged-access-policy.ts` owns the pure authorization matrix,
-  bounded reason schema, deferred action policy, and allowlisted audit evidence.
+  bounded reason schema, implemented retry action policy, and allowlisted audit
+  evidence.
 - `features/admin/security.ts` parses factor/assurance metadata, while
   `features/admin/security-server.ts` protects the status read.
 - `app/admin/security` and `components/admin/admin-mfa-security.tsx` implement
@@ -36,7 +40,12 @@ production smoke.
 - `features/admin/operations.ts` parses booking/issue list, filter, and detail
   DTOs and rejects unexpected privileged response fields.
 - `features/admin/email-operations.ts` parses bounded email summary, directory,
-  and detail DTOs and derives controlled operational health labels.
+  and detail DTOs and derives controlled operational health and retry labels.
+- `lib/email/retry-policy.ts` is the authoritative retryability classifier and
+  attempt-scoped idempotency-key builder.
+- `features/admin/email-retry-actions.ts` is the concrete server action. It
+  repeats AAL2/current-authority checks, re-derives event evidence, and invokes
+  only the original provider after an atomic claim.
 - `features/admin/queries.ts` is server-only and invokes one narrow RPC per
   overview, directory, or detail after platform authorization.
 - `app/admin` implements Overview, Businesses, Users, Bookings, Issues, and
@@ -54,8 +63,8 @@ production smoke.
 - MFA does not create platform authority; privileged writes require both a
   current active admin record and signature-verified AAL2.
 - Disabled, malformed, missing, duplicate, and failed lookups deny access.
-- Admin writes, customer directory browsing, raw Auth data, and generic database
-  browsing are absent.
+- Admin writes other than the single failed-email retry, customer directory
+  browsing, raw Auth data, and generic database browsing are absent.
 - Overview values must be identical for every current-business selection.
 - Directory values must be identical for every current-business selection.
 - User Auth projections expose provider names only, never identity payloads,
@@ -65,10 +74,12 @@ production smoke.
 - Effective booking totals include confirmed add-ons only; child records never
   increase booking row counts.
 - Email directories expose no recipient or failure fields. Detail exposes only
-  masked recipient and a controlled failure category; content, provider IDs,
-  raw failures, retry, resend, and status mutation remain absent.
-- There is no self-service MFA removal, generic action dispatcher, retry
-  endpoint, suspension, deletion, membership mutation, or impersonation.
+  masked recipient, controlled failure category, safe attempt history, and
+  server-derived retry eligibility; content, provider IDs, and raw failures
+  remain absent.
+- There is no self-service MFA removal, generic action dispatcher, arbitrary or
+  bulk resend, automatic/provider-fallback retry, suspension, deletion,
+  membership mutation, or impersonation.
 
 ## Adding A Future Capability
 

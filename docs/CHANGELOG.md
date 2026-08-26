@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-08-26 - MFA-Gated Safe Failed-Email Retry
+
+Status: IMPLEMENTED - PRODUCTION DEPLOYMENT VERIFICATION PENDING
+
+- Added one centralized retry policy that distinguishes proven retryable
+  non-acceptance from ambiguous and permanent/configuration/recipient failures.
+- Added provider-pinned delivery-attempt history, a service-role-only atomic
+  retry claim/finalize boundary, attempt-scoped idempotency, and truthful
+  requested/succeeded/failed audit evidence.
+- Added one email-detail action requiring an active `SUPER_ADMIN`, server-verified
+  AAL2, explicit application confirmation, and a bounded required reason. There
+  is no provider switch/failover, bulk/force retry, recipient/content editing, or
+  domain mutation.
+- Added policy/action/provider-mock/static-security coverage and an opt-in
+  production-backed E2E proving AAL1 denial, native TOTP AAL2, four responsive
+  widths, two-tab one-send concurrency, preserved evidence, audit privacy,
+  booking isolation, and complete cleanup without Docker.
+
 ## 2026-08-26 - Admin MFA And Privileged-Action Framework
 
 Status: VERIFIED - PRODUCTION

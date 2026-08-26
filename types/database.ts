@@ -537,6 +537,46 @@ export type Database = {
         };
         Relationships: [];
       };
+      email_delivery_attempts: {
+        Row: {
+          id: string;
+          email_event_id: string;
+          attempt_number: number;
+          provider: string;
+          origin: Database["public"]["Enums"]["email_delivery_attempt_origin"];
+          requested_by: string | null;
+          reason: string | null;
+          status: Database["public"]["Enums"]["email_delivery_attempt_status"];
+          provider_message_id: string | null;
+          failure_code: string | null;
+          failure_message: string | null;
+          started_at: string;
+          completed_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          email_event_id: string;
+          attempt_number: number;
+          provider: string;
+          origin: Database["public"]["Enums"]["email_delivery_attempt_origin"];
+          requested_by?: string | null;
+          reason?: string | null;
+          status?: Database["public"]["Enums"]["email_delivery_attempt_status"];
+          provider_message_id?: string | null;
+          failure_code?: string | null;
+          failure_message?: string | null;
+          started_at?: string;
+          completed_at?: string | null;
+        };
+        Update: {
+          status?: Database["public"]["Enums"]["email_delivery_attempt_status"];
+          provider_message_id?: string | null;
+          failure_code?: string | null;
+          failure_message?: string | null;
+          completed_at?: string | null;
+        };
+        Relationships: [];
+      };
       confirmation_rate_limits: {
         Row: {
           bucket_key: string;
@@ -872,8 +912,31 @@ export type Database = {
       claim_email_event: {
         Args: {
           p_email_event_id: string;
+          p_provider?: string;
         };
         Returns: Database["public"]["Tables"]["email_events"]["Row"][];
+      };
+      claim_platform_admin_email_retry: {
+        Args: {
+          p_email_event_id: string;
+          p_admin_user_id: string;
+          p_reason: string;
+          p_expected_attempt_count: number;
+          p_expected_failure_code: string;
+          p_expected_provider: string;
+        };
+        Returns: Json;
+      };
+      finalize_email_delivery_attempt: {
+        Args: {
+          p_email_event_id: string;
+          p_attempt_id: string;
+          p_result: string;
+          p_provider_message_id?: string | null;
+          p_failure_code?: string | null;
+          p_failure_message?: string | null;
+        };
+        Returns: boolean;
       };
       consume_confirmation_rate_limit: {
         Args: {
@@ -1073,6 +1136,8 @@ export type Database = {
         | "BOOKING_ADDON_REQUESTED"
         | "BOOKING_ADDON_CONFIRMED";
       email_event_status: "PENDING" | "SENDING" | "SENT" | "FAILED";
+      email_delivery_attempt_origin: "DOMAIN_EVENT" | "ADMIN_RETRY";
+      email_delivery_attempt_status: "SENDING" | "SENT" | "FAILED";
       audit_event_type:
         | "AUTH_SIGNUP"
         | "AUTH_LOGIN"
@@ -1119,7 +1184,10 @@ export type Database = {
         | "ISSUE_RESOLVED"
         | "PLATFORM_ADMIN_CREATED"
         | "PLATFORM_ADMIN_UPDATED"
-        | "PLATFORM_ADMIN_DISABLED";
+        | "PLATFORM_ADMIN_DISABLED"
+        | "PLATFORM_ADMIN_EMAIL_RETRY_REQUESTED"
+        | "PLATFORM_ADMIN_EMAIL_RETRY_SUCCEEDED"
+        | "PLATFORM_ADMIN_EMAIL_RETRY_FAILED";
     };
     CompositeTypes: Record<string, never>;
   };

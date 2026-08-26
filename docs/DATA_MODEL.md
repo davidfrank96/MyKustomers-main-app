@@ -467,3 +467,17 @@ allowlisted failure category only. Raw failure text, provider message IDs,
 customer IDs, content, and tokens never enter either DTO. The migration is
 applied transactionally to the production-backed project. The outbox remained
 at eight rows and the sole active `SUPER_ADMIN` remained one across application.
+
+Admin Phase 6B adds `email_delivery_attempts` as append-only evidence scoped to
+one logical `email_events` row. `(email_event_id, attempt_number)` is unique.
+Each attempt records its pinned provider, `DOMAIN_EVENT` or `ADMIN_RETRY` origin,
+safe requested-by/reason evidence for admin retries, status, bounded result, and
+timestamps. Prior attempts are never rewritten when a later attempt begins.
+
+Normal delivery can claim only `PENDING`. Manual retry locks a matching `FAILED`
+event and latest failed attempt, verifies exact count/code/provider and current
+active super-admin, increments the logical attempt count, and appends one
+`SENDING` retry attempt. Finalization atomically reconciles attempt and event to
+`SENT` or `FAILED`. Browser roles have no table access and cannot invoke the
+mutation RPCs. Booking, customer, confirmation, amendment, add-on, and feedback
+rows are outside this communication-only transition.

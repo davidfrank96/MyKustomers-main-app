@@ -110,6 +110,17 @@ export function getTransactionalEmailProviderSelection() {
   });
 }
 
+export function getTransactionalEmailProviderSelectionForName(
+  provider: TransactionalEmailProviderName,
+) {
+  return resolveTransactionalEmailProvider({
+    provider,
+    brevoApiKey: serverEnv.BREVO_API_KEY,
+    resendApiKey: serverEnv.RESEND_API_KEY,
+    from: serverEnv.TRANSACTIONAL_EMAIL_FROM,
+  });
+}
+
 export function getTransactionalEmailProvider() {
   return getTransactionalEmailProviderSelection().provider;
 }

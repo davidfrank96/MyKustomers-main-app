@@ -320,8 +320,14 @@ policy-required reason capture, audit evidence, and regression coverage.
 Google OAuth and password authentication remain first-factor methods unless
 Supabase reports an AAL2 session. MFA does not apply to ordinary vendors and
 does not grant platform authority to a business owner. Failed-email retry is
-deferred to Admin Phase 6B; no retry, suspension, membership mutation,
-impersonation, override, or deletion control is present.
+the single Admin Phase 6B write. It appears only on email-event detail after a
+server-derived `RETRYABLE` decision and requires active `SUPER_ADMIN` authority,
+AAL2, explicit confirmation, and a non-empty reason of at most 500 characters.
+The action retries the same logical event through its original provider and
+preserves every prior attempt. Ambiguous/permanent failures and non-`FAILED`
+states remain read-only. Suspension, membership mutation, impersonation,
+override, deletion, bulk retry, recipient/content editing, and provider
+switching are not present.
 
 ## Vendor Booking Journey
 

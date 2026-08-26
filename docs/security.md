@@ -754,9 +754,9 @@ controlled Supabase operator procedure, not an application bypass.
 Future writes must use an explicit server action, application confirmation,
 action-specific validation, policy-required bounded reason, and atomic or
 truthfully staged audit evidence. The framework exposes no generic dispatcher
-or arbitrary audit metadata. Failed-email retry is described only as an
-unimplemented policy for Phase 6B. No migration, retry, suspension, deletion,
-membership mutation, booking override, or impersonation exists.
+or arbitrary audit metadata. Phase 6B uses this gate only for its separately
+reviewed failed-email retry action; suspension, deletion, membership mutation,
+booking override, and impersonation remain absent.
 
 Controlled production-backed verification passed native TOTP enrollment,
 invalid-code denial, AAL2 elevation, current-status revocation, logout/login
@@ -766,6 +766,30 @@ executable CI, merged conflict-free as `b90ab5f`, and the separate `main` CI and
 Vercel Production deployment passed. Authenticated production smoke confirmed
 the security route, session/read behavior, private response controls, clean
 browser diagnostics, and four-width responsive containment.
+
+SEC-051 - Failed Email Retry Is Classification-Gated And Duplicate-Safe
+
+Status: IMPLEMENTED - PRODUCTION DEPLOYMENT VERIFICATION PENDING
+
+`FAILED` alone never authorizes another customer communication. The single
+Phase 6B action accepts only a proven transient non-acceptance class, requires a
+fresh active `SUPER_ADMIN` check plus AAL2 and a bounded reason, and atomically
+locks exact event/attempt/failure/provider evidence. `SENT`, `PENDING`,
+`SENDING`, ambiguous outcomes, permanent/configuration/recipient failures, and
+unreconstructable secure-link request events fail closed.
+
+The browser supplies only the event ID and reason. It cannot supply status,
+eligibility, provider, role, or assurance. Browser roles have no direct attempt
+table access and cannot execute retry/finalize RPCs; those functions are
+service-role only. A provider is never switched during retry. Attempt history
+and prior failure evidence are retained, while requested/succeeded/failed audits
+contain bounded IDs, counts, provider, classification, and reason but no full
+recipient, body, TOTP, credential, or raw provider response.
+
+Production-backed controlled runtime verification proved AAL1 denial before
+claim, AAL2 success, two concurrent tabs producing one claim/provider call,
+booking-row immutability, audit minimization, and full temporary-fixture cleanup.
+No historical event was retried and no Docker/local Supabase was used.
 
 SEC-050 - External Transactional Email Is Server-Only And Minimized
 

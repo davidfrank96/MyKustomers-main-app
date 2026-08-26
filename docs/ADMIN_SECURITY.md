@@ -223,10 +223,11 @@ authorization before implementation.
   and merge `52a1820`).
 - Admin Phase 6A: MFA and privileged-action framework (verified in production
   from PR #27 and merge `b90ab5f`; no write).
-- Admin Phase 6B: separately reviewed failed-email retry (deferred).
+- Admin Phase 6B: MFA-gated safe failed-email retry (implemented; production
+  deployment verification pending).
 - Admin Phase 7: security and system health.
 
-Phase 6B and Phase 7 are plans, not implementation evidence.
+Phase 7 remains a plan, not implementation evidence.
 
 Admin Phase 6A runtime verification used a controlled temporary confirmed Auth
 user with exactly one temporary `ACTIVE SUPER_ADMIN` row and no business or
@@ -254,9 +255,7 @@ function returns bounded status counts, event-type distribution, and one stable
 page without recipient/failure fields. Detail returns only masked recipient and
 a fixed failure category. Neither exposes content, provider IDs, raw failures,
 customer contact evidence, tokens, or secrets. Reads do not mutate or audit the
-outbox. `SENT` means adapter/provider acceptance only. Retry and resend remain
-Phase 6 privileged writes and require MFA, idempotency, reason, audit, and
-external-side-effect design before implementation.
+outbox. `SENT` means adapter/provider acceptance only.
 
 Admin Phase 6A introduces no public database function, migration, outbox write,
 or service-role application path. Its authorization matrix denies ordinary and
@@ -264,3 +263,13 @@ business-owner AAL2 users, disabled admins at AAL2, and active admins at AAL1;
 only an active role-allowed admin at AAL2 passes. Status revocation is evaluated
 again on every privileged request. The reusable dialog receives an explicit
 server action and cannot dispatch arbitrary client-supplied action names.
+
+Admin Phase 6B introduces one service-role application path and one new attempt
+table. Browser roles have no attempt-table mutation privilege and cannot execute
+the retry/finalize functions. The concrete action requires
+`requirePrivilegedPlatformAdmin(["SUPER_ADMIN"])`, derives retry eligibility
+from the event and latest attempt, and passes exact evidence to an atomic locked
+claim. Only proven transient non-acceptance is retryable. Ambiguous/permanent
+failures and all non-`FAILED` states are denied. Attempts stay on the original
+provider, prior evidence is retained, and requested/result audits exclude full
+recipient, body, TOTP, secrets, and raw provider data.

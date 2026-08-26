@@ -103,14 +103,30 @@ describe("platform admin email operation response boundaries", () => {
 
   it("keeps recipient and failure classification detail-only", () => {
     expect(
-      parseAdminEmailEventDetail({
-        ...event,
-        status: "FAILED",
-        sent_at: null,
-        recipient_masked: "o***@example.com",
-        failure_category: "rate_limited",
-      }),
-    ).not.toBeNull();
+      parseAdminEmailEventDetail(
+        {
+          ...event,
+          status: "FAILED",
+          sent_at: null,
+          recipient_masked: "o***@example.com",
+          failure_category: "rate_limited",
+          retry_failure_code: "provider_http_429",
+          delivery_attempts: [
+            {
+              attempt_number: "1",
+              provider: "brevo",
+              origin: "DOMAIN_EVENT",
+              status: "FAILED",
+              started_at: createdAt,
+              completed_at: createdAt,
+              failure_category: "rate_limited",
+              retry_failure_code: "provider_http_429",
+            },
+          ],
+        },
+        () => true,
+      )?.retry_eligibility,
+    ).toMatchObject({ eligible: true, classification: "RETRYABLE" });
 
     expect(
       parseAdminEmailOperationsPage({
@@ -128,6 +144,8 @@ describe("platform admin email operation response boundaries", () => {
         ...event,
         recipient_masked: "o***@example.com",
         failure_category: null,
+        retry_failure_code: null,
+        delivery_attempts: [],
         provider_message_id: "must-not-cross-boundary",
       }),
     ).toBeNull();

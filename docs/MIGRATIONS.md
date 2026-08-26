@@ -196,3 +196,19 @@ domain-data change. The user explicitly approved the file and it applied in one
 transaction. Post-apply inspection confirmed postgres ownership, empty search
 paths, authenticated-only public RPC grants, absent PUBLIC/anonymous grants,
 unchanged eight outbox rows, and one unchanged active production admin.
+
+## 2026-08-26 Admin Safe Failed-Email Retry Migration
+
+`20260826004851_admin_safe_failed_email_retry.sql` was explicitly approved by
+its SHA-256 and applied as one transaction to the configured production-backed
+project. It adds provider-pinned `email_delivery_attempts`, three retry audit enum
+values, a PENDING-only normal claim that records attempts, a service-role-only
+atomic admin retry claim, atomic attempt finalization, and safe attempt evidence
+on active-admin event detail.
+
+The attempt table has RLS enabled and no anonymous/authenticated table grants.
+Retry/finalize execute is service-role only; the read RPC remains authenticated
+behind its internal active-admin check. Post-apply counts stayed at 19 email
+events, zero attempts, and one active `SUPER_ADMIN`; the historical PENDING event
+was not claimed or replayed. Controlled runtime fixtures were removed after
+verification. No Docker/local Supabase was used.
