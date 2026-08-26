@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import type { Route } from "next";
 import { ArrowLeft } from "lucide-react";
 import { BookingJourney } from "@/components/bookings/booking-journey";
+import { BookingLiveSync } from "@/components/bookings/booking-live-sync";
 import { BookingForm } from "@/components/forms/booking-form";
 import { BookingAmendmentPanel } from "@/components/forms/booking-amendment-panel";
 import { BookingAddonPanel } from "@/components/forms/booking-addon-panel";
@@ -76,6 +77,7 @@ import {
   submitBookingAddonAction,
 } from "@/features/addons/actions";
 import { getBookingAddonSummary } from "@/features/addons/queries";
+import { createBookingLiveState } from "@/features/bookings/live-sync";
 
 type BookingDetailPageProps = {
   params: Promise<{ bookingId: string }>;
@@ -252,9 +254,16 @@ export default async function BookingDetailPage({
     pendingAmendment: amendmentSummary.displayStatus === "pending",
     awaitingAddon: addonSummary.hasAwaitingAddon,
   });
+  const liveState = createBookingLiveState({
+    status: booking.status,
+    updatedAt: booking.updated_at,
+    customerConfirmedAt: booking.customer_confirmed_at,
+    feedbackSubmittedAt: feedback?.submitted_at ?? null,
+  });
 
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-5 py-6 sm:px-8 lg:px-10">
+      <BookingLiveSync bookingId={booking.id} initialState={liveState} />
       <div>
         <Button asChild variant="ghost" size="sm">
           <Link href={"/bookings" as Route}>

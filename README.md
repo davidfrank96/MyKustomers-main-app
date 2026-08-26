@@ -370,6 +370,21 @@ retryable. Ambiguous outcomes, permanent/configuration/recipient failures, and
 switch, automatic failover, bulk retry, recipient/content editing, or domain
 state mutation.
 
+## Live Booking Communication Detour
+
+Booking detail now checks a protected, tenant-filtered minimal state snapshot
+while the page is visible. Customer confirmation and private feedback submitted
+in another tab refresh the existing server-rendered page and show an in-app
+toast; polling pauses in background tabs and stops on navigation. This is not a
+Realtime publication, browser push, offline cache, or source of domain truth.
+
+Confirmed reschedules and the `DELIVERED` transition create durable
+`BOOKING_RESCHEDULED` and `BOOKING_DELIVERED` outbox events in their domain
+transactions. Brevo remains primary, Resend remains standby, and one event still
+selects one provider. Booking emails use a stable booking subject family plus
+opaque correlation headers. Standard `Message-ID`/`In-Reply-To` chaining is not
+claimed because the active Brevo API does not support those standard headers.
+
 Booking completion now uses an accessible application-owned confirmation
 dialog. The final `DELIVERED -> COMPLETED` mutation runs only after confirmation
 inside My Customers; browser-native confirm, alert, and prompt dialogs are not

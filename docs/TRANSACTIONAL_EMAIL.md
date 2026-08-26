@@ -92,6 +92,23 @@ supports delivery and bounce webhooks, but secure ingestion, delivered/bounce
 state semantics, scheduled/automatic retries, quota telemetry, force/bulk retry,
 and provider failover remain deferred.
 
+## Reschedule, Delivery, And Booking Grouping
+
+A previously customer-confirmed reschedule creates the replacement confirmation
+link and one `BOOKING_RESCHEDULED` event in the same transaction as the booking
+change. The event references the exact change and link; the raw token is passed
+to the provider boundary only in memory. Initial scheduling without prior
+immutable confirmation does not send. A `DELIVERED` transition creates one
+`BOOKING_DELIVERED` event from the immutable confirmation recipient. Provider
+failure changes only outbox state.
+
+Every booking message gets a stable booking subject and opaque custom thread and
+message correlation headers. This is best-effort grouping only. Brevo's API does
+not accept standard email headers, and the current provider evidence does not
+store a verified RFC message identifier, so `Message-ID`, `In-Reply-To`, and
+`References` are not guessed. Brevo remains primary, Resend remains standby,
+and there is no failover or double-send.
+
 ## Verification
 
 Unit/integration tests cover all provider selections, no-network delivery,

@@ -541,6 +541,15 @@ PRODUCTION.
 
 Admin Phase 7 system health remains planned and is not started.
 
+Customer communication detour: implemented pending production verification.
+The vendor booking page now refreshes from a current-business-scoped minimal
+snapshot after customer confirmation or feedback. Confirmed reschedules create a
+replacement confirmation capability and `BOOKING_RESCHEDULED` event atomically;
+delivery creates one `BOOKING_DELIVERED` event atomically. Provider selection,
+outbox claiming, Admin Phase 6B status, and all deferred Admin Phase 7 scope are
+unchanged. PWA push remains assessment-only because no service worker, push
+subscription model, permission UX, or revocation contract exists.
+
 ## Booking Journey UX Maintenance
 
 The vendor booking-detail experience derives one typed journey model from the

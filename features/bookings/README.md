@@ -156,13 +156,31 @@ Permanent invariant: every non-terminal booking state clearly communicates its
 current lifecycle position and either the next valid vendor action or why the
 booking is waiting.
 
+## Live Customer-Originated Updates
+
+Booking detail includes a client coordinator around the existing server page.
+While visible, it checks a minimized current-business snapshot every five
+seconds. A new confirmation or feedback revision triggers one in-app notice and
+`router.refresh()`; hidden tabs pause and navigation aborts outstanding work.
+The snapshot never replaces RLS, RPC transitions, or server-rendered detail.
+
+Rescheduling a previously confirmed booking uses
+`reschedule_booking_with_notification`, which preserves the existing
+`reschedule_booking` domain rules while atomically creating a replacement
+confirmation capability and one durable email event. Delivery uses the existing
+status transition RPC and creates one durable delivery event. Initial draft
+reschedules without prior confirmation do not send.
+
 ## Explicit Non-Goals
 
 - Payment processing.
 - Catalog/inventory-backed booking items.
-- Lifecycle emails other than booking confirmation, confirmed cancellation, and
-  amendment request/confirmation and add-on request/confirmation.
+- Lifecycle emails other than booking confirmation, confirmed cancellation,
+  reschedule reconfirmation, delivery notice, amendment request/confirmation,
+  and add-on request/confirmation.
 - Confirmed add-on correction/cancellation and independent add-on fulfilment.
+- Browser/OS push, offline booking data, automatic provider failover, and
+  guaranteed email-client thread grouping.
 
 See `docs/DATA_MODEL.md`, `docs/security.md`, and `docs/DECISIONS.md` for the
 booking data and security decisions.

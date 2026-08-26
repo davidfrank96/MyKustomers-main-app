@@ -45,10 +45,20 @@ synthetic message ID. Brevo delivery requires
 external configuration is server-only.
 
 `BOOKING_CONFIRMED`, `BOOKING_CANCELLED`, `BOOKING_AMENDMENT_REQUESTED`,
-`BOOKING_AMENDMENT_CONFIRMED`, `BOOKING_ADDON_REQUESTED`, and
-`BOOKING_ADDON_CONFIRMED` exist now. PDF attachments,
+`BOOKING_AMENDMENT_CONFIRMED`, `BOOKING_ADDON_REQUESTED`,
+`BOOKING_ADDON_CONFIRMED`, `BOOKING_RESCHEDULED`, and `BOOKING_DELIVERED`
+exist now. PDF attachments,
 automatic retries/scheduling, bounce handling, and
 ready/progress/completion/feedback emails are deferred.
+
+Confirmed reschedules atomically create a replacement confirmation link and a
+`BOOKING_RESCHEDULED` event tied to the exact change/link evidence. Delivery
+transitions atomically create `BOOKING_DELIVERED` from immutable confirmation
+contact evidence. Booking messages share a stable subject family and opaque
+correlation headers. Standard RFC thread headers are not manufactured because
+Brevo does not support them and no authoritative RFC message ID is persisted.
+The reschedule request cannot be retried through Phase 6B because its raw secure
+token exists only for the original in-memory delivery.
 
 Admin Phase 5 observes this existing outbox through narrow read-only RPCs. Its
 default window is seven days; Today and 30-day presets are also available.

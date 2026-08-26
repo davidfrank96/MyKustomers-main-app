@@ -387,6 +387,18 @@ production-readiness work.
 - [x] Controlled temporary-admin TOTP enrollment/challenge/AAL2, invalid-code,
       logout/login, cleanup, PR/CI, deployment, and production smoke pass.
 
+## Customer Communication Detour
+
+- [x] Approved migrations applied without Docker or production domain fixtures.
+- [x] Live snapshot is authenticated, current-business-scoped, minimized, and
+      private/no-store.
+- [x] Reschedule/delivery events stay inside the durable provider-neutral outbox.
+- [x] Brevo primary, Resend standby, and no failover/double-send remain intact.
+- [x] PWA push remains assessment-only; no service worker or subscription added.
+- [ ] Full runtime security, E2E, build, audit, PR/CI, production deployment, and
+      controlled production smoke pass.
+- [ ] Admin Phase 6B remains explicitly verification-pending.
+
 ## Booking Completion And Required Business Logo
 
 - [x] First and additional business setup cannot submit without a selected logo.

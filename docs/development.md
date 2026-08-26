@@ -213,3 +213,16 @@ isolation, and the tests described in `docs/TRANSACTIONAL_EMAIL.md`.
   audit rows, admin rows, tenant fixtures, and Auth users in dependency order.
 - Production bootstrap, migration, or deployment requires separate explicit
   approval and the runbook in `docs/ADMIN_SECURITY.md`.
+
+## Live Booking Development
+
+- Keep `/api/bookings/[bookingId]/sync` authenticated, current-business-scoped,
+  private/no-store, and free of service-role access or customer content.
+- Preserve visibility pause, focus refresh, overlap prevention, abort cleanup,
+  revision deduplication, and server-page revalidation when changing polling.
+- Do not introduce Realtime publication membership, service-worker tenant
+  caching, browser push, or persisted subscriptions without a separate security
+  and revocation design.
+- Booking communication must create `email_events` in the authoritative domain
+  transaction and deliver through `lib/email`; domain features must not import
+  Brevo or Resend adapters directly.

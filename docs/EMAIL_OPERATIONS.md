@@ -14,9 +14,15 @@ configured adapter or provider accepted the request. My Customers does not
 currently receive authoritative delivery, bounce, open, or read evidence, so
 those terms are not used as statuses.
 
-The six implemented event types are `BOOKING_CONFIRMED`, `BOOKING_CANCELLED`,
+The eight implemented event types are `BOOKING_CONFIRMED`, `BOOKING_CANCELLED`,
 `BOOKING_AMENDMENT_REQUESTED`, `BOOKING_AMENDMENT_CONFIRMED`,
-`BOOKING_ADDON_REQUESTED`, and `BOOKING_ADDON_CONFIRMED`.
+`BOOKING_ADDON_REQUESTED`, `BOOKING_ADDON_CONFIRMED`,
+`BOOKING_RESCHEDULED`, and `BOOKING_DELIVERED`.
+
+Reschedule request events remain non-retryable through Phase 6B because the raw
+one-time URL is not durable reconstruction evidence. Delivery events use the
+normal centralized eligibility policy. Both retain truthful provider-acceptance
+semantics and the existing minimized list/detail projections.
 
 ## Read Contract
 

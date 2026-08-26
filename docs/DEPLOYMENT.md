@@ -198,6 +198,14 @@ rollback.
 - Deployment documentation must change with the deployment architecture.
 - Build and deployment must never apply database migrations automatically.
 
+The customer-communication detour requires the two ordered
+`20260826032250_*` and `20260826032258_*` migrations before its application
+commit is deployed. The enum addition must commit before functions reference the
+new values. No Vercel environment change, provider credential change, Realtime
+publication, service worker, cron, or new infrastructure is required. Production
+smoke must use only new controlled events and must not replay historical outbox
+rows.
+
 ## Initial Verification Evidence
 
 The initial release passed local lint, typecheck, unit/integration/static tests,

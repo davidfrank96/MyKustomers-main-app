@@ -15,6 +15,12 @@ Admin Phase 6B adds exactly one write: an AAL2-gated, reason-required retry of a
 safely classified failed email on event detail. It preserves attempt history,
 pins the original provider, and cannot alter domain state.
 
+Email Operations also recognizes `BOOKING_RESCHEDULED` and
+`BOOKING_DELIVERED`. Reschedule requests remain non-retryable because the raw
+secure URL is intentionally not persisted. This event-type extension does not
+change Admin Phase 6B's implementation/production-verification-pending status or
+start Admin Phase 7.
+
 ## Modules
 
 - `lib/admin/access-policy.ts` owns the explicit role/status parser and role

@@ -343,6 +343,18 @@ the next valid vendor action or a clear reason it is waiting. Customer confirmed
 does not mean work started; the vendor intentionally starts fulfilment. Feedback
 is the post-completion journey close and remains separate from booking status.
 
+When an authenticated vendor keeps booking detail open, customer confirmation
+and private feedback may become visible without manual reload. The client checks
+a minimized tenant-authorized state only while visible, deduplicates each
+revision, refreshes the authoritative server page, and announces the change in
+an in-app toast. This does not provide OS notifications or offline behavior.
+
+A previously customer-confirmed booking reschedule sends a new secure
+confirmation request through the durable outbox. Marking a confirmed booking
+delivered sends a status notice. Neither email changes booking state after the
+domain transaction, edits the recipient/content, switches provider, or claims
+recipient delivery.
+
 ## Lifecycle Confirmation And New-Business Branding
 
 Lifecycle-critical confirmations must use accessible application-owned

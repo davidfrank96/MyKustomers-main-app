@@ -806,3 +806,18 @@ URLs, credentials, or provider payloads. Failure bodies are not parsed or
 returned; bounded categories feed the existing outbox classifier. Atomic claim
 and event uniqueness remain authoritative, while provider failure changes only
 the email event and never reverses committed domain state.
+
+SEC-051 - Live Booking Synchronization Is Minimal And Tenant-Scoped
+
+The live snapshot route requires verified authentication and the currently
+selected active business. It uses the ordinary authenticated Supabase client,
+RLS, and an explicit tenant filter; it never uses the service role. Its response
+is private/no-store and contains no name, email, phone, feedback text, booking
+terms, token, audit data, or provider data. Invalid UUIDs, unknown bookings, and
+bookings outside the current tenant return the same not-found response.
+
+Polling stops on unmount, pauses while hidden, aborts superseded requests, and
+does not persist tenant data in browser storage or a service worker. Client state
+cannot authorize or mutate a booking. Email correlation headers are opaque
+truncated SHA-256 values; raw UUIDs, recipients, tokens, content, and secrets are
+excluded.

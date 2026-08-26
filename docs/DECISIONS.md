@@ -1098,3 +1098,41 @@ are denied. Each retry appends an attempt with an attempt-scoped provider
 idempotency key and requested/result audits. Provider switching, automatic
 failover, force/bulk retry, recipient/content editing, and scheduled retry remain
 out of scope.
+
+## ADR-047 - Live Booking Visibility Uses Bounded Protected Polling
+
+Status: Accepted
+
+Decision: Refresh an open vendor booking page through a private, no-store,
+current-business-scoped state endpoint at a bounded interval while the document
+is visible. Refresh the authoritative Server Component on a new revision and
+announce customer confirmation or feedback in the application. Do not add a
+Realtime publication, database broadcast trigger, service worker, or push
+subscription in this detour.
+
+Rationale: The required changes are low-frequency and page-scoped. Polling keeps
+authorization in the existing authenticated/RLS path, pauses when not useful,
+and avoids creating a second tenant channel or offline cache contract.
+
+Consequences: Updates may take up to one polling interval. The route exposes no
+customer details and cross-business access is indistinguishable from not found.
+OS/browser push remains separately designed work.
+
+## ADR-048 - Booking Email Grouping Is Best-Effort And Provider-Neutral
+
+Status: Accepted
+
+Decision: Give every booking email the same stable subject family and opaque
+SHA-256-derived booking/message correlation headers. Preserve one logical event,
+one selected provider, and attempt-scoped idempotency. Do not manufacture or
+persist RFC `Message-ID`, and do not send standard `In-Reply-To`/`References`
+without an authoritative RFC message identifier.
+
+Rationale: Brevo's transactional API accepts custom non-standard headers but not
+standard message headers. Resend can forward standard threading headers, but the
+current send response stores its provider ID rather than a verified RFC message
+identifier. Guessing would create misleading or broken chains.
+
+Consequences: Email clients may group by stable subject, but grouping is not
+guaranteed. A future webhook/retrieve design may persist verified RFC identifiers
+and add standards-based chaining after a separate schema/privacy review.

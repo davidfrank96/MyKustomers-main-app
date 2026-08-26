@@ -6,6 +6,11 @@ import type { EmailProviderResult } from "@/lib/email/types";
 export type EmailProviderFetch = typeof fetch;
 
 const emailSchema = z.string().email().max(254);
+const correlationValuePattern = /^[a-f0-9]{32}$/;
+const allowedCorrelationHeaders = new Set([
+  "X-MyKustomers-Thread-Key",
+  "X-MyKustomers-Message-Key",
+]);
 
 export type TransactionalEmailSender = {
   email: string;
@@ -37,6 +42,17 @@ export function deterministicProviderUuid(value: string) {
   bytes[8] = (bytes[8]! & 0x3f) | 0x80;
   const hex = bytes.toString("hex");
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
+
+export function safeProviderCorrelationHeaders(
+  headers: Record<string, string> | undefined,
+) {
+  return Object.fromEntries(
+    Object.entries(headers ?? {}).filter(
+      ([name, value]) =>
+        allowedCorrelationHeaders.has(name) && correlationValuePattern.test(value),
+    ),
+  );
 }
 
 export function providerHttpFailure(status: number): EmailProviderResult {

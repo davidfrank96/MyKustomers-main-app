@@ -204,11 +204,16 @@ These names are conceptual and not yet necessarily final table names.
 - `subscription_events`: PLANNED.
 - `email_events`: VERIFIED for `BOOKING_CONFIRMED`, `BOOKING_CANCELLED`,
   `BOOKING_AMENDMENT_REQUESTED`, `BOOKING_AMENDMENT_CONFIRMED`,
-  `BOOKING_ADDON_REQUESTED`, and `BOOKING_ADDON_CONFIRMED`. Events are private,
+  `BOOKING_ADDON_REQUESTED`, `BOOKING_ADDON_CONFIRMED`, `BOOKING_RESCHEDULED`,
+  and `BOOKING_DELIVERED`. Events are private,
   tenant-related durable outbox rows with recipient, status, attempt metadata,
   provider message ID, and bounded safe failure fields. Domain-specific unique
   keys allow one logical event per confirmation, amendment, add-on link, or
   confirmed add-on as appropriate.
+  Reschedule events reference the exact `booking_change_id` and replacement
+  `confirmation_link_id` through composite tenant/booking foreign keys and
+  partial unique indexes. Delivery events reference immutable booking
+  confirmation evidence. These nullable associations add no browser table grant.
 
 ## Expected Relationships
 

@@ -16,6 +16,11 @@ const message: TransactionalEmailMessage = {
   subject: "Controlled booking confirmation",
   html: "<p>Controlled HTML</p>",
   text: "Controlled plaintext",
+  headers: {
+    "X-MyKustomers-Thread-Key": "a".repeat(32),
+    "X-MyKustomers-Message-Key": "b".repeat(32),
+    "In-Reply-To": "<untrusted@example.com>",
+  },
 };
 
 function jsonResponse(value: unknown, status = 200) {
@@ -110,6 +115,11 @@ describe("Brevo transactional email adapter", () => {
     expect(deterministicProviderUuid(message.idempotencyKey)).toBe(
       body.headers.idempotencyKey,
     );
+    expect(body.headers).toMatchObject({
+      "X-MyKustomers-Thread-Key": "a".repeat(32),
+      "X-MyKustomers-Message-Key": "b".repeat(32),
+    });
+    expect(body.headers).not.toHaveProperty("In-Reply-To");
   });
 
   it.each([
@@ -202,6 +212,11 @@ describe("retained provider adapters", () => {
       messageId: "resend-message",
     });
     expect(String(fetchMock.mock.calls[0]?.[0])).toBe("https://api.resend.com/emails");
+    const body = JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body));
+    expect(body.headers).toEqual({
+      "X-MyKustomers-Thread-Key": "a".repeat(32),
+      "X-MyKustomers-Message-Key": "b".repeat(32),
+    });
   });
 
   it("parses a controlled sender and rejects header injection", () => {
