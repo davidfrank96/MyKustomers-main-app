@@ -1,13 +1,23 @@
 import path from "node:path";
 import sharp from "sharp";
+import {
+  MAX_BUSINESS_LOGO_TRANSPORT_BYTES,
+  MAX_LOGO_OUTPUT_BYTES,
+  MAX_LOGO_OUTPUT_EDGE,
+  MAX_LOGO_SOURCE_EDGE,
+  MAX_LOGO_SOURCE_PIXELS,
+} from "@/features/businesses/logo-policy";
+
+export {
+  MAX_BUSINESS_LOGO_TRANSPORT_BYTES,
+  MAX_LOGO_OUTPUT_BYTES,
+  MAX_LOGO_OUTPUT_EDGE,
+  MAX_LOGO_SOURCE_EDGE,
+  MAX_LOGO_SOURCE_PIXELS,
+} from "@/features/businesses/logo-policy";
 
 export const BUSINESS_LOGO_BUCKET = "business-logos";
 export const BUSINESS_LOGO_FILE_NAME = "logo.webp";
-export const MAX_LOGO_INPUT_BYTES = 2 * 1024 * 1024;
-export const MAX_LOGO_SOURCE_EDGE = 6000;
-export const MAX_LOGO_SOURCE_PIXELS = 25_000_000;
-export const MAX_LOGO_OUTPUT_EDGE = 512;
-export const MAX_LOGO_OUTPUT_BYTES = 200 * 1024;
 export const BUSINESS_LOGO_OUTPUT_MIME = "image/webp";
 
 const allowedSources = {
@@ -59,10 +69,10 @@ export async function optimizeBusinessLogo({
     throw new BusinessLogoValidationError("empty", "Choose a logo image to upload.");
   }
 
-  if (buffer.byteLength > MAX_LOGO_INPUT_BYTES) {
+  if (buffer.byteLength > MAX_BUSINESS_LOGO_TRANSPORT_BYTES) {
     throw new BusinessLogoValidationError(
       "input_too_large",
-      "Logo source files must be 2 MB or smaller.",
+      "Prepared logo uploads must be 3 MB or smaller.",
     );
   }
 

@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import {
   BUSINESS_LOGO_OUTPUT_MIME,
   BusinessLogoValidationError,
-  MAX_LOGO_INPUT_BYTES,
+  MAX_BUSINESS_LOGO_TRANSPORT_BYTES,
   MAX_LOGO_OUTPUT_BYTES,
   MAX_LOGO_OUTPUT_EDGE,
   optimizeBusinessLogo,
@@ -54,7 +54,7 @@ describe("business logo processing", () => {
     })
       .jpeg({ quality: 92 })
       .toBuffer();
-    expect(source.byteLength).toBeLessThan(MAX_LOGO_INPUT_BYTES);
+    expect(source.byteLength).toBeLessThan(MAX_BUSINESS_LOGO_TRANSPORT_BYTES);
 
     const optimized = await optimizeBusinessLogo({
       buffer: source,
@@ -162,7 +162,7 @@ describe("business logo processing", () => {
   it("rejects oversized input bytes and source dimensions", async () => {
     await expect(
       optimizeBusinessLogo({
-        buffer: Buffer.alloc(MAX_LOGO_INPUT_BYTES + 1),
+        buffer: Buffer.alloc(MAX_BUSINESS_LOGO_TRANSPORT_BYTES + 1),
         contentType: "image/png",
         fileName: "logo.png",
       }),

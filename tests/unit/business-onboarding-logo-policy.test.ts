@@ -39,7 +39,8 @@ describe("new-business logo policy", () => {
 
   it("keeps image binary on the established owner-authorized upload route", () => {
     expect(logoForm).toContain("/api/businesses/${businessId}/logo");
-    expect(logoForm).toContain('body.set("logo", file)');
+    expect(logoForm).toContain('body.set("logo", prepared.file)');
+    expect(logoForm).toContain("prepareBusinessLogoForUpload");
     expect(onboardingForm).not.toContain('name="logo"');
     expect(onboardingForm).toContain("<BusinessLogoForm");
     expect(businessPage).toContain("<BusinessLogoForm");

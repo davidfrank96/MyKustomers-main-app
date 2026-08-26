@@ -3,6 +3,15 @@ import { randomUUID } from "node:crypto";
 import { expect, test } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import sharp from "sharp";
+import {
+  MAX_BUSINESS_LOGO_SOURCE_BYTES,
+  MAX_BUSINESS_LOGO_TRANSPORT_BYTES,
+} from "../../features/businesses/logo-policy";
+import {
+  createCameraLogoJpeg,
+  installBusinessLogoTransportObserver,
+  readObservedBusinessLogoTransportBytes,
+} from "./support/business-logo-fixtures";
 
 function loadLocalEnv() {
   if (!fs.existsSync(".env")) {
@@ -113,6 +122,7 @@ test.describe("business onboarding", () => {
   test("authenticated no-business user completes onboarding and reaches dashboard", async ({
     page,
   }, testInfo) => {
+    test.setTimeout(60_000);
     const email = testEmail(testInfo.project.name);
     const password = `Phase3-E2E-${randomUUID()}-A1`;
     await createConfirmedUser(email, password);
@@ -120,6 +130,7 @@ test.describe("business onboarding", () => {
     const slug = `phase3-e2e-${Date.now()}-${randomUUID().slice(0, 8)}`;
     createdBusinessSlugs.add(slug);
 
+    await installBusinessLogoTransportObserver(page);
     await page.goto("/login");
     await page.getByLabel("Email").fill(email);
     await page.getByLabel("Password").fill(password);
@@ -184,23 +195,27 @@ test.describe("business onboarding", () => {
       page.getByText("Business details saved. Upload the required logo to finish setup."),
     ).toBeVisible();
 
-    const logo = await sharp({
-      create: {
-        width: 720,
-        height: 360,
-        channels: 4,
-        background: { r: 24, g: 96, b: 76, alpha: 1 },
-      },
-    })
-      .png()
-      .toBuffer();
+    const logo = await createCameraLogoJpeg(MAX_BUSINESS_LOGO_SOURCE_BYTES);
+    const uploadRequestPromise = page.waitForRequest(
+      (request) =>
+        request.method() === "POST" &&
+        request.url().includes(`/api/businesses/${stagedBusiness.id}/logo`),
+    );
     await page.getByLabel("Logo image").setInputFiles({
-      name: "phase3-logo.png",
-      mimeType: "image/png",
+      name: "phase3-phone-logo.jpg",
+      mimeType: "image/jpeg",
       buffer: logo,
     });
+    await uploadRequestPromise;
+    const requestBodySize = await readObservedBusinessLogoTransportBytes(page);
+    expect(requestBodySize).not.toBeNull();
+    expect(requestBodySize).toBeGreaterThan(0);
+    expect(requestBodySize!).toBeLessThanOrEqual(
+      MAX_BUSINESS_LOGO_TRANSPORT_BYTES + 64 * 1024,
+    );
+    expect(requestBodySize!).toBeLessThan(4 * 1024 * 1024);
 
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 20_000 });
+    await expect(page).toHaveURL(/\/dashboard/, { timeout: 30_000 });
     await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Phase 3 E2E Bakery" })).toBeVisible();
     await expect(page.getByText(`Slug: ${slug}`)).toBeVisible();
@@ -226,8 +241,8 @@ test.describe("business onboarding", () => {
     const storedLogoBuffer = Buffer.from(await storedLogo!.arrayBuffer());
     const storedLogoMetadata = await sharp(storedLogoBuffer).metadata();
     expect(storedLogoMetadata.format).toBe("webp");
-    expect(storedLogoMetadata.width).toBeLessThanOrEqual(512);
-    expect(storedLogoMetadata.height).toBeLessThanOrEqual(512);
+    expect(storedLogoMetadata.width).toBe(384);
+    expect(storedLogoMetadata.height).toBe(512);
     expect(storedLogoBuffer.byteLength).toBeLessThanOrEqual(200 * 1024);
     const { data: storedLogoObjects } = await admin.storage
       .from("business-logos")

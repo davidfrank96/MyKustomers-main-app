@@ -5,7 +5,6 @@ import {
   useEffect,
   useRef,
   useState,
-  type MutableRefObject,
 } from "react";
 import { useRouter } from "next/navigation";
 import { ImageUp, Trash2 } from "lucide-react";
@@ -13,6 +12,11 @@ import { BusinessLogo } from "@/components/shared/business-logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  BusinessLogoPreparationError,
+  prepareBusinessLogoForUpload,
+  validateBusinessLogoSource,
+} from "@/features/businesses/logo-client";
 
 type LogoResponse = {
   status: "success" | "error";
@@ -45,15 +49,16 @@ async function requestBusinessLogo({
   businessId,
   method,
   body,
-  activeRequestRef,
+  operationSignal,
 }: {
   businessId: string;
   method: "POST" | "DELETE";
   body?: FormData;
-  activeRequestRef: MutableRefObject<AbortController | null>;
+  operationSignal: AbortSignal;
 }) {
   const controller = new AbortController();
-  activeRequestRef.current = controller;
+  const abortRequest = () => controller.abort();
+  operationSignal.addEventListener("abort", abortRequest, { once: true });
   let timedOut = false;
   const timeout = window.setTimeout(() => {
     timedOut = true;
@@ -82,9 +87,7 @@ async function requestBusinessLogo({
     throw new BusinessLogoRequestError("network");
   } finally {
     window.clearTimeout(timeout);
-    if (activeRequestRef.current === controller) {
-      activeRequestRef.current = null;
-    }
+    operationSignal.removeEventListener("abort", abortRequest);
   }
 }
 
@@ -108,17 +111,21 @@ export function BusinessLogoForm({
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const selectedFileRef = useRef<File | null>(null);
-  const activeRequestRef = useRef<AbortController | null>(null);
+  const activeOperationRef = useRef<AbortController | null>(null);
+  const operationPhaseRef = useRef<"preparing" | "uploading" | null>(null);
+  const selectionVersionRef = useRef(0);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [persistedUrl, setPersistedUrl] = useState(currentLogoUrl);
   const [message, setMessage] = useState<string | null>(null);
-  const [status, setStatus] = useState<"idle" | "pending" | "success" | "error">("idle");
+  const [status, setStatus] = useState<
+    "idle" | "preparing" | "pending" | "success" | "error"
+  >("idle");
   const uploadedBusinessIdRef = useRef<string | null>(null);
   const completionNotifiedRef = useRef(false);
 
   useEffect(() => {
-    const requestRef = activeRequestRef;
-    return () => requestRef.current?.abort();
+    const operationRef = activeOperationRef;
+    return () => operationRef.current?.abort();
   }, []);
 
   useEffect(() => {
@@ -130,8 +137,24 @@ export function BusinessLogoForm({
   }, [previewUrl]);
 
   function selectPreview(file: File | undefined) {
+    if (operationPhaseRef.current === "preparing") {
+      activeOperationRef.current?.abort();
+      activeOperationRef.current = null;
+      operationPhaseRef.current = null;
+    }
+    selectionVersionRef.current += 1;
     if (previewUrl) {
       URL.revokeObjectURL(previewUrl);
+    }
+    const validationMessage = file ? validateBusinessLogoSource(file) : null;
+    if (validationMessage) {
+      selectedFileRef.current = null;
+      setPreviewUrl(null);
+      onSelectionChange?.(false);
+      setMessage(validationMessage);
+      setStatus("error");
+      if (inputRef.current) inputRef.current.value = "";
+      return;
     }
     selectedFileRef.current = file ?? null;
     setPreviewUrl(file ? URL.createObjectURL(file) : null);
@@ -150,21 +173,32 @@ export function BusinessLogoForm({
       setMessage("Choose a logo image to upload.");
       return;
     }
-    if (!businessId || activeRequestRef.current) {
+    if (!businessId || activeOperationRef.current) {
       return;
     }
 
-    setStatus("pending");
+    const controller = new AbortController();
+    const selectionVersion = selectionVersionRef.current;
+    activeOperationRef.current = controller;
+    operationPhaseRef.current = "preparing";
+    setStatus("preparing");
     setMessage(null);
-    const body = new FormData();
-    body.set("logo", file);
 
     try {
+      const prepared = await prepareBusinessLogoForUpload(file, {
+        signal: controller.signal,
+      });
+      if (selectionVersion !== selectionVersionRef.current) return;
+
+      operationPhaseRef.current = "uploading";
+      setStatus("pending");
+      const body = new FormData();
+      body.set("logo", prepared.file);
       const { response, result } = await requestBusinessLogo({
         businessId,
         method: "POST",
         body,
-        activeRequestRef,
+        operationSignal: controller.signal,
       });
 
       setStatus(response.ok ? "success" : "error");
@@ -185,14 +219,28 @@ export function BusinessLogoForm({
         inputRef.current.value = "";
       }
     } catch (error) {
+      if (
+        error instanceof BusinessLogoPreparationError &&
+        error.code === "aborted" &&
+        selectionVersion !== selectionVersionRef.current
+      ) {
+        return;
+      }
       setStatus("error");
       setMessage(
-        error instanceof BusinessLogoRequestError && error.code === "timeout"
-          ? "Upload timed out. Please try again."
-          : "Unable to upload the logo. Please try again.",
+        error instanceof BusinessLogoPreparationError
+          ? error.message
+          : error instanceof BusinessLogoRequestError && error.code === "timeout"
+            ? "Upload timed out. Please try again."
+            : "Unable to upload the logo. Please try again.",
       );
       if (inputRef.current) {
         inputRef.current.value = "";
+      }
+    } finally {
+      if (activeOperationRef.current === controller) {
+        activeOperationRef.current = null;
+        operationPhaseRef.current = null;
       }
     }
   }, [businessId, onPersisted, previewUrl, router]);
@@ -224,9 +272,12 @@ export function BusinessLogoForm({
   }, [businessId, currentLogoUrl, mode, onPersisted]);
 
   async function removeLogo() {
-    if (!businessId || activeRequestRef.current) {
+    if (!businessId || activeOperationRef.current) {
       return;
     }
+    const controller = new AbortController();
+    activeOperationRef.current = controller;
+    operationPhaseRef.current = "uploading";
     setStatus("pending");
     setMessage(null);
 
@@ -234,7 +285,7 @@ export function BusinessLogoForm({
       const { response, result } = await requestBusinessLogo({
         businessId,
         method: "DELETE",
-        activeRequestRef,
+        operationSignal: controller.signal,
       });
 
       setStatus(response.ok ? "success" : "error");
@@ -258,13 +309,20 @@ export function BusinessLogoForm({
           ? "Request timed out. Please try again."
           : "Unable to remove the logo. Please try again.",
       );
+    } finally {
+      if (activeOperationRef.current === controller) {
+        activeOperationRef.current = null;
+        operationPhaseRef.current = null;
+      }
     }
   }
+
+  const isBusy = status === "preparing" || status === "pending";
 
   return (
     <section
       className="space-y-5"
-      aria-busy={status === "pending"}
+      aria-busy={isBusy}
       aria-label={
         mode === "onboarding" ? "Required business logo" : "Business logo settings"
       }
@@ -289,6 +347,11 @@ export function BusinessLogoForm({
 
       {isOwner ? (
         <div className="space-y-4">
+          {isBusy ? (
+            <p className="sr-only" role="status" aria-live="polite">
+              {status === "preparing" ? "Preparing image." : "Uploading logo."}
+            </p>
+          ) : null}
           <div className="space-y-2">
             <Label htmlFor="business-logo">Logo image</Label>
             <Input
@@ -312,7 +375,7 @@ export function BusinessLogoForm({
               id="business-logo-help"
               className="text-xs leading-5 text-muted-foreground"
             >
-              PNG, JPEG, or WebP up to 2 MB. Saved as a WebP no larger than 512px and 200
+              PNG, JPEG, or WebP up to 5 MB. Saved as a WebP no larger than 512px and 200
               KB.
             </p>
           </div>
@@ -335,13 +398,15 @@ export function BusinessLogoForm({
             <div className="flex flex-col gap-2 sm:flex-row">
               <Button
                 type="button"
-                disabled={status === "pending" || !businessId}
+                disabled={isBusy || !businessId}
                 className="w-full sm:w-fit"
                 onClick={() => void submitLogo()}
               >
                 <ImageUp className="size-4" aria-hidden="true" />
-                {status === "pending"
-                  ? "Saving..."
+                {status === "preparing"
+                  ? "Preparing image..."
+                  : status === "pending"
+                    ? "Saving..."
                   : mode === "onboarding" && status === "error"
                     ? "Retry logo upload"
                     : persistedUrl
@@ -352,7 +417,7 @@ export function BusinessLogoForm({
                 <Button
                   type="button"
                   variant="secondary"
-                  disabled={status === "pending"}
+                  disabled={isBusy}
                   onClick={removeLogo}
                   className="w-full sm:w-fit"
                 >

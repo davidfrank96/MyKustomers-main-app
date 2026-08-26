@@ -5,7 +5,7 @@ import {
   BUSINESS_LOGO_BUCKET,
   BUSINESS_LOGO_OUTPUT_MIME,
   BusinessLogoValidationError,
-  MAX_LOGO_INPUT_BYTES,
+  MAX_BUSINESS_LOGO_TRANSPORT_BYTES,
   businessLogoPath,
   optimizeBusinessLogo,
 } from "@/features/businesses/logo";
@@ -65,8 +65,8 @@ export async function POST(request: Request, context: RouteContext) {
   }
 
   const contentLength = Number(request.headers.get("content-length") ?? "0");
-  if (contentLength > MAX_LOGO_INPUT_BYTES + REQUEST_OVERHEAD_BYTES) {
-    return errorResponse("Logo source files must be 2 MB or smaller.", 413);
+  if (contentLength > MAX_BUSINESS_LOGO_TRANSPORT_BYTES + REQUEST_OVERHEAD_BYTES) {
+    return errorResponse("Prepared logo uploads must be 3 MB or smaller.", 413);
   }
 
   let formData: FormData;
@@ -80,8 +80,8 @@ export async function POST(request: Request, context: RouteContext) {
   if (!(file instanceof File)) {
     return errorResponse("Choose a logo image to upload.", 400);
   }
-  if (file.size > MAX_LOGO_INPUT_BYTES) {
-    return errorResponse("Logo source files must be 2 MB or smaller.", 413);
+  if (file.size > MAX_BUSINESS_LOGO_TRANSPORT_BYTES) {
+    return errorResponse("Prepared logo uploads must be 3 MB or smaller.", 413);
   }
 
   let optimized;

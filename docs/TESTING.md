@@ -40,6 +40,12 @@ do not reduce the verified tenant/RLS coverage.
   retry, immediate duplicate-submit prevention, and one-refresh success. Sharp
   regressions additionally cover EXIF rotation, metadata stripping,
   transparency, no small-image enlargement, and malformed input.
+- Business-logo client-preparation unit/integration tests cover unchanged small
+  sources, 2-4 MiB and 4-5 MiB preparation, exact 5 MiB acceptance, one-byte-over
+  rejection before upload, JPEG/WebP output, transparent PNG handling, EXIF-aware
+  decode, original dimension/pixel limits, MIME spoofing, decode/encode failure,
+  30-second preparation timeout, stale cancellation, bounded multipart input,
+  same-file recovery, and one-request duplicate protection.
 - Static business-identity migration/route tests and live Supabase Storage tests
   for owner replacement/removal, member/cross-tenant/anonymous denial, public
   retrieval, and non-enumerable anonymous listing.
@@ -116,6 +122,10 @@ do not reduce the verified tenant/RLS coverage.
   cleanup. Replacement inspection uses a fresh query version because the
   deterministic public path can transiently return an earlier CDN object.
   Initial upload runs at desktop width and replacement/removal at mobile width.
+  Current coverage selects an exact 5 MiB camera-resolution onboarding JPEG and
+  a 4.8 MiB mobile replacement, inspects the actual multipart bodies below the
+  3 MiB file plus bounded overhead, and proves a 5 MiB-plus-one-byte selection
+  causes no logo request.
   The post-merge production smoke for `faad4cb` repeated these checks at 1440px
   and 390px: four logo API operations returned 200, optimized objects decoded as
   WebP within policy, public reads returned 200, and independent cleanup found

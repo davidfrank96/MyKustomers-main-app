@@ -3,6 +3,15 @@ import { randomUUID } from "node:crypto";
 import { expect, test, type Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import sharp from "sharp";
+import {
+  MAX_BUSINESS_LOGO_SOURCE_BYTES,
+  MAX_BUSINESS_LOGO_TRANSPORT_BYTES,
+} from "../../features/businesses/logo-policy";
+import {
+  createCameraLogoJpeg,
+  installBusinessLogoTransportObserver,
+  readObservedBusinessLogoTransportBytes,
+} from "./support/business-logo-fixtures";
 
 function loadLocalEnv() {
   if (!fs.existsSync(".env")) return;
@@ -78,7 +87,7 @@ test.describe("mobile account and dashboard navigation", () => {
     page,
   }, testInfo) => {
     test.skip(testInfo.project.name !== "chromium", "Explicit viewport matrix runs once.");
-    test.setTimeout(90_000);
+    test.setTimeout(120_000);
 
     const admin = adminClient();
     const email = `mobile-account-${Date.now()}-${randomUUID()}@example.com`;
@@ -113,6 +122,7 @@ test.describe("mobile account and dashboard navigation", () => {
     expect(membershipError).toBeNull();
 
     try {
+      await installBusinessLogoTransportObserver(page);
       await page.setViewportSize({ width: 390, height: 844 });
       await page.goto("/login");
       await page.getByLabel("Email").fill(email);
@@ -171,22 +181,47 @@ test.describe("mobile account and dashboard navigation", () => {
       const firstStoredLogo = await downloadStoredLogo(admin, business!.id);
 
       await page.setViewportSize({ width: 390, height: 844 });
-      const jpegLogo = await sharp({
-        create: {
-          width: 700,
-          height: 700,
-          channels: 3,
-          background: { r: 238, g: 180, b: 35 },
-        },
-      })
-        .jpeg({ quality: 92 })
-        .toBuffer();
+      let replacementRequests = 0;
+      page.on("request", (request) => {
+        if (
+          request.method() === "POST" &&
+          request.url().includes(`/api/businesses/${business!.id}/logo`)
+        ) {
+          replacementRequests += 1;
+        }
+      });
+      const oversizedLogo = await createCameraLogoJpeg(
+        MAX_BUSINESS_LOGO_SOURCE_BYTES + 1,
+      );
       await page.getByLabel("Logo image").setInputFiles({
-        name: "replacement.jpg",
+        name: "oversized-phone-logo.jpg",
+        mimeType: "image/jpeg",
+        buffer: oversizedLogo,
+      });
+      await expect(page.getByText("Logo image must be 5 MB or smaller.")).toBeVisible();
+      await page.waitForTimeout(200);
+      expect(replacementRequests).toBe(0);
+
+      const jpegLogo = await createCameraLogoJpeg(Math.floor(4.8 * 1024 * 1024));
+      const replacementRequestPromise = page.waitForRequest(
+        (request) =>
+          request.method() === "POST" &&
+          request.url().includes(`/api/businesses/${business!.id}/logo`),
+      );
+      await page.getByLabel("Logo image").setInputFiles({
+        name: "replacement-phone-logo.jpg",
         mimeType: "image/jpeg",
         buffer: jpegLogo,
       });
       await page.getByRole("button", { name: "Replace logo" }).click();
+      await replacementRequestPromise;
+      const requestBodySize = await readObservedBusinessLogoTransportBytes(page);
+      expect(requestBodySize).not.toBeNull();
+      expect(requestBodySize).toBeGreaterThan(0);
+      expect(requestBodySize!).toBeLessThanOrEqual(
+        MAX_BUSINESS_LOGO_TRANSPORT_BYTES + 64 * 1024,
+      );
+      expect(replacementRequests).toBe(1);
       await expect(page.getByText("Business logo replaced.")).toBeVisible();
       const replacementStoredLogo = await downloadStoredLogo(admin, business!.id);
       expect(replacementStoredLogo.equals(firstStoredLogo)).toBe(false);

@@ -473,3 +473,19 @@ production-readiness work.
       desktop/mobile/onboarding production smoke, and zero-fixture cleanup pass.
 - [x] No migration, environment change, Docker, broad redesign, detour rollback,
       or Admin Phase 7 work is included.
+
+## Business Logo 5 MiB Source Support
+
+- [x] Shared onboarding, first upload, and replacement accept supported source
+      files up to exactly 5 MiB and reject larger selections before upload.
+- [x] Sources above 3 MiB use one browser-native preprocessor with bounded
+      lifecycle, stale cancellation, transparency and orientation handling.
+- [x] Actual multipart payload remains below the 3 MiB file boundary plus 64 KiB
+      overhead; direct raw 5 MiB upload is not attempted.
+- [x] Server Sharp validation, 6000px/25 MP received-input defense, metadata
+      stripping, 512px/200 KiB WebP output, owner authorization, and Storage RLS
+      remain authoritative.
+- [x] No raw/intermediate Storage, database migration, bucket, environment,
+      dependency, Docker, or Admin Phase 7 change is included.
+- [ ] Full gates, CI, exact production deployment, controlled >4 MiB/exact-5 MiB
+      production UI smoke, >5 MiB no-request proof, and fixture cleanup pass.

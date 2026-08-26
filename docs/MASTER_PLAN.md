@@ -612,3 +612,15 @@ application-owned completion dialog Cancel/final paths at 320px, feedback
 handoff, and logo replace/remove/restore. Cleanup confirmed zero temporary Auth
 or business leftovers. The paused transactional-email branch remains preserved;
 no migration, environment change, Docker stack, or Admin Phase 6 work occurred.
+
+## 2026-08-26 Business Logo 5 MiB Source Support
+
+Status: IMPLEMENTED - VERIFICATION PENDING
+
+The existing logo route remains the single server-authoritative boundary, but a
+shared browser-native preprocessor now lets onboarding and Business settings
+accept user-selected PNG/JPEG/WebP sources through exactly 5 MiB without sending
+a raw request above Vercel's Function ceiling. Files above 3 MiB become bounded
+<=2048px JPEG/WebP transport intermediates; Sharp still validates and emits the
+only persisted 512px/200 KiB WebP object. No schema, bucket, environment,
+dependency, Docker, or Admin Phase 7 change is included.

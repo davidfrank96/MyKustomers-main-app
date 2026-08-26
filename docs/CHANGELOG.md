@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-08-26 - Business Logo 5 MiB Source Transport Pipeline
+
+Status: IMPLEMENTED - VERIFICATION PENDING
+
+- Raised the user-selected PNG/JPEG/WebP source limit to 5 MiB without sending a
+  raw 5 MiB multipart body through Vercel. One browser-native helper leaves
+  sources at or below 3 MiB unchanged and preprocesses larger sources to a
+  metadata-free, <=2048px JPEG/WebP transport intermediate under 3 MiB.
+- Preserved transparency, EXIF-aware browser decode, the original
+  6000px/25-megapixel product guard, stale-selection cancellation, a bounded
+  preparation lifecycle, same-file retry, and one-request submission.
+- Kept the server authoritative for received-content validation, Sharp decode,
+  metadata stripping, 512px/200 KiB final WebP policy, owner authorization,
+  Storage RLS, and deterministic replacement. No raw/intermediate object is
+  stored.
+- Added exact-5 MiB onboarding, 4.8 MiB mobile replacement, actual multipart,
+  >5 MiB no-request, and focused client/server regression coverage. No database,
+  Storage-bucket, environment, dependency, Docker, or Admin Phase 7 change is
+  included.
+
 ## 2026-08-26 - Business Logo Upload Pending-State Hotfix
 
 Status: VERIFIED - PRODUCTION

@@ -1187,3 +1187,15 @@ the exact merge. Controlled production desktop and mobile canonical journeys and
 the desktop repeat-booking/different-contact path passed with real Brevo
 acceptance IDs. Cleanup confirmed zero controlled businesses, bookings,
 payments, email events, profiles, memberships, or Auth users.
+
+## 2026-08-26 Business Logo 5 MiB Source Support Detour
+
+Status: IMPLEMENTED - VERIFICATION PENDING
+
+This narrow maintenance detour accepts a user-selected business-logo source up
+to 5 MiB through shared client transport preprocessing while preserving the
+owner-authorized server Sharp/Storage boundary and final 512px/200 KiB WebP
+contract. The 3 MiB transport target avoids Vercel's non-configurable request
+ceiling and reduces mobile bandwidth. No database, Storage-bucket, environment,
+dependency, Docker, lifecycle, email, or admin capability changes are included.
+Admin Phase 7 remains not started.

@@ -63,9 +63,13 @@ bucket/path and public/private access model, authorization, replacement cleanup,
 and deletion failure behavior. Browser `accept` attributes are hints, not a
 security boundary. Do not store raw or unbounded originals by default.
 
-The current business-logo constants live in `features/businesses/logo.ts`:
-PNG/JPEG/WebP input, 2 MB, 6000px per edge, 25 MP, metadata-stripped WebP,
-aspect-preserving resize, 512px maximum, and 200 KB persisted maximum.
+The current business-logo policy constants live in
+`features/businesses/logo-policy.ts`: PNG/JPEG/WebP source up to 5 MiB, 6000px
+per edge, and 25 MP. `prepareBusinessLogoForUpload` leaves sources at or below
+3 MiB unchanged and reduces larger valid sources to a metadata-free,
+2048px-or-smaller JPEG/WebP transport file no larger than 3 MiB. The server then
+revalidates and emits metadata-stripped WebP with aspect-preserving resize,
+512px maximum, and 200 KiB persisted maximum.
 
 Every business-logo creation, replacement, or onboarding upload must use the
 same validated, authorized, metadata-stripping, bounded compression pipeline
@@ -74,6 +78,15 @@ mobile networks. Image upload UI must terminate into success or a recoverable
 error state. It must never remain indefinitely pending after request failure or
 timeout. Reset the native file input after failure while retaining an explicit
 same-file retry path, and guard duplicate submissions synchronously.
+
+Vercel Functions have a non-configurable request-body ceiling around 4.5 MB, so
+a raw 5 MiB source cannot be posted to the route. The 3 MiB file target leaves
+room for multipart overhead. Client preprocessing is a transport optimization
+only; server-side decoding, validation, normalization, compression,
+authorization, and persisted-size enforcement remain authoritative. A custom
+client may bypass the 5 MiB product-selection rule only by sending a server-safe
+intermediate under the transport boundary; the dangerous original does not
+reach the server.
 
 When diagnosing logo uploads, inspect the browser request and the shared
 `/api/businesses/{business_id}/logo` route before changing Storage policy. A

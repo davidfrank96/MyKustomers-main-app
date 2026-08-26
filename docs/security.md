@@ -201,13 +201,23 @@ for the business UUID parsed from the exact `{business_id}/logo.webp` path.
 Anonymous and cross-tenant writes are runtime-denied, anonymous listing returns
 no rows, and no service-role storage secret enters browser code.
 
-The server validates source bytes, MIME, extension, decoded format, dimensions,
-animation, and output before Storage. Input is limited to 2 MB, 6000px per edge,
-and 25 megapixels; persisted output is metadata-stripped WebP at no more than
-512px and 200 KB. Originals are discarded. Replacement overwrites the one
+Users may select sources up to 5 MiB. The browser checks legitimate large
+sources against the 6000px-per-edge/25-megapixel policy and reduces them below
+the 3 MiB transport boundary before submission. This is not trusted security
+validation. The server independently validates received bytes, MIME, extension,
+decoded format, dimensions, animation, and output before Storage. Persisted
+output is metadata-stripped WebP at no more than 512px and 200 KiB. Originals
+and transport intermediates are discarded. Replacement overwrites the one
 deterministic object. Removal clears the database reference first so cleanup
 failure cannot leave a broken reference. Future private uploads still require a
 private bucket or reviewed delivery abstraction and equivalent explicit bounds.
+
+Client resizing can erase evidence of original dimensions. The ordinary UI
+therefore rejects an original over 6000px per edge or 25 MP before resize, while
+the server applies the same limits to the actual intermediate it receives. A
+malicious client can submit only a server-safe intermediate; it cannot make the
+oversized original reach Sharp. This preserves decompression-risk protection
+without treating client claims as authority.
 
 SEC-014 - Least Privilege
 
