@@ -17,6 +17,7 @@ type ConfirmationLinkPanelProps = {
   canManage: boolean;
   businessName: string;
   customerName: string | null;
+  customerProfileEmail: string | null;
   generateAction: (
     previousState: ConfirmationLinkActionState,
     formData: FormData,
@@ -81,6 +82,7 @@ export function ConfirmationLinkPanel({
   canManage,
   businessName,
   customerName,
+  customerProfileEmail,
   generateAction,
   revokeAction,
   recordShareAction,
@@ -96,32 +98,30 @@ export function ConfirmationLinkPanel({
   const active = summary.status === "active";
   const generatedUrl = generateState.confirmationUrl;
   const generatedLinkId = generateState.confirmationLinkId;
+  const profileEmailDiffers = Boolean(
+    summary.contactEmail &&
+    customerProfileEmail &&
+    summary.contactEmail.trim().toLowerCase() !==
+      customerProfileEmail.trim().toLowerCase(),
+  );
 
   return (
     <div className="space-y-5">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <div>
-          <p className="text-xs font-medium text-muted-foreground">
-            Status
-          </p>
+          <p className="text-xs font-medium text-muted-foreground">Status</p>
           <p className="mt-1 text-sm font-medium capitalize">{summary.status}</p>
         </div>
         <div>
-          <p className="text-xs font-medium text-muted-foreground">
-            Created
-          </p>
+          <p className="text-xs font-medium text-muted-foreground">Created</p>
           <p className="mt-1 text-sm">{formatDateTime(summary.createdAt)}</p>
         </div>
         <div>
-          <p className="text-xs font-medium text-muted-foreground">
-            Expires
-          </p>
+          <p className="text-xs font-medium text-muted-foreground">Expires</p>
           <p className="mt-1 text-sm">{formatDateTime(summary.expiresAt)}</p>
         </div>
         <div>
-          <p className="text-xs font-medium text-muted-foreground">
-            Confirmed
-          </p>
+          <p className="text-xs font-medium text-muted-foreground">Confirmed</p>
           <p className="mt-1 text-sm">{formatDateTime(summary.confirmedAt)}</p>
         </div>
         <div>
@@ -139,17 +139,27 @@ export function ConfirmationLinkPanel({
       </div>
 
       {summary.contactEmail ? (
-        <div className="grid gap-3 rounded-md border border-border bg-muted p-3 sm:grid-cols-3">
+        <div className="grid gap-3 rounded-md border border-border bg-muted p-3 sm:grid-cols-2 lg:grid-cols-4">
           <div className="min-w-0">
-            <p className="text-xs font-medium text-muted-foreground">Confirmation contact</p>
+            <p className="text-xs font-medium text-muted-foreground">Booking contact</p>
             <p className="mt-1 break-all text-sm">{summary.contactEmail}</p>
           </div>
+          {profileEmailDiffers ? (
+            <div className="min-w-0">
+              <p className="text-xs font-medium text-muted-foreground">
+                Customer profile email
+              </p>
+              <p className="mt-1 break-all text-sm">{customerProfileEmail}</p>
+            </div>
+          ) : null}
           <div>
             <p className="text-xs font-medium text-muted-foreground">Contact phone</p>
             <p className="mt-1 text-sm">{summary.contactPhone ?? "Not provided"}</p>
           </div>
           <div>
-            <p className="text-xs font-medium text-muted-foreground">Confirmation email</p>
+            <p className="text-xs font-medium text-muted-foreground">
+              Confirmation email
+            </p>
             <p className="mt-1 text-sm capitalize">
               {summary.emailStatus?.toLowerCase().replace("_", " ") ?? "Not queued"}
             </p>
@@ -161,9 +171,9 @@ export function ConfirmationLinkPanel({
         <div className="space-y-4 rounded-md border border-border bg-muted p-3">
           <div>
             <p className="text-sm font-medium">Your confirmation request is ready.</p>
-          <p className="text-xs leading-5 text-muted-foreground">
+            <p className="text-xs leading-5 text-muted-foreground">
               Share it now. This exact secure link is shown only once.
-          </p>
+            </p>
           </div>
           <input
             readOnly

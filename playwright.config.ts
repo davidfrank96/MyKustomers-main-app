@@ -5,6 +5,7 @@ const port = Number(process.env.PORT ?? 3000);
 export default defineConfig({
   testDir: "./tests/e2e",
   fullyParallel: true,
+  workers: 2,
   reporter: process.env.CI
     ? [["list"], ["github"], ["json", { outputFile: "test-results/results.json" }]]
     : "list",

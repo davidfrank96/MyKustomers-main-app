@@ -1135,6 +1135,7 @@ dialog Cancel/final paths and feedback handoff at 320px, and existing logo
 replace/remove/restore behavior. Cleanup confirmed zero temporary Auth or
 business leftovers. Runtime Security was intentionally skipped by the
 protected-backend safe-target policy, with no Docker or bypass.
+
 ## Product Detour - Booking Lifecycle Simplification And Payment Recording
 
 Status: VERIFIED - PRODUCTION
@@ -1162,3 +1163,21 @@ payment recording, authoritative completion blocking, completion, and feedback.
 Brevo returned real non-development provider acceptance IDs. Cleanup confirmed
 zero controlled test businesses, bookings, payments, email events, profiles,
 memberships, or Auth users. No Docker or environment change was used.
+
+## Product Detour - Booking Detail Clarity And Contact Email UX
+
+Status: IMPLEMENTED - VERIFICATION PENDING
+
+The public confirmation form now labels the required email and explains that it
+receives updates for this booking. Existing confirmation semantics remain
+unchanged: empty customer profile contact may be enriched, while a different
+non-empty profile email is preserved and immutable booking evidence remains the
+notification authority for that booking.
+
+Booking Journey stays visible. Payment, progress, confirmation, changes,
+add-ons, feedback, issues, reschedule, details, and timeline are independently
+collapsible with server-derived summaries and one contextual default-open
+section. Anchor actions open their target; user collapse state is not
+continuously overridden. No migration, environment change, Docker, multi-email
+model, lifecycle rewrite, or broad redesign is included. Admin Phase 6B remains
+`IMPLEMENTED - VERIFICATION PENDING`; Admin Phase 7 is not started.

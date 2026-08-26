@@ -852,6 +852,7 @@ pixels without browser warnings or errors.
 - Runtime/E2E uses the configured backend with controlled fixture cleanup.
   Docker/local Supabase is not used. PWA push is not tested because it is not
   implemented.
+
 ## Booking Lifecycle And Payment Recording Coverage
 
 - Unit coverage validates positive minor-unit payment input and high-entropy
@@ -880,3 +881,21 @@ pixels without browser warnings or errors.
   production-only assertion required a real non-development provider ID, and
   final cleanup found zero matching test businesses, bookings, payments, email
   events, memberships, profiles, or Auth users.
+
+## Booking Detail Clarity And Contact Coverage
+
+- Component tests verify required `Email address` labeling, concise booking-update
+  helper copy, neutral placeholder, and optional phone semantics.
+- Static migration coverage locks the existing empty-profile-only enrichment,
+  immutable booking contact, and booking-contact-first notification rule.
+- Disclosure unit/integration tests cover every lifecycle default, pending
+  amendment/add-on priority, completed-feedback behavior, ARIA state, manual
+  collapse persistence, independent expansion, and journey-anchor opening.
+- Controlled E2E proves empty-profile enrichment, same-email behavior, different
+  profile/booking contact separation, two bookings with distinct immutable
+  contacts, provider recipient selection, full lifecycle actions, and no
+  horizontal overflow across 320/360/375/390/430/768/1024/1440 widths.
+- Playwright uses two workers so independent browser coverage remains parallel
+  without overwhelming the shared guarded backend with unrelated fixture writes.
+- No database migration or Docker fixture is required. Protected runtime suites
+  retain their existing safe-target guards.

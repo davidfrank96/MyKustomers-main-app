@@ -102,6 +102,12 @@ Current copy rules:
 - The journey action area keeps the valid lifecycle action prominent and
   full-width on narrow screens. Cancellation and related booking operations are
   grouped under secondary actions.
+- Booking Journey remains visible on booking detail. Secondary sections use
+  button-based disclosures with `aria-expanded`, controlled regions, visible
+  focus, concise status summaries, and at least 56px header height.
+- A fresh booking-detail load opens the one contextually relevant section. Users
+  may close it and open multiple secondary sections independently; ordinary
+  rerenders must not fight their choice.
 - User-facing delivery timing uses `Scheduled delivery date`; new money fields
   start empty with `Enter amount` and `Optional` placeholders.
 

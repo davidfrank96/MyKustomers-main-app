@@ -30,6 +30,10 @@ Phase 6 implements secure customer confirmation links for bookings.
 - Customer confirmation is POST-backed and atomic in the database.
 - Existing different customer email/phone values are never silently replaced;
   only empty fields are enriched.
+- Customer-provided confirmation contact is booking-specific evidence. A
+  different booking contact must not silently overwrite an existing canonical
+  customer profile email, and it remains authoritative for that booking's later
+  notification recipient selection.
 - External email delivery happens after commit and cannot revert confirmation.
 - Expired, revoked, consumed, unknown, and invalid tokens return safe public
   statuses.

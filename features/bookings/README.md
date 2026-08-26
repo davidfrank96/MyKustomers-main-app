@@ -169,6 +169,14 @@ Permanent invariant: every non-terminal booking state clearly communicates its
 current lifecycle position and either the next valid vendor action or why the
 booking is waiting.
 
+Booking Journey remains visible. Secondary payment, progress, confirmation,
+changes, add-ons, feedback, issues, reschedule, details, and timeline sections
+use independent accessible disclosures. `detail-sections.ts` derives one default
+section from authoritative server state; pending customer actions take priority.
+The user may close it, and journey anchors open their target through one shared
+hash listener. All content remains server-rendered from the existing parallel
+query batch, and expanding a section performs no query or domain mutation.
+
 `DELIVERED -> COMPLETED` additionally locks and re-evaluates authoritative
 payment totals. An outstanding balance removes the normal completion action and
 direct RPC attempts fail. Payments may be recorded only in `IN_PROGRESS`,
