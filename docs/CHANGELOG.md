@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-08-26 - Booking Lifecycle Simplification And Payment Recording
+
+Status: IMPLEMENTED - PRODUCTION VERIFICATION PENDING
+
+- New customer confirmations now preserve `CONFIRMED` evidence/history and
+  atomically finish in `IN_PROGRESS`; normal Start work UI is removed while
+  legacy `CONFIRMED` rows and backend compatibility remain unchanged.
+- Added append-only `booking_payments`, authoritative currency-specific payment
+  totals, idempotent locked recording, safe audit evidence, tenant/anonymous
+  denial, and no ordinary update/delete authority.
+- Added a restrained payment summary/history and accessible record-payment
+  dialog for `IN_PROGRESS`, `READY`, and `DELIVERED`. My Kustomers records money
+  reported as received but does not process or verify payment.
+- `DELIVERED -> COMPLETED` now rechecks authoritative outstanding under lock and
+  rejects completion until zero. No backfill, force-complete, correction,
+  refund, credit, waiver, environment change, Docker, or Admin Phase 7 work was
+  added.
+- Added unit, integration, static migration-security, guarded runtime-security,
+  and canonical desktop/mobile E2E regression coverage.
+
 ## 2026-08-26 - Customer Communication And Live Booking Synchronization
 
 Status: IMPLEMENTED - PRODUCTION VERIFICATION PENDING

@@ -281,15 +281,15 @@ They are not secrets and must not be used as authorization credentials.
 
 Booking money is stored as integer minor units. `total_amount_minor` and
 `deposit_amount_minor` are constrained to nonnegative values, and deposit cannot
-exceed total. Balance is derived as `total_amount_minor - deposit_amount_minor`
-and is not stored.
+exceed total. These are agreed terms, not a mutable cash balance.
 
 Booking currency is explicit and constrained to `NGN`, `EUR`, `GBP`, or `USD`.
 Phase 5 performs no currency conversion.
 
 Current agreed value is the canonical booking total plus all `CONFIRMED` add-on
-totals. Current deposit recorded is the canonical booking deposit plus all
-`CONFIRMED` add-on deposits. Current balance is their difference. Draft,
+totals. Recorded paid is the canonical booking deposit plus all `CONFIRMED`
+add-on deposits plus append-only `booking_payments`. Outstanding is the
+nonnegative difference between effective total and recorded paid. Draft,
 awaiting-customer, and cancelled add-ons contribute zero; amendments contribute
 through the canonical booking exactly once after confirmation. A confirmed
 add-on remains immutable evidence after parent cancellation, while cancelled
@@ -300,7 +300,8 @@ Booking status is constrained to `DRAFT`, `AWAITING_CUSTOMER`, `CONFIRMED`,
 `IN_PROGRESS`, `READY`, `DELIVERED`, `COMPLETED`, or `CANCELLED`. Valid
 transitions are enforced by a database trigger. `DRAFT` bookings can move to
 `AWAITING_CUSTOMER` when a confirmation link is generated. Customer confirmation
-through a valid link moves `AWAITING_CUSTOMER` to `CONFIRMED`. Authenticated
+through a valid link records `AWAITING_CUSTOMER -> CONFIRMED -> IN_PROGRESS`
+atomically. Authenticated
 vendor lifecycle transitions after confirmation use
 `public.transition_booking_status`, not direct browser table updates. The
 verified Phase 7 graph is:
@@ -323,6 +324,14 @@ DELIVERED -> COMPLETED
 `COMPLETED` and `CANCELLED` are terminal and lock further booking edits.
 Operational timestamps are set by database-controlled transitions rather than
 accepted from browser clients.
+
+`booking_payments` has a composite tenant/booking foreign key, positive safe
+minor-unit amount, actor and timestamps, and a unique per-booking operation ID.
+Authenticated members may select same-tenant rows but cannot directly insert,
+update, or delete. The narrow locked RPC derives business, actor, currency,
+lifecycle, and outstanding server-side and commits the row with safe audit
+evidence. `DELIVERED -> COMPLETED` uses the same authoritative totals and is
+denied while outstanding is positive.
 
 Customer confirmation stores current terms on `bookings` in
 `customer_confirmed_at`, `confirmation_terms_hash`, and

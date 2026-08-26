@@ -32,6 +32,7 @@ function journeyFor(
     reconfirmationRequired: false,
     pendingAmendment: false,
     awaitingAddon: false,
+    outstandingAmountMinor: 0,
     ...overrides,
   });
 }
@@ -40,8 +41,8 @@ describe("booking journey", () => {
   it.each([
     ["DRAFT", "Booking created", "Generate confirmation link"],
     ["AWAITING_CUSTOMER", "Waiting for customer confirmation", "Generate confirmation link"],
-    ["CONFIRMED", "Customer confirmed", "Start work"],
-    ["IN_PROGRESS", "Work in progress", "Mark as ready"],
+    ["CONFIRMED", "Customer confirmed", "Review fulfilment status"],
+    ["IN_PROGRESS", "Customer confirmed - work in progress", "Mark as ready"],
     ["READY", "Ready for delivery", "Mark as delivered"],
     ["DELIVERED", "Delivered", "Complete booking"],
     ["COMPLETED", "Booking completed", "Request feedback"],
@@ -65,12 +66,30 @@ describe("booking journey", () => {
     }
 
     expect(journeyFor("CONFIRMED").primaryAction).toMatchObject({
-      kind: "transition",
-      toStatus: "IN_PROGRESS",
+      kind: "anchor",
+      href: "#operational-progress",
     });
     expect(journeyFor("CONFIRMED").primaryAction).not.toMatchObject({
       toStatus: "DELIVERED",
     });
+  });
+
+  it("requires payment evidence before a delivered booking can complete", () => {
+    const outstanding = journeyFor("DELIVERED", { outstandingAmountMinor: 2_500 });
+    const paid = journeyFor("DELIVERED", { outstandingAmountMinor: 0 });
+    const unavailable = journeyFor("DELIVERED", { outstandingAmountMinor: null });
+
+    expect(outstanding.primaryAction).toMatchObject({
+      kind: "anchor",
+      href: "#booking-payments",
+      label: "Record payment",
+    });
+    expect(paid.primaryAction).toMatchObject({
+      kind: "transition",
+      toStatus: "COMPLETED",
+    });
+    expect(unavailable.primaryAction).toBeNull();
+    expect(unavailable.waitingReason).toContain("payment status");
   });
 
   it("leaves no valid booking state without an action or terminal explanation", () => {

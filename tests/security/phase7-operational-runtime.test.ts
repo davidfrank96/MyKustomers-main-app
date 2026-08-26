@@ -220,11 +220,11 @@ if (runtimeVerificationEnabled) {
 
       const { error: directStatusError } = await userA.client
         .from("bookings")
-        .update({ status: "IN_PROGRESS" })
+        .update({ status: "READY" })
         .eq("id", lifecycleBookingId);
       expect(directStatusError).not.toBeNull();
 
-      for (const status of ["IN_PROGRESS", "READY", "DELIVERED", "COMPLETED"] as const) {
+      for (const status of ["READY", "DELIVERED"] as const) {
         const { error } = await userA.client.rpc("transition_booking_status", {
           p_booking_id: lifecycleBookingId,
           p_to_status: status,
@@ -232,6 +232,24 @@ if (runtimeVerificationEnabled) {
         });
         expect(error).toBeNull();
       }
+      expect(
+        (
+          await userA.client.rpc("record_booking_payment", {
+            p_booking_id: lifecycleBookingId,
+            p_amount_minor: 4_000_000,
+            p_operation_id: randomUUID(),
+          })
+        ).error,
+      ).toBeNull();
+      expect(
+        (
+          await userA.client.rpc("transition_booking_status", {
+            p_booking_id: lifecycleBookingId,
+            p_to_status: "COMPLETED",
+            p_cancellation_reason: null,
+          })
+        ).error,
+      ).toBeNull();
 
       const { data: completedBooking, error: completedBookingError } = await service
         .from("bookings")
@@ -260,9 +278,10 @@ if (runtimeVerificationEnabled) {
         "DELIVERED",
         "COMPLETED",
       ]);
-      expect(lifecycleHistory?.filter((row) => row.to_status === "IN_PROGRESS")[0]?.changed_by).toBe(
-        userA.id,
-      );
+      expect(
+        lifecycleHistory?.filter((row) => row.to_status === "IN_PROGRESS")[0]
+          ?.changed_by,
+      ).toBeNull();
 
       const { data: staleResult, error: staleError } = await userA.client.rpc(
         "transition_booking_status",
@@ -314,15 +333,6 @@ if (runtimeVerificationEnabled) {
         customerAId,
         "Phase 7 Ready Invalid",
       );
-      expect(
-        (
-          await userA.client.rpc("transition_booking_status", {
-            p_booking_id: readyInvalid.bookingId,
-            p_to_status: "IN_PROGRESS",
-            p_cancellation_reason: null,
-          })
-        ).error,
-      ).toBeNull();
       expect(
         (
           await userA.client.rpc("transition_booking_status", {
@@ -531,7 +541,7 @@ if (runtimeVerificationEnabled) {
         .select("status, confirmation_terms_hash")
         .eq("id", notesBooking.bookingId)
         .single();
-      expect(afterNotes?.status).toBe("CONFIRMED");
+      expect(afterNotes?.status).toBe("IN_PROGRESS");
       expect(afterNotes?.confirmation_terms_hash).toBe(beforeNotes?.confirmation_terms_hash);
 
       const cancelLinkBooking = await createBooking(

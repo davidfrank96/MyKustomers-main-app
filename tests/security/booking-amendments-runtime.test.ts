@@ -205,7 +205,7 @@ if (runtime.enabled) {
         title: "Main amendment original",
         total_amount_minor: 45_000,
         deposit_amount_minor: 5_000,
-        status: "CONFIRMED",
+        status: "IN_PROGRESS",
       });
       expect(new Date(canonicalBefore!.scheduled_for!).getTime()).toBe(
         new Date(main.scheduledFor).getTime(),
@@ -418,7 +418,7 @@ if (runtime.enabled) {
         description: "Proposed details larger scope",
         total_amount_minor: 55_000,
         deposit_amount_minor: 7_000,
-        status: "CONFIRMED",
+        status: "IN_PROGRESS",
       });
       expect(effective?.confirmation_terms_hash).toBeTruthy();
       expect(appliedChanges).toHaveLength(1);

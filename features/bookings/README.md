@@ -71,6 +71,14 @@ Money is stored as integer minor units. Balance is derived from total minus
 deposit and is not stored. UI formatting should render local currencies
 naturally, for example `₦45,000` for an owner-entered `45000` NGN amount.
 
+Subsequent receipts use append-only `booking_payments`; they never rewrite the
+agreed deposit. Authoritative totals come from
+`public.get_booking_payment_summary`: effective total is canonical total plus
+confirmed add-on totals, recorded paid is initial deposit plus confirmed add-on
+deposits plus subsequent payments, and outstanding is the nonnegative
+difference. `public.record_booking_payment` is the only ordinary write path and
+uses a unique operation ID for retry-safe idempotency.
+
 ## Lifecycle
 
 Allowed transitions after Phase 7:
@@ -101,7 +109,9 @@ one.
 Generating a confirmation link transitions a draft booking to
 `AWAITING_CUSTOMER`. Public GET views of the link do not consume it. Customer
 confirmation is handled by the confirmation-link feature through an atomic
-server/database operation.
+server/database operation. New confirmations persist the legitimate
+`CONFIRMED` evidence/history step and then advance to `IN_PROGRESS` in the same
+transaction. Existing `CONFIRMED` rows are not rewritten.
 
 Vendor operational transitions use `public.transition_booking_status` through
 server actions. Direct authenticated status writes are blocked by the booking
@@ -109,7 +119,8 @@ integrity trigger. The database owns operational timestamps for start, ready,
 delivery, completion, and cancellation.
 
 Rescheduling uses `public.reschedule_booking` while a booking is still
-`DRAFT`, `AWAITING_CUSTOMER`, or `CONFIRMED`. Rescheduling a confirmed booking
+`DRAFT`, `AWAITING_CUSTOMER`, `CONFIRMED`, or `IN_PROGRESS`. Rescheduling a
+confirmed/in-progress booking
 is material: it returns the booking to `AWAITING_CUSTOMER`, clears current
 confirmation fields, revokes open confirmation links, records a
 `booking_changes` row, and requires a new customer confirmation.
@@ -146,8 +157,10 @@ detail pages and resolve open issues once.
 
 `journey.ts` centralizes persisted status to user-facing stage, guidance, and
 next-action mapping. Booking detail is server-derived and cannot bypass existing
-confirmation or transition actions. Customer confirmed is not work started;
-`Start work` remains the explicit `CONFIRMED -> IN_PROGRESS` transition.
+confirmation or transition actions. New customer confirmation atomically starts
+the operational `IN_PROGRESS` state, so normal UX exposes `Mark as ready` and no
+Start work action. The backend `CONFIRMED -> IN_PROGRESS` edge remains only for
+legacy compatibility.
 Pending amendments and add-ons appear as context while retaining independent
 domain rules. Reschedule reconfirmation returns the current presentation to
 waiting without deleting historical proof.
@@ -155,6 +168,13 @@ waiting without deleting historical proof.
 Permanent invariant: every non-terminal booking state clearly communicates its
 current lifecycle position and either the next valid vendor action or why the
 booking is waiting.
+
+`DELIVERED -> COMPLETED` additionally locks and re-evaluates authoritative
+payment totals. An outstanding balance removes the normal completion action and
+direct RPC attempts fail. Payments may be recorded only in `IN_PROGRESS`,
+`READY`, or `DELIVERED`; cancelled/completed records remain readable but cannot
+receive new ordinary payments. Corrections, refunds, credits, waivers,
+force-complete, and payment processing are deferred.
 
 ## Live Customer-Originated Updates
 

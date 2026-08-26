@@ -1,8 +1,7 @@
 # Analytics Definitions
 
 Phase 9 analytics are private business insights derived from stored tenant
-records. They are not public reports, forecasts, accounting statements, or
-payment records.
+records. They are not public reports, forecasts, or accounting statements.
 
 ## Date Model
 
@@ -49,6 +48,20 @@ or accounting balances.
 
 Currency values are grouped by booking currency. Phase 9 never sums NGN, EUR,
 GBP, and USD into one total and does not perform foreign-exchange conversion.
+
+Three definitions must remain distinct:
+
+- Booking value: canonical booking total plus confirmed add-on totals.
+- Payments recorded: initial booking deposit plus confirmed add-on deposits plus
+  subsequent append-only `booking_payments`.
+- Outstanding: `max(booking value - payments recorded, 0)`.
+
+The existing Phase 9 `Recorded deposits` metric remains an agreed-deposit metric
+for its historical date/status policy; it is not silently reinterpreted as all
+payments received. Booking detail exposes authoritative current payments and
+outstanding. A future cross-booking payments/outstanding insight requires a
+separately reviewed database aggregation and date/legacy policy. Historical
+completion does not imply paid in full, and no payment rows are fabricated.
 
 ## Metric Formulas
 

@@ -212,3 +212,23 @@ behind its internal active-admin check. Post-apply counts stayed at 19 email
 events, zero attempts, and one active `SUPER_ADMIN`; the historical PENDING event
 was not claimed or replayed. Controlled runtime fixtures were removed after
 verification. No Docker/local Supabase was used.
+
+## 2026-08-26 Booking Lifecycle And Payment Recording Migrations
+
+`20260826095555_booking_lifecycle_payment_recording.sql` adds only the
+`BOOKING_PAYMENT_RECORDED` audit enum value. The separately approved
+`20260826095607_booking_lifecycle_payment_recording_schema.sql` adds the
+append-only tenant `booking_payments` ledger, its composite booking foreign key,
+positive safe-minor-unit and operation-id constraints, read-only member RLS,
+supporting indexes, authoritative payment totals/recording functions, atomic
+confirmation auto-activation, deterministic status-history ordering,
+in-progress rescheduling support, and locked completion reconciliation.
+
+Both exact approved files were applied enum-first to the configured
+production-backed project. Post-apply catalog inspection confirmed postgres
+ownership, RLS/grants, authenticated-only public RPC execution, empty search
+paths, expected triggers/indexes/constraints, zero payment rows, no anonymous
+authority, four unchanged legacy `CONFIRMED` rows, and unchanged delivered rows.
+There was no existing-row rewrite, payment backfill, or historical paid-status
+fabrication. Applied migration files must not be edited; any defect requires a
+new approved forward fix.

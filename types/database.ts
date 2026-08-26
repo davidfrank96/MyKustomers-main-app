@@ -259,6 +259,30 @@ export type Database = {
         };
         Relationships: [];
       };
+      booking_payments: {
+        Row: {
+          id: string;
+          business_id: string;
+          booking_id: string;
+          operation_id: string;
+          amount_minor: number;
+          recorded_by: string;
+          recorded_at: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          business_id: string;
+          booking_id: string;
+          operation_id: string;
+          amount_minor: number;
+          recorded_by: string;
+          recorded_at?: string;
+          created_at?: string;
+        };
+        Update: never;
+        Relationships: [];
+      };
       booking_changes: {
         Row: {
           id: string;
@@ -966,6 +990,32 @@ export type Database = {
           email_event_id: string | null;
         }[];
       };
+      get_booking_payment_summary: {
+        Args: {
+          p_booking_id: string;
+        };
+        Returns: {
+          currency: Database["public"]["Enums"]["booking_currency"];
+          effective_total_amount_minor: number;
+          initial_deposit_amount_minor: number;
+          confirmed_addon_deposit_amount_minor: number;
+          subsequent_payment_amount_minor: number;
+          recorded_paid_amount_minor: number;
+          outstanding_amount_minor: number;
+        }[];
+      };
+      record_booking_payment: {
+        Args: {
+          p_booking_id: string;
+          p_amount_minor: number;
+          p_operation_id: string;
+        };
+        Returns: {
+          payment_id: string;
+          recorded_paid_amount_minor: number;
+          outstanding_amount_minor: number;
+        }[];
+      };
       reschedule_booking: {
         Args: {
           p_booking_id: string;
@@ -1197,6 +1247,7 @@ export type Database = {
         | "BOOKING_ADDON_OPENED"
         | "BOOKING_ADDON_CONFIRMED"
         | "BOOKING_ADDON_CANCELLED"
+        | "BOOKING_PAYMENT_RECORDED"
         | "FEEDBACK_LINK_CREATED"
         | "FEEDBACK_LINK_REVOKED"
         | "FEEDBACK_LINK_REGENERATED"

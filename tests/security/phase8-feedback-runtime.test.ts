@@ -212,7 +212,7 @@ if (runtimeVerificationEnabled) {
       );
       await confirmBooking(user.client, bookingId);
 
-      for (const status of ["IN_PROGRESS", "READY", "DELIVERED", "COMPLETED"] as const) {
+      for (const status of ["READY", "DELIVERED"] as const) {
         const { error } = await user.client.rpc("transition_booking_status", {
           p_booking_id: bookingId,
           p_to_status: status,
@@ -220,6 +220,24 @@ if (runtimeVerificationEnabled) {
         });
         expect(error).toBeNull();
       }
+      expect(
+        (
+          await user.client.rpc("record_booking_payment", {
+            p_booking_id: bookingId,
+            p_amount_minor: 3_000_000,
+            p_operation_id: randomUUID(),
+          })
+        ).error,
+      ).toBeNull();
+      expect(
+        (
+          await user.client.rpc("transition_booking_status", {
+            p_booking_id: bookingId,
+            p_to_status: "COMPLETED",
+            p_cancellation_reason: null,
+          })
+        ).error,
+      ).toBeNull();
 
       return bookingId;
     }

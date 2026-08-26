@@ -22,7 +22,8 @@ production-readiness work.
 
 - [x] Every persisted booking status has centralized current-step guidance.
 - [x] Every non-terminal state has a valid next action or explicit waiting reason.
-- [x] Customer confirmation and work start remain separate actions/facts.
+- [x] Customer confirmation evidence remains distinct while new confirmations
+      atomically activate work without a Start work action.
 - [x] Cancellation remains available as a secondary terminal action.
 - [x] Feedback is derived after completion and does not alter booking status.
 - [x] New total/deposit empty-state and persisted edit-value regressions pass.
@@ -412,3 +413,25 @@ production-readiness work.
 - [x] PR #23 required CI, conflict-free merge `9dae103`, exact Vercel deployment,
       controlled production completion/onboarding smoke, and zero-fixture cleanup
       pass.
+## Booking Lifecycle And Payment Recording Detour
+
+- [x] Approved enum then schema migrations applied unchanged; catalog, frozen
+      hashes, zero row rewrite, zero payment backfill, and four legacy
+      `CONFIRMED` rows verified.
+- [x] New confirmation records deterministic `CONFIRMED -> IN_PROGRESS` evidence
+      atomically and normal UI has no Start work action.
+- [x] Payment table/RPC is tenant-scoped, append-only, integer-minor-unit,
+      idempotent, locked, and denies anonymous/direct/cross-tenant/overpayment.
+- [x] Initial deposit and confirmed add-on deposits are counted exactly once;
+      pending add-ons contribute zero and currencies remain separate.
+- [x] Outstanding completion denial is database-enforced and no force-complete,
+      refund, credit, waiver, correction, or fabricated historical payment path
+      exists.
+- [x] Payment dialog/history is labeled, responsive by construction, and fails
+      closed when authoritative summary is unavailable.
+- [x] Controlled runtime suite, full E2E responsive matrix, build, audit, and
+      zero-fixture cleanup pass locally without Docker.
+- [ ] PR/CI, production deployment, and controlled production smoke pass.
+- [x] Admin Phase 6B remains `IMPLEMENTED - VERIFICATION PENDING` with its
+      documented external Supabase Auth Admin `createUser` HTTP 500 blocker;
+      Admin Phase 7 remains not started.

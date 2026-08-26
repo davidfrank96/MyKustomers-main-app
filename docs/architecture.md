@@ -462,3 +462,28 @@ Confirmed reschedule and delivery notifications are inserted into
 `email_events` inside their respective booking transaction. Delivery remains
 outbox claim -> one configured adapter -> persisted provider acceptance/failure.
 Booking modules never call Brevo or Resend directly.
+## Booking Activation And Payment Integrity
+
+The confirmation security-definer transaction remains the sole agreement
+authority. It consumes the scoped capability, stores immutable confirmation and
+contact evidence, creates one `BOOKING_CONFIRMED` event, records `CONFIRMED`
+history, and advances to `IN_PROGRESS` before commit. No client follow-up request
+starts work. History timestamps are monotonically ordered. Legacy persisted
+`CONFIRMED` rows are not rewritten.
+
+Financial authority is database-first:
+
+```text
+canonical booking + confirmed add-ons
+                 ↓
+private.booking_payment_totals
+      ↙ summary RPC      ↘ locked write/completion RPC
+booking detail       booking_payments + audit / status history
+```
+
+`booking_payments` is append-only under ordinary authority. The client supplies
+only booking ID, positive minor-unit amount, and a high-entropy operation ID;
+business, actor, currency, lifecycle, and outstanding are derived while the
+booking row is locked. Payment and completion serialize on that lock. Booking
+detail loads payment summary/history in parallel with its existing summaries;
+there is no cross-request financial cache or client authorization arithmetic.

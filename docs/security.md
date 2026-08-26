@@ -821,3 +821,24 @@ does not persist tenant data in browser storage or a service worker. Client stat
 cannot authorize or mutate a booking. Email correlation headers are opaque
 truncated SHA-256 values; raw UUIDs, recipients, tokens, content, and secrets are
 excluded.
+## Booking Payment Security Invariants
+
+- New confirmation atomically preserves immutable confirmation evidence and
+  advances the final operational state to `IN_PROGRESS`; the client cannot forge
+  either transition.
+- `booking_payments` enables RLS, denies anonymous access, and grants
+  authenticated users read-only table access constrained by active tenant
+  membership. Ordinary insert/update/delete is absent.
+- `record_booking_payment` derives `auth.uid()`, tenant, booking lifecycle,
+  currency, and outstanding; locks the booking; rejects nonpositive, unsafe,
+  overpayment, cross-tenant, terminal, and operation-conflict requests; and
+  inserts payment plus allowlisted audit evidence transactionally.
+- Unique tenant/booking/operation identity makes retried submissions idempotent.
+  The same booking lock prevents concurrent final payments from over-recording.
+- `DELIVERED -> COMPLETED` recomputes authoritative totals under the booking lock
+  and fails before status/history/audit mutation when outstanding is positive.
+- Confirmation, amendment, add-on, and feedback capabilities have no payment
+  parameter or execute grant. Payment records expose no customer contact or bank
+  data and never mutate agreement evidence.
+- No force completion, correction, refund, credit, waiver, negative amount, or
+  post-terminal ordinary write path exists.

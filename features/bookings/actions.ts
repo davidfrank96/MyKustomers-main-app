@@ -10,6 +10,7 @@ import type { BookingActionState } from "@/features/bookings/action-state";
 import {
   bookingCreateSchema,
   bookingInternalNotesSchema,
+  bookingPaymentSchema,
   bookingRescheduleSchema,
   bookingTransitionSchema,
   bookingUpdateSchema,
@@ -352,10 +353,13 @@ async function transitionBookingStatus(
   });
 
   if (error) {
+    const outstandingBalance = error.message.includes("outstanding_balance");
     return {
       status: "error",
       code: "invalid-transition",
-      message: "This booking could not be updated. Refresh and try again.",
+      message: outstandingBalance
+        ? "Record the outstanding payment before completing this booking."
+        : "This booking could not be updated. Refresh and try again.",
     };
   }
 
@@ -365,6 +369,73 @@ async function transitionBookingStatus(
   }
 
   return { status: "success" };
+}
+
+export async function recordBookingPaymentAction(
+  bookingId: string,
+  _previousState: BookingActionState,
+  formData: FormData,
+): Promise<BookingActionState> {
+  const { business } = await requireCurrentBusiness(`/bookings/${bookingId}`);
+  const booking = await getBookingForBusiness(business.id, bookingId);
+
+  if (!booking) {
+    return {
+      status: "error",
+      message: "This booking is not available.",
+    };
+  }
+
+  const parsed = bookingPaymentSchema.safeParse({
+    amount: formValue(formData, "amount"),
+    operationId: formValue(formData, "operationId"),
+  });
+
+  if (!parsed.success) {
+    return validationError(parsed.error);
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("record_booking_payment", {
+    p_booking_id: bookingId,
+    p_amount_minor: parsed.data.amount,
+    p_operation_id: parsed.data.operationId,
+  });
+
+  if (error || !data?.[0]) {
+    if (error?.message.includes("payment_exceeds_outstanding_balance")) {
+      return {
+        status: "error",
+        message: "Payment exceeds the current outstanding balance.",
+        fieldErrors: { amount: ["Enter an amount no greater than the balance."] },
+      };
+    }
+
+    if (error?.message.includes("booking_balance_already_recorded")) {
+      return {
+        status: "error",
+        message: "This booking no longer has an outstanding balance.",
+      };
+    }
+
+    if (error?.message.includes("booking_not_eligible_for_payment_recording")) {
+      return {
+        status: "error",
+        message: "Payments can only be recorded while work is in progress, ready, or delivered.",
+      };
+    }
+
+    return {
+      status: "error",
+      message: "Payment could not be recorded. Refresh and try again.",
+    };
+  }
+
+  revalidateBookingStatusPaths(bookingId);
+  return {
+    status: "success",
+    message: "Payment recorded.",
+  };
 }
 
 export async function completeBookingStatusAction(
