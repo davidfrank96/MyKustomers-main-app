@@ -1,5 +1,28 @@
 # Changelog
 
+## 2026-08-26 - Admin Phase 7 Security And System Health
+
+Status: IMPLEMENTED - PRODUCTION VERIFICATION PENDING
+
+- Added a server-first `/admin/security` operational view with deterministic
+  `OPERATIONAL`, `ATTENTION`, `DEGRADED`, and `UNKNOWN` states, prioritized
+  attention, core services, email/outbox evidence, issue/booking aggregates,
+  recent minimized security activity, current MFA posture, and safe deployment
+  context.
+- Added two approved production read-only RPCs with active-admin assertions,
+  postgres ownership, empty search paths, bounded results, and no PUBLIC/anon
+  execute. No tables, rows, indexes, enums, RLS policies, or existing data were
+  changed.
+- Preserved AAL1 read access and the Phase 6A AAL2 privileged-action boundary.
+  Phase 6B remains the only admin write and remains production-verification
+  pending.
+- Added strict DTO/privacy, deterministic aggregation, partial-failure, refresh,
+  direct-RPC denial, tenant-independence, accessibility, and responsive E2E
+  coverage. Fixture runtime coverage stays guarded away from production.
+- No Docker, local Supabase, provider probe, RUM, SIEM, vulnerability scanner,
+  remediation, infrastructure control, environment change, or Admin Phase 8 is
+  included.
+
 ## 2026-08-26 - Business Logo 5 MiB Source Transport Pipeline
 
 Status: VERIFIED - PRODUCTION
@@ -16,9 +39,9 @@ Status: VERIFIED - PRODUCTION
   Storage RLS, and deterministic replacement. No raw/intermediate object is
   stored.
 - Added exact-5 MiB onboarding, 4.8 MiB mobile replacement, actual multipart,
-  >5 MiB no-request, and focused client/server regression coverage. No database,
-  Storage-bucket, environment, dependency, Docker, or Admin Phase 7 change is
-  included.
+  > 5 MiB no-request, and focused client/server regression coverage. No database,
+  > Storage-bucket, environment, dependency, Docker, or Admin Phase 7 change is
+  > included.
 - PR #37 passed seven executable GitHub/Vercel checks with the protected Runtime
   Security job safely skipped, remained conflict-free, and merged as `dd0fe2c`.
   Vercel deployed that exact commit to Production. On `mykustomers.com`, an

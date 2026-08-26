@@ -831,6 +831,7 @@ does not persist tenant data in browser storage or a service worker. Client stat
 cannot authorize or mutate a booking. Email correlation headers are opaque
 truncated SHA-256 values; raw UUIDs, recipients, tokens, content, and secrets are
 excluded.
+
 ## Booking Payment Security Invariants
 
 - New confirmation atomically preserves immutable confirmation evidence and
@@ -852,3 +853,29 @@ excluded.
   data and never mutate agreement evidence.
 - No force completion, correction, refund, credit, waiver, negative amount, or
   post-terminal ordinary write path exists.
+
+## Admin Security & Health Boundary
+
+Phase 7 adds minimized read-only visibility only. Page/server reads require
+`requirePlatformAdmin()` and database RPCs independently require current active
+platform-admin authority. Anonymous users, ordinary users, business owners, and
+disabled admins are denied. AAL1 and AAL2 active admins may read; every
+privileged mutation retains the Phase 6A AAL2 boundary.
+
+Health DTOs fail closed on unexpected fields. They exclude customer contact,
+booking private text, email recipient/body/provider identifiers/raw failures,
+tokens, cookies, sessions, TOTP material, and secret values. Security activity
+is limited to six persisted platform-admin/retry event types and at most 20
+newest records. The page does not log reads, probe providers, replay stale
+outbox events, repair anomalies, or use service role.
+
+Permanent rules:
+
+- Admin Security & Health provides minimized read-only operational and security
+  visibility. Detection of an anomaly does not itself authorize remediation or
+  bypass the privileged-action framework.
+- Unavailable or unmeasured evidence must be represented as unknown rather than
+  healthy.
+- Administrative health surfaces may report configuration state but must never
+  expose credential values, session material, capability tokens, or provider
+  secrets.

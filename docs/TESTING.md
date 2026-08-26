@@ -935,3 +935,33 @@ pixels without browser warnings or errors.
   Pixel 5 projects plus the desktop repeat-booking/different-contact path against
   `https://mykustomers.com`. All three passed with real Brevo provider acceptance,
   and the final controlled-fixture audit returned zero records and Auth users.
+
+## Admin Security & Health Coverage
+
+- `tests/unit/admin-health.test.ts` proves strict minimized DTO parsing,
+  allowlisted/bounded activity, state precedence, attention deduplication,
+  single-admin and MFA warnings, failure isolation, and unknown-not-green rules.
+- `tests/integration/admin-security-health.test.tsx` covers textual status semantics,
+  provider-acceptance wording, safe activity rendering, manual refresh, and
+  partial-source failure rendering.
+- `tests/security/platform-admin-health-migration.test.ts` locks function owner,
+  empty search paths, grants, active-admin assertions, AAL1 read policy,
+  current-business independence, query budget, public/admin health separation,
+  privacy, and absence of writes/remediation.
+- `tests/security/platform-admin-health-runtime.test.ts` is fixture-based and
+  runs only on an explicitly safe non-production backend. It verifies
+  anonymous/ordinary/owner/disabled denial, active-admin access, direct-RPC and
+  client-forgery resistance, minimized payloads, and no operational row changes.
+  It skips on the configured production-backed target by design.
+- Admin E2E covers Security & Health navigation, states, manual refresh, all
+  existing admin destinations, current-business independence, and no horizontal
+  overflow at 390, 768, 1024, and 1440 pixels.
+- Production verification is read-only and compares displayed aggregates with
+  authoritative database evidence. Docker/local Supabase and destructive
+  production fixtures are prohibited.
+- Production `EXPLAIN (ANALYZE, BUFFERS)` measured 18.006 ms for the summary RPC
+  and 51.864 ms for a 12-item activity RPC, with shared-buffer reads and no
+  writes. Supabase Performance Advisor reported zero errors/warnings; Security
+  Advisor reported zero errors and the existing generic self-authorizing
+  `SECURITY DEFINER` warnings. Direct catalog/grant and denial tests remain the
+  authoritative boundary evidence for the new RPCs.

@@ -157,3 +157,11 @@ deployed that exact commit to Production. Authenticated production smoke verifie
 the account-security page at AAL1, session refresh, existing admin reads, vendor
 onboarding resolution, private/no-store and referrer/index controls, no browser
 diagnostics, and no overflow at 390, 768, 1024, or 1440 pixels.
+
+## Phase 7 Read-Only Health
+
+Admin Phase 7 adds no privileged action and does not expand the Phase 6B retry.
+`Refresh status` is a read-only server revalidation and does not require AAL2 or
+write audit evidence. A health warning never grants repair, provider switching,
+admin creation, retry override, or another mutation. Phase 6B remains the only
+implemented privileged write and remains production-verification pending.

@@ -238,3 +238,19 @@ Vercel deployed that exact `main` commit, and controlled desktop/mobile
 production journeys exercised the approved confirmation and payment RPCs before
 zero-fixture cleanup. The frozen migration hashes remained unchanged and no
 forward-fix migration was required.
+
+## Admin Phase 7 Read-Only Health RPCs
+
+Migration `20260826195655_admin_phase_7_security_health.sql` was explicitly
+approved and applied through the authenticated Supabase control plane on
+2026-08-26. It adds only
+`get_platform_admin_health_summary()` and
+`get_platform_admin_security_activity(integer)`.
+
+Both are stable, postgres-owned `SECURITY DEFINER` functions with empty
+`search_path`, active-platform-admin assertions, no PUBLIC/anonymous execute,
+and authenticated execute for the self-authorizing browser boundary. No table,
+row, index, enum, RLS policy, or existing data changed. Catalog inspection,
+active-admin reads, ordinary authenticated denial, and anonymous grant denial
+passed. The migration does not send/retry/delete the preserved historical
+pending email. Docker/local Supabase was not used.

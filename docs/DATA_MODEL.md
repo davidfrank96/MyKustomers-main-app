@@ -495,3 +495,15 @@ active super-admin, increments the logical attempt count, and appends one
 `SENT` or `FAILED`. Browser roles have no table access and cannot invoke the
 mutation RPCs. Booking, customer, confirmation, amendment, add-on, and feedback
 rows are outside this communication-only transition.
+
+## Admin Phase 7 Read Model
+
+Admin Phase 7 adds no table, column, enum, index, row mutation, or retained
+health record. Migration
+`20260826195655_admin_phase_7_security_health.sql` adds two read-only JSON RPCs:
+`get_platform_admin_health_summary()` and
+`get_platform_admin_security_activity(integer)`. They aggregate existing
+`email_events`, `email_delivery_attempts`, `booking_issues`, `bookings`,
+`platform_admins`, `audit_logs`, `profiles`, and `auth.users` evidence through a
+strict minimized DTO. The activity query limits source rows before actor joins;
+no audit array is embedded in the health summary.

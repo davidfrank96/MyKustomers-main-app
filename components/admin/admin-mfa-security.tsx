@@ -148,7 +148,8 @@ export function AdminMfaSecurity({ status }: { status: AdminMfaSecurityStatus })
       setCode("");
       setNotice({
         kind: "success",
-        message: "Authenticator verified. This session is now at AAL2.",
+        message:
+          "Authenticator verified. Additional verification is active for this session.",
       });
       router.refresh();
     } catch {
@@ -178,13 +179,15 @@ export function AdminMfaSecurity({ status }: { status: AdminMfaSecurityStatus })
           </Badge>
         </div>
 
-        <dl className="mt-5 grid gap-4 border-t border-border pt-5 sm:grid-cols-2">
+        <dl className="mt-5 grid gap-4 border-t border-border pt-5 sm:grid-cols-3">
           <div>
             <dt className="text-xs font-medium uppercase text-muted-foreground">
-              Current assurance
+              Current session
             </dt>
-            <dd className="mt-1 text-sm font-semibold uppercase">
-              {status.currentLevel}
+            <dd className="mt-1 text-sm font-semibold">
+              {status.currentLevel === "aal2"
+                ? "Additional verification active"
+                : "Standard sign-in"}
             </dd>
           </div>
           <div>
@@ -193,6 +196,14 @@ export function AdminMfaSecurity({ status }: { status: AdminMfaSecurityStatus })
             </dt>
             <dd className="mt-1 text-sm font-semibold">
               {status.verifiedFactors.length}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-xs font-medium uppercase text-muted-foreground">
+              Technical assurance
+            </dt>
+            <dd className="mt-1 text-sm font-semibold uppercase">
+              {status.currentLevel}
             </dd>
           </div>
         </dl>
@@ -206,7 +217,8 @@ export function AdminMfaSecurity({ status }: { status: AdminMfaSecurityStatus })
             <div>
               <p className="text-sm font-medium">MFA configured</p>
               <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                Privileged actions still require this session to be verified at AAL2.
+                Privileged actions still require additional verification for the current
+                session.
               </p>
             </div>
           </div>
@@ -385,8 +397,8 @@ export function AdminMfaSecurity({ status }: { status: AdminMfaSecurityStatus })
             Privileged verification active
           </h2>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
-            Supabase reports this session at AAL2. Platform authority is still rechecked
-            for every privileged action.
+            Additional verification is active. Platform authority is still rechecked for
+            every privileged action. Technical assurance: AAL2.
           </p>
         </section>
       ) : null}

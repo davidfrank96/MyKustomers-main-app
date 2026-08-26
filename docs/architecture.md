@@ -470,6 +470,7 @@ Confirmed reschedule and delivery notifications are inserted into
 `email_events` inside their respective booking transaction. Delivery remains
 outbox claim -> one configured adapter -> persisted provider acceptance/failure.
 Booking modules never call Brevo or Resend directly.
+
 ## Booking Activation And Payment Integrity
 
 The confirmation security-definer transaction remains the sole agreement
@@ -495,3 +496,25 @@ business, actor, currency, lifecycle, and outstanding are derived while the
 booking row is locked. Payment and completion serialize on that lock. Booking
 detail loads payment summary/history in parallel with its existing summaries;
 there is no cross-request financial cache or client authorization arithmetic.
+
+## Admin Security & Health Read Path
+
+`/admin/security` is dynamic, private, server-first, and independent of vendor
+tenant selection:
+
+```text
+active platform-admin request
+  -> requirePlatformAdmin()
+  -> health summary RPC + bounded activity RPC + current MFA evidence
+  -> strict minimized DTO parsing
+  -> deterministic health aggregation
+  -> read-only admin UI
+```
+
+Each RPC is postgres-owned `SECURITY DEFINER`, has an empty `search_path`, and
+repeats `private.require_platform_admin_read_access()`. Public/anonymous execute
+is revoked. The application uses the authenticated server client, not service
+role. A page load performs at most one summary RPC, one activity RPC, and the
+existing MFA/session read; no provider API call or automatic polling occurs.
+Independent source failures render partial evidence and produce `UNKNOWN` or
+`DEGRADED`, never false green.
