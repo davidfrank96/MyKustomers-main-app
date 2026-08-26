@@ -451,5 +451,8 @@ production-readiness work.
       semantics, live-update behavior, and 320-1440 containment are covered.
 - [x] No migration, multi-email schema, lifecycle rewrite, Docker, environment
       change, broad redesign, or Admin Phase 7 scope was introduced.
-- [ ] PR/CI, Vercel deployment, controlled production desktop/mobile smoke, and
-      zero-fixture cleanup are pending.
+- [x] PR #33 passed all required CI and merged conflict-free as `84aa736`; Vercel
+      deployed that exact merge successfully.
+- [x] Controlled production desktop/mobile canonical journeys and the desktop
+      repeat-booking/different-contact path passed with real Brevo acceptance;
+      cleanup confirmed zero controlled fixture records or Auth users.
