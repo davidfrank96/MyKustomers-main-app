@@ -495,6 +495,8 @@ export type Database = {
           booking_amendment_id: string | null;
           booking_addon_id: string | null;
           booking_addon_confirmation_link_id: string | null;
+          booking_change_id: string | null;
+          confirmation_link_id: string | null;
           event_type: Database["public"]["Enums"]["email_event_type"];
           recipient_email: string;
           status: Database["public"]["Enums"]["email_event_status"];
@@ -515,6 +517,8 @@ export type Database = {
           booking_amendment_id?: string | null;
           booking_addon_id?: string | null;
           booking_addon_confirmation_link_id?: string | null;
+          booking_change_id?: string | null;
+          confirmation_link_id?: string | null;
           event_type: Database["public"]["Enums"]["email_event_type"];
           recipient_email: string;
           status?: Database["public"]["Enums"]["email_event_status"];
@@ -974,6 +978,23 @@ export type Database = {
           status: Database["public"]["Enums"]["booking_status"];
         }[];
       };
+      reschedule_booking_with_notification: {
+        Args: {
+          p_booking_id: string;
+          p_scheduled_for: string;
+          p_token_hash: string;
+          p_expires_at?: string;
+        };
+        Returns: {
+          booking_id: string;
+          previous_scheduled_for: string | null;
+          new_scheduled_for: string;
+          status: Database["public"]["Enums"]["booking_status"];
+          confirmation_link_id: string | null;
+          expires_at: string | null;
+          email_event_id: string | null;
+        }[];
+      };
       create_booking_amendment: {
         Args: {
           p_booking_id: string;
@@ -1134,7 +1155,9 @@ export type Database = {
         | "BOOKING_AMENDMENT_REQUESTED"
         | "BOOKING_AMENDMENT_CONFIRMED"
         | "BOOKING_ADDON_REQUESTED"
-        | "BOOKING_ADDON_CONFIRMED";
+        | "BOOKING_ADDON_CONFIRMED"
+        | "BOOKING_RESCHEDULED"
+        | "BOOKING_DELIVERED";
       email_event_status: "PENDING" | "SENDING" | "SENT" | "FAILED";
       email_delivery_attempt_origin: "DOMAIN_EVENT" | "ADMIN_RETRY";
       email_delivery_attempt_status: "SENDING" | "SENT" | "FAILED";

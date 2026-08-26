@@ -440,3 +440,25 @@ Transition actions remain revalidated server actions backed by the existing
 database transition RPC. Confirmation, amendment, add-on, and feedback links
 retain their own capability models. Feedback completion is projected into the
 journey but never stored as a booking status.
+
+## Live Booking State And Customer Communication
+
+The booking page remains server-rendered. A small client coordinator polls
+`GET /api/bookings/[bookingId]/sync` every five seconds only while visible. The
+route verifies the signed-in user, resolves the selected active business, applies
+an explicit `(business_id, booking_id)` filter through the authenticated Supabase
+client, and returns only status plus confirmation/feedback revision timestamps.
+A changed revision calls `router.refresh()` and raises one deduplicated in-app
+toast. Focus/visibility events perform an immediate check; unmount aborts work.
+
+```text
+customer capability action -> authoritative database transaction
+                            -> vendor snapshot revision changes
+visible vendor page         -> protected minimal GET -> router.refresh()
+                            -> server page re-reads all authorized detail
+```
+
+Confirmed reschedule and delivery notifications are inserted into
+`email_events` inside their respective booking transaction. Delivery remains
+outbox claim -> one configured adapter -> persisted provider acceptance/failure.
+Booking modules never call Brevo or Resend directly.

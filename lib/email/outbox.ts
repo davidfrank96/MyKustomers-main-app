@@ -15,6 +15,9 @@ import {
   bookingAddonConfirmedEmail,
   bookingAddonRequestedEmail,
 } from "@/lib/email/templates/booking-addon";
+import { bookingDeliveredEmail } from "@/lib/email/templates/booking-delivered";
+import { bookingRescheduledEmail } from "@/lib/email/templates/booking-rescheduled";
+import { applyBookingEmailThreading } from "@/lib/email/threading";
 import { getTransactionalEmailProvider } from "@/lib/email/provider";
 import { sendWithProviderBoundary } from "@/lib/email/send";
 import { buildEmailAttemptIdempotencyKey } from "@/lib/email/retry-policy";
@@ -39,6 +42,17 @@ const cancelledBookingSchema = z.object({
   status: z.literal("CANCELLED"),
   cancellation_reason: z.string().min(1).max(500),
   cancelled_at: z.string().datetime({ offset: true }),
+});
+
+const deliveredBookingSchema = z.object({
+  status: z.literal("DELIVERED"),
+  delivered_at: z.string().datetime({ offset: true }),
+});
+
+const rescheduleChangeSchema = z.object({
+  change_type: z.literal("reschedule"),
+  previous_scheduled_for: z.string().datetime({ offset: true }).nullable(),
+  new_scheduled_for: z.string().datetime({ offset: true }),
 });
 
 const amendmentTermsSchema = bookingSnapshotSchema.extend({
@@ -91,7 +105,16 @@ const addonSchema = z.object({
   status: z.enum(["AWAITING_CUSTOMER", "CONFIRMED"]),
 });
 
-type EmailDeliveryContext = { amendmentUrl?: string; addonUrl?: string };
+type EmailDeliveryContext = {
+  amendmentUrl?: string;
+  addonUrl?: string;
+  confirmationUrl?: string;
+};
+
+type BookingThreadContext = {
+  businessName: string;
+  bookingReference: string;
+};
 
 async function failEmailEvent({
   emailEventId,
@@ -273,6 +296,7 @@ export async function deliverClaimedEmailEvent({
     });
 
   let message: TransactionalEmailMessage;
+  let threadContext: BookingThreadContext | null = null;
 
   if (
     event.event_type === "BOOKING_ADDON_REQUESTED" ||
@@ -306,6 +330,10 @@ export async function deliverClaimedEmailEvent({
     const baseInput = {
       emailEventId: event.id,
       recipientEmail: event.recipient_email,
+      businessName: snapshot.business_name,
+      bookingReference: snapshot.booking_reference,
+    };
+    threadContext = {
       businessName: snapshot.business_name,
       bookingReference: snapshot.booking_reference,
     };
@@ -404,6 +432,10 @@ export async function deliverClaimedEmailEvent({
       oldTerms: parsed.data.old_terms,
       proposedTerms: parsed.data.proposed_terms,
     };
+    threadContext = {
+      businessName: parsed.data.old_terms.business_name,
+      bookingReference: parsed.data.old_terms.booking_reference,
+    };
 
     if (event.event_type === "BOOKING_AMENDMENT_REQUESTED") {
       let amendmentUrl: URL;
@@ -428,7 +460,96 @@ export async function deliverClaimedEmailEvent({
     } else {
       message = bookingAmendmentConfirmedEmail(input);
     }
-  } else {
+  } else if (event.event_type === "BOOKING_RESCHEDULED") {
+    if (!event.booking_change_id || !event.confirmation_link_id) {
+      return failClaimedEmailEvent({
+        code: "invalid_reschedule_event",
+        message: "The booking reschedule email data is unavailable.",
+      });
+    }
+
+    const [{ data: change }, { data: link }, { data: confirmation }] =
+      await Promise.all([
+        supabase
+          .from("booking_changes")
+          .select("change_type, previous_scheduled_for, new_scheduled_for")
+          .eq("id", event.booking_change_id)
+          .eq("business_id", event.business_id)
+          .eq("booking_id", event.booking_id)
+          .maybeSingle(),
+        supabase
+          .from("confirmation_links")
+          .select("id, used_at, revoked_at, expires_at")
+          .eq("id", event.confirmation_link_id)
+          .eq("business_id", event.business_id)
+          .eq("booking_id", event.booking_id)
+          .maybeSingle(),
+        supabase
+          .from("booking_confirmations")
+          .select("terms_snapshot, contact_email")
+          .eq("business_id", event.business_id)
+          .eq("booking_id", event.booking_id)
+          .order("confirmed_at", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+      ]);
+    const parsedChange = rescheduleChangeSchema.safeParse(change);
+    const snapshot = bookingSnapshotSchema.safeParse(confirmation?.terms_snapshot);
+    const authoritativeRecipient = selectCancellationRecipient({
+      confirmationContactEmail: confirmation?.contact_email ?? null,
+      customerEmail: event.recipient_email,
+    });
+
+    if (
+      !parsedChange.success ||
+      !snapshot.success ||
+      !link ||
+      link.used_at ||
+      link.revoked_at ||
+      new Date(link.expires_at).getTime() <= Date.now() ||
+      authoritativeRecipient !== event.recipient_email
+    ) {
+      return failClaimedEmailEvent({
+        code: "invalid_reschedule_event",
+        message: "The booking reschedule email data is unavailable.",
+      });
+    }
+
+    let confirmationUrl: URL;
+    try {
+      confirmationUrl = new URL(context.confirmationUrl ?? "");
+    } catch {
+      return failClaimedEmailEvent({
+        code: "confirmation_url_unavailable",
+        message: "The secure booking confirmation URL is unavailable.",
+      });
+    }
+    if (!confirmationUrl.pathname.startsWith("/c/")) {
+      return failClaimedEmailEvent({
+        code: "confirmation_url_invalid",
+        message: "The secure booking confirmation URL is invalid.",
+      });
+    }
+
+    threadContext = {
+      businessName: snapshot.data.business_name,
+      bookingReference: snapshot.data.booking_reference,
+    };
+    message = bookingRescheduledEmail({
+      emailEventId: event.id,
+      recipientEmail: authoritativeRecipient,
+      businessName: snapshot.data.business_name,
+      bookingTitle: snapshot.data.title,
+      bookingReference: snapshot.data.booking_reference,
+      previousScheduledFor: parsedChange.data.previous_scheduled_for,
+      scheduledFor: parsedChange.data.new_scheduled_for,
+      confirmationUrl: confirmationUrl.toString(),
+    });
+  } else if (
+    event.event_type === "BOOKING_CONFIRMED" ||
+    event.event_type === "BOOKING_CANCELLED" ||
+    event.event_type === "BOOKING_DELIVERED"
+  ) {
     if (!event.booking_confirmation_id) {
       return failClaimedEmailEvent({
         code: "invalid_confirmation_event",
@@ -452,6 +573,11 @@ export async function deliverClaimedEmailEvent({
       });
     }
 
+    threadContext = {
+      businessName: snapshot.data.business_name,
+      bookingReference: snapshot.data.booking_reference,
+    };
+
     if (event.event_type === "BOOKING_CONFIRMED") {
       message = bookingConfirmedEmail({
         emailEventId: event.id,
@@ -465,7 +591,7 @@ export async function deliverClaimedEmailEvent({
         depositAmountMinor: snapshot.data.deposit_amount_minor,
         balanceAmountMinor: snapshot.data.balance_amount_minor,
       });
-    } else {
+    } else if (event.event_type === "BOOKING_CANCELLED") {
       const { data: latestAmendment } = await supabase
         .from("booking_amendments")
         .select("effective_terms")
@@ -514,8 +640,81 @@ export async function deliverClaimedEmailEvent({
         cancellationReason: cancelledBooking.data.cancellation_reason,
         cancelledAt: cancelledBooking.data.cancelled_at,
       });
+    } else {
+      const [{ data: latestAmendment }, { data: booking, error: bookingError }] =
+        await Promise.all([
+          supabase
+            .from("booking_amendments")
+            .select("effective_terms")
+            .eq("business_id", event.business_id)
+            .eq("booking_id", event.booking_id)
+            .eq("status", "CONFIRMED")
+            .order("confirmed_at", { ascending: false })
+            .limit(1)
+            .maybeSingle(),
+          supabase
+            .from("bookings")
+            .select("status, delivered_at")
+            .eq("id", event.booking_id)
+            .eq("business_id", event.business_id)
+            .maybeSingle(),
+        ]);
+      const effectiveSnapshot = bookingSnapshotSchema.safeParse(
+        latestAmendment?.effective_terms,
+      );
+      const deliverySnapshot = effectiveSnapshot.success
+        ? effectiveSnapshot.data
+        : snapshot.data;
+      const deliveredBooking = deliveredBookingSchema.safeParse(booking);
+      const authoritativeRecipient = selectCancellationRecipient({
+        confirmationContactEmail: confirmation?.contact_email ?? null,
+        customerEmail: event.recipient_email,
+      });
+
+      if (
+        bookingError ||
+        !deliveredBooking.success ||
+        authoritativeRecipient !== event.recipient_email
+      ) {
+        return failClaimedEmailEvent({
+          code: "invalid_delivery_event",
+          message: "The booking delivery email data is unavailable.",
+        });
+      }
+
+      threadContext = {
+        businessName: deliverySnapshot.business_name,
+        bookingReference: deliverySnapshot.booking_reference,
+      };
+      message = bookingDeliveredEmail({
+        emailEventId: event.id,
+        recipientEmail: authoritativeRecipient,
+        businessName: deliverySnapshot.business_name,
+        bookingTitle: deliverySnapshot.title,
+        bookingReference: deliverySnapshot.booking_reference,
+        scheduledFor: deliverySnapshot.scheduled_for ?? null,
+        deliveredAt: deliveredBooking.data.delivered_at,
+      });
     }
+  } else {
+    return failClaimedEmailEvent({
+      code: "unsupported_email_event",
+      message: "The transactional email event type is unsupported.",
+    });
   }
+
+  if (!threadContext) {
+    return failClaimedEmailEvent({
+      code: "invalid_email_thread",
+      message: "The booking email correlation data is unavailable.",
+    });
+  }
+
+  message = applyBookingEmailThreading(message, {
+    bookingId: event.booking_id,
+    emailEventId: event.id,
+    ...threadContext,
+  });
 
   const result = await sendWithProviderBoundary(provider, {
     ...message,

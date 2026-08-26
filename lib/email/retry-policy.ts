@@ -37,7 +37,9 @@ export type EmailRetryPolicyInput = {
     | "BOOKING_AMENDMENT_REQUESTED"
     | "BOOKING_AMENDMENT_CONFIRMED"
     | "BOOKING_ADDON_REQUESTED"
-    | "BOOKING_ADDON_CONFIRMED";
+    | "BOOKING_ADDON_CONFIRMED"
+    | "BOOKING_RESCHEDULED"
+    | "BOOKING_DELIVERED";
   attemptCount: number;
   failureCode: string | null;
   latestAttempt: EmailRetryAttemptEvidence | null;
@@ -100,7 +102,8 @@ export function getEmailRetryEligibility({
 
   if (
     eventType === "BOOKING_AMENDMENT_REQUESTED" ||
-    eventType === "BOOKING_ADDON_REQUESTED"
+    eventType === "BOOKING_ADDON_REQUESTED" ||
+    eventType === "BOOKING_RESCHEDULED"
   ) {
     return decision(
       false,

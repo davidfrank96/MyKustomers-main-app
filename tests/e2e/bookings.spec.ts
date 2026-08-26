@@ -365,6 +365,19 @@ test.describe("booking engine", () => {
     await expect(page.getByRole("heading", { name: updatedTitle })).toBeVisible();
 
     const bookingDetailUrl = page.url();
+    const bookingSyncId = new URL(bookingDetailUrl).pathname.split("/").at(-1)!;
+    const syncResponse = await page.request.get(`/api/bookings/${bookingSyncId}/sync`);
+    expect(syncResponse.ok()).toBe(true);
+    expect(syncResponse.headers()["cache-control"]).toContain("no-store");
+    expect(Object.keys(await syncResponse.json()).sort()).toEqual([
+      "customerConfirmedAt",
+      "feedbackSubmittedAt",
+      "revision",
+      "status",
+    ]);
+    expect(
+      (await page.request.get(`/api/bookings/${randomUUID()}/sync`)).status(),
+    ).toBe(404);
     await page.getByRole("button", { name: "Generate confirmation link" }).click();
     const generatedLinkInput = page.getByLabel("Generated confirmation link");
     await expect(generatedLinkInput).toBeAttached({ timeout: 15_000 });
@@ -477,8 +490,11 @@ test.describe("booking engine", () => {
       .delete()
       .in("bucket_key", [...createdRateLimitBuckets]);
 
-    await page.goto(confirmationUrl);
-    await expect(page.getByRole("heading", { name: "Review your order" })).toBeVisible();
+    const customerPage = await context.newPage();
+    await customerPage.goto(confirmationUrl);
+    await expect(
+      customerPage.getByRole("heading", { name: "Review your order" }),
+    ).toBeVisible();
     await expect
       .poll(async () => {
         const { data } = await admin
@@ -494,56 +510,68 @@ test.describe("booking engine", () => {
         return Boolean(data?.first_opened_at);
       })
       .toBe(true);
-    await expect(page.locator('meta[property="og:title"]')).toHaveAttribute(
+    await expect(customerPage.locator('meta[property="og:title"]')).toHaveAttribute(
       "content",
       "Review your order with Phase 5 E2E Business",
     );
-    await expect(page.locator('meta[property="og:description"]')).toHaveAttribute(
+    await expect(
+      customerPage.locator('meta[property="og:description"]'),
+    ).toHaveAttribute(
       "content",
       "Phase 5 E2E Business has sent you an order for review and confirmation.",
     );
-    await expect(page.locator('meta[property="og:url"]')).toHaveAttribute(
+    await expect(customerPage.locator('meta[property="og:url"]')).toHaveAttribute(
       "content",
       confirmationUrl,
     );
-    await expect(page.locator('meta[property="og:type"]')).toHaveAttribute(
+    await expect(customerPage.locator('meta[property="og:type"]')).toHaveAttribute(
       "content",
       "website",
     );
-    await expect(page.locator('meta[property="og:site_name"]')).toHaveAttribute(
+    await expect(
+      customerPage.locator('meta[property="og:site_name"]'),
+    ).toHaveAttribute(
       "content",
       "My Customers",
     );
-    await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
+    await expect(customerPage.locator('meta[property="og:image"]')).toHaveAttribute(
       "content",
       /business-logos/,
     );
-    await expect(page.getByText("Phase 5 E2E Business", { exact: true })).toBeVisible();
     await expect(
-      page.getByLabel("Phase 5 E2E Business logo").locator("img"),
+      customerPage.getByText("Phase 5 E2E Business", { exact: true }),
     ).toBeVisible();
-    await expect(page.getByRole("link", { name: "Visit website" })).toHaveAttribute(
+    await expect(
+      customerPage.getByLabel("Phase 5 E2E Business logo").locator("img"),
+    ).toBeVisible();
+    await expect(
+      customerPage.getByRole("link", { name: "Visit website" }),
+    ).toHaveAttribute(
       "href",
       "https://phase5.example.com/booking",
     );
-    await expect(page.getByRole("link", { name: "Instagram" })).toHaveAttribute(
+    await expect(
+      customerPage.getByRole("link", { name: "Instagram" }),
+    ).toHaveAttribute(
       "href",
       "https://www.instagram.com/phase5business/",
     );
-    await expect(page.getByText(ownerFixture.businessId)).toHaveCount(0);
-    await expect(page.getByText(updatedTitle)).toBeVisible();
-    await expect(page.getByText("₦45,000")).toBeVisible();
-    await expect(page.getByText("Updated private E2E note.")).toHaveCount(0);
+    await expect(customerPage.getByText(ownerFixture.businessId)).toHaveCount(0);
+    await expect(customerPage.getByText(updatedTitle)).toBeVisible();
+    await expect(customerPage.getByText("₦45,000")).toBeVisible();
+    await expect(customerPage.getByText("Updated private E2E note.")).toHaveCount(0);
 
-    await page
+    await customerPage
       .getByLabel("Where should we send updates about this booking?")
       .fill("customer-confirmation@example.com");
-    await page.getByLabel("Phone number (optional)").fill("+353 01 555 0155");
-    await page.getByRole("button", { name: "Confirm booking" }).click();
-    await expect(page).toHaveURL(/confirmed=1/, { timeout: 15_000 });
-    await expect(page.getByRole("heading", { name: "Booking confirmed" })).toBeVisible();
+    await customerPage.getByLabel("Phone number (optional)").fill("+353 01 555 0155");
+    await customerPage.getByRole("button", { name: "Confirm booking" }).click();
+    await expect(customerPage).toHaveURL(/confirmed=1/, { timeout: 15_000 });
     await expect(
-      page.getByText("We'll send a confirmation to c***@example.com."),
+      customerPage.getByRole("heading", { name: "Booking confirmed" }),
+    ).toBeVisible();
+    await expect(
+      customerPage.getByText("We'll send a confirmation to c***@example.com."),
     ).toBeVisible();
 
     const [
@@ -583,10 +611,16 @@ test.describe("booking engine", () => {
     });
     expect(emailEvents?.[0].provider_message_id).toMatch(/^development-/);
 
-    await page.goto(confirmationUrl);
-    await expect(page.getByRole("heading", { name: "Booking confirmed" })).toBeVisible();
+    await customerPage.goto(confirmationUrl);
+    await expect(
+      customerPage.getByRole("heading", { name: "Booking confirmed" }),
+    ).toBeVisible();
 
-    await page.goto(bookingDetailUrl);
+    await expect(
+      page.locator('[data-state="open"]').getByText("Customer confirmed", {
+        exact: true,
+      }),
+    ).toBeVisible({ timeout: serverActionTimeout });
     await expect(
       page
         .locator("span")
@@ -617,6 +651,7 @@ test.describe("booking engine", () => {
         { timeout: serverActionTimeout },
       )
       .toBe(true);
+    await customerPage.close();
     await page.reload();
     await expect(
       page.getByText("First viewed").first().locator("..").getByText("Not available"),
@@ -834,7 +869,9 @@ test.describe("booking engine", () => {
     await page.getByLabel("New scheduled date").fill(futureLocalDateTimePlus(2));
     await page.getByRole("button", { name: "Reschedule" }).click();
     await expect(
-      page.getByText("Booking rescheduled. Customer confirmation is required again."),
+      page.getByText(
+        "Booking rescheduled. The new confirmation request was accepted for delivery.",
+      ),
     ).toBeVisible({ timeout: serverActionTimeout });
     await expect(
       page.locator("span").filter({ hasText: /^Awaiting customer$/ }),
@@ -847,6 +884,20 @@ test.describe("booking engine", () => {
       page.getByText("The delivery schedule changed.", { exact: false }),
     ).toBeVisible();
     await expect(page.getByRole("button", { name: "Start work" })).toHaveCount(0);
+
+    const { data: rescheduleEvents } = await admin
+      .from("email_events")
+      .select("event_type, status, booking_change_id, confirmation_link_id")
+      .eq("business_id", fixture.businessId)
+      .eq("event_type", "BOOKING_RESCHEDULED");
+    expect(rescheduleEvents).toEqual([
+      {
+        event_type: "BOOKING_RESCHEDULED",
+        status: "SENT",
+        booking_change_id: expect.any(String),
+        confirmation_link_id: expect.any(String),
+      },
+    ]);
 
     await page
       .getByRole("button", { name: /Generate confirmation link|Regenerate link/ })
@@ -894,6 +945,14 @@ test.describe("booking engine", () => {
     });
     await expect(page.getByText("Ready to Delivered")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Delivered" })).toBeVisible();
+    const { data: deliveryEvents } = await admin
+      .from("email_events")
+      .select("event_type, status, attempt_count")
+      .eq("business_id", fixture.businessId)
+      .eq("event_type", "BOOKING_DELIVERED");
+    expect(deliveryEvents).toEqual([
+      { event_type: "BOOKING_DELIVERED", status: "SENT", attempt_count: 1 },
+    ]);
 
     await page.getByRole("button", { name: "Complete booking" }).click();
     const completionDialog = page.getByRole("dialog", { name: "Complete this booking?" });
@@ -978,18 +1037,21 @@ test.describe("booking engine", () => {
     expect(feedbackLinkAfterCrawler?.first_opened_at).toBeNull();
     expect(feedbackLinkAfterCrawler?.id).toBeTruthy();
 
-    const feedbackResponse = await page.goto(feedbackUrl);
+    const feedbackPage = await context.newPage();
+    const feedbackResponse = await feedbackPage.goto(feedbackUrl);
     expect(feedbackResponse?.headers()["cache-control"]).toContain("no-store");
     expect(feedbackResponse?.headers()["referrer-policy"]).toBe("no-referrer");
     expect(feedbackResponse?.headers()["x-robots-tag"]).toContain("noindex");
-    await expect(page.getByRole("heading", { name: "Private feedback" })).toBeVisible();
-    await expect(page.locator('meta[property="og:title"]')).toHaveAttribute(
+    await expect(
+      feedbackPage.getByRole("heading", { name: "Private feedback" }),
+    ).toBeVisible();
+    await expect(feedbackPage.locator('meta[property="og:title"]')).toHaveAttribute(
       "content",
       "Share private feedback with Phase 5 E2E Business",
     );
-    await expect(page.getByText(amendedTitle)).toBeVisible();
-    await expect(page.getByText("Updated private E2E note.")).toHaveCount(0);
-    await expect(page.getByText("Balance remaining")).toHaveCount(0);
+    await expect(feedbackPage.getByText(amendedTitle)).toBeVisible();
+    await expect(feedbackPage.getByText("Updated private E2E note.")).toHaveCount(0);
+    await expect(feedbackPage.getByText("Balance remaining")).toHaveCount(0);
 
     await expect
       .poll(async () => {
@@ -1013,25 +1075,30 @@ test.describe("booking engine", () => {
     expect(feedbackShareAudits?.length).toBeGreaterThan(0);
     expect(JSON.stringify(feedbackShareAudits)).not.toContain(feedbackToken);
 
-    await page.locator('input[name="overallRating"][value="5"]').check();
-    await page.locator('input[name="onTime"][value="yes"]').check();
-    await page.locator('input[name="metExpectations"][value="yes"]').check();
-    await page
+    await feedbackPage.locator('input[name="overallRating"][value="5"]').check();
+    await feedbackPage.locator('input[name="onTime"][value="yes"]').check();
+    await feedbackPage.locator('input[name="metExpectations"][value="yes"]').check();
+    await feedbackPage
       .getByLabel("What could we do better?")
       .fill("Everything was handled privately.");
-    await page.getByRole("button", { name: "Submit private feedback" }).click();
-    await expect(page).toHaveURL(/submitted=1/);
+    await feedbackPage.getByRole("button", { name: "Submit private feedback" }).click();
+    await expect(feedbackPage).toHaveURL(/submitted=1/);
     await expect(
-      page.getByRole("heading", { name: "Thank you for your feedback" }),
+      feedbackPage.getByRole("heading", { name: "Thank you for your feedback" }),
     ).toBeVisible();
-    await expect(page.getByText("It is not posted publicly.")).toBeVisible();
+    await expect(feedbackPage.getByText("It is not posted publicly.")).toBeVisible();
 
-    await page.goto(bookingDetailUrl);
+    await expect(
+      page.locator('[data-state="open"]').getByText("New customer feedback", {
+        exact: true,
+      }),
+    ).toBeVisible({ timeout: serverActionTimeout });
     await expect(page.getByText("5/5")).toBeVisible();
     await expect(page.getByText("Everything was handled privately.")).toBeVisible();
     await expect(page.getByRole("button", { name: "Request feedback" })).toHaveCount(0);
     await expect(page.getByRole("heading", { name: "Feedback received" })).toBeVisible();
     await expect(page.getByText("The booking journey is complete.")).toBeVisible();
+    await feedbackPage.close();
 
     await page.getByLabel("Category").selectOption("LATE_DELIVERY");
     await page

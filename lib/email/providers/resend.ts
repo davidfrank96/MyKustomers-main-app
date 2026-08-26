@@ -6,6 +6,7 @@ import {
   parseTransactionalEmailSender,
   providerHttpFailure,
   requestEmailProvider,
+  safeProviderCorrelationHeaders,
 } from "@/lib/email/providers/shared";
 
 type ResendProviderOptions = {
@@ -50,6 +51,7 @@ export function createResendEmailProvider({
             subject: message.subject,
             html: message.html,
             text: message.text,
+            headers: safeProviderCorrelationHeaders(message.headers),
           }),
         },
         timeoutMs,

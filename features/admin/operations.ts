@@ -234,6 +234,8 @@ const adminBookingDetailSchema = z
             "BOOKING_AMENDMENT_CONFIRMED",
             "BOOKING_ADDON_REQUESTED",
             "BOOKING_ADDON_CONFIRMED",
+            "BOOKING_RESCHEDULED",
+            "BOOKING_DELIVERED",
           ]),
           status: z.enum(["PENDING", "SENDING", "SENT", "FAILED"]),
           count: adminCountSchema,

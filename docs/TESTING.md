@@ -837,3 +837,18 @@ pixels without browser warnings or errors.
   customer event. Docker is prohibited. A final cleanup query must show zero
   `phase6b-*` users/businesses, zero temporary attempts, and one approved active
   `SUPER_ADMIN`.
+
+## Customer Communication And Live Synchronization Coverage
+
+- Unit tests cover reschedule/delivery content and privacy, stable booking
+  subjects, opaque correlation headers, provider forwarding, secure-link retry
+  exclusion, minimal state revisions, and confirmation/feedback notifications.
+- Static migration-security tests cover enum scope, composite tenant foreign
+  keys, uniqueness, atomic domain/event functions, and anonymous grant denial.
+- The canonical E2E keeps separate vendor/customer tabs open to prove automatic
+  confirmation and feedback refresh, one in-app notice per observed revision,
+  minimized/no-store sync responses, not-found isolation, and durable
+  reschedule/delivery event acceptance.
+- Runtime/E2E uses the configured backend with controlled fixture cleanup.
+  Docker/local Supabase is not used. PWA push is not tested because it is not
+  implemented.

@@ -22,6 +22,12 @@ import {
 } from "@/features/bookings/status";
 import { hasMaterialBookingFieldChange } from "@/features/confirmation-links/terms";
 import { deliverEmailEvent } from "@/lib/email/outbox";
+import { publicEnv } from "@/lib/config/public-env";
+import {
+  confirmationLinkExpiresAt,
+  generateConfirmationToken,
+  hashConfirmationToken,
+} from "@/features/confirmation-links/token";
 
 function formValue(formData: FormData, key: string) {
   return formData.get(key);
@@ -397,10 +403,14 @@ export async function rescheduleBookingAction(
     return validationError(parsed.error);
   }
 
+  const token = generateConfirmationToken();
+  const expiresAt = confirmationLinkExpiresAt();
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc("reschedule_booking", {
+  const { data, error } = await supabase.rpc("reschedule_booking_with_notification", {
     p_booking_id: bookingId,
     p_scheduled_for: parsed.data.scheduledFor,
+    p_token_hash: hashConfirmationToken(token),
+    p_expires_at: expiresAt.toISOString(),
   });
 
   if (error || !data?.[0]) {
@@ -410,6 +420,16 @@ export async function rescheduleBookingAction(
     };
   }
 
+  const result = data[0];
+  let emailAccepted = false;
+  if (result.email_event_id && result.confirmation_link_id) {
+    const baseUrl = publicEnv.NEXT_PUBLIC_APP_URL.replace(/\/$/, "");
+    const delivery = await deliverEmailEvent(result.email_event_id, undefined, {
+      confirmationUrl: `${baseUrl}/c/${token}`,
+    });
+    emailAccepted = delivery.status === "sent";
+  }
+
   revalidatePath("/dashboard");
   revalidatePath("/bookings");
   revalidatePath(`/bookings/${bookingId}`);
@@ -417,8 +437,12 @@ export async function rescheduleBookingAction(
   return {
     status: "success",
     message:
-      data[0].status === "AWAITING_CUSTOMER"
-        ? "Booking rescheduled. Customer confirmation is required again."
+      result.status === "AWAITING_CUSTOMER"
+        ? emailAccepted
+          ? "Booking rescheduled. The new confirmation request was accepted for delivery."
+          : result.email_event_id
+            ? "Booking rescheduled. Email delivery was not accepted; generate a new link to share manually."
+          : "Booking rescheduled. Customer confirmation is required again."
         : "Booking rescheduled.",
   };
 }

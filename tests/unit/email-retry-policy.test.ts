@@ -113,7 +113,11 @@ describe("failed transactional email retry policy", () => {
     });
   });
 
-  it.each(["BOOKING_AMENDMENT_REQUESTED", "BOOKING_ADDON_REQUESTED"] as const)(
+  it.each([
+    "BOOKING_AMENDMENT_REQUESTED",
+    "BOOKING_ADDON_REQUESTED",
+    "BOOKING_RESCHEDULED",
+  ] as const)(
     "blocks %s because its original capability URL is not recoverable",
     (eventType) => {
       expect(evaluate({ eventType })).toMatchObject({

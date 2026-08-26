@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-08-26 - Customer Communication And Live Booking Synchronization
+
+Status: IMPLEMENTED - PRODUCTION VERIFICATION PENDING
+
+- Added visibility-aware, tenant-scoped booking-detail refresh and in-app
+  notifications for customer confirmation and private feedback without a
+  Realtime publication, service worker, browser push, or tenant cache.
+- Added atomic `BOOKING_RESCHEDULED` and `BOOKING_DELIVERED` outbox events,
+  replacement confirmation links for previously confirmed reschedules, safe
+  templates, and existing Admin Email Operations visibility.
+- Added stable booking subject families and opaque provider-neutral correlation
+  headers. Standard RFC threading is not claimed because Brevo rejects standard
+  headers and no verified RFC message identifier is persisted.
+- Kept Brevo primary, Resend standby, one event/one provider, no failover, and
+  Admin Phase 6B at implementation/production-verification pending.
+- Added unit, static migration-security, and canonical two-tab E2E coverage. No
+  Docker, new environment variable, service worker, or Admin Phase 7 work.
+
 ## 2026-08-26 - MFA-Gated Safe Failed-Email Retry
 
 Status: IMPLEMENTED - PRODUCTION DEPLOYMENT VERIFICATION PENDING

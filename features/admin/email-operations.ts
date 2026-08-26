@@ -24,6 +24,8 @@ export const adminEmailEventTypeValues = [
   "BOOKING_AMENDMENT_CONFIRMED",
   "BOOKING_ADDON_REQUESTED",
   "BOOKING_ADDON_CONFIRMED",
+  "BOOKING_RESCHEDULED",
+  "BOOKING_DELIVERED",
 ] as const;
 
 export const adminEmailEventTypes = ["all", ...adminEmailEventTypeValues] as const;

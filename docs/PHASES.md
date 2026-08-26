@@ -1064,6 +1064,24 @@ Not included: automatic/scheduled retry, bulk or force retry, provider failover,
 recipient/content editing, arbitrary resend, quota monitoring, suspension,
 membership mutation, impersonation, hard deletion, or Admin Phase 7.
 
+## Customer Communication And Live Booking Synchronization Detour
+
+STATUS: IMPLEMENTED - PRODUCTION VERIFICATION PENDING
+
+Scope: visibility-aware vendor booking refresh after customer confirmation or
+feedback; in-app change notifications; atomic `BOOKING_RESCHEDULED` and
+`BOOKING_DELIVERED` outbox events; provider-neutral booking correlation headers;
+and PWA push assessment. No Admin Phase 7 work is included.
+
+The sync endpoint uses the authenticated client and current-business filter,
+returns only status/revision timestamps, is private/no-store, and returns 404 for
+non-current-tenant bookings. It does not add a Realtime publication. Push remains
+deferred because the application has a manifest but no service worker,
+subscription persistence, permission/revocation UX, or push-delivery boundary.
+
+Admin Phase 6B remains `IMPLEMENTED - PRODUCTION DEPLOYMENT VERIFICATION
+PENDING`; this detour does not reclassify or extend its privileged write.
+
 ## Transactional Email Provider Activation
 
 Status: VERIFIED - PRODUCTION
