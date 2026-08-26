@@ -2,7 +2,7 @@
 
 ## 2026-08-26 - Business Logo Upload Pending-State Hotfix
 
-Status: IMPLEMENTED - PRODUCTION VERIFICATION PENDING
+Status: VERIFIED - PRODUCTION
 
 - Bounded the shared onboarding/Business-page logo request at 120 seconds and
   made network, malformed-response, and timeout failures terminate in a safe,
@@ -16,6 +16,12 @@ Status: IMPLEMENTED - PRODUCTION VERIFICATION PENDING
   transparency, no upscaling, malformed input, and persisted WebP invariants.
 - No database migration, environment change, Docker, raw-original storage,
   broad UI redesign, or Admin Phase 7 work is included.
+- PR #35 passed all required CI and merged conflict-free as `faad4cb`. Vercel
+  deployed that exact merge; a controlled production user passed onboarding
+  upload at 1440px, replacement and removal at 390px, desktop re-upload, public
+  retrieval, deterministic-object replacement, and optimized WebP policy
+  checks. Cleanup and an independent audit confirmed zero temporary business,
+  profile, Auth-user, or Storage-object leftovers.
 
 ## 2026-08-26 - Booking Detail Clarity And Contact Email UX
 

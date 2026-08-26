@@ -93,4 +93,7 @@ native picker, and full-width mobile action layout. Automated coverage performs
 initial upload at 1440px and replacement/removal at 390px while asserting that
 pending controls settle and the stored object changes in place. The broader
 authenticated route matrix continues covering 320, 360, 375, 390, 430, 768,
-1024, and 1440 pixels; production smoke remains pending until deployment.
+1024, and 1440 pixels. After PR #35 passed required CI and deployed as merge
+`faad4cb`, the controlled production smoke passed onboarding and existing-
+business upload at 1440px plus replacement and removal at 390px without browser
+errors or overflow; cleanup left no controlled fixture records or objects.
