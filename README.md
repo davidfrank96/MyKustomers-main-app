@@ -349,6 +349,14 @@ signature-verified AAL2 session, current `ACTIVE` role, explicit confirmation,
 action-specific validation, required reason where applicable, audit evidence,
 and regression coverage. Vendors are not required to enroll MFA. Failed-email
 retry and every other privileged mutation remain deferred.
+Controlled production-backed verification used a temporary zero-business admin
+to prove enrollment, invalid-code denial, challenge/verify, AAL2, immediate
+disabled-admin denial, logout/login assurance reset, and cleanup. PR #27 passed
+all required executable checks, merged conflict-free as `b90ab5f`, and Vercel
+deployed that exact `main` commit. Authenticated production smoke verified the
+Security page, session persistence, read-only admin navigation, vendor onboarding
+resolution, security headers, and 390/768/1024/1440 containment. The approved
+production admin was not enrolled or modified.
 
 Booking completion now uses an accessible application-owned confirmation
 dialog. The final `DELIVERED -> COMPLETED` mutation runs only after confirmation

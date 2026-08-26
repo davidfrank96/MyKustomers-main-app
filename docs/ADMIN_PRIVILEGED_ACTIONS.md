@@ -1,6 +1,6 @@
 # Admin Privileged Actions
 
-Status: ADMIN PHASE 6A IMPLEMENTED; PRODUCTION VERIFICATION PENDING
+Status: ADMIN PHASE 6A VERIFIED - PRODUCTION
 
 This document defines the security framework that every future platform-admin
 mutation must use. It does not authorize or implement a mutation by itself.
@@ -123,3 +123,21 @@ membership mutation, user security changes, booking overrides, ownership
 changes, hard deletion, or impersonation. Each needs its own domain validation,
 side-effect/idempotency analysis, audit event, runtime fixtures, UI, and explicit
 phase authorization.
+
+## Production Verification
+
+A controlled temporary confirmed Auth user and exactly one temporary active
+admin row verified the native enrollment, invalid-code, challenge/AAL2,
+revocation, logout/login, and repeat-challenge paths against the configured
+production-backed project. No business or domain fixture was created. Cleanup
+removed the factor, admin row, profile, Auth user, and test-only actor audits
+with zero temporary-account leftovers; the approved production admin was not
+changed.
+
+PR #27 passed Quality, Tests, Dependency Security, Build, and E2E, with Runtime
+Security intentionally skipped by its configured safe-target gate. It merged
+conflict-free as `b90ab5f`, the separate `main` CI run passed, and Vercel
+deployed that exact commit to Production. Authenticated production smoke verified
+the account-security page at AAL1, session refresh, existing admin reads, vendor
+onboarding resolution, private/no-store and referrer/index controls, no browser
+diagnostics, and no overflow at 390, 768, 1024, or 1440 pixels.

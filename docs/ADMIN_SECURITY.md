@@ -1,6 +1,6 @@
 # Platform Admin Security
 
-STATUS: ADMIN PHASES 0/1-5 VERIFIED IN PRODUCTION; PHASE 6A IMPLEMENTED, VERIFICATION PENDING
+STATUS: ADMIN PHASES 0/1-6A VERIFIED IN PRODUCTION
 
 This document defines the security boundary for My Customers platform
 administration. It is intentionally narrower than a complete admin-console
@@ -221,11 +221,24 @@ authorization before implementation.
   #17 and merge `edbef26`).
 - Admin Phase 5: read-only email operations (verified in production from PR #19
   and merge `52a1820`).
-- Admin Phase 6A: MFA and privileged-action framework (implemented; no write).
+- Admin Phase 6A: MFA and privileged-action framework (verified in production
+  from PR #27 and merge `b90ab5f`; no write).
 - Admin Phase 6B: separately reviewed failed-email retry (deferred).
 - Admin Phase 7: security and system health.
 
 Phase 6B and Phase 7 are plans, not implementation evidence.
+
+Admin Phase 6A runtime verification used a controlled temporary confirmed Auth
+user with exactly one temporary `ACTIVE SUPER_ADMIN` row and no business or
+domain records. Native TOTP enrollment, invalid-code denial, successful
+challenge, AAL2 server recognition, immediate disablement denial, logout/login
+reset to AAL1, a fresh challenge, and final cleanup all passed against the
+configured production-backed project. Cleanup left no temporary Auth user,
+profile, factor, admin row, or actor audit. The approved production admin was
+not modified. PR #27 passed required CI, merged conflict-free as `b90ab5f`, and
+Vercel deployed that exact `main` commit; authenticated production page,
+headers, session, read navigation, vendor onboarding, diagnostics, and four-width
+responsive smoke passed.
 
 Admin Phase 4 uses four additional operation-specific functions for booking and
 issue list/detail. Every function repeats the active-admin assertion, has an

@@ -8,7 +8,9 @@ does not provide mutations. Phase 4 is verified in production from PR #17 and
 merge `edbef26`.
 Admin Phase 5 adds verified production read-only email operations. Admin Phase
 6A adds native TOTP enrollment and the mandatory privileged-write security
-framework, but no write operation.
+framework, but no write operation. It is verified in production from PR #27,
+merge `b90ab5f`, controlled temporary-admin runtime evidence, and authenticated
+production smoke.
 
 ## Modules
 

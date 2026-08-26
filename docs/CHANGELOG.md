@@ -2,7 +2,7 @@
 
 ## 2026-08-26 - Admin MFA And Privileged-Action Framework
 
-Status: IMPLEMENTED - VERIFICATION PENDING
+Status: VERIFIED - PRODUCTION
 
 - Added active-admin-only `/admin/security` using native Supabase TOTP
   enrollment, factor listing, challenge/verify, verified-factor status, and
@@ -18,6 +18,12 @@ Status: IMPLEMENTED - VERIFICATION PENDING
 - Added the sole-admin recovery runbook. No migration, environment variable,
   vendor MFA requirement, retry, suspension, deletion, membership mutation,
   booking override, impersonation, Docker, or new infrastructure is included.
+- Controlled production-backed native TOTP enrollment, invalid-code denial,
+  AAL2 elevation, disablement revocation, logout/login reset, and cleanup passed
+  with a temporary zero-business admin and zero leftovers. PR #27 and its
+  separate `main` run passed required executable CI, merged conflict-free as
+  `b90ab5f`, and Vercel Production plus authenticated security/read/responsive
+  smoke passed without changing the approved production admin.
 
 ## 2026-08-25 - Production Domain And Email Infrastructure
 
