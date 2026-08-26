@@ -232,3 +232,9 @@ authority, four unchanged legacy `CONFIRMED` rows, and unchanged delivered rows.
 There was no existing-row rewrite, payment backfill, or historical paid-status
 fabrication. Applied migration files must not be edited; any defect requires a
 new approved forward fix.
+
+PR #31 later passed all required CI and merged conflict-free as `c497d2e`.
+Vercel deployed that exact `main` commit, and controlled desktop/mobile
+production journeys exercised the approved confirmation and payment RPCs before
+zero-fixture cleanup. The frozen migration hashes remained unchanged and no
+forward-fix migration was required.

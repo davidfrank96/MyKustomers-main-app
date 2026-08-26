@@ -872,3 +872,11 @@ pixels without browser warnings or errors.
   early partial payment persistence through add-on/reschedule/reconfirmation,
   delivered completion unavailability, final reconciliation, completion, and
   feedback handoff. Docker/local Supabase is prohibited.
+- PR #31 passed `Quality`, `Tests`, `Build`, `Dependency Security`, and `E2E`;
+  the protected runtime job remained intentionally skipped by its safe-target
+  guard while the separately opted-in controlled payment runtime suite passed.
+  After Vercel deployed merge `c497d2e`, the canonical journey passed against
+  `https://mykustomers.com` on production desktop and Pixel 5 viewports. The
+  production-only assertion required a real non-development provider ID, and
+  final cleanup found zero matching test businesses, bookings, payments, email
+  events, memberships, profiles, or Auth users.

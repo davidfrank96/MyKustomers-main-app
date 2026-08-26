@@ -567,7 +567,17 @@ completion checkpoint: append-only vendor-recorded receipts must reconcile the
 effective total before completion. Feedback remains a derived post-completion
 journey step and is not a booking status.
 
-Production verification completed on 2026-08-25 after PR #21 passed required CI
+The payment-reconciliation detour was production verified on 2026-08-26. PR #31
+passed every required CI check, merged conflict-free as `c497d2e`, and Vercel
+deployed that exact `main` commit. Controlled desktop and mobile production
+journeys passed confirmation auto-activation, no Start work action, partial and
+final payment recording, completion blocking, completion, and feedback. Real
+Brevo acceptance was observed without replaying historical events, and cleanup
+confirmed zero controlled booking or Auth fixtures remained. No Docker or
+environment change was used.
+
+The earlier booking-journey UX maintenance was production verified on
+2026-08-25 after PR #21 passed required CI
 and merged conflict-free as `b26f0c4`. Vercel deployed that exact `main` commit;
 a controlled production fixture passed form clarity, confirmed-to-completed
 lifecycle actions, feedback guidance, and the 320-1440 responsive matrix before
