@@ -561,8 +561,7 @@ PRODUCTION.
 - The foundational admin roadmap is complete. Further admin work requires
   demonstrated product/operational need and separate authorization.
 
-Authenticated Navigation Performance V2: IMPLEMENTED - PRODUCTION VERIFICATION
-PENDING.
+Authenticated Navigation Performance V2: VERIFIED - PRODUCTION.
 
 - Immediate pending feedback and destination-named loading apply to desktop and
   mobile primary navigation without replacing semantic links or default Next
@@ -573,8 +572,13 @@ PENDING.
   payment/booking integrity, and public capability cache controls are unchanged.
 - No database, environment, dependency, explicit prefetch, persistent cache,
   service worker, Edge, or infrastructure change is included.
-- Production after-measurement, CI, merge, deployment, focused Nigeria profiles,
-  and final fixture cleanup remain the release boundary for verified status.
+- PR #41 passed seven executable checks with the expected protected Runtime
+  Security skip, merged conflict-free as `d2f55fd`, and deployed that exact
+  commit to Vercel Production.
+- Controlled production after-measurement covered desktop, mobile, standalone,
+  browser Back, current-business switching, and focused Nigeria typical and
+  constrained profiles. Cleanup removed the temporary Auth user and every
+  controlled tenant/customer/booking fixture.
 
 Customer communication detour: implemented pending production verification.
 The vendor booking page now refreshes from a current-business-scoped minimal

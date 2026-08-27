@@ -2,7 +2,7 @@
 
 ## 2026-08-27 - Authenticated Navigation Performance V2
 
-Status: IMPLEMENTED - PRODUCTION VERIFICATION PENDING
+Status: VERIFIED - PRODUCTION
 
 - Added immediate accessible pending state to desktop and mobile vendor
   navigation, with same-destination duplicate-click suppression and no router,
@@ -15,11 +15,23 @@ Status: IMPLEMENTED - PRODUCTION VERIFICATION PENDING
   request-scoped verified-claims chain and all membership/RLS enforcement.
 - Controlled production baseline found 8-11 ms generic acknowledgement,
   314-352 ms primary-route useful medians, 361-661 ms focused detail results,
-  and meaningful remote outliers. Exact route-manifest change stayed between
-  -221 and +198 gzip bytes.
+  and meaningful remote outliers. Final exact route-manifest change stayed
+  between -133 and +286 gzip bytes.
 - No database, environment, dependency, explicit prefetch, telemetry, cache,
   service-worker, Edge, or infrastructure change is included. RUM remains a
   separately approved first-party follow-up.
+- PR #41 passed seven executable checks with one expected protected Runtime
+  Security skip, merged conflict-free as `d2f55fd`, and deployed to Vercel
+  Production.
+- Production after-measurement reduced Bookings/Customers destination-shell
+  medians from 314-324 ms to 12-14 ms while useful rows remained 315-327 ms.
+  Booking detail improved to 465 ms desktop and 501 ms mobile. Standalone
+  Dashboard-to-Bookings showed a 14 ms shell, 327 ms useful rows, and 143 ms
+  settled Back restoration.
+- Focused Nigeria typical/constrained checks kept useful lists within 321-626 ms,
+  detail usability within 545-763 ms, and business switching within 311-372 ms.
+  Final cleanup verified zero controlled fixture rows and removed the temporary
+  Auth user.
 
 ## 2026-08-26 - Admin Phase 7 Security And System Health
 
