@@ -567,4 +567,6 @@ production-readiness work.
       coverage passes without horizontal overflow or fixed-nav obstruction.
 - [ ] Physical iOS homescreen/lock/snapshot/keyboard/photo-picker acceptance.
 - [ ] Physical Android browser/standalone/network-handoff acceptance.
-- [ ] Exact production deployment and controlled canonical-domain smoke.
+- [x] Exact merge `b0bd805` deployed to Production; desktop Chromium,
+      Pixel-class Chromium, iPhone-class WebKit, and Chromium app-window smoke
+      passed, with independent zero-fixture cleanup.
