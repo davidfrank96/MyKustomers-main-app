@@ -893,3 +893,18 @@ Automatic reconciliation defers around changed forms and open dialogs. Offline
 form submissions are denied and lifecycle/financial writes are never queued or
 replayed. The coordinator persists no tenant or form state and introduces no
 service worker or cache for authenticated/customer/capability content.
+
+SEC-052 - Sentry Telemetry Is A Privacy-Minimized External Boundary
+
+Sentry initialization is inactive without an explicit DSN. Browser/server
+events pass through one centralized fail-closed sanitizer that removes user and
+extra objects, request headers/cookies/bodies/queries, local variables, tenant
+and contact fields, credentials, and text-bearing UI/console breadcrumbs. Raw
+confirmation, amendment, add-on, and feedback capability values are redacted in
+URLs, messages, transactions, frames, breadcrumbs, and spans.
+
+The browser may receive only the public DSN. `SENTRY_AUTH_TOKEN` is build-only,
+server-secret, never `NEXT_PUBLIC_`, and used solely for release/source-map
+upload. Sentry project-side default/additional scrubbers and IP storage
+prevention provide defense in depth. Replay, feedback, profiling, logs, metrics,
+and arbitrary form/request capture are prohibited for this integration.

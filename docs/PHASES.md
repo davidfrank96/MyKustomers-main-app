@@ -1292,3 +1292,18 @@ are not queued or replayed.
 Verification limitation: iPhone-class WebKit and Pixel-class Chromium are
 emulations. Physical iOS and Android devices were unavailable; full iOS status
 must remain pending.
+
+## Sentry Production Observability Maintenance
+
+Status: IMPLEMENTED - PRODUCTION VERIFICATION PENDING
+
+Scope: current Next.js browser/Node error monitoring, Next.js request capture,
+global/admin error boundaries, 5% tracing, release identification, private
+source-map upload, centralized telemetry minimization, and project-side privacy
+hardening.
+
+Explicit exclusions: database/schema changes, Supabase changes, product or
+admin writes, Replay, feedback widget, profiling, logs, metrics, service-worker
+work, Docker, automatic remediation, SIEM, vulnerability scanning, or Admin
+Phase 8. Completion requires normal PR/CI/deployment plus controlled Sentry
+event and source-map verification; implementation alone is insufficient.

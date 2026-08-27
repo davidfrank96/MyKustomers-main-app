@@ -1,5 +1,6 @@
 "use client";
 
+import * as Sentry from "@sentry/nextjs";
 import { RefreshCw, TriangleAlert } from "lucide-react";
 import { useEffect } from "react";
 
@@ -11,14 +12,13 @@ export default function AdminError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("Admin overview render failed", { digest: error.digest });
-  }, [error.digest]);
+    Sentry.captureException(error, {
+      tags: { boundary: "admin" },
+    });
+  }, [error]);
 
   return (
-    <section
-      aria-labelledby="admin-error-title"
-      className="border-y border-border py-10"
-    >
+    <section aria-labelledby="admin-error-title" className="border-y border-border py-10">
       <TriangleAlert className="size-6 text-destructive" aria-hidden="true" />
       <h1 id="admin-error-title" className="mt-4 text-2xl font-semibold">
         Platform operations unavailable

@@ -687,3 +687,20 @@ separate future phase. No schema, environment, dependency, infrastructure, or
 admin-roadmap change is included. Admin Phase 7 remains independently verified;
 Admin Phase 6B remains verification pending. Physical iOS evidence is still
 required before claiming full iOS verification.
+
+## Production Error Observability Maintenance
+
+Status: IMPLEMENTED - PRODUCTION VERIFICATION PENDING
+
+The current Sentry Next.js SDK covers browser/server failures, Next.js request
+errors, global/admin render boundaries, route/page tracing, releases, and
+private source-map upload. One shared fail-closed policy minimizes telemetry and
+redacts public capability paths, query strings, identity/contact fields,
+request payloads, cookies, headers, and stack-frame variables. Errors use full
+sampling; routine tracing is 5%; health traffic is excluded.
+
+This does not reopen the admin roadmap or add Replay, profiling, logs, user
+feedback, automatic incident actions, schema changes, Docker, or product
+workflow changes. Production status requires the secret build token, normal
+PR/CI/Vercel deployment, readable source-map evidence, and controlled
+privacy-inspected client/server events.

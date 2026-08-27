@@ -39,6 +39,14 @@ Supabase project with four Production-only variables documented in
 Vercel functions execute in London (`lhr1`) to align with the configured
 Supabase AWS `eu-west-2` region; the application remains on the Node runtime.
 
+Sentry is the external production error-and-trace sink. Browser and Node SDK
+initialization share one privacy sanitizer; runtime telemetry is disabled when
+no DSN is configured. Error events are retained at full sampling while routine
+traces use 5%. The Vercel build may upload source maps with a secret build-only
+token, then deletes generated maps from deployment artifacts. The token is not
+available to browser code. Replay, feedback, profiling, logs, metrics, and
+automatic remediation are outside this boundary. See `docs/SENTRY.md`.
+
 ## Inline Customer Booking Boundary
 
 New Booking presents existing and new customer modes, but both converge on
