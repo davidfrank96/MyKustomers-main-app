@@ -9,6 +9,129 @@ both a local production build and the deployed Vercel application. Samples are
 three-run medians unless stated otherwise. They are diagnostic evidence, not a
 latency service-level objective.
 
+## Authenticated Navigation V2
+
+Implementation date: 2026-08-27. Production after-measurement is recorded after
+the exact merged deployment; until then this section describes the production
+baseline and verified local implementation behavior.
+
+### Production baseline
+
+A disposable confirmed Auth user owned two isolated businesses with six and two
+controlled customer/booking records. Headed Chromium measured in-page click,
+visible loading acknowledgement, destination `h1`, useful content, enabled
+primary controls, and settled content. It did not log credentials, query strings,
+record identifiers, or customer data. Three warm samples were used for primary
+routes; detail samples were focused single runs.
+
+| Surface           | Route                  | Acknowledgement | Destination/useful median | Observed useful range |
+| ----------------- | ---------------------- | --------------: | ------------------------: | --------------------: |
+| Desktop 1440x1000 | Dashboard to Bookings  |           11 ms |                    321 ms |            313-516 ms |
+| Desktop 1440x1000 | Dashboard to Customers |           10 ms |                    314 ms |            306-442 ms |
+| Desktop 1440x1000 | Dashboard to Insights  |            9 ms |                    314 ms |            311-494 ms |
+| Desktop 1440x1000 | Dashboard to Business  |            9 ms |                    316 ms |            313-386 ms |
+| Desktop 1440x1000 | Bookings to detail     |           11 ms |                    661 ms |           focused run |
+| Desktop 1440x1000 | Customers to detail    |            9 ms |                    401 ms |           focused run |
+| Mobile 390x844    | Dashboard to Bookings  |           11 ms |                    324 ms |            312-469 ms |
+| Mobile 390x844    | Dashboard to Customers |           11 ms |                    315 ms |            314-345 ms |
+| Mobile 390x844    | Dashboard to Insights  |            9 ms |                    352 ms |            313-564 ms |
+| Mobile 390x844    | Dashboard to Business  |            8 ms |                    314 ms |            307-930 ms |
+| Mobile 390x844    | Bookings to detail     |            9 ms |                    569 ms |           focused run |
+| Mobile 390x844    | Customers to detail    |           10 ms |                    361 ms |           focused run |
+
+The separate three-run current-business switch baseline kept the prior tenant
+behind the existing opaque pending layer within 9-10 ms. Authoritative switcher
+identity and the new Dashboard settled at a 514 ms desktop median (512-521 ms)
+and 312 ms mobile median (306-321 ms).
+
+The generic route loader acknowledged clicks quickly in the controlled harness,
+but did not identify the destination. A separate real-session sample reproduced
+meaningful remote variance: desktop Bookings ranged from 591 to 3,188 ms and
+Customers from 879 to 3,219 ms to useful content. The V2 work therefore targets
+deterministic destination identity and progressive authorized rendering, not a
+claim that the remote database always settles below a fixed threshold.
+
+### Waterfall and request findings
+
+Dashboard to Bookings remains one semantic Next `Link` transition. Request-level
+React caching shares signature-verified claims and current-business resolution
+between layout and page. The layout now starts `requireUser()` and
+`getCurrentBusinessContext()` together; the shared cached claims promise still
+performs one authentication resolution. A normal unsearched Bookings render has
+one current-business membership/identity read and one narrow paginated booking
+read. Search adds one bounded customer-ID lookup only when a query is present.
+
+Warm benchmark clicks consumed route data already obtained by Next's default
+prefetch and therefore initiated zero additional RSC responses at click time.
+The previous Nigeria trace measured roughly 22-27 KB of prefetched RSC versus
+8-10 KB without waiting for prefetch, for a modest and variable gain. No explicit
+or idle full-route prefetch was added. Streaming remains within the same route
+RSC response and does not add a second destination request.
+
+### V2 rendering changes
+
+- Desktop and mobile navigation immediately mark the selected destination busy,
+  replace its icon with a reduced-motion-safe progress glyph, announce
+  `Opening <destination>`, and suppress only a repeated click on that same
+  pending destination. Links, browser history, modifier-click behavior, and
+  Next routing remain native.
+- Major route loaders now include truthful destination identity for Bookings,
+  Customers, Insights, Business, booking detail, and customer detail.
+- Bookings and Customers render their authorized heading, search, filters, and
+  create action before the paginated row query settles. Rows and pagination
+  stream through one meaningful Suspense boundary.
+- Customer identity/contact editing no longer waits for private feedback.
+  Feedback starts in parallel and streams in a bounded secondary section.
+- Booking operational issues start in parallel and no longer hold the primary
+  booking journey/payment/action boundary. Other booking summaries remain in
+  the primary boundary where lifecycle, confirmation, add-on, feedback, or
+  payment correctness depends on them.
+- Business switching is unchanged: the opaque switch overlay continues to hide
+  the previous tenant until the selected membership is reauthorized.
+
+### Bundle comparison
+
+Exact webpack route client-reference manifests were built from unchanged main
+and the V2 branch with the same dependency tree. Totals include shared chunks
+referenced by each route and are gzip bytes, not transfer measurements.
+
+| Route           | Before |     V2 | Difference |
+| --------------- | -----: | -----: | ---------: |
+| Bookings        | 68,992 | 69,243 |     +251 B |
+| Booking detail  | 95,860 | 95,727 |     -133 B |
+| Customers       | 68,992 | 69,242 |     +250 B |
+| Customer detail | 73,288 | 73,532 |     +244 B |
+| Dashboard       | 65,684 | 65,934 |     +250 B |
+| Insights        | 65,271 | 65,527 |     +256 B |
+| Business        | 81,813 | 82,099 |     +286 B |
+
+No admin module or logo preprocessor entered the vendor route manifests. The
+small shared delta is the navigation pending state and one Lucide glyph.
+
+### Budgets and rejected changes
+
+- Primary list server reads: two normal Supabase operations after claims; search
+  may add one bounded lookup.
+- Destination navigation: one RSC response when not already prefetched; streaming
+  must not create duplicate destination requests.
+- Routine route-manifest gzip growth: keep below 2 KB without measured benefit;
+  V2 stays below 0.2 KB on every ordinary vendor route.
+- Routine dynamic RSC: retain the prior 8-10 KB no-wait reference and investigate
+  material growth; broad prefetch remains rejected at the prior 22-27 KB cost.
+
+Rejected again: Redis/shared tenant caching, browser-persisted tenant data,
+private service-worker caching, a mega-RPC, speculative indexes, Edge migration,
+direct PostgreSQL bypass, broad mobile prefetch, auth/RLS removal, and payment or
+live-sync caching.
+
+RUM is recommended as a separate first-party follow-up. A minimized event could
+contain route category, coarse duration buckets, device/viewport/network class,
+browser versus standalone context, and server timestamp. It must exclude user,
+business, customer and booking identifiers, capability paths, query strings,
+contact data, content, and precise location. Storage requires an approved schema
+and retention design, so no telemetry table, vendor, script, or environment
+variable is introduced here.
+
 ## Permanent Rules
 
 - No cache may be introduced for authenticated or tenant-scoped data without
@@ -82,17 +205,17 @@ was the dominant production cost.
 After merge and Vercel promotion, `x-vercel-id` changed from `dub1::iad1` to
 `dub1::lhr1`. Fresh-context production click-to-heading medians in milliseconds:
 
-| Transition | Before | After | Difference |
-| --- | ---: | ---: | ---: |
-| Login to Dashboard | 2,346 | 1,334 | -43% |
-| Dashboard to Bookings | 1,366 | 555 | -59% |
-| Bookings to booking detail | 1,611 | 571 | -65% |
-| Dashboard to Customers | 1,060 | 563 | -47% |
-| Customers to customer detail | 1,026 | 494 | -52% |
-| Dashboard to Insights | 1,077 | 513 | -52% |
-| Dashboard to Business | 1,038 | 550 | -47% |
-| Business to Dashboard | 3,080 | 644 | -79% |
-| Business switch to Dashboard | 1,052 | 555 | -47% |
+| Transition                   | Before | After | Difference |
+| ---------------------------- | -----: | ----: | ---------: |
+| Login to Dashboard           |  2,346 | 1,334 |       -43% |
+| Dashboard to Bookings        |  1,366 |   555 |       -59% |
+| Bookings to booking detail   |  1,611 |   571 |       -65% |
+| Dashboard to Customers       |  1,060 |   563 |       -47% |
+| Customers to customer detail |  1,026 |   494 |       -52% |
+| Dashboard to Insights        |  1,077 |   513 |       -52% |
+| Dashboard to Business        |  1,038 |   550 |       -47% |
+| Business to Dashboard        |  3,080 |   644 |       -79% |
+| Business switch to Dashboard |  1,052 |   555 |       -47% |
 
 Browser Back remained effectively immediate at 11 ms after versus 17 ms before.
 The repeatable reductions across every authenticated path support both the
@@ -177,16 +300,16 @@ subqueries, and debounced list search already retained its previous result UI.
 
 Warmed local median response samples in milliseconds:
 
-| Route | Baseline | First changed run | Repeat changed run |
-| --- | ---: | ---: | ---: |
-| Dashboard | 636 | 662 | 1316 |
-| Bookings | 465 | 509 | 1423 |
-| Booking detail | 748 | 574 | 1191 |
-| Customers | 404 | 414 | 673 |
-| Customer detail | 461 | 444 | 434 |
-| Insights | 508 | 1016 | 484 |
-| Business | 465 | 433 | 416 |
-| Login | 402 | 375 | 410 |
+| Route           | Baseline | First changed run | Repeat changed run |
+| --------------- | -------: | ----------------: | -----------------: |
+| Dashboard       |      636 |               662 |               1316 |
+| Bookings        |      465 |               509 |               1423 |
+| Booking detail  |      748 |               574 |               1191 |
+| Customers       |      404 |               414 |                673 |
+| Customer detail |      461 |               444 |                434 |
+| Insights        |      508 |              1016 |                484 |
+| Business        |      465 |               433 |                416 |
+| Login           |      402 |               375 |                410 |
 
 The repeated runs varied with remote database/network latency. These samples do
 not support a blanket wall-clock speed claim. They do support retaining the

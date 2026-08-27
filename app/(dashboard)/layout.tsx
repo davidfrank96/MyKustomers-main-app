@@ -9,8 +9,10 @@ type DashboardLayoutProps = {
 };
 
 export default async function DashboardLayout({ children }: DashboardLayoutProps) {
-  const user = await requireUser("/dashboard");
-  const businessContext = await getCurrentBusinessContext();
+  const [user, businessContext] = await Promise.all([
+    requireUser("/dashboard"),
+    getCurrentBusinessContext(),
+  ]);
 
   return (
     <DashboardShell user={user} businessContext={businessContext}>

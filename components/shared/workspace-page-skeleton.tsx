@@ -3,14 +3,27 @@ import { Skeleton } from "@/components/ui/skeleton";
 type WorkspacePageSkeletonProps = {
   label: string;
   variant: "dashboard" | "list" | "detail" | "form";
+  title?: string;
+  description?: string;
 };
 
-function PageHeadingSkeleton() {
+function PageHeadingSkeleton({
+  title,
+  description,
+}: Pick<WorkspacePageSkeletonProps, "title" | "description">) {
   return (
     <div className="space-y-3">
-      <Skeleton className="h-6 w-24" />
-      <Skeleton className="h-9 w-full max-w-72" />
-      <Skeleton className="h-5 w-full max-w-xl" />
+      <Skeleton className="h-6 w-24" aria-hidden />
+      {title ? (
+        <h1 className="text-2xl font-semibold leading-tight sm:text-3xl">{title}</h1>
+      ) : (
+        <Skeleton className="h-9 w-full max-w-72" aria-hidden />
+      )}
+      {description ? (
+        <p className="max-w-2xl text-sm leading-6 text-muted-foreground">{description}</p>
+      ) : (
+        <Skeleton className="h-5 w-full max-w-xl" aria-hidden />
+      )}
     </div>
   );
 }
@@ -29,7 +42,12 @@ function Rows({ count = 4 }: { count?: number }) {
   );
 }
 
-export function WorkspacePageSkeleton({ label, variant }: WorkspacePageSkeletonProps) {
+export function WorkspacePageSkeleton({
+  label,
+  variant,
+  title,
+  description,
+}: WorkspacePageSkeletonProps) {
   return (
     <main
       className="mx-auto flex w-full max-w-6xl flex-col gap-6 overflow-hidden px-5 py-6 sm:px-8 lg:px-10"
@@ -38,11 +56,11 @@ export function WorkspacePageSkeleton({ label, variant }: WorkspacePageSkeletonP
       aria-busy="true"
     >
       <span className="sr-only">{label}</span>
-      <div aria-hidden="true" className="space-y-6">
-        <PageHeadingSkeleton />
+      <div className="space-y-6">
+        <PageHeadingSkeleton title={title} description={description} />
 
         {variant === "dashboard" ? (
-          <>
+          <div aria-hidden="true" className="space-y-6">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
               {Array.from({ length: 5 }, (_, index) => (
                 <Skeleton key={index} className="h-32 w-full" />
@@ -53,29 +71,32 @@ export function WorkspacePageSkeleton({ label, variant }: WorkspacePageSkeletonP
                 <Skeleton key={index} className="h-40 w-full" />
               ))}
             </div>
-          </>
+          </div>
         ) : null}
 
         {variant === "list" ? (
-          <>
+          <div aria-hidden="true" className="space-y-6">
             <Skeleton className="h-28 w-full" />
             <Rows />
-          </>
+          </div>
         ) : null}
 
         {variant === "detail" ? (
-          <>
+          <div aria-hidden="true" className="space-y-6">
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {Array.from({ length: 3 }, (_, index) => (
                 <Skeleton key={index} className="h-28 w-full" />
               ))}
             </div>
             <Rows count={3} />
-          </>
+          </div>
         ) : null}
 
         {variant === "form" ? (
-          <div className="space-y-5 rounded-lg border border-border bg-card p-5">
+          <div
+            aria-hidden="true"
+            className="space-y-5 rounded-lg border border-border bg-card p-5"
+          >
             <Skeleton className="h-6 w-40" />
             <Skeleton className="h-11 w-full" />
             <Skeleton className="h-11 w-full" />

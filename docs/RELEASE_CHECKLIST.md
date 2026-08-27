@@ -497,6 +497,25 @@ production-readiness work.
       were 58,946 and 58,838 bytes. The constrained replacement settled in
       15.049 seconds, >5 MiB sent no request, and cleanup left zero fixtures.
 
+## Authenticated Navigation Performance V2
+
+- [ ] Desktop 1440x1000 and mobile 390x844 production click, destination-shell,
+      useful-content, usable-control, and settled milestones compared with the
+      recorded baseline using medians rather than a selected best run.
+- [ ] Dashboard to Bookings, booking detail, Customers, Insights, Business,
+      browser Back, search, and business switching pass without stale tenant data.
+- [ ] Same-pending-destination repeated click produces no duplicate navigation;
+      modifier/new-tab behavior and unrelated navigation remain native.
+- [ ] RSC request count/payload and vendor route gzip stay within documented
+      budgets; admin and logo-preprocessor code remain route-isolated.
+- [ ] Focused typical/constrained Nigeria profiles and standalone/PWA smoke show
+      no material bandwidth, CPU, overflow, or private-cache regression.
+- [ ] Auth/RLS/current-business, payment freshness, confirmation/live sync, and
+      public capability `no-store` protections remain green.
+- [ ] No Redis, persistent tenant cache, service worker, speculative index/RPC,
+      Edge migration, direct database bypass, environment change, or broad mobile
+      prefetch was introduced.
+
 ## Admin Phase 7 Security & Health
 
 - [x] Approved read-only RPC migration contains no table, row, index, enum, RLS,

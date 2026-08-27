@@ -1248,3 +1248,18 @@ membership mutation, impersonation, and hard deletion.
 Completion closes the planned foundational admin roadmap. Do not automatically
 create Admin Phase 8. Admin Phase 6B remains `IMPLEMENTED - VERIFICATION
 PENDING` until separately proven with a controlled live AAL2 retry.
+
+## Authenticated Navigation Performance V2
+
+Status: IMPLEMENTED - PRODUCTION VERIFICATION PENDING
+
+This maintenance phase improves perceived authenticated navigation without
+changing the product roadmap or reopening the completed admin foundation.
+Desktop/mobile nav acknowledges the selected destination immediately, route
+loading identifies the destination, list controls stream before rows, and
+bounded customer-feedback/booking-issue reads no longer block primary content.
+
+Authority remains server-first and current-business scoped. There is no
+cross-request tenant cache, service worker, explicit broad prefetch, direct
+database bypass, Edge migration, schema/environment change, or Admin Phase 8.
+Admin Phase 6B remains `IMPLEMENTED - VERIFICATION PENDING`.

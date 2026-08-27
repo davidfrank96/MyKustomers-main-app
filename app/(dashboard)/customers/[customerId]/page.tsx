@@ -1,13 +1,18 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import type { Route } from "next";
+import { Suspense } from "react";
 import { Archive, ArrowLeft } from "lucide-react";
 import { CustomerForm } from "@/components/forms/customer-form";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
-import { archiveCustomerAction, updateCustomerAction } from "@/features/customers/actions";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  archiveCustomerAction,
+  updateCustomerAction,
+} from "@/features/customers/actions";
 import { getCustomerForBusiness } from "@/features/customers/queries";
 import { listFeedbackForCustomer } from "@/features/feedback/queries";
 import { getCurrentBusinessContext } from "@/lib/auth/server";
@@ -24,6 +29,71 @@ function formatDateTime(value: string) {
   }).format(new Date(value));
 }
 
+function CustomerFeedbackFallback() {
+  return (
+    <Card role="status" aria-label="Loading private feedback">
+      <CardHeader>
+        <CardTitle>Private feedback</CardTitle>
+      </CardHeader>
+      <CardContent aria-hidden>
+        <Skeleton className="h-5 w-40" />
+        <Skeleton className="mt-3 h-4 w-full max-w-lg" />
+        <Skeleton className="mt-2 h-4 w-2/3 max-w-sm" />
+      </CardContent>
+    </Card>
+  );
+}
+
+async function CustomerFeedback({
+  feedbackPromise,
+}: {
+  feedbackPromise: ReturnType<typeof listFeedbackForCustomer>;
+}) {
+  const feedback = await feedbackPromise;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Private feedback</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {feedback.length === 0 ? (
+          <EmptyState
+            title="No feedback yet."
+            description="Private feedback from completed bookings will appear here."
+          />
+        ) : (
+          <ol className="space-y-3">
+            {feedback.map((item) => (
+              <li key={item.id} className="rounded-md border border-border p-3 text-sm">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <p className="font-medium">
+                      {item.booking?.title ?? "Booking unavailable"}
+                    </p>
+                    <p className="mt-1 text-muted-foreground">
+                      {item.overall_rating}/5 · On time: {item.on_time ? "Yes" : "No"} ·
+                      Met expectations: {item.met_expectations ? "Yes" : "No"}
+                    </p>
+                    {item.comment ? (
+                      <p className="mt-2 leading-6 text-muted-foreground">
+                        {item.comment}
+                      </p>
+                    ) : null}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {formatDateTime(item.submitted_at)}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 export default async function CustomerDetailPage({
   params,
   searchParams,
@@ -37,10 +107,9 @@ export default async function CustomerDetailPage({
 
   const { customerId } = await params;
   const query = (await searchParams) ?? {};
-  const [customer, feedback] = await Promise.all([
-    getCustomerForBusiness(currentBusiness.id, customerId),
-    listFeedbackForCustomer(currentBusiness.id, customerId),
-  ]);
+  const customerPromise = getCustomerForBusiness(currentBusiness.id, customerId);
+  const feedbackPromise = listFeedbackForCustomer(currentBusiness.id, customerId);
+  const customer = await customerPromise;
 
   if (!customer) {
     notFound();
@@ -61,7 +130,9 @@ export default async function CustomerDetailPage({
             </Link>
           </Button>
           <div className="mt-4 flex flex-wrap items-center gap-2">
-            <h1 className="text-2xl font-semibold leading-tight sm:text-3xl">{customer.name}</h1>
+            <h1 className="text-2xl font-semibold leading-tight sm:text-3xl">
+              {customer.name}
+            </h1>
             {isArchived ? <Badge variant="outline">Archived</Badge> : null}
           </div>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
@@ -115,43 +186,9 @@ export default async function CustomerDetailPage({
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Private feedback</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {feedback.length === 0 ? (
-            <EmptyState
-              title="No feedback yet."
-              description="Private feedback from completed bookings will appear here."
-            />
-          ) : (
-            <ol className="space-y-3">
-              {feedback.map((item) => (
-                <li key={item.id} className="rounded-md border border-border p-3 text-sm">
-                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                    <div>
-                      <p className="font-medium">
-                        {item.booking?.title ?? "Booking unavailable"}
-                      </p>
-                      <p className="mt-1 text-muted-foreground">
-                        {item.overall_rating}/5 · On time: {item.on_time ? "Yes" : "No"} · Met
-                        expectations: {item.met_expectations ? "Yes" : "No"}
-                      </p>
-                      {item.comment ? (
-                        <p className="mt-2 leading-6 text-muted-foreground">{item.comment}</p>
-                      ) : null}
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {formatDateTime(item.submitted_at)}
-                    </p>
-                  </div>
-                </li>
-              ))}
-            </ol>
-          )}
-        </CardContent>
-      </Card>
+      <Suspense fallback={<CustomerFeedbackFallback />}>
+        <CustomerFeedback feedbackPromise={feedbackPromise} />
+      </Suspense>
     </main>
   );
 }

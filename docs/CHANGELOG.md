@@ -1,5 +1,26 @@
 # Changelog
 
+## 2026-08-27 - Authenticated Navigation Performance V2
+
+Status: IMPLEMENTED - PRODUCTION VERIFICATION PENDING
+
+- Added immediate accessible pending state to desktop and mobile vendor
+  navigation, with same-destination duplicate-click suppression and no router,
+  history, modifier-click, or framework-prefetch replacement.
+- Added destination-named structural loading for primary vendor routes and
+  streamed authorized Bookings/Customers shells before their paginated rows.
+- Streamed customer feedback and booking operational issues as bounded secondary
+  content while preserving primary booking lifecycle/payment correctness.
+- Started layout auth/current-business work together while retaining one
+  request-scoped verified-claims chain and all membership/RLS enforcement.
+- Controlled production baseline found 8-11 ms generic acknowledgement,
+  314-352 ms primary-route useful medians, 361-661 ms focused detail results,
+  and meaningful remote outliers. Exact route-manifest change stayed between
+  -221 and +198 gzip bytes.
+- No database, environment, dependency, explicit prefetch, telemetry, cache,
+  service-worker, Edge, or infrastructure change is included. RUM remains a
+  separately approved first-party follow-up.
+
 ## 2026-08-26 - Admin Phase 7 Security And System Health
 
 Status: VERIFIED - PRODUCTION

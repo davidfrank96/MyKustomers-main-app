@@ -57,6 +57,11 @@ Current structural rules:
 - Major asynchronous route transitions use neutral structural placeholders with
   stable responsive dimensions. Placeholder controls are not focusable,
   animation respects reduced motion, and one accessible status names the load.
+- Primary authenticated navigation acknowledges the selected destination
+  immediately with text-accessible pending state. The loading surface names the
+  destination, while important rows and bounded secondary detail may stream
+  without shifting the shell. Repeated activation of the same pending destination
+  is ignored; unrelated navigation remains available.
 - A business switch hides the previous workspace with an opaque pending layer;
   stale tenant data must never remain visually presented as the selected tenant.
 

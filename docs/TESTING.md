@@ -870,6 +870,32 @@ pixels without browser warnings or errors.
   `phase6b-*` users/businesses, zero temporary attempts, and one approved active
   `SUPER_ADMIN`.
 
+## Authenticated Navigation Performance V2 Coverage
+
+- `tests/integration/dashboard-navigation.test.tsx` renders desktop and mobile
+  navigation, proves immediate `aria-busy`/live-region acknowledgement, suppresses
+  a repeated click on the same pending destination, and clears pending state when
+  the authoritative pathname changes.
+- `tests/unit/navigation-performance-policy.test.ts` preserves semantic links,
+  framework-default prefetch, request-parallel layout startup, list and detail
+  Suspense boundaries, destination-named loaders, narrow embedded projections,
+  admin/vendor bundle separation, and absence of a private service worker.
+- Existing request-cache tests preserve zero-argument request memoization for
+  authenticated user, memberships, and current-business context. The cache is
+  request-scoped and is not a tenant authority across requests.
+- Full E2E revalidates multi-business switching and stale-selection denial,
+  search/history behavior, booking/payment/confirmation/live-sync workflows,
+  responsive vendor navigation, account controls, and logout. Timing values are
+  measured separately and are not brittle CI assertions.
+- The headed production benchmark uses a disposable account and captures only
+  route categories, relative milestones, RSC counts/bytes, viewport, and network
+  profile. It stores no credentials, full URLs/query strings, user/business/
+  customer/booking identifiers, contact data, content, cookies, or tokens.
+
+No Docker or local Supabase stack is used. `test:security:runtime` may skip live
+cases when the protected production-target opt-in is absent; that skip must be
+reported and must not be described as executed runtime evidence.
+
 ## Customer Communication And Live Synchronization Coverage
 
 - Unit tests cover reschedule/delivery content and privacy, stable booking

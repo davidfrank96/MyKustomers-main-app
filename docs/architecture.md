@@ -518,3 +518,32 @@ role. A page load performs at most one summary RPC, one activity RPC, and the
 existing MFA/session read; no provider API call or automatic polling occurs.
 Independent source failures render partial evidence and produce `UNKNOWN` or
 `DEGRADED`, never false green.
+
+## Authenticated Navigation Rendering Boundary
+
+Authenticated vendor routes remain dynamic, server-first, RLS-scoped, and
+request-authorized. React `cache` deduplicates verified claims and current-business
+resolution only within one server request. The dashboard layout starts those two
+dependent chains together without persisting authority across requests.
+
+```text
+semantic Link click
+  -> immediate client-only destination acknowledgement
+  -> route loading identity
+  -> verified claims + selected active business
+  -> authorized route shell
+  -> critical data / primary interaction
+  -> bounded secondary Suspense content
+```
+
+Bookings and Customers classify identity, search/filter controls, and creation
+commands as critical shell; paginated rows are important streamed content.
+Customer feedback and booking operational issues are secondary. Booking journey,
+confirmation/reconfirmation evidence, amendments/add-ons that affect current
+state, and authoritative payment summary stay in the primary booking boundary.
+No tenant content streams before current-business authorization.
+
+Default Next link prefetch remains the only prefetch policy. No tenant route is
+written to persistent browser, service-worker, CDN, Redis, or process-global
+cache. A business switch continues to hide the prior workspace and reauthorize
+the selected membership before rendering the new tenant.
