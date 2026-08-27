@@ -6,6 +6,7 @@ import {
   getBookingLiveNotification,
   type BookingLiveState,
 } from "@/features/bookings/live-sync";
+import { PWA_BOOKING_RECONCILE_EVENT } from "@/features/pwa/reconciliation";
 import {
   ToastDescription,
   ToastProvider,
@@ -14,7 +15,7 @@ import {
   ToastViewport,
 } from "@/components/ui/toast";
 
-const POLL_INTERVAL_MS = 5_000;
+export const BOOKING_POLL_INTERVAL_MS = 10_000;
 
 type BookingLiveSyncProps = {
   bookingId: string;
@@ -24,6 +25,7 @@ type BookingLiveSyncProps = {
 export function BookingLiveSync({ bookingId, initialState }: BookingLiveSyncProps) {
   const router = useRouter();
   const currentRef = useRef(initialState);
+  const syncRef = useRef<HTMLSpanElement>(null);
   const requestRef = useRef<AbortController | null>(null);
   const pollingRef = useRef(false);
   const [toastOpen, setToastOpen] = useState(false);
@@ -37,8 +39,9 @@ export function BookingLiveSync({ bookingId, initialState }: BookingLiveSyncProp
 
   useEffect(() => {
     let active = true;
+    syncRef.current?.setAttribute("data-ready", "true");
 
-    async function poll() {
+    async function poll(refreshEvenIfUnchanged = false) {
       if (!active || document.visibilityState !== "visible" || pollingRef.current) {
         return;
       }
@@ -49,16 +52,25 @@ export function BookingLiveSync({ bookingId, initialState }: BookingLiveSyncProp
       requestRef.current = controller;
 
       try {
-        const result = await fetch(`/api/bookings/${encodeURIComponent(bookingId)}/sync`, {
-          cache: "no-store",
-          credentials: "same-origin",
-          signal: controller.signal,
-        });
-        if (!result.ok) return;
+        const result = await fetch(
+          `/api/bookings/${encodeURIComponent(bookingId)}/sync`,
+          {
+            cache: "no-store",
+            credentials: "same-origin",
+            signal: controller.signal,
+          },
+        );
+        if (!result.ok) {
+          if (refreshEvenIfUnchanged) startTransition(() => router.refresh());
+          return;
+        }
 
         const nextState = (await result.json()) as BookingLiveState;
         const previousState = currentRef.current;
-        if (!nextState.revision || nextState.revision === previousState.revision) return;
+        if (!nextState.revision || nextState.revision === previousState.revision) {
+          if (refreshEvenIfUnchanged) startTransition(() => router.refresh());
+          return;
+        }
 
         currentRef.current = nextState;
         setNotification(getBookingLiveNotification(previousState, nextState));
@@ -66,7 +78,7 @@ export function BookingLiveSync({ bookingId, initialState }: BookingLiveSyncProp
         startTransition(() => router.refresh());
       } catch (error) {
         if (!(error instanceof DOMException && error.name === "AbortError")) {
-          // The next bounded poll is sufficient; transient polling failures stay silent.
+          if (refreshEvenIfUnchanged) startTransition(() => router.refresh());
         }
       } finally {
         if (requestRef.current === controller) requestRef.current = null;
@@ -74,37 +86,38 @@ export function BookingLiveSync({ bookingId, initialState }: BookingLiveSyncProp
       }
     }
 
-    function pollWhenVisible() {
-      if (document.visibilityState === "visible") void poll();
+    function reconcileBooking() {
+      void poll(true);
     }
 
-    const interval = window.setInterval(() => void poll(), POLL_INTERVAL_MS);
-    window.addEventListener("focus", pollWhenVisible);
-    document.addEventListener("visibilitychange", pollWhenVisible);
+    const interval = window.setInterval(() => void poll(), BOOKING_POLL_INTERVAL_MS);
+    window.addEventListener(PWA_BOOKING_RECONCILE_EVENT, reconcileBooking);
 
     return () => {
       active = false;
       window.clearInterval(interval);
-      window.removeEventListener("focus", pollWhenVisible);
-      document.removeEventListener("visibilitychange", pollWhenVisible);
+      window.removeEventListener(PWA_BOOKING_RECONCILE_EVENT, reconcileBooking);
       requestRef.current?.abort();
     };
   }, [bookingId, router]);
 
   return (
-    <ToastProvider swipeDirection="right">
-      <ToastRoot
-        className="rounded-md border border-border bg-background p-4 shadow-lg"
-        open={toastOpen}
-        onOpenChange={setToastOpen}
-        duration={6_000}
-      >
-        <ToastTitle className="font-medium">{notification?.title}</ToastTitle>
-        <ToastDescription className="mt-1 text-sm text-muted-foreground">
-          {notification?.description}
-        </ToastDescription>
-      </ToastRoot>
-      <ToastViewport />
-    </ToastProvider>
+    <>
+      <span ref={syncRef} data-pwa-booking-sync hidden />
+      <ToastProvider swipeDirection="right">
+        <ToastRoot
+          className="rounded-md border border-border bg-background p-4 shadow-lg"
+          open={toastOpen}
+          onOpenChange={setToastOpen}
+          duration={6_000}
+        >
+          <ToastTitle className="font-medium">{notification?.title}</ToastTitle>
+          <ToastDescription className="mt-1 text-sm text-muted-foreground">
+            {notification?.description}
+          </ToastDescription>
+        </ToastRoot>
+        <ToastViewport className="bottom-[calc(5rem+env(safe-area-inset-bottom))] lg:bottom-4" />
+      </ToastProvider>
+    </>
   );
 }

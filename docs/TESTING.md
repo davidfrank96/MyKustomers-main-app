@@ -1005,3 +1005,25 @@ and fixture cleanup passed against merge commit `d2f55fd`.
   merge `d5bfb8f` deployed successfully. Authenticated canonical smoke covered
   all seven admin destinations, refresh, clean browser diagnostics, and current
   database-count agreement without creating or mutating a production fixture.
+
+## PWA Resume Reliability Coverage
+
+- Unit tests lock the 30-second threshold, freshness classes, cooldown, and
+  same-origin offline-navigation policy.
+- Component tests cover persisted `pageshow`, meaningful/short resume,
+  reconnect, dirty form and dialog deferral, offline mutation denial, and one
+  booking reconciliation event rather than duplicate shell refreshes.
+- Booking sync tests cover meaningful customer confirmation/feedback notices,
+  forced authoritative refresh when minimized revision is unchanged, no
+  unchanged-state refresh, hidden-tab pause, and 10-second polling.
+- The E2E spec runs sequentially in desktop Chromium, Pixel 5 Chromium
+  emulation, and iPhone 13 WebKit emulation. It creates isolated controlled
+  tenants and proves no service worker, login/cold launch, navigation and Back,
+  payment/customer resume freshness, dirty-form preservation, offline/reconnect
+  navigation, tenant switching, session expiry, safe-area containment, HEIC
+  rejection, and fixture cleanup.
+- WebKit device emulation is not physical iOS proof. Physical iOS/Android
+  keyboard, snapshot restoration, photo picker, process eviction, and network
+  handoff remain manual-device gaps.
+- No Docker/local Supabase is used. Protected runtime suites retain their
+  safe-target guards and skipped tests are never reported as executed evidence.

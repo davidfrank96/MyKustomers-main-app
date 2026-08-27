@@ -44,6 +44,14 @@ cache or service worker for private data. PR #41 passed every required executabl
 check, merged conflict-free as `d2f55fd`, deployed to Vercel Production, and
 passed controlled desktop, mobile, standalone, and Nigeria-profile verification
 before all temporary production fixtures were removed.
+Authenticated PWA lifecycle reliability now treats long suspension, persisted
+page restoration, and reconnection as freshness boundaries. A single
+shell-level coordinator performs bounded server reconciliation, defers while a
+form or dialog is unsafe to refresh, retries only held same-origin navigation,
+and never queues mutations. Booking polling is reduced to one visible-tab check
+every 10 seconds and shares the same resume path. There is still no service
+worker or private authenticated cache. See `docs/PWA_RELIABILITY.md` for the
+platform evidence and physical-iOS verification limitation.
 Accounts with one or more active business memberships can also review their
 workspaces, roles, and explicit current-business state on the Business page and
 switch there through the same server-authorized action as the header quick

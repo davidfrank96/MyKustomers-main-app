@@ -550,3 +550,21 @@ production-readiness work.
       code passed E2E containment at 390, 768, 1024, and 1440 pixels.
 - [x] The planned foundational admin roadmap is closed without beginning Admin
       Phase 8.
+
+## PWA Resume Reliability
+
+- [x] One authenticated-shell coordinator handles meaningful resume, persisted
+      page restoration, offline/reconnect, and bounded request collapse.
+- [x] Booking detail uses one minimized sync plus authoritative refresh; visible
+      polling is 10 seconds and hidden tabs remain paused.
+- [x] Changed forms and open dialogs are preserved; lifecycle and financial
+      writes are never queued or replayed offline.
+- [x] Current authentication, tenant membership/current-business selection, RLS,
+      and private no-store capability behavior remain server-authoritative.
+- [x] No service worker, private cache, push, background sync, database,
+      environment, dependency, Docker, or infrastructure change was added.
+- [x] Desktop Chromium, Pixel-class Chromium, and iPhone-class WebKit automated
+      coverage passes without horizontal overflow or fixed-nav obstruction.
+- [ ] Physical iOS homescreen/lock/snapshot/keyboard/photo-picker acceptance.
+- [ ] Physical Android browser/standalone/network-handoff acceptance.
+- [ ] Exact production deployment and controlled canonical-domain smoke.

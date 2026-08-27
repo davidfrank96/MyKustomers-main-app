@@ -1238,3 +1238,27 @@ without provider probes, N+1 actor reads, shared/private caching, or a new healt
 history table. Historical uptime, SIEM, vulnerability scanning, RUM, provider
 delivery guarantees, remediation, and infrastructure control remain outside the
 product. Phase 6B remains the sole privileged admin write and retains AAL2.
+
+## ADR-053 - Restored PWA UI Reconciles Without Private Offline Caching
+
+Status: Accepted
+
+Date: 2026-08-27
+
+Context: Mobile browsers may freeze, restore, or reconstruct an authenticated
+page after background suspension. The restored screen can be visually intact
+while booking, payment, customer, session, or current-business state has changed.
+
+Decision: Treat a 30-second suspension, persisted `pageshow`, and reconnection as
+freshness boundaries. One authenticated-shell coordinator requests normal
+server reconciliation, with booking detail using its existing minimized
+tenant-scoped signal before an authoritative refresh. Defer automatic refresh
+for changed forms or open dialogs. Hold only same-origin navigation while
+offline; never queue writes. Add no service worker or private authenticated
+cache.
+
+Consequences: Server authentication, current membership/business resolution,
+RLS, and domain rules remain authoritative. Resume traffic is bounded and
+visible booking polling falls from 12 to 6 requests per minute. Push,
+background sync, native HEIC decode, and physical-device acceptance remain
+separate work.

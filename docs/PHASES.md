@@ -1270,3 +1270,25 @@ Production. Controlled desktop/mobile/standalone and Nigeria-profile checks
 passed, and all temporary Auth and tenant fixtures were removed. The already
 completed Admin Phase 7 remains `VERIFIED - PRODUCTION`; this maintenance phase
 does not reopen or extend the admin roadmap.
+
+## PWA Resume Reliability Maintenance Detour
+
+Status: IMPLEMENTED - REAL IOS VERIFICATION PENDING
+
+Scope: authenticated lifecycle reconciliation after meaningful suspension,
+persisted-page restoration, and reconnection; dirty-form/dialog preservation;
+safe offline navigation recovery; safe-area shell containment; reduced booking
+polling; and desktop Chromium, mobile Chromium, and WebKit regression coverage.
+
+Explicit exclusions: service worker, private offline cache, background mutation
+queue, push notifications, Realtime publication, schema/environment changes,
+native application work, broad Phase 11 redesign, or admin-roadmap changes.
+
+Security impact: restored UI is not authority. Current authentication,
+membership, current-business resolution, server reads, RLS, and route protection
+are re-evaluated by normal server rendering. Offline lifecycle/financial writes
+are not queued or replayed.
+
+Verification limitation: iPhone-class WebKit and Pixel-class Chromium are
+emulations. Physical iOS and Android devices were unavailable; full iOS status
+must remain pending.

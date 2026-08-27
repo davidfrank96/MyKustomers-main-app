@@ -16,6 +16,7 @@ import {
   DesktopNavigation,
   MobileNavigation,
 } from "@/components/layout/dashboard-navigation";
+import { PwaReliabilityCoordinator } from "@/components/layout/pwa-reliability-coordinator";
 import type { BusinessContext, AuthenticatedUser } from "@/lib/auth/server";
 
 type DashboardShellProps = {
@@ -46,7 +47,7 @@ export function DashboardShell({ children, user, businessContext }: DashboardShe
   const workspaceLabel = businessContext.currentBusiness?.name ?? "No business selected";
 
   return (
-    <div className="min-h-dvh bg-background pb-20 lg:pb-0">
+    <div className="min-h-dvh bg-background pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-0">
       <aside className="fixed inset-y-0 left-0 hidden w-64 border-r border-border bg-card lg:flex lg:flex-col">
         <div className="flex h-16 items-center gap-3 border-b border-border px-5">
           <span className="grid size-9 place-items-center rounded-lg bg-primary text-sm font-semibold text-primary-foreground">
@@ -58,7 +59,7 @@ export function DashboardShell({ children, user, businessContext }: DashboardShe
       </aside>
 
       <div className="lg:pl-64">
-        <header className="sticky top-0 z-20 flex h-16 items-center justify-between gap-2 border-b border-border bg-background/95 px-3 backdrop-blur sm:px-5 lg:px-10">
+        <header className="sticky top-0 z-20 flex h-[calc(4rem+env(safe-area-inset-top))] items-center justify-between gap-2 border-b border-border bg-background/95 px-3 pt-[env(safe-area-inset-top)] backdrop-blur sm:px-5 lg:h-16 lg:px-10 lg:pt-0">
           <div className="flex min-w-0 flex-1 items-center gap-2 lg:hidden">
             <Link
               href="/"
@@ -123,6 +124,8 @@ export function DashboardShell({ children, user, businessContext }: DashboardShe
             </DropdownMenu>
           </div>
         </header>
+
+        <PwaReliabilityCoordinator />
 
         {children}
       </div>

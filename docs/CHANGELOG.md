@@ -1,5 +1,26 @@
 # Changelog
 
+## 2026-08-27 - PWA Resume Reliability And Stale-State Protection
+
+Status: IMPLEMENTED - REAL IOS VERIFICATION PENDING
+
+- Added one authenticated-shell coordinator for 30-second meaningful resume,
+  persisted-page restoration, offline/reconnect awareness, and bounded
+  authoritative server reconciliation.
+- Preserved changed forms and open dialogs instead of refreshing over user work;
+  offline writes remain blocked and are never queued or replayed.
+- Reduced booking visible-tab polling from 5 seconds to 10 seconds and delegated
+  lifecycle refresh to one booking reconciliation path that also refreshes
+  payment/amendment/add-on state.
+- Added safe-area shell/sheet spacing, fixed-bottom-nav content clearance, and
+  deterministic Chromium, Pixel-class Chromium, and iPhone-class WebKit tests.
+- Added no-service-worker, tenant-switch, expired-session, Back, HEIC rejection,
+  offline navigation recovery, dirty-form, and stale-state coverage.
+- No database, environment, dependency, service worker, private cache, Docker,
+  Supabase, Vercel, Admin Phase 8, or infrastructure change is included.
+- Physical iOS and Android devices were unavailable. WebKit/iPhone and Android
+  browser evidence is emulated and must not be reported as real-device proof.
+
 ## 2026-08-27 - Authenticated Navigation Performance V2
 
 Status: VERIFIED - PRODUCTION
