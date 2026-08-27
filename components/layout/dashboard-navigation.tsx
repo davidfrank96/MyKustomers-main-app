@@ -39,6 +39,7 @@ function isActive(pathname: string, href: Route) {
 
 function shouldHandleNavigation(event: MouseEvent<HTMLAnchorElement>) {
   return (
+    !event.defaultPrevented &&
     event.button === 0 &&
     !event.metaKey &&
     !event.ctrlKey &&

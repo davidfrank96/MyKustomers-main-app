@@ -418,12 +418,15 @@ the previous tenant workspace is not presented during resolution.
 
 ## Deferred Work
 
-The booking-detail live-state detour uses one bounded five-second request only
-while the document is visible, performs an immediate check on focus, prevents
-overlapping requests, aborts on unmount, and returns only a minimal private
-revision. It does not add cross-request caching, repeated database polling from
-the server, a Realtime publication, service worker, background sync, or push.
-The maximum expected visible update delay is one polling interval.
+The booking-detail live-state detour uses one bounded 10-second request only
+while the document is visible, prevents overlapping requests, aborts on unmount,
+and returns only a minimal private revision. A shell-level coordinator owns
+meaningful resume/reconnect events so focus and visibility do not create
+independent request bursts. Booking reconciliation performs one minimized check
+and one authoritative server refresh; ordinary authenticated routes perform one
+server refresh. Same-route signals are collapsed for two seconds. No
+cross-request cache, Realtime publication, service worker, background sync,
+offline mutation queue, or push is added.
 
 - Capture production Core Web Vitals after a representative observation window.
 - Reassess analytics caching only with explicit tenant keys, invalidation, and

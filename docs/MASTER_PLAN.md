@@ -669,3 +669,21 @@ exact commit to Vercel Production. Controlled canonical-domain smoke passed
 exact-5 MiB onboarding, >5 MiB no-request rejection, and 4.8 MiB replacement at
 390px under 1.2 Mbps upload throttling. Both requests stayed near 2.15 MB, final
 WebP objects stayed under 59 KB at 384x512, and cleanup proved zero fixtures.
+
+## PWA Resume Reliability Maintenance
+
+Status: IMPLEMENTED - REAL IOS VERIFICATION PENDING
+
+Authenticated restored UI is treated as potentially stale after a meaningful
+30-second suspension, persisted page restoration, or reconnection. One
+shell-level coordinator performs bounded server reconciliation, while booking
+detail delegates to its minimized tenant-scoped sync before one authoritative
+server refresh. Dirty forms and open dialogs defer refresh. Offline navigation
+may retry after reconnection; lifecycle and financial mutations are never queued
+or replayed.
+
+There is no service worker or private authenticated cache. Push remains a
+separate future phase. No schema, environment, dependency, infrastructure, or
+admin-roadmap change is included. Admin Phase 7 remains independently verified;
+Admin Phase 6B remains verification pending. Physical iOS evidence is still
+required before claiming full iOS verification.

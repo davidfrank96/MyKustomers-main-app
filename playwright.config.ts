@@ -28,11 +28,30 @@ export default defineConfig({
   projects: [
     {
       name: "chromium",
+      testIgnore: /pwa-reliability\.spec\.ts/,
       use: { ...devices["Desktop Chrome"] },
     },
     {
       name: "mobile-chrome",
+      testIgnore: /pwa-reliability\.spec\.ts/,
       use: { ...devices["Pixel 5"] },
+    },
+    {
+      name: "pwa-chromium",
+      testMatch: /pwa-reliability\.spec\.ts/,
+      use: { ...devices["Desktop Chrome"] },
+    },
+    {
+      name: "pwa-mobile-chrome",
+      dependencies: ["pwa-chromium"],
+      testMatch: /pwa-reliability\.spec\.ts/,
+      use: { ...devices["Pixel 5"] },
+    },
+    {
+      name: "pwa-mobile-webkit",
+      dependencies: ["pwa-mobile-chrome"],
+      testMatch: /pwa-reliability\.spec\.ts/,
+      use: { ...devices["iPhone 13"] },
     },
   ],
 });

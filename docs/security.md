@@ -879,3 +879,17 @@ Permanent rules:
 - Administrative health surfaces may report configuration state but must never
   expose credential values, session material, capability tokens, or provider
   secrets.
+
+SEC-052 - Restored PWA State Is Not Authority
+
+Long suspension, persisted page restoration, and network reconnection trigger a
+bounded normal server reconciliation. The browser cannot assert authentication,
+membership, current business, booking/payment state, or authorization through a
+lifecycle event. Normal server validation and RLS run again. Booking detail's
+minimized snapshot remains private, no-store, current-business scoped, and
+non-authoritative until the server-rendered state refreshes.
+
+Automatic reconciliation defers around changed forms and open dialogs. Offline
+form submissions are denied and lifecycle/financial writes are never queued or
+replayed. The coordinator persists no tenant or form state and introduces no
+service worker or cache for authenticated/customer/capability content.
