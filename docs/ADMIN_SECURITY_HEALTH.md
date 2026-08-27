@@ -145,7 +145,8 @@ Phase 7 does not provide:
 - live Google OAuth or Auth-email probing on page load;
 - provider-delivery, bounce, complaint, or inbox guarantees;
 - production field RUM/Core Web Vitals;
-- centralized third-party error monitoring;
+- Sentry event detail, alert management, or live third-party provider status in
+  the in-app admin surface;
 - automatic remediation or infrastructure controls;
 - provider switching, automatic retries, bulk retry, or failover;
 - account/business suspension, membership mutation, impersonation, or deletion.
@@ -155,6 +156,11 @@ delivery checks remain controlled release procedures. Future monitoring,
 incident response, bounce webhooks, scheduled retry, provider failover, backup
 exercises, additional admin roles, and field telemetry require separate product
 and security review.
+
+Sentry is now implemented as a separate external error-and-trace boundary. It
+does not change `/admin/security`, provide a live green health probe, expose
+credentials, or authorize remediation. Production Sentry event/source-map
+verification remains governed by `docs/SENTRY.md`.
 
 ## Verification Rules
 

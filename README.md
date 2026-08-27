@@ -4,6 +4,14 @@ My Customers is a mobile-first SaaS application for small businesses that manage
 customers, bookings, orders, confirmations, feedback, and customer history through
 informal channels today.
 
+Production observability is now implemented with the current Sentry Next.js SDK
+for error capture, conservative 5% tracing, release identification, and private
+source-map upload. A centralized fail-closed sanitizer removes capability
+tokens, queries, identity/contact data, headers, cookies, bodies, local
+variables, and unsafe breadcrumbs. Replay, feedback, profiling, logs, metrics,
+and routine local/CI transmission remain disabled. Production source-map and
+controlled-event verification are pending; see `docs/SENTRY.md`.
+
 This repository has completed Phase 9: business insights and analytics. Phase 2 remains
 implemented with verification pending only for default-email signup confirmation
 and reset-password delivery. Supabase database, RLS, tenant isolation, grants,

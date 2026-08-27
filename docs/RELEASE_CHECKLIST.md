@@ -18,6 +18,20 @@ production-readiness work.
       scope in Vercel.
 - [x] Secret rotation and environment rollback boundaries documented.
 
+## Sentry Observability
+
+- [x] Current Next.js browser/server/request instrumentation is implemented.
+- [x] Central privacy sanitizer and focused regression coverage pass.
+- [x] Replay, feedback, profiling, logs, metrics, and local/CI transmission are
+      disabled.
+- [x] Sentry server-side scrubbing, IP prevention, exact Production origins,
+      spike protection, and default high-priority alert were inspected.
+- [ ] Least-privilege `SENTRY_AUTH_TOKEN` is stored as a Production-only Vercel
+      build secret.
+- [ ] Production DSNs, org, and project are configured with minimum scope.
+- [ ] Production release/source maps and controlled client/server events are
+      verified in Sentry with no private data.
+
 ## Booking Journey UX
 
 - [x] Every persisted booking status has centralized current-step guidance.

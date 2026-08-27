@@ -253,3 +253,17 @@ isolation, and the tests described in `docs/TRANSACTIONAL_EMAIL.md`.
 - Booking communication must create `email_events` in the authoritative domain
   transaction and deliver through `lib/email`; domain features must not import
   Brevo or Resend adapters directly.
+
+## Sentry Development
+
+- Normal local development and CI provide no Sentry DSN, so the SDK is disabled
+  and makes no telemetry request.
+- Do not add a real DSN or auth token to committed files, test snapshots, logs,
+  screenshots, or browser bundles.
+- All new capture points must use the shared hooks in
+  `lib/observability/sentry.ts`; never attach user, business, customer, booking,
+  capability, contact, form, or credential data.
+- Expected validation, authorization, conflict, and not-found outcomes remain
+  typed product errors, not captured exceptions.
+- Temporary verification triggers must be non-public, used minimally, and
+  removed before Production.

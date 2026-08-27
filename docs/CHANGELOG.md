@@ -1,5 +1,28 @@
 # Changelog
 
+## 2026-08-27 - Sentry Production Observability
+
+Status: IMPLEMENTED - PRODUCTION VERIFICATION PENDING
+
+- Added the current Sentry Next.js App Router SDK for browser/server errors,
+  request errors, global/admin render boundaries, route transitions, release
+  association, and build-time source maps.
+- Added one centralized fail-closed privacy policy for capability URLs, query
+  strings, contact/tenant fields, credentials, request data, breadcrumbs,
+  transactions, spans, and stack-frame variables.
+- Kept error capture at 100% and routine tracing at a bounded 5%; health checks,
+  Session Replay, user feedback, profiling, logs, metrics, cron monitors, and
+  tunneling remain disabled.
+- Hardened the Sentry project with IP storage prevention, default plus additional
+  sensitive-field scrubbing, exact Production origin restrictions, and disabled
+  fallback JavaScript source fetching. Existing spike protection and one
+  high-priority email alert remain unchanged.
+- Added focused unit/security assertions. No database, Supabase, service worker,
+  admin UI, product workflow, Docker, or customer-data change is included.
+- Production-only Vercel configuration, source-map upload, release inspection,
+  controlled client/server event verification, PR/CI, and deployment remain
+  pending at this entry.
+
 ## 2026-08-27 - PWA Resume Reliability And Stale-State Protection
 
 Status: IMPLEMENTED - REAL IOS VERIFICATION PENDING

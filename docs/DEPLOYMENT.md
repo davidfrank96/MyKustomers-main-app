@@ -48,10 +48,10 @@ Vercel Production contains these required runtime variables:
 | `NEXT_PUBLIC_SUPABASE_URL`             | Public        | Production | Supabase API origin                     |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Public        | Production | Browser-safe Supabase key               |
 | `SUPABASE_SERVICE_ROLE_KEY`            | Server secret | Production | Narrow server-only privileged workflows |
-| `TRANSACTIONAL_EMAIL_PROVIDER`         | Server config | Production | Select Brevo; no automatic failover      |
-| `TRANSACTIONAL_EMAIL_FROM`             | Server config | Production | Verified sender identity                 |
-| `BREVO_API_KEY`                        | Server secret | Production | Active transactional provider API        |
-| `RESEND_API_KEY`                       | Server secret | Production | Scoped standby provider API              |
+| `TRANSACTIONAL_EMAIL_PROVIDER`         | Server config | Production | Select Brevo; no automatic failover     |
+| `TRANSACTIONAL_EMAIL_FROM`             | Server config | Production | Verified sender identity                |
+| `BREVO_API_KEY`                        | Server secret | Production | Active transactional provider API       |
+| `RESEND_API_KEY`                       | Server secret | Production | Scoped standby provider API             |
 
 Vercel stores API/service credentials as Secret and provider/sender selection as
 Config. The service-role and provider keys have no `NEXT_PUBLIC_` prefix and
@@ -243,3 +243,18 @@ and 1.2 Mbps upload throttling. A 5 MiB-plus-one-byte selection sent no request.
 The `business-logos` bucket remained public-read, WebP-only, and limited to
 204,800 bytes. Cleanup confirmed zero controlled Auth, profile, business, or
 Storage leftovers.
+
+## Sentry Production Configuration
+
+Sentry requires `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_DSN`, `SENTRY_AUTH_TOKEN`,
+`SENTRY_ORG`, and `SENTRY_PROJECT` in Vercel Production only. The DSNs and slugs
+are non-secret configuration. `SENTRY_AUTH_TOKEN` is a secret build-only value
+for release/source-map upload and must never have a `NEXT_PUBLIC_` prefix.
+Preview and Development remain unconfigured unless separately reviewed.
+
+The deployment is not observability-verified until its exact Git commit appears
+as the Sentry release, source maps resolve controlled stack frames, browser and
+server events show `production`, and privacy inspection finds no capability,
+query, contact, header, cookie, body, user, or credential data. Rollback removes
+or rotates Sentry configuration separately; promoting an older Vercel build does
+not revoke a Sentry token.

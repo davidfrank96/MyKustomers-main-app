@@ -1037,3 +1037,17 @@ and fixture cleanup passed against merge commit `d2f55fd`.
   checks every response, and then deletes the Auth user. Silent cleanup failure
   is a test failure. The final production audit found zero controlled PWA
   businesses, customers, bookings, or Auth users.
+
+## Sentry Observability Verification
+
+- `tests/unit/sentry-observability.test.ts` verifies capability/query/contact/
+  credential redaction, minimized errors, breadcrumb filtering, transaction and
+  span allowlists, health-trace exclusion, 5% sampling, and fail-closed behavior.
+- `tests/security/sentry-observability-boundary.test.ts` verifies DSN-gated
+  initialization, no committed DSN/token, explicit no-PII collection, disabled
+  Replay/logs/metrics/feedback/profiling/tunnel products, centralized hooks, and
+  absence of a public crash route or service-worker change.
+- Normal local/CI runs have no Sentry DSN and make no telemetry request.
+- Production verification additionally requires the exact release, uploaded
+  source maps, one controlled client/server error maximum, readable application
+  frames, and dashboard inspection proving no private data was stored.

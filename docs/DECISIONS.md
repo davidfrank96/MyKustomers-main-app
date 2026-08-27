@@ -1262,3 +1262,27 @@ RLS, and domain rules remain authoritative. Resume traffic is bounded and
 visible booking polling falls from 12 to 6 requests per minute. Push,
 background sync, native HEIC decode, and physical-device acceptance remain
 separate work.
+
+## ADR-054 - Sentry Telemetry Is Minimized And Fail-Closed
+
+Status: Accepted
+
+Date: 2026-08-27
+
+Context: Production failures need actionable browser/server stack traces and
+bounded route timing, but My Kustomers contains private tenant/customer data and
+high-entropy public capabilities that must never become observability context.
+
+Decision: Use the current Sentry Next.js SDK with full error sampling, 5%
+routine tracing, build-time private source maps, no automatic user identity,
+and one shared sanitizer for errors, transactions, breadcrumbs, and spans. Drop
+request bodies, headers, cookies, queries, extras, stack variables, text-bearing
+UI/console breadcrumbs, tenant/contact fields, and raw `/c`, `/a`, `/x`, `/f`
+values. Sanitizer failure drops the event. Keep Replay, feedback, profiling,
+logs, metrics, and event tunneling disabled.
+
+Consequences: Sentry gains useful minimized technical evidence without becoming
+an authority or product analytics system. Some debugging context is deliberately
+lost. Source-map upload requires one least-privilege secret build token; runtime
+DSNs remain Production-only configuration. Missing/unverified production
+telemetry must not be reported as healthy.

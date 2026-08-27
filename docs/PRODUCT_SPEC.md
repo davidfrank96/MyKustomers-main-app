@@ -405,3 +405,15 @@ recipient delivery. Health is platform-wide and does not depend on the selected
 business. Refresh re-reads data but does not create an audit event or mutate
 state. Detection never authorizes repair, provider switching, admin creation,
 or any other write.
+
+## Production Error Observability
+
+Sentry receives minimized technical error and sampled trace evidence only. It
+must not receive customer/business identity, contact details, capability values,
+queries, form bodies, cookies, authorization headers, session material, local
+variables, or provider credentials. Expected domain and authorization outcomes
+remain product responses rather than Sentry exceptions.
+
+Replay, technical feedback widgets, profiling, logs, metrics, and automatic
+remediation are not product capabilities. Sentry does not grant authority,
+change domain state, or replace the read-only Admin Security & Health surface.
