@@ -51,7 +51,10 @@ form or dialog is unsafe to refresh, retries only held same-origin navigation,
 and never queues mutations. Booking polling is reduced to one visible-tab check
 every 10 seconds and shares the same resume path. There is still no service
 worker or private authenticated cache. See `docs/PWA_RELIABILITY.md` for the
-platform evidence and physical-iOS verification limitation.
+platform evidence and physical-iOS verification limitation. PR #43 passed all
+required executable checks, merged as `b0bd805`, deployed to Production, and
+passed controlled canonical Chromium/WebKit/app-window smoke with zero final
+fixture residue.
 Accounts with one or more active business memberships can also review their
 workspaces, roles, and explicit current-business state on the Business page and
 switch there through the same server-authorized action as the header quick

@@ -62,6 +62,25 @@ network handoff remain unverified. A physical Android device was also
 unavailable; Android evidence is Chromium device emulation plus a Chromium
 standalone app-window smoke.
 
+## Production Closure
+
+PR #43 passed seven executable checks with the protected Runtime Security job
+skipped as designed, merged conflict-free as `b0bd805`, and deployed that exact
+commit to Vercel Production. The canonical `mykustomers.com` journey then passed
+sequentially in desktop Chromium, Pixel 5 Chromium emulation, and iPhone 13
+WebKit emulation. Each run proved authoritative payment/customer resume,
+offline recovery, tenant switching, expired-session handling, Back navigation,
+safe-area containment, and HEIC rejection.
+
+A separate Chromium `--app` window smoke passed history, offline recovery,
+zero-service-worker, overflow, and fixed-nav checks. The app window did not
+advertise the CSS `display-mode: standalone` media query, so this remains
+app-window emulation rather than installed-device evidence. An independent
+cleanup audit found that the first production matrix left six businesses and
+three Auth users because dependent-row deletion errors were ignored. Those
+uniquely prefixed fixtures were removed, zero residue was verified, and E2E
+cleanup now deletes dependencies in order and fails closed on any cleanup error.
+
 ## Service Worker And Push Decision
 
 Decision: **NO NEW SERVICE WORKER**. Private authenticated booking, customer,

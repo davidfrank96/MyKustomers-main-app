@@ -1027,3 +1027,13 @@ and fixture cleanup passed against merge commit `d2f55fd`.
   handoff remain manual-device gaps.
 - No Docker/local Supabase is used. Protected runtime suites retain their
   safe-target guards and skipped tests are never reported as executed evidence.
+- PR #43 CI passed seven executable checks and its exact merge `b0bd805` reached
+  Vercel Production. The canonical production matrix passed all three PWA
+  projects. A Chromium `--app` smoke also passed Back, offline recovery,
+  no-service-worker, overflow, and fixed-nav checks, but did not advertise CSS
+  standalone display mode and is classified as app-window emulation.
+- Production cleanup is independently queried after browser execution. Cleanup
+  deletes bookings, customers, audit rows, and memberships before businesses,
+  checks every response, and then deletes the Auth user. Silent cleanup failure
+  is a test failure. The final production audit found zero controlled PWA
+  businesses, customers, bookings, or Auth users.

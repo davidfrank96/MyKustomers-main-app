@@ -20,6 +20,16 @@ Status: IMPLEMENTED - REAL IOS VERIFICATION PENDING
   Supabase, Vercel, Admin Phase 8, or infrastructure change is included.
 - Physical iOS and Android devices were unavailable. WebKit/iPhone and Android
   browser evidence is emulated and must not be reported as real-device proof.
+- PR #43 passed seven executable checks with one expected protected Runtime
+  Security skip, merged conflict-free as `b0bd805`, and deployed that exact
+  commit to Vercel Production.
+- Controlled canonical production journeys passed in desktop Chromium, Pixel 5
+  Chromium emulation, iPhone 13 WebKit emulation, and a Chromium app window.
+  The app window did not advertise CSS standalone display mode and is not
+  reported as an installed Android device.
+- Fixed silent E2E fixture-cleanup failures by ordering dependent deletions and
+  checking every result. The six controlled businesses and three Auth users
+  found by the independent audit were removed; the final audit returned zero.
 
 ## 2026-08-27 - Authenticated Navigation Performance V2
 

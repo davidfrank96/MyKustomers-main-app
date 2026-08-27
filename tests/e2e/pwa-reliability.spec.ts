@@ -65,6 +65,44 @@ async function createControlledUser(
   return retried.data.user!;
 }
 
+async function cleanupControlledFixture(
+  service: ReturnType<typeof serviceClient>,
+  businessIds: string[],
+  userId: string | null,
+) {
+  const failures: string[] = [];
+
+  if (businessIds.length > 0) {
+    for (const table of [
+      "bookings",
+      "customers",
+      "audit_logs",
+      "business_members",
+    ] as const) {
+      const result = await service
+        .from(table)
+        .delete()
+        .in("business_id", businessIds);
+      if (result.error) failures.push(`${table}: ${result.error.message}`);
+    }
+
+    const businesses = await service
+      .from("businesses")
+      .delete()
+      .in("id", businessIds);
+    if (businesses.error)
+      failures.push(`businesses: ${businesses.error.message}`);
+  }
+
+  if (userId) {
+    const user = await service.auth.admin.deleteUser(userId);
+    if (user.error) failures.push(`auth user: ${user.error.message}`);
+  }
+
+  if (failures.length > 0)
+    throw new Error(`PWA fixture cleanup failed: ${failures.join("; ")}`);
+}
+
 async function meaningfulResume(page: import("@playwright/test").Page) {
   await expect(page.locator("[data-pwa-reliability-coordinator]")).toHaveAttribute(
     "data-ready",
@@ -328,10 +366,7 @@ test.describe("authenticated PWA reliability", () => {
       await expect(page).toHaveURL(/\/login\?next=/);
       await expect(page.getByRole("heading", { name: "Log in" })).toBeVisible();
     } finally {
-      for (const businessId of businessIds) {
-        await service.from("businesses").delete().eq("id", businessId);
-      }
-      if (userId) await service.auth.admin.deleteUser(userId);
+      await cleanupControlledFixture(service, businessIds, userId);
     }
   });
 });
