@@ -499,22 +499,27 @@ production-readiness work.
 
 ## Authenticated Navigation Performance V2
 
-- [ ] Desktop 1440x1000 and mobile 390x844 production click, destination-shell,
+- [x] Desktop 1440x1000 and mobile 390x844 production click, destination-shell,
       useful-content, usable-control, and settled milestones compared with the
       recorded baseline using medians rather than a selected best run.
-- [ ] Dashboard to Bookings, booking detail, Customers, Insights, Business,
+- [x] Dashboard to Bookings, booking detail, Customers, Insights, Business,
       browser Back, search, and business switching pass without stale tenant data.
-- [ ] Same-pending-destination repeated click produces no duplicate navigation;
+- [x] Same-pending-destination repeated click produces no duplicate navigation;
       modifier/new-tab behavior and unrelated navigation remain native.
-- [ ] RSC request count/payload and vendor route gzip stay within documented
+- [x] RSC request count/payload and vendor route gzip stay within documented
       budgets; admin and logo-preprocessor code remain route-isolated.
-- [ ] Focused typical/constrained Nigeria profiles and standalone/PWA smoke show
+- [x] Focused typical/constrained Nigeria profiles and standalone/PWA smoke show
       no material bandwidth, CPU, overflow, or private-cache regression.
-- [ ] Auth/RLS/current-business, payment freshness, confirmation/live sync, and
+- [x] Auth/RLS/current-business, payment freshness, confirmation/live sync, and
       public capability `no-store` protections remain green.
-- [ ] No Redis, persistent tenant cache, service worker, speculative index/RPC,
+- [x] No Redis, persistent tenant cache, service worker, speculative index/RPC,
       Edge migration, direct database bypass, environment change, or broad mobile
       prefetch was introduced.
+- [x] PR #41 passed seven executable checks with one expected protected Runtime
+      Security skip, merged conflict-free as `d2f55fd`, and Vercel deployed that
+      exact commit to Production.
+- [x] Controlled Auth and tenant fixtures, the temporary PWA profile, and the
+      detached baseline worktree were removed after production verification.
 
 ## Admin Phase 7 Security & Health
 

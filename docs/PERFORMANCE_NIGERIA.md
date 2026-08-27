@@ -16,6 +16,39 @@ are reasons to add privacy-safe Nigerian RUM and improve network-loss feedback,
 not evidence for a tenant cache, database changes, a service worker, or an Edge
 Runtime migration.
 
+## Authenticated Navigation V2 Addendum
+
+Follow-up date: 2026-08-27. The V2 implementation was measured only after PR
+#41 merged as `d2f55fd` and Vercel marked that exact `main` deployment Ready.
+The disposable confirmed account and all tenant/customer/booking fixtures were
+removed after verification.
+
+The focused headed-mobile rerun reused the audit's 390 x 844 typical (7.5 Mbps,
+140 ms) and constrained (2.25 Mbps, 240 ms) profiles. It distinguishes immediate
+acknowledgement, destination shell, useful rows, and usable detail content.
+
+| Journey | Typical | Constrained |
+| --- | ---: | ---: |
+| Dashboard to Bookings shell / useful rows | 11 / 321 ms | 14 / 323 ms |
+| Dashboard to Customers shell / useful rows | 13 / 433 ms | 12 / 626 ms |
+| Booking detail usable | 748 ms | 763 ms |
+| Customer detail usable | 545 ms | 593 ms |
+| Business switch authoritative | 311 ms | 372 ms |
+
+Destination identity remained immediate under both profiles; useful data stayed
+below one second without tenant persistence or relaxed freshness. Constrained
+click-time RSC evidence was 18.9 KB for Bookings and 12.4 KB for Customers;
+focused detail evidence was 13.2-19.2 KB. No broad mobile prefetch, service
+worker, Redis/shared cache, index, mega-RPC, Edge migration, or direct database
+bypass was introduced.
+
+Standalone Chrome reported standalone display mode and measured a 10 ms
+acknowledgement, 14 ms Bookings shell, 327 ms useful rows, and 143 ms settled
+Back restoration. Production overflow/pending-state smoke passed at 390, 768,
+1024, and 1440 pixels. These focused results improve the earlier shell behavior
+but do not replace Lagos-origin field telemetry; privacy-safe first-party RUM
+remains a separately approved follow-up.
+
 ## A-B. Starting Production State
 
 - Branch and commit: `main` at

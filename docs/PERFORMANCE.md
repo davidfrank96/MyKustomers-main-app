@@ -11,9 +11,9 @@ latency service-level objective.
 
 ## Authenticated Navigation V2
 
-Implementation date: 2026-08-27. Production after-measurement is recorded after
-the exact merged deployment; until then this section describes the production
-baseline and verified local implementation behavior.
+Implementation and production-verification date: 2026-08-27. PR #41 merged
+conflict-free as `d2f55fd`; Vercel deployed that exact `main` commit to
+Production before the after-measurements below.
 
 ### Production baseline
 
@@ -50,6 +50,85 @@ meaningful remote variance: desktop Bookings ranged from 591 to 3,188 ms and
 Customers from 879 to 3,219 ms to useful content. The V2 work therefore targets
 deterministic destination identity and progressive authorized rendering, not a
 claim that the remote database always settles below a fixed threshold.
+
+### Production after-measurement
+
+The same disposable account, routes, viewports, and in-page clock were reused
+after deployment. Primary routes use three-run medians. Detail routes are
+focused single runs, so they describe observed behavior rather than an SLO.
+Destination shell is the truthful destination `h1`; useful is controlled row or
+domain content; usable also requires the primary control where applicable.
+
+| Surface           | Route                  |    Ack |  Shell | Useful/usable | Before useful |
+| ----------------- | ---------------------- | -----: | -----: | ------------: | ------------: |
+| Desktop 1440x1000 | Dashboard to Bookings  |  13 ms |  14 ms |        321 ms |        321 ms |
+| Desktop 1440x1000 | Dashboard to Customers |  12 ms |  12 ms |        322 ms |        314 ms |
+| Desktop 1440x1000 | Dashboard to Insights  |  12 ms |  12 ms |        322 ms |        314 ms |
+| Desktop 1440x1000 | Dashboard to Business  |  11 ms | 403 ms |        403 ms |        316 ms |
+| Desktop 1440x1000 | Bookings to detail     |   9 ms | 465 ms |        465 ms |        661 ms |
+| Desktop 1440x1000 | Customers to detail    |   9 ms | 610 ms |        610 ms |        401 ms |
+| Mobile 390x844    | Dashboard to Bookings  |  10 ms |  12 ms |        327 ms |        324 ms |
+| Mobile 390x844    | Dashboard to Customers |  12 ms |  12 ms |        315 ms |        315 ms |
+| Mobile 390x844    | Dashboard to Insights  |  14 ms |  24 ms |    323-781 ms |        352 ms |
+| Mobile 390x844    | Dashboard to Business  |  10 ms | 332 ms |        332 ms |        314 ms |
+| Mobile 390x844    | Bookings to detail     | 201 ms | 501 ms |        501 ms |        569 ms |
+| Mobile 390x844    | Customers to detail    | 152 ms | 466 ms |        466 ms |        361 ms |
+
+Bookings and Customers now identify and stabilize the destination in 12-14 ms
+instead of waiting roughly 314-324 ms for rows. Useful list data remains near
+the prior 315-327 ms level, which is expected: V2 removes rows from the shell's
+critical render boundary but does not weaken or cache the authorized query.
+Booking detail improved by 196 ms desktop and 68 ms mobile. Business and
+customer-detail single-run variance did not improve and remains a backend/data
+settlement concern, not a reason to persist tenant data. Two of three mobile
+Insights useful-content samples completed at 323 and 781 ms; one bounded sample
+did not produce usable timing evidence and is excluded rather than reported as
+green.
+
+Current-business switching continued to hide the previous tenant immediately.
+The authoritative target business settled at a 416 ms desktop median (282-569
+ms) and 418 ms mobile median (289-663 ms), versus 514 ms and 312 ms before.
+No previous-business content became visible during the switch.
+
+Headed standalone Chrome reported `display-mode: standalone`. Dashboard to
+Bookings acknowledged in 10 ms, showed the destination shell in 14 ms, and
+showed controlled rows in 327 ms. After the streamed list settled, list to
+detail added a native history entry and Back restored the visible Bookings row
+in 143 ms.
+
+Production responsive smoke passed at 390, 768, 1024, and 1440 pixels with the
+correct mobile/desktop navigation, immediate busy state, destination shell,
+controlled row, and no horizontal overflow. Search and business-switch history,
+payment/confirmation/live-sync freshness, authorization, and logout were also
+covered by the full E2E suite.
+
+### Nigeria-focused after profiles
+
+The focused mobile rerun used the existing typical profile (7.5 Mbps, 140 ms)
+and constrained profile (2.25 Mbps, 240 ms). No CPU, private-cache, or service-
+worker behavior was added.
+
+| Journey                       |     Typical | Constrained |
+| ----------------------------- | ----------: | ----------: |
+| Bookings shell / useful       | 11 / 321 ms | 14 / 323 ms |
+| Customers shell / useful      | 13 / 433 ms | 12 / 626 ms |
+| Booking detail usable         |      748 ms |      763 ms |
+| Customer detail usable        |      545 ms |      593 ms |
+| Business switch authoritative |      311 ms |      372 ms |
+
+Constrained click-time RSC evidence was 18.9 KB for Bookings and 12.4 KB for
+Customers. Focused detail responses were 13.2-19.2 KB. Warm normal list clicks
+usually consumed framework-prefetched data and therefore had a zero-response
+click-time median; this is not described as zero route transfer. Default Next
+prefetch remains unchanged because the prior 22-27 KB prefetch cost did not
+justify broad or aggressive mobile prefetch.
+
+The direct remote harness logged bounded setup-only Dashboard return fallbacks
+under normal and throttled variance. Those fallback intervals are excluded from
+route medians. Independent full E2E, standalone history, and four-width
+production smoke verified the application-owned navigation path. This residual
+remote variance is why privacy-safe first-party RUM remains recommended as a
+separate schema/retention-approved follow-up.
 
 ### Waterfall and request findings
 
@@ -115,7 +194,7 @@ small shared delta is the navigation pending state and one Lucide glyph.
 - Destination navigation: one RSC response when not already prefetched; streaming
   must not create duplicate destination requests.
 - Routine route-manifest gzip growth: keep below 2 KB without measured benefit;
-  V2 stays below 0.2 KB on every ordinary vendor route.
+  V2 stays below 0.3 KB on every ordinary vendor route.
 - Routine dynamic RSC: retain the prior 8-10 KB no-wait reference and investigate
   material growth; broad prefetch remains rejected at the prior 22-27 KB cost.
 

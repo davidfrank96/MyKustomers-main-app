@@ -896,6 +896,15 @@ No Docker or local Supabase stack is used. `test:security:runtime` may skip live
 cases when the protected production-target opt-in is absent; that skip must be
 reported and must not be described as executed runtime evidence.
 
+Production closure for PR #41 recorded 445 passing unit/integration tests with
+20 intentional skips. The local E2E run had one transient unchanged payment-
+action stall; the identical mobile journey and isolated desktop rerun passed,
+leaving 33 passing tests and 10 environment-gated skips. CI then passed Quality,
+Tests, Build, E2E, Dependency Security, Vercel, and Vercel feedback; Runtime
+Security was the one expected protected-target skip. Controlled production
+benchmark, standalone history, four-width responsive smoke, business switching,
+and fixture cleanup passed against merge commit `d2f55fd`.
+
 ## Customer Communication And Live Synchronization Coverage
 
 - Unit tests cover reschedule/delivery content and privacy, stable booking

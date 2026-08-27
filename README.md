@@ -40,7 +40,10 @@ to desktop/mobile product navigation and names each destination in its loading
 shell. Bookings and Customers stream authorized controls before paginated rows;
 customer feedback and booking operational issues are bounded secondary streams.
 Default Next prefetch remains unchanged, and there is still no persistent tenant
-cache or service worker for private data.
+cache or service worker for private data. PR #41 passed every required executable
+check, merged conflict-free as `d2f55fd`, deployed to Vercel Production, and
+passed controlled desktop, mobile, standalone, and Nigeria-profile verification
+before all temporary production fixtures were removed.
 Accounts with one or more active business memberships can also review their
 workspaces, roles, and explicit current-business state on the Business page and
 switch there through the same server-authorized action as the header quick

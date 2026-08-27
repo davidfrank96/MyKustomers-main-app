@@ -17,6 +17,15 @@ STATUS: VERIFIED
 - Initial verified deployment: `CDxVhdJyQ1Lnt6AGm7cXuct9YcTE`
 - Navigation performance commit: `e3c6e5b1e406d0ee8f5ee48c3526bf2ff43fdfdb`
 - Navigation performance deployment: `dpl_554b3B9TtEUUw1a84vgUNPmDmZg4`
+- Authenticated Navigation V2 merge commit:
+  `d2f55fd4ec06b78ae45e435d35431f59f22ea515`
+- Authenticated Navigation V2 deployment: `C5vYEdBCGV95PHPkjybFiNX9te4b`
+
+The V2 deployment completed in 49 seconds, reported `Ready`, `Latest`,
+`Production`, and `Current`, and served `mykustomers.com` before controlled
+desktop, mobile, standalone, Nigeria-profile, and responsive smoke checks ran.
+No environment variable, database, provider, or infrastructure change was part
+of this deployment.
 
 Vercel Git integration creates Production deployments from `main`. Pull requests
 and feature branches may create Preview deployments, but the current project
