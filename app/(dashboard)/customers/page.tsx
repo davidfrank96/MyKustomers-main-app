@@ -1,15 +1,20 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { Route } from "next";
+import { Suspense } from "react";
 import { Plus } from "lucide-react";
 import { DebouncedSearchInput } from "@/components/shared/debounced-search-input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Skeleton } from "@/components/ui/skeleton";
 import { getCurrentBusinessContext } from "@/lib/auth/server";
 import { listCustomersForBusiness } from "@/features/customers/queries";
-import { parseCustomerListParams, type CustomerArchiveFilter } from "@/features/customers/validation";
+import {
+  parseCustomerListParams,
+  type CustomerArchiveFilter,
+} from "@/features/customers/validation";
 
 type CustomersPageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
@@ -50,6 +55,123 @@ function pageHref({
   return `/customers?${params.toString()}` as Route;
 }
 
+function CustomerRowsFallback() {
+  return (
+    <div className="grid gap-3" role="status" aria-label="Loading customer rows">
+      <span className="sr-only">Loading customer rows</span>
+      {Array.from({ length: 4 }, (_, index) => (
+        <div
+          key={index}
+          className="rounded-lg border border-border bg-card p-4"
+          aria-hidden
+        >
+          <Skeleton className="h-5 w-full max-w-56" />
+          <Skeleton className="mt-3 h-4 w-full max-w-xs" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+async function CustomerResults({
+  resultPromise,
+  params,
+}: {
+  resultPromise: ReturnType<typeof listCustomersForBusiness>;
+  params: ReturnType<typeof parseCustomerListParams>;
+}) {
+  const result = await resultPromise;
+
+  return (
+    <>
+      {result.customers.length === 0 ? (
+        <EmptyState
+          title={
+            params.q
+              ? "No matching customers."
+              : params.status === "archived"
+                ? "No archived customers."
+                : "No customers yet."
+          }
+          description={
+            params.q
+              ? "No saved customers matched this search."
+              : "Add your first customer to start building a business-owned customer list."
+          }
+        />
+      ) : (
+        <div className="grid gap-3">
+          {result.customers.map((customer) => {
+            const contact = customer.phone || customer.email || "No contact saved";
+
+            return (
+              <Link
+                key={customer.id}
+                href={`/customers/${customer.id}` as Route}
+                className="rounded-lg border border-border bg-card p-4 shadow-sm transition-colors hover:bg-muted/70"
+              >
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h2 className="text-base font-semibold leading-6">
+                        {customer.name}
+                      </h2>
+                      {customer.archived_at ? (
+                        <Badge variant="outline">Archived</Badge>
+                      ) : null}
+                    </div>
+                    <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                      {contact}
+                    </p>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Customer since {formatDate(customer.created_at)}
+                  </p>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      )}
+
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm text-muted-foreground">
+          Showing {result.customers.length} of {result.total} customers.
+        </p>
+        <div className="flex gap-2">
+          <Button asChild variant="secondary" size="sm" disabled={result.page <= 1}>
+            <Link
+              href={pageHref({
+                status: params.status,
+                q: params.q,
+                page: result.page - 1,
+              })}
+            >
+              Previous
+            </Link>
+          </Button>
+          <Button
+            asChild
+            variant="secondary"
+            size="sm"
+            disabled={result.page >= result.totalPages}
+          >
+            <Link
+              href={pageHref({
+                status: params.status,
+                q: params.q,
+                page: result.page + 1,
+              })}
+            >
+              Next
+            </Link>
+          </Button>
+        </div>
+      </div>
+    </>
+  );
+}
+
 export default async function CustomersPage({ searchParams }: CustomersPageProps) {
   const businessContext = await getCurrentBusinessContext();
   const currentBusiness = businessContext.currentBusiness;
@@ -59,7 +181,7 @@ export default async function CustomersPage({ searchParams }: CustomersPageProps
   }
 
   const params = parseCustomerListParams((await searchParams) ?? {});
-  const result = await listCustomersForBusiness(currentBusiness.id, params);
+  const resultPromise = listCustomersForBusiness(currentBusiness.id, params);
 
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-5 py-6 sm:px-8 lg:px-10">
@@ -67,9 +189,12 @@ export default async function CustomersPage({ searchParams }: CustomersPageProps
         <div className="flex flex-col gap-3">
           <Badge variant="outline">Customer records</Badge>
           <div>
-            <h1 className="text-2xl font-semibold leading-tight sm:text-3xl">Customers</h1>
+            <h1 className="text-2xl font-semibold leading-tight sm:text-3xl">
+              Customers
+            </h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-              Manage customer contact details and private notes for {currentBusiness.name}.
+              Manage customer contact details and private notes for {currentBusiness.name}
+              {"."}
             </p>
           </div>
         </div>
@@ -110,72 +235,9 @@ export default async function CustomersPage({ searchParams }: CustomersPageProps
         </CardContent>
       </Card>
 
-      {result.customers.length === 0 ? (
-        <EmptyState
-          title={
-            params.q
-              ? "No matching customers."
-              : params.status === "archived"
-                ? "No archived customers."
-                : "No customers yet."
-          }
-          description={
-            params.q
-              ? "No saved customers matched this search."
-              : "Add your first customer to start building a business-owned customer list."
-          }
-        />
-      ) : (
-        <div className="grid gap-3">
-          {result.customers.map((customer) => {
-            const contact = customer.phone || customer.email || "No contact saved";
-
-            return (
-              <Link
-                key={customer.id}
-                href={`/customers/${customer.id}` as Route}
-                className="rounded-lg border border-border bg-card p-4 shadow-sm transition-colors hover:bg-muted/70"
-              >
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h2 className="text-base font-semibold leading-6">{customer.name}</h2>
-                      {customer.archived_at ? <Badge variant="outline">Archived</Badge> : null}
-                    </div>
-                    <p className="mt-1 text-sm leading-6 text-muted-foreground">{contact}</p>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Customer since {formatDate(customer.created_at)}
-                  </p>
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-      )}
-
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm text-muted-foreground">
-          Showing {result.customers.length} of {result.total} customers.
-        </p>
-        <div className="flex gap-2">
-          <Button asChild variant="secondary" size="sm" disabled={result.page <= 1}>
-            <Link href={pageHref({ status: params.status, q: params.q, page: result.page - 1 })}>
-              Previous
-            </Link>
-          </Button>
-          <Button
-            asChild
-            variant="secondary"
-            size="sm"
-            disabled={result.page >= result.totalPages}
-          >
-            <Link href={pageHref({ status: params.status, q: params.q, page: result.page + 1 })}>
-              Next
-            </Link>
-          </Button>
-        </div>
-      </div>
+      <Suspense fallback={<CustomerRowsFallback />}>
+        <CustomerResults resultPromise={resultPromise} params={params} />
+      </Suspense>
     </main>
   );
 }

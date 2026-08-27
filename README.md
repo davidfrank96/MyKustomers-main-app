@@ -35,6 +35,12 @@ authenticated routes provide neutral structural loading states, tenant switches
 hide the prior workspace while navigation is pending, and authenticated context
 reads are deduplicated only within one server request. Public capability routes
 remain explicitly non-cacheable.
+Authenticated Navigation Performance V2 adds immediate accessible pending state
+to desktop/mobile product navigation and names each destination in its loading
+shell. Bookings and Customers stream authorized controls before paginated rows;
+customer feedback and booking operational issues are bounded secondary streams.
+Default Next prefetch remains unchanged, and there is still no persistent tenant
+cache or service worker for private data.
 Accounts with one or more active business memberships can also review their
 workspaces, roles, and explicit current-business state on the Business page and
 switch there through the same server-authorized action as the header quick

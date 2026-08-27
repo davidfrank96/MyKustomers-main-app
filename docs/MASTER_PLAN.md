@@ -561,6 +561,21 @@ PRODUCTION.
 - The foundational admin roadmap is complete. Further admin work requires
   demonstrated product/operational need and separate authorization.
 
+Authenticated Navigation Performance V2: IMPLEMENTED - PRODUCTION VERIFICATION
+PENDING.
+
+- Immediate pending feedback and destination-named loading apply to desktop and
+  mobile primary navigation without replacing semantic links or default Next
+  prefetch.
+- Authorized Bookings/Customers shells stream before paginated rows; customer
+  feedback and booking issues are bounded secondary detail streams.
+- Request-scoped auth/current-business deduplication, RLS, tenant-switch hiding,
+  payment/booking integrity, and public capability cache controls are unchanged.
+- No database, environment, dependency, explicit prefetch, persistent cache,
+  service worker, Edge, or infrastructure change is included.
+- Production after-measurement, CI, merge, deployment, focused Nigeria profiles,
+  and final fixture cleanup remain the release boundary for verified status.
+
 Customer communication detour: implemented pending production verification.
 The vendor booking page now refreshes from a current-business-scoped minimal
 snapshot after customer confirmation or feedback. Confirmed reschedules create a

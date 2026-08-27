@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import type { Route } from "next";
+import { Suspense } from "react";
 import { ArrowLeft } from "lucide-react";
 import {
   BookingDetailSection,
@@ -18,6 +19,7 @@ import { ConfirmationLinkPanel } from "@/components/forms/confirmation-link-pane
 import { FeedbackLinkPanel } from "@/components/forms/feedback-link-panel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   completeBookingStatusAction,
   recordBookingPaymentAction,
@@ -102,6 +104,98 @@ function formatDateTime(value: string | null) {
   }).format(new Date(value));
 }
 
+function BookingIssuesFallback() {
+  return (
+    <BookingDetailSection
+      id="operational-issues"
+      title="Operational issues"
+      summary="Loading issues"
+    >
+      <div role="status" aria-label="Loading booking issues" aria-busy="true">
+        <span className="sr-only">Loading booking issues</span>
+        <div className="space-y-3" aria-hidden>
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-24 w-full" />
+        </div>
+      </div>
+    </BookingDetailSection>
+  );
+}
+
+async function BookingIssuesSection({
+  bookingId,
+  issuesPromise,
+}: {
+  bookingId: string;
+  issuesPromise: ReturnType<typeof listBookingIssuesForBooking>;
+}) {
+  const issues = await issuesPromise;
+  const openIssueCount = issues.filter((issue) => issue.status === "OPEN").length;
+
+  return (
+    <BookingDetailSection
+      id="operational-issues"
+      title="Operational issues"
+      summary={
+        openIssueCount > 0
+          ? `${openIssueCount} open issue${openIssueCount === 1 ? "" : "s"}`
+          : issues.length > 0
+            ? "No open issues"
+            : "No issues recorded"
+      }
+      attention={openIssueCount > 0}
+    >
+      <div className="space-y-5">
+        <BookingIssueForm action={createBookingIssueAction.bind(null, bookingId)} />
+
+        {issues.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No issues recorded.</p>
+        ) : (
+          <ol className="space-y-3">
+            {issues.map((issue) => (
+              <li key={issue.id} className="rounded-md border border-border p-3 text-sm">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="font-medium">{issueCategoryLabels[issue.category]}</p>
+                      <Badge variant={issue.status === "OPEN" ? "accent" : "outline"}>
+                        {issue.status === "OPEN" ? "Open" : "Resolved"}
+                      </Badge>
+                    </div>
+                    <p className="mt-2 leading-6 text-muted-foreground">
+                      {issue.description}
+                    </p>
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      Created {formatDateTime(issue.created_at)}
+                      {issue.resolved_at
+                        ? ` · Resolved ${formatDateTime(issue.resolved_at)}`
+                        : ""}
+                    </p>
+                  </div>
+                  {issue.status === "OPEN" ? (
+                    <form
+                      action={resolveBookingIssueAction.bind(
+                        null,
+                        bookingId,
+                        issue.id,
+                        issue.status,
+                      )}
+                    >
+                      <Button type="submit" variant="secondary" size="sm">
+                        Resolve
+                      </Button>
+                    </form>
+                  ) : null}
+                </div>
+              </li>
+            ))}
+          </ol>
+        )}
+      </div>
+    </BookingDetailSection>
+  );
+}
+
 export default async function BookingDetailPage({
   params,
   searchParams,
@@ -121,6 +215,8 @@ export default async function BookingDetailPage({
     notFound();
   }
 
+  const issuesPromise = listBookingIssuesForBooking(currentBusiness.id, booking.id);
+
   const [
     history,
     changes,
@@ -129,7 +225,6 @@ export default async function BookingDetailPage({
     addonSummary,
     feedbackSummary,
     feedback,
-    issues,
     paymentState,
   ] = await Promise.all([
     listBookingStatusHistoryForBusiness(currentBusiness.id, booking.id),
@@ -139,7 +234,6 @@ export default async function BookingDetailPage({
     getBookingAddonSummary(currentBusiness.id, booking.id, booking),
     getFeedbackLinkSummaryForBooking(currentBusiness.id, booking.id),
     getFeedbackForBooking(currentBusiness.id, booking.id),
-    listBookingIssuesForBooking(currentBusiness.id, booking.id),
     getBookingPaymentState(currentBusiness.id, booking.id),
   ]);
   const timeline = [
@@ -278,7 +372,6 @@ export default async function BookingDetailPage({
     pendingAmendment: amendmentSummary.displayStatus === "pending",
     awaitingAddon: addonSummary.hasAwaitingAddon,
   });
-  const openIssueCount = issues.filter((issue) => issue.status === "OPEN").length;
   const confirmationSectionSummary = confirmationSummary.confirmedAt
     ? "Customer confirmed"
     : confirmationSummary.status === "active"
@@ -576,71 +669,9 @@ export default async function BookingDetailPage({
           )}
         </BookingDetailSection>
 
-        <BookingDetailSection
-          id="operational-issues"
-          title="Operational issues"
-          summary={
-            openIssueCount > 0
-              ? `${openIssueCount} open issue${openIssueCount === 1 ? "" : "s"}`
-              : issues.length > 0
-                ? "No open issues"
-                : "No issues recorded"
-          }
-          attention={openIssueCount > 0}
-        >
-          <div className="space-y-5">
-            <BookingIssueForm action={createBookingIssueAction.bind(null, booking.id)} />
-
-            {issues.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No issues recorded.</p>
-            ) : (
-              <ol className="space-y-3">
-                {issues.map((issue) => (
-                  <li
-                    key={issue.id}
-                    className="rounded-md border border-border p-3 text-sm"
-                  >
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                      <div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <p className="font-medium">
-                            {issueCategoryLabels[issue.category]}
-                          </p>
-                          <Badge variant={issue.status === "OPEN" ? "accent" : "outline"}>
-                            {issue.status === "OPEN" ? "Open" : "Resolved"}
-                          </Badge>
-                        </div>
-                        <p className="mt-2 leading-6 text-muted-foreground">
-                          {issue.description}
-                        </p>
-                        <p className="mt-2 text-xs text-muted-foreground">
-                          Created {formatDateTime(issue.created_at)}
-                          {issue.resolved_at
-                            ? ` · Resolved ${formatDateTime(issue.resolved_at)}`
-                            : ""}
-                        </p>
-                      </div>
-                      {issue.status === "OPEN" ? (
-                        <form
-                          action={resolveBookingIssueAction.bind(
-                            null,
-                            booking.id,
-                            issue.id,
-                            issue.status,
-                          )}
-                        >
-                          <Button type="submit" variant="secondary" size="sm">
-                            Resolve
-                          </Button>
-                        </form>
-                      ) : null}
-                    </div>
-                  </li>
-                ))}
-              </ol>
-            )}
-          </div>
-        </BookingDetailSection>
+        <Suspense fallback={<BookingIssuesFallback />}>
+          <BookingIssuesSection bookingId={booking.id} issuesPromise={issuesPromise} />
+        </Suspense>
 
         <BookingDetailSection
           id="reschedule"
