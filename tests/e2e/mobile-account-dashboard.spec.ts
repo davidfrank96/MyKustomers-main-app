@@ -18,7 +18,8 @@ function loadLocalEnv() {
   for (const line of fs.readFileSync(".env", "utf8").split(/\r?\n/)) {
     if (!line || line.trim().startsWith("#")) continue;
     const separator = line.indexOf("=");
-    if (separator > 0) process.env[line.slice(0, separator)] ??= line.slice(separator + 1);
+    if (separator > 0)
+      process.env[line.slice(0, separator)] ??= line.slice(separator + 1);
   }
 }
 
@@ -26,8 +27,8 @@ loadLocalEnv();
 
 const hasSupabaseEnv = Boolean(
   process.env.NEXT_PUBLIC_SUPABASE_URL &&
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY &&
-    process.env.SUPABASE_SERVICE_ROLE_KEY,
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY &&
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
 );
 
 function adminClient() {
@@ -86,7 +87,10 @@ test.describe("mobile account and dashboard navigation", () => {
   test("mobile account access, dashboard links, responsive forms, and logout work", async ({
     page,
   }, testInfo) => {
-    test.skip(testInfo.project.name !== "chromium", "Explicit viewport matrix runs once.");
+    test.skip(
+      testInfo.project.name !== "chromium",
+      "Explicit viewport matrix runs once.",
+    );
     test.setTimeout(120_000);
 
     const admin = adminClient();
@@ -126,7 +130,7 @@ test.describe("mobile account and dashboard navigation", () => {
       await page.setViewportSize({ width: 390, height: 844 });
       await page.goto("/login");
       await page.getByLabel("Email").fill(email);
-      await page.getByLabel("Password").fill(password);
+      await page.getByLabel("Password", { exact: true }).fill(password);
       await page.getByRole("button", { name: "Log in" }).click();
       await expect(page).toHaveURL(/\/dashboard/);
 
@@ -134,14 +138,34 @@ test.describe("mobile account and dashboard navigation", () => {
         name: "Mobile vendor navigation",
       });
       await expect(mobileNavigation.getByRole("link")).toHaveCount(5);
-      await expect(mobileNavigation.getByRole("link", { name: "Settings" })).toHaveCount(0);
+      await expect(mobileNavigation.getByRole("link", { name: "Settings" })).toHaveCount(
+        0,
+      );
 
       await page.getByRole("button", { name: "Open account menu" }).click();
-      await expect(page.getByRole("menuitem", { name: "Settings" })).toBeVisible();
+      await expect(
+        page.getByRole("menuitem", { name: "Profile & account" }),
+      ).toBeVisible();
+      await expect(page.getByRole("menuitem", { name: "My businesses" })).toBeVisible();
+      await expect(
+        page.getByRole("menuitem", { name: "Business profile" }),
+      ).toBeVisible();
+      await expect(
+        page.getByRole("menuitem", { name: "Add another business" }),
+      ).toBeVisible();
       await expect(page.getByRole("menuitem", { name: "Log out" })).toBeVisible();
-      await page.getByRole("menuitem", { name: "Settings" }).click();
+      await page.getByRole("menuitem", { name: "Profile & account" }).click();
       await expect(page).toHaveURL(/\/settings/);
-      await expect(page.getByRole("heading", { name: "Settings", exact: true })).toBeVisible();
+      await expect(
+        page.getByRole("heading", { name: "Profile & account", exact: true }),
+      ).toBeVisible();
+      await expect(page.getByRole("heading", { name: "My businesses" })).toBeVisible();
+      await expect(
+        page.getByRole("list", { name: "Active business memberships" }),
+      ).toBeVisible();
+      await expect(
+        page.getByRole("link", { name: "Open current business profile" }),
+      ).toHaveAttribute("href", "/business");
       await expect(page.getByRole("button", { name: "Log out" })).toBeVisible();
 
       for (const width of [320, 360, 375, 390, 430, 768, 1024, 1440]) {
@@ -150,7 +174,9 @@ test.describe("mobile account and dashboard navigation", () => {
           await page.goto(route);
           await expectNoOverflow(page);
         }
-        await expect(page.getByRole("link", { name: "View active bookings" })).toBeVisible();
+        await expect(
+          page.getByRole("link", { name: "View active bookings" }),
+        ).toBeVisible();
       }
 
       await page.setViewportSize({ width: 1440, height: 1000 });

@@ -4,7 +4,11 @@ import {
   type AmendableBookingField,
 } from "@/features/amendments/terms";
 import type { AmendmentTerms } from "@/features/amendments/public-types";
-import { escapeEmailHtml, formatEmailDateTime } from "@/lib/email/templates/shared";
+import {
+  formatEmailDateTime,
+  renderTransactionalEmailHtml,
+  withMyKustomersAttribution,
+} from "@/lib/email/templates/shared";
 import type { TransactionalEmailMessage } from "@/lib/email/types";
 
 type AmendmentEmailInput = {
@@ -47,14 +51,9 @@ function commonMessage(
     `Proposed: ${row.proposed}`,
     "",
   ]);
-  const htmlRows = rows
-    .map(
-      (row) =>
-        `<tr><th align="left" style="padding:8px 12px;border-bottom:1px solid #e5e7eb">${escapeEmailHtml(row.label)}</th><td style="padding:8px 12px;border-bottom:1px solid #e5e7eb"><strong>Current:</strong> ${escapeEmailHtml(row.current)}<br><strong>Proposed:</strong> ${escapeEmailHtml(row.proposed)}</td></tr>`,
-    )
-    .join("");
 
   return {
+    rows,
     text: [
       heading,
       "",
@@ -65,7 +64,6 @@ function commonMessage(
       "",
       ...textRows,
     ].join("\n"),
-    html: `<div style="font-family:Arial,sans-serif;color:#111827;line-height:1.5"><h1 style="font-size:22px">${escapeEmailHtml(heading)}</h1><p>${escapeEmailHtml(introduction)}</p><p><strong>Business:</strong> ${escapeEmailHtml(input.businessName)}<br><strong>Reference:</strong> ${escapeEmailHtml(input.bookingReference)}<br><strong>Reason:</strong> ${escapeEmailHtml(input.reason)}</p><table style="border-collapse:collapse;width:100%;max-width:620px">${htmlRows}</table></div>`,
   };
 }
 
@@ -82,8 +80,33 @@ export function bookingAmendmentRequestedEmail(
     idempotencyKey: `email-event/${input.emailEventId}`,
     to: input.recipientEmail,
     subject: `Review booking changes - ${input.businessName} - ${input.bookingReference}`,
-    text: `${content.text}\n${guidance}\n${input.amendmentUrl}`,
-    html: `${content.html}<p>${escapeEmailHtml(guidance)}</p><p><a href="${escapeEmailHtml(input.amendmentUrl)}">Review booking changes</a></p>`,
+    text: withMyKustomersAttribution(
+      `${content.text}\n${guidance}\n${input.amendmentUrl}`,
+    ),
+    html: renderTransactionalEmailHtml({
+      contextLabel: "Booking update",
+      businessName: input.businessName,
+      heading: "Review changes to your booking",
+      introduction: [
+        `${input.businessName} has proposed changes that need your confirmation.`,
+        guidance,
+      ],
+      sections: [
+        {
+          title: "Update details",
+          rows: [
+            { label: "Reference", value: input.bookingReference },
+            { label: "Reason", value: input.reason },
+            ...content.rows.map((row) => ({
+              label: row.label,
+              value: `Current: ${row.current}\nProposed: ${row.proposed}`,
+            })),
+          ],
+        },
+      ],
+      cta: { label: "Review booking changes", url: input.amendmentUrl },
+      footer: "This secure review link relates only to the proposed booking changes.",
+    }),
   };
 }
 
@@ -99,7 +122,29 @@ export function bookingAmendmentConfirmedEmail(
     idempotencyKey: `email-event/${input.emailEventId}`,
     to: input.recipientEmail,
     subject: `Booking changes confirmed - ${input.businessName} - ${input.bookingReference}`,
-    text: content.text,
-    html: content.html,
+    text: withMyKustomersAttribution(content.text),
+    html: renderTransactionalEmailHtml({
+      contextLabel: "Booking update confirmed",
+      businessName: input.businessName,
+      heading: "Booking changes confirmed",
+      introduction: [
+        "The proposed changes are now part of your current booking agreement.",
+      ],
+      sections: [
+        {
+          title: "Confirmed changes",
+          rows: [
+            { label: "Reference", value: input.bookingReference },
+            { label: "Reason", value: input.reason },
+            ...content.rows.map((row) => ({
+              label: row.label,
+              value: `Previous: ${row.current}\nConfirmed: ${row.proposed}`,
+            })),
+          ],
+        },
+      ],
+      footer: "This email is a record of the booking changes you confirmed.",
+      tone: "success",
+    }),
   };
 }

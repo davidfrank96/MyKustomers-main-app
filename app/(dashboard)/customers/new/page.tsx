@@ -1,10 +1,10 @@
 import Link from "next/link";
 import type { Route } from "next";
 import { redirect } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, UserRoundPlus } from "lucide-react";
 import { CustomerForm } from "@/components/forms/customer-form";
+import { WorkspacePage } from "@/components/layout/workspace-page";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createCustomerAction } from "@/features/customers/actions";
 import { getCurrentBusinessContext } from "@/lib/auth/server";
 
@@ -16,30 +16,44 @@ export default async function NewCustomerPage() {
   }
 
   return (
-    <main className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-5 py-6 sm:px-8 lg:px-10">
+    <WorkspacePage className="max-w-3xl pb-28 sm:pb-28 lg:pb-8">
       <div>
-        <Button asChild variant="ghost" size="sm">
+        <Button
+          asChild
+          variant="ghost"
+          size="sm"
+          className="-ml-3 text-primary hover:text-primary"
+        >
           <Link href={"/customers" as Route}>
-            <ArrowLeft className="size-4" aria-hidden="true" />
+            <ArrowLeft className="size-5" aria-hidden="true" />
             Customers
           </Link>
         </Button>
-        <h1 className="mt-4 text-2xl font-semibold leading-tight sm:text-3xl">
-          Add customer
-        </h1>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-          Save the basic contact details you already know. Email and phone are optional.
-        </p>
+        <div className="mt-5 flex min-w-0 items-start justify-between gap-4">
+          <div className="min-w-0 flex-1">
+            <h1 className="break-words text-3xl font-semibold leading-tight sm:text-4xl">
+              Add customer
+            </h1>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
+              Save the basic contact details you already know. Email and phone are
+              optional.
+            </p>
+          </div>
+          <span
+            className="grid size-14 shrink-0 place-items-center rounded-lg bg-primary/5 text-primary sm:size-16"
+            aria-hidden="true"
+          >
+            <UserRoundPlus className="size-7 sm:size-8" aria-hidden="true" />
+          </span>
+        </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Customer details</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <CustomerForm action={createCustomerAction} submitLabel="Create customer" />
-        </CardContent>
-      </Card>
-    </main>
+      <CustomerForm
+        action={createCustomerAction}
+        submitLabel="Create customer"
+        presentation="create"
+        cancelHref={"/customers" as Route}
+      />
+    </WorkspacePage>
   );
 }

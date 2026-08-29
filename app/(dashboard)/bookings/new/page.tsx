@@ -3,8 +3,8 @@ import { redirect } from "next/navigation";
 import type { Route } from "next";
 import { ArrowLeft } from "lucide-react";
 import { BookingForm } from "@/components/forms/booking-form";
+import { WorkspacePage } from "@/components/layout/workspace-page";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createBookingAction } from "@/features/bookings/actions";
 import { listActiveBookingCustomerOptions } from "@/features/bookings/queries";
 import { getCurrentBusinessContext } from "@/lib/auth/server";
@@ -20,7 +20,7 @@ export default async function NewBookingPage() {
   const customers = await listActiveBookingCustomerOptions(currentBusiness.id);
 
   return (
-    <main className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-5 py-6 sm:px-8 lg:px-10">
+    <WorkspacePage className="max-w-3xl pb-28 lg:pb-8">
       <div>
         <Button asChild variant="ghost" size="sm">
           <Link href={"/bookings" as Route}>
@@ -37,20 +37,13 @@ export default async function NewBookingPage() {
         </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Booking details</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <BookingForm
-            action={createBookingAction}
-            submitLabel="Create booking"
-            customers={customers}
-            defaultCustomerMode={customers.length === 0 ? "new" : "existing"}
-            mode="create"
-          />
-        </CardContent>
-      </Card>
-    </main>
+      <BookingForm
+        action={createBookingAction}
+        submitLabel="Create booking"
+        customers={customers}
+        defaultCustomerMode={customers.length === 0 ? "new" : "existing"}
+        mode="create"
+      />
+    </WorkspacePage>
   );
 }

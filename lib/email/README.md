@@ -1,12 +1,26 @@
 # Email
 
-Supabase Auth email and My Customers transactional email are separate systems.
+Supabase Auth email and My Kustomers transactional email are separate systems.
 Supabase Auth owns signup confirmation and password-recovery delivery. The
 application never stores or sends Auth passwords or recovery tokens.
 
 Booking-confirmed, confirmed-booking-cancelled, amendment-requested,
 amendment-confirmed, add-on-requested, and add-on-confirmed transactional email
 are implemented through one server-only, provider-neutral boundary.
+
+All implemented booking lifecycle templates use one structured, email-safe HTML
+shell with a 600px container, conservative inline styles, mobile stacking,
+plain-text equivalents, escaped customer-facing values, and restrained dark-mode
+overrides. The shell presents My Kustomers and business identity consistently.
+Current template inputs do not include an approved public business-logo URL, so
+the identity block uses a business-name initial without adding storage reads.
+Subjects, recipients, idempotency, delivery state, and provider selection remain
+outside the presentation helper.
+
+Every supported customer lifecycle message includes a restrained platform
+attribution in both HTML and plain text. The link resolves only to the verified
+canonical `https://mykustomers.com` origin; local, loopback, and Vercel preview
+origins are never emitted into customer email.
 
 `public.email_events` is the durable outbox. Confirmation creates one event in
 the same database transaction as booking state, contact evidence, customer
@@ -50,6 +64,12 @@ external configuration is server-only.
 exist now. PDF attachments,
 automatic retries/scheduling, bounce handling, and
 ready/progress/completion/feedback emails are deferred.
+
+There is no standalone payment-recorded or feedback-request email event. The
+existing add-on-confirmed message is the only implemented payment-related
+customer update and describes amounts as recorded information, not verified
+transactions. Private feedback continues to use trusted manual sharing; no email
+template or outbox path is manufactured solely for presentation parity.
 
 Confirmed reschedules atomically create a replacement confirmation link and a
 `BOOKING_RESCHEDULED` event tied to the exact change/link evidence. Delivery

@@ -302,7 +302,7 @@ test.describe("booking engine", () => {
 
     await page.goto("/login");
     await page.getByLabel("Email").fill(email);
-    await page.getByLabel("Password").fill(password);
+    await page.getByLabel("Password", { exact: true }).fill(password);
     await page.getByRole("button", { name: "Log in" }).click();
 
     await expect(page).toHaveURL(/\/dashboard/);
@@ -1223,7 +1223,7 @@ test.describe("booking engine", () => {
 
     await page.goto("/login");
     await page.getByLabel("Email").fill(email);
-    await page.getByLabel("Password").fill(password);
+    await page.getByLabel("Password", { exact: true }).fill(password);
     await page.getByRole("button", { name: "Log in" }).click();
     await expect(page).toHaveURL(/\/dashboard/);
 
@@ -1304,14 +1304,16 @@ test.describe("booking engine", () => {
 
     await page.goto("/login");
     await page.getByLabel("Email").fill(email);
-    await page.getByLabel("Password").fill(password);
+    await page.getByLabel("Password", { exact: true }).fill(password);
     await page.getByRole("button", { name: "Log in" }).click();
     await expect(page).toHaveURL(/\/dashboard/);
 
     await page.goto("/bookings/new");
     await page.getByRole("button", { name: "Add new customer" }).click();
     await page.getByLabel("Customer name").fill(inlineCustomerName);
-    await page.getByLabel("Email", { exact: true }).fill(duplicateEmail.toUpperCase());
+    await page
+      .getByLabel("Email (optional)", { exact: true })
+      .fill(duplicateEmail.toUpperCase());
     await page.getByLabel("Booking title").fill(bookingTitle);
     await page.getByLabel("Scheduled delivery date").fill(futureLocalDateTime());
     await page.getByLabel("Agreed total").fill("45000");
@@ -1419,7 +1421,7 @@ test.describe("booking engine", () => {
 
     await page.goto("/login");
     await page.getByLabel("Email").fill(email);
-    await page.getByLabel("Password").fill(password);
+    await page.getByLabel("Password", { exact: true }).fill(password);
     await page.getByRole("button", { name: "Log in" }).click();
     await expect(page).toHaveURL(/\/dashboard/);
 

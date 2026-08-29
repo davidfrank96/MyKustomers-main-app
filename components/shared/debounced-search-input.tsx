@@ -7,12 +7,14 @@ import { LoaderCircle, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import { cn } from "@/lib/utils/cn";
 
 type DebouncedSearchInputProps = {
   clearLabel: string;
   initialValue: string;
   label: string;
   placeholder: string;
+  density?: "default" | "compact";
 };
 
 export function buildSearchHref({
@@ -43,6 +45,7 @@ export function DebouncedSearchInput({
   initialValue,
   label,
   placeholder,
+  density = "default",
 }: DebouncedSearchInputProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -121,7 +124,10 @@ export function DebouncedSearchInput({
     >
       <div className="relative min-w-0">
         <Search
-          className="pointer-events-none absolute left-3 top-3.5 size-4 text-muted-foreground"
+          className={cn(
+            "pointer-events-none absolute left-3 size-4 text-muted-foreground",
+            density === "compact" ? "top-3" : "top-3.5",
+          )}
           aria-hidden="true"
         />
         <Input
@@ -131,11 +137,18 @@ export function DebouncedSearchInput({
           placeholder={placeholder}
           aria-label={label}
           aria-busy={isSearching}
-          className="pl-9 pr-20"
+          className={cn(
+            "pl-9",
+            value || isSearching ? "pr-20" : "pr-3",
+            density === "compact" && "h-10 text-xs min-[360px]:text-sm",
+          )}
         />
         {isSearching ? (
           <LoaderCircle
-            className="absolute right-11 top-3.5 size-4 animate-spin text-muted-foreground"
+            className={cn(
+              "absolute right-11 size-4 animate-spin text-muted-foreground",
+              density === "compact" ? "top-3" : "top-3.5",
+            )}
             aria-hidden="true"
           />
         ) : null}
@@ -144,7 +157,10 @@ export function DebouncedSearchInput({
             type="button"
             variant="ghost"
             size="icon"
-            className="absolute right-0.5 top-0.5 size-10"
+            className={cn(
+              "absolute right-0.5 size-10",
+              density === "compact" ? "top-0" : "top-0.5",
+            )}
             onClick={clearSearch}
             aria-label={clearLabel}
             title={clearLabel}

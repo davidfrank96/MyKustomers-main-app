@@ -1,5 +1,9 @@
 import type { TransactionalEmailMessage } from "@/lib/email/types";
-import { escapeEmailHtml, formatEmailDateTime } from "@/lib/email/templates/shared";
+import {
+  formatEmailDateTime,
+  renderTransactionalEmailHtml,
+  withMyKustomersAttribution,
+} from "@/lib/email/templates/shared";
 
 type BookingRescheduledEmailInput = {
   emailEventId: string;
@@ -16,32 +20,47 @@ export function bookingRescheduledEmail(
   input: BookingRescheduledEmailInput,
 ): TransactionalEmailMessage {
   const rows = [
-    ["Business", input.businessName],
     ["Booking", input.bookingTitle],
     ["Reference", input.bookingReference],
     ["Previous schedule", formatEmailDateTime(input.previousScheduledFor)],
     ["New schedule", formatEmailDateTime(input.scheduledFor)],
   ];
-  const text = [
-    "Your booking schedule has changed.",
-    "",
-    ...rows.map(([label, value]) => `${label}: ${value}`),
-    "",
-    "Open the secure link to review and confirm the updated booking.",
-    input.confirmationUrl,
-  ].join("\n");
-  const htmlRows = rows
-    .map(
-      ([label, value]) =>
-        `<tr><th align="left" style="padding:8px 12px;border-bottom:1px solid #e5e7eb">${escapeEmailHtml(label)}</th><td style="padding:8px 12px;border-bottom:1px solid #e5e7eb">${escapeEmailHtml(value)}</td></tr>`,
-    )
-    .join("");
+  const text = withMyKustomersAttribution(
+    [
+      "Your booking schedule has changed.",
+      "",
+      `Business: ${input.businessName}`,
+      ...rows.map(([label, value]) => `${label}: ${value}`),
+      "",
+      "Open the secure link to review and confirm the updated booking.",
+      input.confirmationUrl,
+    ].join("\n"),
+  );
 
   return {
     idempotencyKey: `email-event/${input.emailEventId}`,
     to: input.recipientEmail,
     subject: `Booking rescheduled - ${input.businessName} - ${input.bookingReference}`,
     text,
-    html: `<div style="font-family:Arial,sans-serif;color:#111827;line-height:1.5"><h1 style="font-size:22px">Your booking schedule has changed</h1><table style="border-collapse:collapse;width:100%;max-width:620px">${htmlRows}</table><p>Open the secure link to review and confirm the updated booking.</p><p><a href="${escapeEmailHtml(input.confirmationUrl)}">Review updated booking</a></p></div>`,
+    html: renderTransactionalEmailHtml({
+      contextLabel: "Schedule update",
+      businessName: input.businessName,
+      heading: "Your booking schedule has changed",
+      introduction: [
+        `${input.businessName} has proposed a new delivery schedule for your booking.`,
+        "Open the secure link to review and confirm the updated booking.",
+      ],
+      sections: [
+        {
+          title: "Schedule details",
+          rows: rows.map(([label, value]) => ({ label, value })),
+        },
+      ],
+      cta: {
+        label: "Review updated booking",
+        url: input.confirmationUrl,
+      },
+      footer: "This secure review link relates only to this booking update.",
+    }),
   };
 }

@@ -37,7 +37,6 @@ export default async function BusinessPage() {
           addressText: result.business.address_text,
           logoUrl: getBusinessLogoPublicUrl(result.business.logo_path),
         }}
-        businesses={result.businesses}
         isOwner={isOwner}
         updateAction={updateBusinessProfileAction.bind(null, result.business.id)}
       />

@@ -1,10 +1,7 @@
 "use client";
 
-import Link from "next/link";
-import type { Route } from "next";
-import { Building2, Check, ChevronRight, MapPin, Pencil, Plus } from "lucide-react";
+import { Building2, Check, MapPin, Pencil } from "lucide-react";
 import { useCallback, useState } from "react";
-import { BusinessMembershipList } from "@/components/businesses/business-membership-list";
 import {
   BusinessOnboardingForm,
   type BusinessEditSection,
@@ -14,7 +11,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import type { BusinessActionState } from "@/features/businesses/action-state";
-import type { BusinessSummary } from "@/lib/auth/server";
 
 type BusinessWorkspaceProps = {
   business: {
@@ -31,7 +27,6 @@ type BusinessWorkspaceProps = {
     addressText: string | null;
     logoUrl: string | null;
   };
-  businesses: BusinessSummary[];
   isOwner: boolean;
   updateAction: (
     previousState: BusinessActionState,
@@ -41,13 +36,12 @@ type BusinessWorkspaceProps = {
 
 export function BusinessWorkspace({
   business,
-  businesses,
   isOwner,
   updateAction,
 }: BusinessWorkspaceProps) {
-  const [switchingOpen, setSwitchingOpen] = useState(false);
-  const [activeEditSection, setActiveEditSection] =
-    useState<BusinessEditSection | null>(null);
+  const [activeEditSection, setActiveEditSection] = useState<BusinessEditSection | null>(
+    null,
+  );
 
   const openEditSection = useCallback((section: BusinessEditSection) => {
     setActiveEditSection(section);
@@ -124,44 +118,6 @@ export function BusinessWorkspace({
         </Card>
       </section>
 
-      <section className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
-        <button
-          type="button"
-          className="flex min-h-16 w-full items-center gap-3 px-4 py-3 text-left"
-          aria-label="Switch business"
-          aria-expanded={switchingOpen}
-          aria-controls="business-switching-panel"
-          onClick={() => setSwitchingOpen((open) => !open)}
-        >
-          <span className="grid size-9 shrink-0 place-items-center rounded-md bg-muted text-foreground">
-            <Building2 className="size-5" aria-hidden="true" />
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="block text-sm font-semibold">Switch business</span>
-            <span className="mt-0.5 block text-sm leading-5 text-muted-foreground">
-              View and manage your other businesses
-            </span>
-          </span>
-          <ChevronRight
-            className={`size-5 shrink-0 text-muted-foreground transition-transform ${
-              switchingOpen ? "rotate-90" : ""
-            }`}
-            aria-hidden="true"
-          />
-        </button>
-        <div
-          id="business-switching-panel"
-          hidden={!switchingOpen}
-          className="border-t border-border px-4 py-4"
-        >
-          <BusinessMembershipList
-            businesses={businesses}
-            currentBusinessId={business.id}
-            showAddBusiness={false}
-          />
-        </div>
-      </section>
-
       <section aria-labelledby="business-details-heading" className="space-y-3">
         <h2 id="business-details-heading" className="text-lg font-semibold">
           Business details
@@ -192,13 +148,6 @@ export function BusinessWorkspace({
           }}
         />
       </section>
-
-      <Button asChild className="w-full">
-        <Link href={"/business/new" as Route}>
-          <Plus className="size-4" aria-hidden="true" />
-          Add another business
-        </Link>
-      </Button>
     </div>
   );
 }

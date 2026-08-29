@@ -202,7 +202,7 @@ test.describe("Supabase authentication journeys", () => {
 
     await page.goto("/login");
     await page.getByLabel("Email").fill(email);
-    await page.getByLabel("Password").fill(password);
+    await page.getByLabel("Password", { exact: true }).fill(password);
     await page.getByRole("button", { name: "Log in" }).click();
 
     await expect(page).toHaveURL(/\/onboarding/);
@@ -248,7 +248,7 @@ test.describe("Supabase authentication journeys", () => {
 
     await page.goto("/login");
     await page.getByLabel("Email").fill(email);
-    await page.getByLabel("Password").fill(password);
+    await page.getByLabel("Password", { exact: true }).fill(password);
     await page.getByRole("button", { name: "Log in" }).click();
     await expect(page).toHaveURL(/\/onboarding/);
   });
@@ -322,7 +322,7 @@ test.describe("Supabase authentication journeys", () => {
 
     await page.goto("/login?next=https://attacker.example");
     await page.getByLabel("Email").fill(email);
-    await page.getByLabel("Password").fill("WrongPassword1");
+    await page.getByLabel("Password", { exact: true }).fill("WrongPassword1");
     await page.getByRole("button", { name: "Log in" }).click();
     await expect(page.getByText("We could not verify those credentials.")).toBeVisible();
     await expect(

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Route } from "next";
 import type { ReactNode } from "react";
-import { LogOut, Settings } from "lucide-react";
+import { BriefcaseBusiness, Building2, LogOut, Plus, Settings } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { BusinessSwitcher } from "@/components/layout/business-switcher";
@@ -110,7 +110,25 @@ export function DashboardShell({ children, user, businessContext }: DashboardShe
                 <DropdownMenuItem asChild>
                   <Link href={"/settings" as Route} className="gap-2">
                     <Settings className="size-4" aria-hidden="true" />
-                    Settings
+                    Profile &amp; account
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href={"/settings#my-businesses" as Route} className="gap-2">
+                    <Building2 className="size-4" aria-hidden="true" />
+                    My businesses
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href={"/business" as Route} className="gap-2">
+                    <BriefcaseBusiness className="size-4" aria-hidden="true" />
+                    Business profile
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href={"/business/new" as Route} className="gap-2">
+                    <Plus className="size-4" aria-hidden="true" />
+                    Add another business
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />

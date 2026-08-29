@@ -21,6 +21,10 @@ const businessPresentationSource = `${businessWorkspaceSource}\n${fs.readFileSyn
   "components/forms/business-onboarding-form.tsx",
   "utf8",
 )}`;
+const profileBusinessSource = fs.readFileSync(
+  "app/(dashboard)/settings/page.tsx",
+  "utf8",
+);
 const buttonSource = fs.readFileSync("components/ui/button.tsx", "utf8");
 const globalStyles = fs.readFileSync("app/globals.css", "utf8");
 
@@ -52,10 +56,7 @@ describe("mobile redesign scope policy", () => {
   });
 
   it("preserves the real 5 MB business-logo source policy in the shared flow", () => {
-    const logoForm = fs.readFileSync(
-      "components/forms/business-logo-form.tsx",
-      "utf8",
-    );
+    const logoForm = fs.readFileSync("components/forms/business-logo-form.tsx", "utf8");
 
     expect(logoForm).toContain("PNG, JPEG, or WebP up to 5 MB");
     expect(logoForm).toContain("Saved as a WebP no larger than 512px and 200");
@@ -64,15 +65,18 @@ describe("mobile redesign scope policy", () => {
   it("keeps the Business precision pass compact and within existing capabilities", () => {
     for (const label of [
       "Current business",
-      "Switch business",
       "Business details",
       "Business information",
       "Contact information",
       "Business address",
-      "Add another business",
     ]) {
       expect(businessPresentationSource).toContain(label);
     }
+    expect(businessPresentationSource).not.toContain("Switch business");
+    expect(businessPresentationSource).not.toContain("Add another business");
+    expect(profileBusinessSource).toContain("Profile &amp; account");
+    expect(profileBusinessSource).toContain("My businesses");
+    expect(profileBusinessSource).toContain("BusinessMembershipList");
 
     for (const unsupported of [
       "Business hours",

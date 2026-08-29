@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import type { Route } from "next";
 import { Suspense } from "react";
 import { ChevronDown, ChevronRight, ListFilter, Plus } from "lucide-react";
+import { BookingsMobileActions } from "@/components/bookings/bookings-mobile-actions";
 import { BookingStatusBadge } from "@/components/bookings/booking-status-badge";
 import {
   WorkspacePage,
@@ -230,26 +231,26 @@ export default async function BookingsPage({ searchParams }: BookingsPageProps) 
   const resultPromise = listBookingsForBusiness(currentBusiness.id, params);
 
   return (
-    <WorkspacePage>
+    <WorkspacePage className="pb-52 sm:pb-52 lg:pb-7">
       <WorkspacePageHeader
         title="Bookings"
         description={`Track agreed work and delivery status for ${currentBusiness.name}.`}
         eyebrow={<Badge variant="outline">Bookings</Badge>}
         action={
-          <Button asChild size="sm">
-          <Link href={"/bookings/new" as Route}>
-            <Plus className="size-4" aria-hidden="true" />
-            <span className="hidden min-[375px]:inline">New booking</span>
-            <span className="min-[375px]:hidden">New</span>
-          </Link>
+          <Button asChild size="sm" className="h-10 px-3">
+            <Link href={"/bookings/new" as Route}>
+              <Plus className="size-4" aria-hidden="true" />
+              New booking
+            </Link>
           </Button>
         }
       />
 
       <Card className="p-3 sm:p-4">
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-2.5 sm:gap-3">
             <DebouncedSearchInput
               clearLabel="Clear booking search"
+              density="compact"
               initialValue={params.q}
               placeholder="Search reference, title, or customer"
               label="Search bookings"
@@ -262,13 +263,14 @@ export default async function BookingsPage({ searchParams }: BookingsPageProps) 
                   asChild
                   variant={params.filter === filter ? "primary" : "secondary"}
                   size="sm"
+                  className="h-10"
                 >
                   <Link href={filterHref(filter, params.q)}>{filterLabel(filter)}</Link>
                 </Button>
               ))}
             </div>
             <details className="group rounded-md border border-border bg-background/60">
-              <summary className="flex min-h-10 cursor-pointer list-none items-center justify-between gap-3 px-3 text-sm font-medium [&::-webkit-details-marker]:hidden">
+              <summary className="flex min-h-10 cursor-pointer list-none items-center justify-between gap-3 px-3 text-sm font-medium text-muted-foreground [&::-webkit-details-marker]:hidden">
                 <span className="flex items-center gap-2">
                   <ListFilter className="size-4 text-muted-foreground" aria-hidden="true" />
                   More statuses
@@ -294,6 +296,7 @@ export default async function BookingsPage({ searchParams }: BookingsPageProps) 
       <Suspense fallback={<BookingRowsFallback />}>
         <BookingResults resultPromise={resultPromise} params={params} />
       </Suspense>
+      <BookingsMobileActions />
     </WorkspacePage>
   );
 }

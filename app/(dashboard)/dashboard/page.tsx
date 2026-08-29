@@ -2,7 +2,11 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { Route } from "next";
 import { Suspense, type ReactNode } from "react";
-import { AlertCircle, CalendarDays, ChevronRight, Plus } from "lucide-react";
+import { AlertCircle, ChevronRight, Plus } from "lucide-react";
+import {
+  AttentionStatusGroup,
+  ViewTodayBookingsLink,
+} from "@/components/dashboard/attention-status-group";
 import {
   WorkspacePage,
   WorkspacePageHeader,
@@ -15,21 +19,9 @@ import { parseAnalyticsRange } from "@/features/analytics/date-ranges";
 import { formatCurrencyMinor, formatInteger } from "@/features/analytics/format";
 import { getBusinessInsights } from "@/features/analytics/queries";
 import type { BusinessInsights } from "@/features/analytics/types";
-import type { BookingWithCustomer } from "@/features/bookings/queries";
 import { getBookingDashboardStats } from "@/features/bookings/queries";
 import { countActiveCustomersForBusiness } from "@/features/customers/queries";
 import { getCurrentBusinessContext } from "@/lib/auth/server";
-
-function formatDate(value: string | null) {
-  if (!value) return "Not scheduled";
-
-  return new Intl.DateTimeFormat("en", {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(new Date(value));
-}
 
 function DashboardMetric({
   href,
@@ -67,50 +59,6 @@ function DashboardMetric({
         />
       </div>
     </Link>
-  );
-}
-
-function WorkQueue({
-  title,
-  bookings,
-  empty,
-}: {
-  title: string;
-  bookings: BookingWithCustomer[];
-  empty: string;
-}) {
-  return (
-    <div className="min-w-0 border-b border-border py-3.5 first:pt-0 last:border-b-0 last:pb-0 sm:[&:nth-child(3)]:border-b-0 sm:[&:nth-child(4)]:border-b-0">
-      <div className="mb-2 flex items-center justify-between gap-3">
-        <h3 className="text-sm font-semibold">{title}</h3>
-        <span className="text-xs font-medium text-muted-foreground">{bookings.length}</span>
-      </div>
-      {bookings.length === 0 ? (
-        <p className="text-sm leading-5 text-muted-foreground">{empty}</p>
-      ) : (
-        <div className="divide-y divide-border">
-          {bookings.slice(0, 3).map((booking) => (
-            <Link
-              key={booking.id}
-              href={`/bookings/${booking.id}` as Route}
-              className="group flex min-w-0 items-center justify-between gap-3 py-2.5 first:pt-1 hover:text-primary"
-            >
-              <span className="min-w-0">
-                <span className="block truncate text-sm font-medium">{booking.title}</span>
-                <span className="mt-0.5 block truncate text-xs text-muted-foreground">
-                  {booking.customer?.name ?? "Customer unavailable"} ·{" "}
-                  {formatDate(booking.scheduled_for)}
-                </span>
-              </span>
-              <ChevronRight
-                className="size-4 shrink-0 text-muted-foreground"
-                aria-hidden="true"
-              />
-            </Link>
-          ))}
-        </div>
-      )}
-    </div>
   );
 }
 
@@ -274,50 +222,44 @@ export default async function DashboardPage() {
         />
       </section>
 
-      <section className="space-y-3">
+      <section className="space-y-4">
         <WorkspaceSectionHeader
           title="Needs attention"
-          description="Bookings that may need action now."
+          description="Bookings that may need your action now."
           action={
             <AlertCircle
-              className="size-5 text-accent"
+              className="size-6 text-accent"
               aria-label="Operational attention"
             />
           }
         />
-        <Card className="p-4 sm:grid sm:grid-cols-2 sm:gap-x-6 sm:p-5">
-          <WorkQueue
-            title="Due today"
+        <div className="grid gap-4 md:grid-cols-2">
+          <AttentionStatusGroup
+            status="dueToday"
             bookings={bookingStats.dueToday}
+            totalCount={bookingStats.dueTodayBookings}
             empty="Nothing due today."
           />
-          <WorkQueue
-            title="Overdue"
+          <AttentionStatusGroup
+            status="overdue"
             bookings={bookingStats.overdue}
+            totalCount={bookingStats.overdueBookings}
             empty="No overdue bookings."
           />
-          <WorkQueue
-            title="In progress"
+          <AttentionStatusGroup
+            status="inProgress"
             bookings={bookingStats.inProgress}
+            totalCount={bookingStats.inProgressBookings}
             empty="No work in progress."
           />
-          <WorkQueue
-            title="Ready"
+          <AttentionStatusGroup
+            status="ready"
             bookings={bookingStats.ready}
+            totalCount={bookingStats.readyBookings}
             empty="Nothing ready for delivery."
           />
-          <Button
-            asChild
-            variant="secondary"
-            size="sm"
-            className="mt-4 w-full sm:col-span-2"
-          >
-            <Link href={"/bookings?filter=today" as Route}>
-              <CalendarDays className="size-4" aria-hidden="true" />
-              View today&apos;s bookings
-            </Link>
-          </Button>
-        </Card>
+        </div>
+        <ViewTodayBookingsLink />
       </section>
 
       <Suspense fallback={<DashboardInsightsFallback />}>

@@ -1,7 +1,12 @@
-import type { AnalyticsDateRange, AnalyticsRangePreset } from "@/features/analytics/types";
+import type {
+  AnalyticsDateRange,
+  AnalyticsRangePreset,
+} from "@/features/analytics/types";
 
 function startOfUtcDay(value: Date) {
-  return new Date(Date.UTC(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate()));
+  return new Date(
+    Date.UTC(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate()),
+  );
 }
 
 function addUtcDays(value: Date, days: number) {
@@ -101,6 +106,27 @@ export function parseAnalyticsRange(
   const rawPreset = Array.isArray(params.range) ? params.range[0] : params.range;
   const preset = rawPreset ?? "last_30_days";
   const today = startOfUtcDay(now);
+
+  if (preset === "last_7_days") {
+    const to = addUtcDays(today, 1);
+    return rangeWithPrevious({
+      preset,
+      label: "Last 7 days",
+      from: addUtcDays(to, -7),
+      to,
+    });
+  }
+
+  if (preset === "last_3_months" || preset === "last_6_months") {
+    const to = addUtcDays(today, 1);
+    const months = preset === "last_3_months" ? 3 : 6;
+    return rangeWithPrevious({
+      preset,
+      label: `Last ${months} months`,
+      from: addUtcMonths(to, -months),
+      to,
+    });
+  }
 
   if (preset === "this_month") {
     const from = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 1));

@@ -3,10 +3,8 @@ import { redirect } from "next/navigation";
 import type { Route } from "next";
 import { Suspense } from "react";
 import { ChevronRight, Plus } from "lucide-react";
-import {
-  WorkspacePage,
-  WorkspacePageHeader,
-} from "@/components/layout/workspace-page";
+import { CustomersMobileActions } from "@/components/customers/customers-mobile-actions";
+import { WorkspacePage, WorkspacePageHeader } from "@/components/layout/workspace-page";
 import { DebouncedSearchInput } from "@/components/shared/debounced-search-input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -61,14 +59,14 @@ function pageHref({
 
 function CustomerRowsFallback() {
   return (
-    <Card className="divide-y divide-border overflow-hidden" role="status" aria-label="Loading customer rows">
+    <Card
+      className="divide-y divide-border overflow-hidden"
+      role="status"
+      aria-label="Loading customer rows"
+    >
       <span className="sr-only">Loading customer rows</span>
       {Array.from({ length: 4 }, (_, index) => (
-        <div
-          key={index}
-          className="p-4"
-          aria-hidden
-        >
+        <div key={index} className="p-4" aria-hidden>
           <Skeleton className="h-5 w-full max-w-56" />
           <Skeleton className="mt-3 h-4 w-full max-w-xs" />
         </div>
@@ -196,7 +194,7 @@ export default async function CustomersPage({ searchParams }: CustomersPageProps
   const resultPromise = listCustomersForBusiness(currentBusiness.id, params);
 
   return (
-    <WorkspacePage>
+    <WorkspacePage className="pb-52 sm:pb-52 lg:pb-7">
       <WorkspacePageHeader
         title="Customers"
         description={`Contact details and private notes for ${currentBusiness.name}.`}
@@ -213,35 +211,36 @@ export default async function CustomersPage({ searchParams }: CustomersPageProps
       />
 
       <Card className="p-3 sm:p-4">
-          <div className="flex flex-col gap-3">
-            <DebouncedSearchInput
-              clearLabel="Clear customer search"
-              initialValue={params.q}
-              placeholder="Search name, email, or phone"
-              label="Search customers"
-            />
+        <div className="flex flex-col gap-3">
+          <DebouncedSearchInput
+            clearLabel="Clear customer search"
+            initialValue={params.q}
+            placeholder="Search name, email, or phone"
+            label="Search customers"
+          />
 
-            <div className="flex flex-wrap gap-2" aria-label="Customer archive filters">
-              {(["active", "archived", "all"] as const).map((status) => (
-                <Button
-                  key={status}
-                  asChild
-                  variant={params.status === status ? "primary" : "secondary"}
-                  size="sm"
-                >
-                  <Link href={filterHref(status, params.q)}>
-                    {status[0].toUpperCase()}
-                    {status.slice(1)}
-                  </Link>
-                </Button>
-              ))}
-            </div>
+          <div className="flex flex-wrap gap-2" aria-label="Customer archive filters">
+            {(["active", "archived", "all"] as const).map((status) => (
+              <Button
+                key={status}
+                asChild
+                variant={params.status === status ? "primary" : "secondary"}
+                size="sm"
+              >
+                <Link href={filterHref(status, params.q)}>
+                  {status[0].toUpperCase()}
+                  {status.slice(1)}
+                </Link>
+              </Button>
+            ))}
           </div>
+        </div>
       </Card>
 
       <Suspense fallback={<CustomerRowsFallback />}>
         <CustomerResults resultPromise={resultPromise} params={params} />
       </Suspense>
+      <CustomersMobileActions />
     </WorkspacePage>
   );
 }

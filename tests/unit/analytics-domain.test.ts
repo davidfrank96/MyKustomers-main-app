@@ -5,13 +5,40 @@ import {
   parseAnalyticsRange,
   previousEquivalentRange,
 } from "@/features/analytics/date-ranges";
-import { compareNumbers, formatCurrencyMinor, formatPercent } from "@/features/analytics/format";
-import { analyticsDefinitions, analyticsFinancialTerminology } from "@/features/analytics/definitions";
+import {
+  compareNumbers,
+  formatCurrencyMinor,
+  formatPercent,
+} from "@/features/analytics/format";
+import {
+  analyticsDefinitions,
+  analyticsFinancialTerminology,
+} from "@/features/analytics/definitions";
 
 describe("analytics domain", () => {
   const now = new Date("2026-08-19T12:00:00.000Z");
 
   it("parses supported preset ranges with UTC calendar boundaries", () => {
+    expect(parseAnalyticsRange({ range: "last_7_days" }, now)).toMatchObject({
+      label: "Last 7 days",
+      fromInput: "2026-08-13",
+      toInput: "2026-08-19",
+    });
+    expect(parseAnalyticsRange({ range: "last_30_days" }, now)).toMatchObject({
+      label: "Last 30 days",
+      fromInput: "2026-07-21",
+      toInput: "2026-08-19",
+    });
+    expect(parseAnalyticsRange({ range: "last_3_months" }, now)).toMatchObject({
+      label: "Last 3 months",
+      fromInput: "2026-05-20",
+      toInput: "2026-08-19",
+    });
+    expect(parseAnalyticsRange({ range: "last_6_months" }, now)).toMatchObject({
+      label: "Last 6 months",
+      fromInput: "2026-02-20",
+      toInput: "2026-08-19",
+    });
     expect(parseAnalyticsRange({ range: "this_month" }, now)).toMatchObject({
       label: "This month",
       fromInput: "2026-08-01",
@@ -37,10 +64,7 @@ describe("analytics domain", () => {
 
   it("validates custom range inputs and rejects malformed or unbounded values", () => {
     expect(
-      parseAnalyticsRange(
-        { range: "custom", from: "2026-08-01", to: "2026-08-19" },
-        now,
-      ),
+      parseAnalyticsRange({ range: "custom", from: "2026-08-01", to: "2026-08-19" }, now),
     ).toMatchObject({
       preset: "custom",
       fromInput: "2026-08-01",
@@ -48,23 +72,24 @@ describe("analytics domain", () => {
       error: undefined,
     });
 
-    expect(parseAnalyticsRange({ range: "custom", from: "bad", to: "2026-08-19" }, now).error)
-      .toBe("Choose a valid custom start and end date.");
-    expect(parseAnalyticsRange({ range: "custom", from: "2026-08-20", to: "2026-08-19" }, now).error)
-      .toBe("Choose a custom range where the start date is before the end date.");
-    expect(parseAnalyticsRange({ range: "custom", from: "2020-01-01", to: "2026-08-19" }, now).error)
-      .toBe("Custom analytics ranges can cover up to five years.");
     expect(
-      parseAnalyticsRange(
-        { range: "custom", from: "2020-01-01", to: "2024-12-31" },
-        now,
-      ).error,
+      parseAnalyticsRange({ range: "custom", from: "bad", to: "2026-08-19" }, now).error,
+    ).toBe("Choose a valid custom start and end date.");
+    expect(
+      parseAnalyticsRange({ range: "custom", from: "2026-08-20", to: "2026-08-19" }, now)
+        .error,
+    ).toBe("Choose a custom range where the start date is before the end date.");
+    expect(
+      parseAnalyticsRange({ range: "custom", from: "2020-01-01", to: "2026-08-19" }, now)
+        .error,
+    ).toBe("Custom analytics ranges can cover up to five years.");
+    expect(
+      parseAnalyticsRange({ range: "custom", from: "2020-01-01", to: "2024-12-31" }, now)
+        .error,
     ).toBeUndefined();
     expect(
-      parseAnalyticsRange(
-        { range: "custom", from: "2020-01-01", to: "2025-01-01" },
-        now,
-      ).error,
+      parseAnalyticsRange({ range: "custom", from: "2020-01-01", to: "2025-01-01" }, now)
+        .error,
     ).toBe("Custom analytics ranges can cover up to five years.");
   });
 
@@ -77,7 +102,10 @@ describe("analytics domain", () => {
     expect(dateInputValue(previousTo)).toBe("2026-08-01");
     expect(compareNumbers(5, 0)).toMatchObject({ kind: "new", label: "New activity" });
     expect(compareNumbers(0, 0)).toMatchObject({ kind: "none" });
-    expect(compareNumbers(120, 100)).toMatchObject({ kind: "increase", percentChange: 0.2 });
+    expect(compareNumbers(120, 100)).toMatchObject({
+      kind: "increase",
+      percentChange: 0.2,
+    });
   });
 
   it("formats percentages and currency-specific values without cross-currency claims", () => {

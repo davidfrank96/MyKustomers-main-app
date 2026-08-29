@@ -29,6 +29,43 @@ describe("customer validation", () => {
     expect(parsed.success).toBe(true);
   });
 
+  it.each([
+    { name: "Name only", input: { name: "Walk-in customer" } },
+    {
+      name: "Name and email",
+      input: { name: "Email customer", email: "email@example.com" },
+    },
+    {
+      name: "Name and phone",
+      input: { name: "Phone customer", phone: "+234 800 000 0000" },
+    },
+    {
+      name: "All fields",
+      input: {
+        name: "Complete customer",
+        email: "complete@example.com",
+        phone: "+353 1 555 0100",
+        notes: "Complete contact record.",
+      },
+    },
+  ])("accepts $name", ({ input }) => {
+    expect(customerFormSchema.safeParse(input).success).toBe(true);
+  });
+
+  it("keeps the customer name required", () => {
+    const parsed = customerFormSchema.safeParse({
+      name: "   ",
+      email: "optional@example.com",
+    });
+
+    expect(parsed.success).toBe(false);
+    if (!parsed.success) {
+      expect(parsed.error.flatten().fieldErrors.name).toContain(
+        "Customer name is required.",
+      );
+    }
+  });
+
   it("rejects invalid email, phone, and oversized notes", () => {
     const parsed = customerFormSchema.safeParse({
       name: "Ada Buyer",

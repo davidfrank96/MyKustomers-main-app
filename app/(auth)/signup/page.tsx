@@ -19,9 +19,10 @@ export default async function SignupPage() {
   return (
     <AuthForm
       title="Create your account"
-      description="Create your My Customers login. You will set up your business next."
+      description="Create your My Kustomers login. You will set up your business next."
       action={signupAction}
       submitLabel="Create account"
+      presentation="mobile"
       googleAuth={{ enabled: googleAuthEnabled, next: "/dashboard" }}
       fields={[
         {
@@ -30,6 +31,7 @@ export default async function SignupPage() {
           type: "text",
           autoComplete: "name",
           required: true,
+          placeholder: "Enter your full name",
         },
         {
           name: "email",
@@ -37,6 +39,7 @@ export default async function SignupPage() {
           type: "email",
           autoComplete: "email",
           required: true,
+          placeholder: "Enter your email address",
         },
         {
           name: "password",
@@ -44,6 +47,7 @@ export default async function SignupPage() {
           type: "password",
           autoComplete: "new-password",
           required: true,
+          placeholder: "Create a password",
         },
         {
           name: "confirmPassword",
@@ -51,6 +55,7 @@ export default async function SignupPage() {
           type: "password",
           autoComplete: "new-password",
           required: true,
+          placeholder: "Confirm your password",
         },
       ]}
       footer={
