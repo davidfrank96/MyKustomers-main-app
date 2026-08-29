@@ -2,11 +2,16 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { Route } from "next";
 import { Suspense } from "react";
-import { Plus } from "lucide-react";
+import { ChevronDown, ChevronRight, ListFilter, Plus } from "lucide-react";
+import { BookingStatusBadge } from "@/components/bookings/booking-status-badge";
+import {
+  WorkspacePage,
+  WorkspacePageHeader,
+} from "@/components/layout/workspace-page";
 import { DebouncedSearchInput } from "@/components/shared/debounced-search-input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatMoneyMinor, deriveBalanceMinor } from "@/features/bookings/money";
@@ -75,12 +80,12 @@ function pageHref({
 
 function BookingRowsFallback() {
   return (
-    <div className="grid gap-3" role="status" aria-label="Loading booking rows">
+    <Card className="divide-y divide-border overflow-hidden" role="status" aria-label="Loading booking rows">
       <span className="sr-only">Loading booking rows</span>
       {Array.from({ length: 4 }, (_, index) => (
         <div
           key={index}
-          className="rounded-lg border border-border bg-card p-4"
+          className="p-4"
           aria-hidden
         >
           <Skeleton className="h-4 w-28" />
@@ -88,7 +93,7 @@ function BookingRowsFallback() {
           <Skeleton className="mt-2 h-4 w-full max-w-md" />
         </div>
       ))}
-    </div>
+    </Card>
   );
 }
 
@@ -121,7 +126,7 @@ async function BookingResults({
           }
         />
       ) : (
-        <div className="grid gap-3">
+        <Card className="divide-y divide-border overflow-hidden">
           {result.bookings.map((booking) => {
             const balance = deriveBalanceMinor(
               booking.total_amount_minor,
@@ -136,45 +141,50 @@ async function BookingResults({
               <Link
                 key={booking.id}
                 href={`/bookings/${booking.id}` as Route}
-                className="rounded-lg border border-border bg-card p-4 shadow-sm transition-colors hover:bg-muted/70"
+                className="group block min-w-0 p-4 transition-colors hover:bg-muted/60 sm:px-5"
               >
-                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                  <div>
+                <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] gap-3">
+                  <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-xs font-semibold text-muted-foreground">
+                      <span className="truncate text-[0.6875rem] font-semibold text-muted-foreground sm:text-xs">
                         {booking.reference}
                       </span>
-                      <Badge variant={overdue ? "accent" : "outline"}>
-                        {overdue ? "Overdue" : getBookingStatusLabel(booking.status)}
-                      </Badge>
+                      <BookingStatusBadge status={booking.status} overdue={overdue} />
                     </div>
-                    <h2 className="mt-2 text-base font-semibold leading-6">
+                    <h2 className="mt-1.5 truncate text-sm font-semibold leading-5 sm:text-base">
                       {booking.title}
                     </h2>
-                    <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                    <p className="mt-1 truncate text-xs leading-5 text-muted-foreground sm:text-sm">
                       {booking.customer?.name ?? "Customer unavailable"} ·{" "}
                       {formatDate(booking.scheduled_for)}
                     </p>
                   </div>
-                  <div className="text-sm leading-6 text-muted-foreground md:text-right">
-                    <p>
-                      Agreed total:{" "}
-                      {formatMoneyMinor(booking.total_amount_minor, booking.currency)}
-                    </p>
-                    <p>Balance: {formatMoneyMinor(balance, booking.currency)}</p>
+                  <div className="flex min-w-0 items-center gap-2 text-right">
+                    <div className="min-w-0 text-xs leading-5 text-muted-foreground sm:text-sm">
+                      <p className="break-all font-medium text-foreground sm:break-words">
+                        {formatMoneyMinor(booking.total_amount_minor, booking.currency)}
+                      </p>
+                      <p className="break-all sm:break-words">
+                        Balance {formatMoneyMinor(balance, booking.currency)}
+                      </p>
+                    </div>
+                    <ChevronRight
+                      className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5"
+                      aria-hidden="true"
+                    />
                   </div>
                 </div>
               </Link>
             );
           })}
-        </div>
+        </Card>
       )}
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
           Showing {result.bookings.length} of {result.total} bookings.
         </p>
-        <div className="flex gap-2">
+        <div className="flex shrink-0 gap-2">
           <Button asChild variant="secondary" size="sm" disabled={result.page <= 1}>
             <Link
               href={pageHref({
@@ -220,29 +230,24 @@ export default async function BookingsPage({ searchParams }: BookingsPageProps) 
   const resultPromise = listBookingsForBusiness(currentBusiness.id, params);
 
   return (
-    <main className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-5 py-6 sm:px-8 lg:px-10">
-      <section className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div className="flex flex-col gap-3">
-          <Badge variant="outline">Bookings</Badge>
-          <div>
-            <h1 className="text-2xl font-semibold leading-tight sm:text-3xl">Bookings</h1>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-              Track agreed customer work, recorded deposits, scheduled dates, and
-              lifecycle status for {currentBusiness.name}.
-            </p>
-          </div>
-        </div>
-        <Button asChild className="w-full sm:w-fit">
+    <WorkspacePage>
+      <WorkspacePageHeader
+        title="Bookings"
+        description={`Track agreed work and delivery status for ${currentBusiness.name}.`}
+        eyebrow={<Badge variant="outline">Bookings</Badge>}
+        action={
+          <Button asChild size="sm">
           <Link href={"/bookings/new" as Route}>
             <Plus className="size-4" aria-hidden="true" />
-            New booking
+            <span className="hidden min-[375px]:inline">New booking</span>
+            <span className="min-[375px]:hidden">New</span>
           </Link>
-        </Button>
-      </section>
+          </Button>
+        }
+      />
 
-      <Card>
-        <CardContent className="p-4 sm:p-5">
-          <div className="flex flex-col gap-4">
+      <Card className="p-3 sm:p-4">
+          <div className="flex flex-col gap-3">
             <DebouncedSearchInput
               clearLabel="Clear booking search"
               initialValue={params.q}
@@ -250,8 +255,8 @@ export default async function BookingsPage({ searchParams }: BookingsPageProps) 
               label="Search bookings"
             />
 
-            <div className="flex flex-wrap gap-2" aria-label="Booking filters">
-              {bookingListFilters.map((filter) => (
+            <div className="flex flex-wrap gap-2" aria-label="Quick booking filters">
+              {(["all", "active", "today", "upcoming", "overdue"] as const).map((filter) => (
                 <Button
                   key={filter}
                   asChild
@@ -262,13 +267,33 @@ export default async function BookingsPage({ searchParams }: BookingsPageProps) 
                 </Button>
               ))}
             </div>
+            <details className="group rounded-md border border-border bg-background/60">
+              <summary className="flex min-h-10 cursor-pointer list-none items-center justify-between gap-3 px-3 text-sm font-medium [&::-webkit-details-marker]:hidden">
+                <span className="flex items-center gap-2">
+                  <ListFilter className="size-4 text-muted-foreground" aria-hidden="true" />
+                  More statuses
+                </span>
+                <ChevronDown className="size-4 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden="true" />
+              </summary>
+              <div className="flex flex-wrap gap-2 border-t border-border p-3" aria-label="Booking status filters">
+                {bookingListFilters.slice(5).map((filter) => (
+                  <Button
+                    key={filter}
+                    asChild
+                    variant={params.filter === filter ? "primary" : "secondary"}
+                    size="sm"
+                  >
+                    <Link href={filterHref(filter, params.q)}>{filterLabel(filter)}</Link>
+                  </Button>
+                ))}
+              </div>
+            </details>
           </div>
-        </CardContent>
       </Card>
 
       <Suspense fallback={<BookingRowsFallback />}>
         <BookingResults resultPromise={resultPromise} params={params} />
       </Suspense>
-    </main>
+    </WorkspacePage>
   );
 }

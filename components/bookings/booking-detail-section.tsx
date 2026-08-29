@@ -78,7 +78,7 @@ export function BookingDetailSection({
     <section
       id={id}
       className={cn(
-        "scroll-mt-6 overflow-hidden rounded-lg border bg-card text-foreground shadow-sm",
+        "scroll-mt-6 overflow-hidden rounded-lg border bg-card text-foreground shadow-[0_1px_2px_rgba(23,33,29,0.04)]",
         attention ? "border-accent/50" : "border-border",
       )}
     >
@@ -86,14 +86,14 @@ export function BookingDetailSection({
         <button
           id={triggerId}
           type="button"
-          className="flex min-h-14 w-full items-center justify-between gap-4 px-4 py-3 text-left outline-none transition-colors hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset sm:px-5"
+          className="flex min-h-14 w-full items-center justify-between gap-4 px-4 py-3 text-left outline-none transition-colors hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset sm:min-h-16 sm:px-5"
           aria-expanded={open}
           aria-controls={contentId}
           onClick={() => setOpen((current) => !current)}
         >
           <span className="min-w-0">
-            <span className="block text-base font-semibold leading-6">{title}</span>
-            <span className="mt-0.5 block break-words text-sm font-normal leading-5 text-muted-foreground">
+            <span className="block text-sm font-semibold leading-5 sm:text-base sm:leading-6">{title}</span>
+            <span className="mt-0.5 block break-words text-xs font-normal leading-5 text-muted-foreground sm:text-sm">
               {summary}
             </span>
           </span>
@@ -111,7 +111,7 @@ export function BookingDetailSection({
         role="region"
         aria-labelledby={triggerId}
         hidden={!open}
-        className="border-t border-border px-4 py-5 sm:px-5"
+        className="border-t border-border px-4 py-4 sm:px-5 sm:py-5"
       >
         {children}
       </div>

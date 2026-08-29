@@ -321,17 +321,17 @@ export function BusinessLogoForm({
 
   return (
     <section
-      className="space-y-5"
+      className="space-y-4"
       aria-busy={isBusy}
       aria-label={
         mode === "onboarding" ? "Required business logo" : "Business logo settings"
       }
     >
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3 sm:gap-4">
         <BusinessLogo
           name={businessName}
           url={previewUrl ?? persistedUrl}
-          className="size-20 sm:size-24"
+          className="size-16 sm:size-20"
         />
         <div className="min-w-0">
           <p className="font-medium">{businessName}</p>
@@ -375,8 +375,9 @@ export function BusinessLogoForm({
               id="business-logo-help"
               className="text-xs leading-5 text-muted-foreground"
             >
-              PNG, JPEG, or WebP up to 5 MB. Saved as a WebP no larger than 512px and 200
-              KB.
+              {mode === "settings"
+                ? "PNG, JPEG, or WebP up to 5 MB."
+                : "PNG, JPEG, or WebP up to 5 MB. Saved as a WebP no larger than 512px and 200 KB."}
             </p>
           </div>
 

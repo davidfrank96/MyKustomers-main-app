@@ -142,7 +142,7 @@ test.describe("Supabase authentication journeys", () => {
     await page.getByRole("button", { name: "Create account" }).click();
 
     const successState = page.getByText(/check your email|authenticated workspace/i).or(
-      page.getByRole("heading", { name: "Dashboard" }),
+      page.getByRole("heading", { name: "Welcome back" }),
     );
     const providerLimitOrGenericError = page.getByText(
       /Too many attempts\. Please wait and try again\.|Something went wrong\. Please try again\./,

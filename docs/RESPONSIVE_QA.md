@@ -1,11 +1,14 @@
 # Responsive QA
 
-STATUS: VERIFIED
+STATUS: VERIFIED FOR THE DEPLOYED BASELINE; MOBILE REDESIGN VERIFIED ON BRANCH
 
 Audit date: 2026-08-21.
 
 This maintenance pass stabilizes the existing interface. It does not start the
 planned broad visual redesign or Phase 11 PWA/UX hardening.
+
+The separate 2026-08-28 evidence below covers the approved mobile redesign on
+`ui/mobile-redesign`. It has not been merged or deployed.
 
 ## Matrix
 
@@ -41,6 +44,18 @@ planned broad visual redesign or Phase 11 PWA/UX hardening.
 | Booking detail progressive disclosure     | 320-1440              | Accumulated operational sections made the initial page excessively long                       | Persistent journey plus 56px disclosure headers, concise summaries, contextual default-open logic, and independent expansion | Canonical desktop/Pixel 5 journey plus 320/360/375/390/430/768/1024/1440 overflow checks                          | VERIFIED    |
 
 ## Evidence
+
+The 2026-08-28 approved mobile-redesign pass exercised Dashboard, Bookings,
+Booking detail, Customers, Insights, Business, and Add another business at 320,
+360, 375, 390, and 430 pixels. The controlled Playwright fixture asserted zero
+document overflow at all 35 route/viewport combinations, exactly five mobile
+navigation destinations, a fully rendered authenticated shell, and responsive
+handling of a long business name, long booking title/reference, and
+`NGN 99,999,999,400`. It also captured every approved screen plus Booking detail
+with a disclosure expanded. Evidence is generated under the ignored
+`test-results/mobile-redesign` directory and was visually reviewed; no
+production data or product behavior was changed. Physical-device keyboard and
+screen-reader acceptance remain release-review work.
 
 The final automated audit traversed 265 route/viewport states, generated 160
 fresh screenshots in `/private/tmp/mycustomers-responsive-qa`, and reported

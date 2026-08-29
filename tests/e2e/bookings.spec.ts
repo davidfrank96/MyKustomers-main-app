@@ -969,18 +969,20 @@ test.describe("booking engine", () => {
 
     await page.getByRole("button", { name: "Mark as ready" }).click();
     await expect(
-      page.locator("span.inline-flex.w-fit").filter({ hasText: /^Ready$/ }),
+      page.locator("span.inline-flex.w-fit").filter({ hasText: /^Ready for delivery$/ }),
     ).toBeVisible({ timeout: serverActionTimeout });
     await expandBookingSection(page, "operational-timeline");
-    await expect(page.getByText("In progress to Ready")).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Ready for delivery" })).toBeVisible();
+    await expect(page.getByText("In progress to Ready for delivery")).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Ready for delivery", exact: true }),
+    ).toBeVisible();
 
     await page.getByRole("button", { name: "Mark as delivered" }).click();
     await expect(
       page.locator("span.inline-flex.w-fit").filter({ hasText: /^Delivered$/ }),
     ).toBeVisible({ timeout: serverActionTimeout });
     await expandBookingSection(page, "operational-timeline");
-    await expect(page.getByText("Ready to Delivered")).toBeVisible();
+    await expect(page.getByText("Ready for delivery to Delivered")).toBeVisible();
     await expect(
       page.getByRole("heading", { name: "Delivered", exact: true }),
     ).toBeVisible();
@@ -1179,7 +1181,9 @@ test.describe("booking engine", () => {
 
     await page.goto("/insights?range=this_month");
     await expect(page.getByRole("heading", { name: "Insights" })).toBeVisible();
-    await expect(page.getByText("Private business insights")).toBeVisible();
+    await expect(
+      page.getByText("Private metrics calculated from saved business records."),
+    ).toBeVisible();
     const completedBookingsCard = page
       .getByRole("heading", { name: "Completed bookings" })
       .locator("../..");
@@ -1253,6 +1257,7 @@ test.describe("booking engine", () => {
       page.getByRole("link", { name: new RegExp(bookingTitle) }),
     ).toBeVisible();
 
+    await page.getByText("More statuses", { exact: true }).click();
     await page.getByRole("link", { name: "Draft", exact: true }).click();
     await expect.poll(() => new URL(page.url()).searchParams.get("filter")).toBe("DRAFT");
     expect(new URL(page.url()).searchParams.get("q")).toBe(bookingTitle);

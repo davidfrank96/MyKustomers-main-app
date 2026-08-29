@@ -1038,6 +1038,29 @@ and fixture cleanup passed against merge commit `d2f55fd`.
   is a test failure. The final production audit found zero controlled PWA
   businesses, customers, bookings, or Auth users.
 
+## Approved Mobile Redesign Coverage
+
+- `tests/integration/workspace-page.test.tsx` verifies the shared page and
+  section primitives retain semantic headings, actions, and descriptions.
+- `tests/integration/dashboard-navigation.test.tsx` locks the authenticated
+  mobile navigation to the five approved, existing destinations and preserves
+  accessible current/pending state.
+- `tests/unit/mobile-redesign-policy.test.ts` prevents unsupported design-only
+  product concepts, locks the progressive booking-filter set, verifies shared
+  workspace usage across approved routes, and preserves the real 5 MiB logo
+  source policy.
+- `tests/e2e/mobile-redesign.spec.ts` creates one isolated controlled tenant and
+  verifies all seven approved routes at 320, 360, 375, 390, and 430 pixels. It
+  asserts the authenticated shell is complete, all data has left its structural
+  loading state, there is no horizontal document overflow, exactly five mobile
+  navigation items render, and booking detail can expand without distortion.
+- The visual test generates 35 viewport captures, seven complete 390-pixel page
+  captures, and one expanded Booking-detail capture under ignored
+  `test-results/mobile-redesign`. Fixture rows and the temporary Auth user are
+  removed in `finally`; no production customer or business is used.
+- The redesign changes presentation only. Existing unit, integration, runtime
+  security, E2E, and build gates remain mandatory regression evidence.
+
 ## Sentry Observability Verification
 
 - `tests/unit/sentry-observability.test.ts` verifies capability/query/contact/

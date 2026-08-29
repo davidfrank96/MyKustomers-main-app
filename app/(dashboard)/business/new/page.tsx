@@ -1,5 +1,9 @@
 import { redirect } from "next/navigation";
 import type { Route } from "next";
+import {
+  WorkspacePage,
+  WorkspacePageHeader,
+} from "@/components/layout/workspace-page";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BusinessOnboardingForm } from "@/components/forms/business-onboarding-form";
@@ -42,25 +46,18 @@ export default async function NewBusinessPage() {
     : undefined;
 
   return (
-    <main className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-5 py-6 sm:px-8 lg:px-10">
-      <section className="flex flex-col gap-3">
-        <Badge variant="outline">New business</Badge>
-        <div>
-          <h1 className="text-2xl font-semibold leading-tight sm:text-3xl">
-            Add another business
-          </h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-            Create a separate workspace with its own customers, bookings, insights, and
-            settings.
-          </p>
-        </div>
-      </section>
+    <WorkspacePage className="max-w-4xl">
+      <WorkspacePageHeader
+        title="Add another business"
+        description="Create a separate workspace with its own customers, bookings, insights, and settings."
+        eyebrow={<Badge variant="outline">New business</Badge>}
+      />
 
       <Card>
-        <CardHeader>
+        <CardHeader className="p-4 pb-0 sm:p-5 sm:pb-0">
           <CardTitle>Business profile</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-4 pt-3 sm:p-5 sm:pt-3">
           <BusinessOnboardingForm
             action={createAdditionalBusinessAction}
             completeAction={completeBusinessOnboardingAction}
@@ -69,6 +66,6 @@ export default async function NewBusinessPage() {
           />
         </CardContent>
       </Card>
-    </main>
+    </WorkspacePage>
   );
 }

@@ -60,7 +60,7 @@ export function getBookingStatusLabel(status: BookingStatus) {
     AWAITING_CUSTOMER: "Awaiting customer",
     CONFIRMED: "Confirmed",
     IN_PROGRESS: "In progress",
-    READY: "Ready",
+    READY: "Ready for delivery",
     DELIVERED: "Delivered",
     COMPLETED: "Completed",
     CANCELLED: "Cancelled",

@@ -1,5 +1,9 @@
 import { redirect } from "next/navigation";
 import type { Route } from "next";
+import {
+  WorkspacePage,
+  WorkspacePageHeader,
+} from "@/components/layout/workspace-page";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BusinessOnboardingForm } from "@/components/forms/business-onboarding-form";
@@ -42,25 +46,18 @@ export default async function OnboardingPage() {
     : undefined;
 
   return (
-    <main className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-5 py-6 sm:px-8 lg:px-10">
-      <section className="flex flex-col gap-3">
-        <Badge variant="outline">Business setup</Badge>
-        <div>
-          <h1 className="text-2xl font-semibold leading-tight sm:text-3xl">
-            Set up your business
-          </h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-            Add the basic identity and contact details your workspace needs before using
-            customer and booking tools.
-          </p>
-        </div>
-      </section>
+    <WorkspacePage className="max-w-4xl">
+      <WorkspacePageHeader
+        title="Set up your business"
+        description="Add the identity and contact details your workspace needs."
+        eyebrow={<Badge variant="outline">Business setup</Badge>}
+      />
 
       <Card>
-        <CardHeader>
+        <CardHeader className="p-4 pb-0 sm:p-5 sm:pb-0">
           <CardTitle>Business profile</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-4 pt-3 sm:p-5 sm:pt-3">
           <BusinessOnboardingForm
             action={createBusinessAction}
             completeAction={completeBusinessOnboardingAction}
@@ -69,6 +66,6 @@ export default async function OnboardingPage() {
           />
         </CardContent>
       </Card>
-    </main>
+    </WorkspacePage>
   );
 }

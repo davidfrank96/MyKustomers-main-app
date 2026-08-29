@@ -99,12 +99,13 @@ test.describe("multi-business account support", () => {
       await page.getByRole("button", { name: "Log in" }).click();
       await expect(page).toHaveURL(/\/dashboard$/);
       await page.goto("/business");
+      await page.getByRole("button", { name: "Switch business", exact: true }).click();
 
       const memberships = page.getByRole("list", {
         name: "Active business memberships",
       });
       const row = memberships.getByRole("listitem").filter({ hasText: businessName });
-      await expect(page.getByRole("heading", { name: "My businesses" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Current business" })).toBeVisible();
       await expect(row.getByText("Owner", { exact: true })).toBeVisible();
       await expect(row.getByText("Current business", { exact: true })).toBeVisible();
       await expect(memberships.getByRole("button", { name: "Switch" })).toHaveCount(0);
@@ -296,6 +297,7 @@ test.describe("multi-business account support", () => {
       await expect(page.getByText(bookingATitle)).toHaveCount(0);
 
       await page.goto("/business");
+      await page.getByRole("button", { name: "Switch business", exact: true }).click();
       const membershipList = page.getByRole("list", {
         name: "Active business memberships",
       });
@@ -305,7 +307,7 @@ test.describe("multi-business account support", () => {
       const businessBRow = membershipList
         .getByRole("listitem")
         .filter({ hasText: businessBName });
-      await expect(page.getByRole("heading", { name: "My businesses" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Current business" })).toBeVisible();
       await expect(businessARow.getByText("Owner", { exact: true })).toBeVisible();
       await expect(businessBRow.getByText("Member", { exact: true })).toBeVisible();
       await expect(
@@ -320,6 +322,7 @@ test.describe("multi-business account support", () => {
       ).toBeVisible();
 
       await page.goto("/business");
+      await page.getByRole("button", { name: "Switch business", exact: true }).click();
       await expect(
         page
           .getByRole("list", { name: "Active business memberships" })
@@ -327,6 +330,7 @@ test.describe("multi-business account support", () => {
           .filter({ hasText: businessAName })
           .getByText("Current business", { exact: true }),
       ).toBeVisible();
+      await page.getByRole("button", { name: /Business information/ }).click();
       await expect(page.getByLabel("Business name")).toBeEnabled();
 
       await page.context().addCookies([
@@ -347,6 +351,7 @@ test.describe("multi-business account support", () => {
       ).toBeVisible();
 
       await page.goto("/business");
+      await page.getByRole("button", { name: "Switch business", exact: true }).click();
       const forgedForm = page
         .getByRole("list", { name: "Active business memberships" })
         .getByRole("listitem")
@@ -439,9 +444,10 @@ test.describe("multi-business account support", () => {
           await expectNoOverflow(page);
           await page.goto("/business");
           await expect(
-            page.getByRole("heading", { name: "My businesses" }),
+            page.getByRole("heading", { name: "Current business" }),
           ).toBeVisible();
           await expectNoOverflow(page);
+          await page.getByRole("button", { name: "Switch business", exact: true }).click();
           const switchButton = page
             .getByRole("button", { name: "Switch", exact: true })
             .first();

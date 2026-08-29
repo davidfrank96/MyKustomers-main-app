@@ -291,7 +291,9 @@ test.describe("business insights", () => {
 
     await page.goto("/insights?range=this_month");
     await expect(page.getByRole("heading", { name: "Insights" })).toBeVisible();
-    await expect(page.getByText("Private business insights")).toBeVisible();
+    await expect(
+      page.getByText("Private metrics calculated from saved business records."),
+    ).toBeVisible();
     const completedBookingsCard = page
       .getByRole("heading", { name: "Completed bookings" })
       .locator("../..");

@@ -1,5 +1,27 @@
 # Changelog
 
+## 2026-08-28 - Approved Mobile Workspace Redesign
+
+Status: IMPLEMENTED - BRANCH REVIEW PENDING
+
+- Applied the locked mobile redesign references to Dashboard, Bookings, Booking
+  detail, Customers, Insights, Business, and Add another business while keeping
+  the repository as the functional source of truth.
+- Added shared compact workspace page/section primitives, grouped list rows,
+  progressive booking filters, an action-first booking journey, consistent
+  neutral surfaces, and a compact authenticated shell with exactly five primary
+  mobile destinations.
+- Preserved all existing booking lifecycle, confirmation, payment, customer,
+  analytics, business-switching, onboarding, logo, pagination, search,
+  authorization, and multi-tenant behavior. No generated-reference-only feature
+  was added.
+- Added focused component/policy coverage and a self-cleaning controlled E2E
+  matrix across seven routes and 320, 360, 375, 390, and 430 pixels, including
+  long identifiers, long names, large NGN values, and expanded booking detail.
+- No database, migration, environment, dependency, API, security-policy,
+  infrastructure, production-data, or deployment change is included. The branch
+  is intentionally unmerged pending visual review.
+
 ## 2026-08-27 - Sentry Production Observability
 
 Status: IMPLEMENTED - PRODUCTION VERIFICATION PENDING

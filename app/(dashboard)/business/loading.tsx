@@ -4,9 +4,9 @@ export default function BusinessLoading() {
   return (
     <WorkspacePageSkeleton
       label="Loading business"
-      title="Business profile"
-      description="Loading the selected business identity and settings."
-      variant="form"
+      title="Business"
+      description="Manage your business profile and information in one place."
+      variant="business"
     />
   );
 }

@@ -127,7 +127,7 @@ export function MobileNavigation() {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-border bg-card px-2 pb-[env(safe-area-inset-bottom)] lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-border bg-card/98 px-1 pb-[env(safe-area-inset-bottom)] shadow-[0_-2px_8px_rgba(23,33,29,0.04)] backdrop-blur lg:hidden"
       aria-label="Mobile vendor navigation"
     >
       {navItems.map((item) => {
@@ -149,8 +149,9 @@ export function MobileNavigation() {
               setPendingHref(item.href);
             }}
             className={cn(
-              "flex min-h-16 min-w-0 flex-col items-center justify-center gap-1 rounded-md px-1 text-xs font-medium text-muted-foreground hover:text-foreground",
-              active && "text-foreground",
+              "relative flex min-h-[4.25rem] min-w-0 flex-col items-center justify-center gap-1 px-0.5 text-[0.6875rem] font-medium text-muted-foreground hover:text-foreground min-[360px]:text-xs",
+              "after:absolute after:inset-x-2 after:top-0 after:h-0.5 after:rounded-b-full after:bg-transparent",
+              active && "text-primary after:bg-primary",
               pending && "text-primary",
             )}
           >
@@ -159,7 +160,7 @@ export function MobileNavigation() {
                 <LoaderCircle className="size-5" />
               </span>
             ) : (
-              <item.icon className="size-5" aria-hidden />
+              <item.icon className="size-[1.15rem] min-[360px]:size-5" aria-hidden />
             )}
             <span className="max-w-full truncate">{item.label}</span>
           </Link>

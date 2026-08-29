@@ -155,6 +155,7 @@ test.describe("mobile account and dashboard navigation", () => {
 
       await page.setViewportSize({ width: 1440, height: 1000 });
       await page.goto("/business");
+      await page.getByRole("button", { name: /Business information/ }).click();
       const pngLogo = await sharp({
         create: {
           width: 900,
@@ -226,6 +227,7 @@ test.describe("mobile account and dashboard navigation", () => {
       const replacementStoredLogo = await downloadStoredLogo(admin, business!.id);
       expect(replacementStoredLogo.equals(firstStoredLogo)).toBe(false);
 
+      await page.getByRole("button", { name: /Contact information/ }).click();
       await page.getByLabel("Website").fill("mobile-account.example.com/profile");
       await page.getByRole("button", { name: "Save changes" }).click();
       await expect(page.getByText("Business profile updated.")).toBeVisible();
@@ -239,6 +241,7 @@ test.describe("mobile account and dashboard navigation", () => {
         logo_path: `${business!.id}/logo.webp`,
       });
 
+      await page.getByRole("button", { name: /Business information/ }).click();
       await page.getByRole("button", { name: "Remove logo" }).click();
       await expect(page.getByText("Business logo removed.")).toBeVisible();
       await expect(

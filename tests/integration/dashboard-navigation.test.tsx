@@ -64,4 +64,21 @@ describe("dashboard navigation responsiveness", () => {
     act(() => vi.advanceTimersByTime(15_000));
     expect(bookings).not.toHaveAttribute("aria-busy");
   });
+
+  it("keeps exactly the five approved mobile destinations", () => {
+    render(<MobileNavigation />);
+    const navigation = screen.getByRole("navigation", {
+      name: "Mobile vendor navigation",
+    });
+    const links = within(navigation).getAllByRole("link");
+
+    expect(links.map((link) => link.textContent)).toEqual([
+      "Home",
+      "Bookings",
+      "Customers",
+      "Insights",
+      "Business",
+    ]);
+    expect(links[0]).toHaveAttribute("aria-current", "page");
+  });
 });

@@ -8,6 +8,10 @@ const onboardingForm = fs.readFileSync(
 );
 const logoForm = fs.readFileSync("components/forms/business-logo-form.tsx", "utf8");
 const businessPage = fs.readFileSync("app/(dashboard)/business/page.tsx", "utf8");
+const businessWorkspace = fs.readFileSync(
+  "components/businesses/business-workspace.tsx",
+  "utf8",
+);
 const logoRoute = fs.readFileSync(
   "app/api/businesses/[businessId]/logo/route.ts",
   "utf8",
@@ -43,7 +47,8 @@ describe("new-business logo policy", () => {
     expect(logoForm).toContain("prepareBusinessLogoForUpload");
     expect(onboardingForm).not.toContain('name="logo"');
     expect(onboardingForm).toContain("<BusinessLogoForm");
-    expect(businessPage).toContain("<BusinessLogoForm");
+    expect(businessPage).toContain("<BusinessWorkspace");
+    expect(businessWorkspace).toContain("<BusinessOnboardingForm");
     expect(logoRoute).toContain('requireBusinessRole(parsedBusinessId.data, ["owner"]');
     expect(logoRoute).toContain("optimizeBusinessLogo({");
     expect(logoRoute).toContain("businessLogoPath(authorization.businessId)");

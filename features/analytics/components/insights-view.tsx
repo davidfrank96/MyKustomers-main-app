@@ -1,6 +1,10 @@
 import Link from "next/link";
 import type { Route } from "next";
 import { BarChart3, CalendarDays, ChevronRight } from "lucide-react";
+import {
+  WorkspacePage,
+  WorkspacePageHeader,
+} from "@/components/layout/workspace-page";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,7 +39,7 @@ function comparisonTone(comparison: PeriodComparison) {
 
 function ComparisonText({ comparison }: { comparison: PeriodComparison }) {
   return (
-    <p className={`mt-2 text-xs ${comparisonTone(comparison)}`}>
+    <p className={`mt-1.5 text-[0.6875rem] leading-4 sm:text-xs ${comparisonTone(comparison)}`}>
       {comparison.label}
     </p>
   );
@@ -53,13 +57,17 @@ function MetricCard({
   comparison?: PeriodComparison;
 }) {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
+    <Card className="h-full">
+      <CardHeader className="p-3.5 pb-0 sm:p-5 sm:pb-0">
+        <CardTitle className="text-xs leading-4 text-muted-foreground sm:text-sm sm:leading-5">
+          {title}
+        </CardTitle>
       </CardHeader>
-      <CardContent>
-        <p className="text-2xl font-semibold leading-tight">{value}</p>
-        <p className="mt-2 text-sm leading-6 text-muted-foreground">{detail}</p>
+      <CardContent className="p-3.5 pt-2 sm:p-5 sm:pt-2">
+        <p className="break-words text-2xl font-semibold leading-tight">{value}</p>
+        <p className="mt-1.5 text-xs leading-4 text-muted-foreground sm:text-sm sm:leading-5">
+          {detail}
+        </p>
         {comparison ? <ComparisonText comparison={comparison} /> : null}
       </CardContent>
     </Card>
@@ -84,11 +92,11 @@ function CurrencyMetricList({
   metrics: CurrencyMetric[];
 }) {
   return (
-    <Card>
-      <CardHeader>
+    <Card className="h-full">
+      <CardHeader className="p-4 pb-0 sm:p-5 sm:pb-0">
         <CardTitle>{title}</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-4 pt-3 sm:p-5 sm:pt-3">
         {metrics.length === 0 ? (
           <p className="text-sm leading-6 text-muted-foreground">{empty}</p>
         ) : (
@@ -119,8 +127,8 @@ function CurrencyMetricList({
 
 function RangeForm({ insights }: { insights: BusinessInsights }) {
   return (
-    <form className="grid gap-3 rounded-md border border-border bg-card p-3 sm:grid-cols-[1fr_1fr_1fr_auto]">
-      <label className="space-y-1 text-sm">
+    <form className="grid gap-3 rounded-lg border border-border bg-card p-3 min-[430px]:grid-cols-2 sm:grid-cols-[1fr_1fr_1fr_auto]">
+      <label className="space-y-1 text-sm min-[430px]:col-span-2 sm:col-span-1">
         <span className="font-medium">Range</span>
         <select
           name="range"
@@ -152,7 +160,7 @@ function RangeForm({ insights }: { insights: BusinessInsights }) {
           className="min-h-11 w-full rounded-md border border-border bg-card px-3 py-2"
         />
       </label>
-      <div className="flex items-end">
+      <div className="flex items-end min-[430px]:col-span-2 sm:col-span-1">
         <Button type="submit" className="w-full">
           Apply
         </Button>
@@ -170,8 +178,10 @@ function SectionHeader({
 }) {
   return (
     <div>
-      <h2 className="text-xl font-semibold leading-tight">{title}</h2>
-      <p className="mt-2 text-sm leading-6 text-muted-foreground">{detail}</p>
+      <h2 className="text-lg font-semibold leading-6 sm:text-xl">{title}</h2>
+      <p className="mt-1 text-sm leading-5 text-muted-foreground sm:mt-2 sm:leading-6">
+        {detail}
+      </p>
     </div>
   );
 }
@@ -181,10 +191,10 @@ function IssueDistribution({ insights }: { insights: BusinessInsights }) {
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="p-4 pb-0 sm:p-5 sm:pb-0">
         <CardTitle>Issue categories</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-4 pt-3 sm:p-5 sm:pt-3">
         {insights.issues.categories.length === 0 ? (
           <p className="text-sm leading-6 text-muted-foreground">
             No issues recorded in this period.
@@ -218,10 +228,10 @@ function BookingTrend({ insights }: { insights: BusinessInsights }) {
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="p-4 pb-0 sm:p-5 sm:pb-0">
         <CardTitle>Booking trend</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-4 pt-3 sm:p-5 sm:pt-3">
         {points.length === 0 ? (
           <p className="text-sm leading-6 text-muted-foreground">
             No bookings created in this period.
@@ -273,28 +283,26 @@ function DefinitionsList() {
 
 export function InsightsView({ insights }: { insights: BusinessInsights }) {
   return (
-    <main className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-5 py-6 sm:px-8 lg:px-10">
+    <WorkspacePage>
       <section className="flex flex-col gap-4">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div>
+        <WorkspacePageHeader
+          title="Insights"
+          description="Private metrics calculated from saved business records."
+          eyebrow={
             <Badge variant="outline">
               <BarChart3 className="size-3" aria-hidden="true" />
               Private business insights
             </Badge>
-            <h1 className="mt-3 text-2xl font-semibold leading-tight sm:text-3xl">
-              Insights
-            </h1>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-              Metrics are calculated from stored customer, booking, feedback, and issue records for the current business only.
-            </p>
-          </div>
-          <Button asChild variant="secondary" size="sm">
+          }
+          action={
+            <Button asChild variant="secondary" size="sm" className="hidden sm:inline-flex">
             <Link href={"/dashboard" as Route}>
               Dashboard
               <ChevronRight className="size-4" aria-hidden="true" />
             </Link>
-          </Button>
-        </div>
+            </Button>
+          }
+        />
         <RangeForm insights={insights} />
         {insights.range.error ? (
           <p role="alert" className="rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground">
@@ -313,7 +321,7 @@ export function InsightsView({ insights }: { insights: BusinessInsights }) {
         </div>
       </section>
 
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <section className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <MetricCard
           title="Active customers"
           value={formatInteger(insights.customers.totalActive)}
@@ -344,7 +352,7 @@ export function InsightsView({ insights }: { insights: BusinessInsights }) {
           title="Customer activity"
           detail="Customer metrics use saved customer records and qualifying booking history."
         />
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
           <MetricCard
             title="New customers"
             value={countValue(insights.customers.new)}
@@ -371,7 +379,7 @@ export function InsightsView({ insights }: { insights: BusinessInsights }) {
           title="Bookings and value"
           detail="Values are recorded booking values, not revenue or cash received. Currencies are never combined."
         />
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 min-[430px]:grid-cols-2 sm:gap-4 lg:grid-cols-4">
           <MetricCard
             title="Cancelled bookings"
             value={countValue(insights.bookings.cancelled)}
@@ -412,7 +420,7 @@ export function InsightsView({ insights }: { insights: BusinessInsights }) {
           title="Operations"
           detail="Operational metrics use actual lifecycle timestamps and the current agreed schedule."
         />
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           <MetricCard
             title="On-time rate"
             value={rateValue(insights.operations.onTimeRate)}
@@ -444,7 +452,7 @@ export function InsightsView({ insights }: { insights: BusinessInsights }) {
           title="Feedback"
           detail="Feedback metrics use submitted private feedback only; comments are not analyzed."
         />
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           <MetricCard
             title="Average rating"
             value={formatDecimal(insights.current.feedback.averageRating, 1)}
@@ -471,7 +479,7 @@ export function InsightsView({ insights }: { insights: BusinessInsights }) {
           title="Issues"
           detail="Issue metrics count internal operational issue records. They are not causal analysis."
         />
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           <MetricCard
             title="Issues opened"
             value={countValue(insights.issues.opened)}
@@ -495,6 +503,6 @@ export function InsightsView({ insights }: { insights: BusinessInsights }) {
       </section>
 
       <DefinitionsList />
-    </main>
+    </WorkspacePage>
   );
 }

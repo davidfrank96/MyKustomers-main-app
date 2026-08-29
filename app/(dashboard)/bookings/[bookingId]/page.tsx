@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import type { Route } from "next";
 import { Suspense } from "react";
 import { ArrowLeft } from "lucide-react";
+import { WorkspacePage } from "@/components/layout/workspace-page";
 import {
   BookingDetailSection,
   BookingDetailSections,
@@ -10,6 +11,7 @@ import {
 import { BookingJourney } from "@/components/bookings/booking-journey";
 import { BookingLiveSync } from "@/components/bookings/booking-live-sync";
 import { BookingPayments } from "@/components/bookings/booking-payments";
+import { BookingStatusBadge } from "@/components/bookings/booking-status-badge";
 import { BookingForm } from "@/components/forms/booking-form";
 import { BookingAmendmentPanel } from "@/components/forms/booking-amendment-panel";
 import { BookingAddonPanel } from "@/components/forms/booking-addon-panel";
@@ -384,25 +386,23 @@ export default async function BookingDetailPage({
     : "Payment status unavailable";
 
   return (
-    <main className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-5 py-6 sm:px-8 lg:px-10">
+    <WorkspacePage className="max-w-6xl gap-4 sm:gap-6">
       <BookingLiveSync bookingId={booking.id} initialState={liveState} />
-      <div>
-        <Button asChild variant="ghost" size="sm">
+      <div className="min-w-0">
+        <Button asChild variant="ghost" size="sm" className="-ml-2 px-2 text-muted-foreground">
           <Link href={"/bookings" as Route}>
             <ArrowLeft className="size-4" aria-hidden="true" />
             Bookings
           </Link>
         </Button>
-        <div className="mt-4 flex flex-wrap items-center gap-2">
+        <div className="mt-3 flex flex-wrap items-center gap-2">
           <Badge variant="outline">{booking.reference}</Badge>
-          <Badge variant={overdue ? "accent" : "default"}>
-            {overdue ? "Overdue" : getBookingStatusLabel(booking.status)}
-          </Badge>
+          <BookingStatusBadge status={booking.status} overdue={overdue} />
         </div>
-        <h1 className="mt-3 text-2xl font-semibold leading-tight sm:text-3xl">
+        <h1 className="mt-2.5 break-words text-[1.625rem] font-semibold leading-tight sm:text-3xl">
           {booking.title}
         </h1>
-        <p className="mt-2 text-sm leading-6 text-muted-foreground">
+        <p className="mt-1.5 text-sm leading-5 text-muted-foreground sm:leading-6">
           {booking.customer?.name ?? "Customer unavailable"} · Scheduled delivery{" "}
           {formatDateTime(booking.scheduled_for)}
         </p>
@@ -759,6 +759,6 @@ export default async function BookingDetailPage({
           )}
         </BookingDetailSection>
       </BookingDetailSections>
-    </main>
+    </WorkspacePage>
   );
 }

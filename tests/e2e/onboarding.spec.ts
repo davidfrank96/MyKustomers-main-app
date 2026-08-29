@@ -216,9 +216,10 @@ test.describe("business onboarding", () => {
     expect(requestBodySize!).toBeLessThan(4 * 1024 * 1024);
 
     await expect(page).toHaveURL(/\/dashboard/, { timeout: 30_000 });
-    await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Phase 3 E2E Bakery" })).toBeVisible();
-    await expect(page.getByText(`Slug: ${slug}`)).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Welcome back" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Open business profile" })).toHaveText(
+      "Phase 3 E2E Bakery",
+    );
 
     const { data: completedBusiness } = await admin
       .from("businesses")

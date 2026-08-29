@@ -221,7 +221,7 @@ test.describe("authenticated PWA reliability", () => {
       await page.getByLabel("Password").fill(password);
       await page.getByRole("button", { name: "Log in" }).click();
       await expect(page).toHaveURL(/\/dashboard$/);
-      await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Welcome back" })).toBeVisible();
       expect(context.serviceWorkers()).toHaveLength(0);
 
       const switcher = page.getByRole("button", {

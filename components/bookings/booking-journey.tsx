@@ -63,16 +63,16 @@ export function BookingJourney({
   return (
     <section
       aria-labelledby="booking-journey-title"
-      className="border-y border-border py-5 sm:py-6"
+      className="border-y border-border py-4 sm:py-6"
     >
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.85fr)] lg:gap-8">
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.85fr)] lg:gap-8">
         <div className="min-w-0 lg:col-start-1 lg:row-start-1">
-          <p className="text-xs font-medium uppercase text-muted-foreground">
+          <p className="text-[0.6875rem] font-medium uppercase text-muted-foreground sm:text-xs">
             Booking journey
           </p>
           <h2
             id="booking-journey-title"
-            className="mt-1 break-words text-lg font-semibold"
+            className="mt-1 break-words text-xl font-semibold"
           >
             {journey.title}
           </h2>
@@ -82,7 +82,7 @@ export function BookingJourney({
         </div>
 
         <div className="min-w-0 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:pt-1">
-          <div className="rounded-md border border-border bg-muted/45 p-4 sm:p-5">
+          <div className="rounded-lg border border-primary/15 bg-primary/[0.045] p-4 sm:p-5">
             <p className="text-xs font-medium uppercase text-muted-foreground">
               {journey.complete ? "Journey status" : "What to do next"}
             </p>
@@ -210,19 +210,19 @@ export function BookingJourney({
           ) : null}
         </div>
 
-        <ol className="lg:col-start-1 lg:row-start-2" aria-label="Booking progress">
+        <ol className="rounded-lg border border-border bg-card p-4 lg:col-start-1 lg:row-start-2" aria-label="Booking progress">
           {journey.stages.map((stage, index) => {
             const isCurrent = stage.state === "current" || stage.state === "attention";
             return (
               <li
                 key={stage.key}
-                className="relative flex min-h-14 gap-3 pb-3 last:min-h-0 last:pb-0"
+                className="relative flex min-h-[3.25rem] gap-3 pb-2.5 last:min-h-0 last:pb-0"
                 aria-current={isCurrent ? "step" : undefined}
               >
                 {index < journey.stages.length - 1 ? (
                   <span
                     className={cn(
-                      "absolute left-[15px] top-8 h-[calc(100%-1rem)] w-px",
+                      "absolute left-[13px] top-7 h-[calc(100%-0.75rem)] w-px",
                       stage.state === "completed" ? "bg-primary/45" : "bg-border",
                     )}
                     aria-hidden="true"
@@ -230,7 +230,7 @@ export function BookingJourney({
                 ) : null}
                 <span
                   className={cn(
-                    "relative z-10 flex size-8 shrink-0 items-center justify-center rounded-full border",
+                    "relative z-10 flex size-7 shrink-0 items-center justify-center rounded-full border",
                     stage.state === "completed" &&
                       "border-primary bg-primary text-primary-foreground",
                     stage.state === "current" &&
