@@ -101,6 +101,8 @@ test.describe("public homepage", () => {
       "One browser covers the explicit public homepage viewport matrix.",
     );
 
+    await page.emulateMedia({ reducedMotion: "reduce" });
+
     fs.mkdirSync(screenshotDirectory, { recursive: true });
 
     for (const viewport of homepageViewports) {
@@ -139,6 +141,9 @@ test.describe("public homepage", () => {
     });
     await page.getByLabel("Illustrative My Kustomers workspace preview").screenshot({
       path: path.join(screenshotDirectory, "homepage-product-preview-mobile-390.png"),
+    });
+    await page.getByLabel("Illustrative My Kustomers workspace preview").screenshot({
+      path: path.join(screenshotDirectory, "homepage-product-demo-completed-390.png"),
     });
 
     const mobileFinalCta = page.getByRole("heading", {
