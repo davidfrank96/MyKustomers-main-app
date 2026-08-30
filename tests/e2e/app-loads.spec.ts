@@ -2,8 +2,13 @@ import { expect, test } from "@playwright/test";
 
 test("home page loads", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "My Customers" })).toBeVisible();
-  await expect(page.getByText("Your customers. Your orders. Your business.")).toBeVisible();
+  await expect(page.getByRole("link", { name: "My Kustomers home" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", {
+      name: "Manage customers. Book, deliver, follow up. All in one place.",
+    }),
+  ).toBeVisible();
+  await expect(page.getByText("My Customers", { exact: true })).toHaveCount(0);
 });
 
 test("dashboard shell loads on mobile", async ({ page }) => {
