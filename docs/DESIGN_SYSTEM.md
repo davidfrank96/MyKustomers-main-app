@@ -71,9 +71,14 @@ Current structural rules:
   animation respects reduced motion, and one accessible status names the load.
 - Primary authenticated navigation acknowledges the selected destination
   immediately with text-accessible pending state. The loading surface names the
-  destination, while important rows and bounded secondary detail may stream
-  without shifting the shell. Repeated activation of the same pending destination
-  is ignored; unrelated navigation remains available.
+  destination without changing the icon footprint, while important rows and
+  bounded secondary detail may stream without shifting the shell. Pending state
+  is framework-owned per Link and ends with that destination navigation;
+  semantic browser and modifier-click behavior remains native. Primary
+  navigation pending state represents navigation to a destination, not
+  completion of all streamed data for the current route. Ordinary authenticated
+  route streaming must not unnecessarily disable unrelated primary navigation
+  destinations.
 - A business switch hides the previous workspace with an opaque pending layer;
   stale tenant data must never remain visually presented as the selected tenant.
 

@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
+import Link, { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
 import type { Route } from "next";
-import { useEffect, useState, type ComponentType, type MouseEvent } from "react";
+import type { ComponentType } from "react";
 import {
   BarChart3,
   BriefcaseBusiness,
@@ -37,75 +37,83 @@ function isActive(pathname: string, href: Route) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-function shouldHandleNavigation(event: MouseEvent<HTMLAnchorElement>) {
+function DesktopNavigationContent({ item, active }: { item: NavItem; active: boolean }) {
+  const { pending } = useLinkStatus();
+  const destinationPending = pending && !active;
+
   return (
-    !event.defaultPrevented &&
-    event.button === 0 &&
-    !event.metaKey &&
-    !event.ctrlKey &&
-    !event.shiftKey &&
-    !event.altKey
+    <span
+      aria-busy={destinationPending || undefined}
+      className={cn(
+        "flex h-11 items-center gap-3 rounded-md px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
+        active && "bg-muted text-foreground",
+        destinationPending && "bg-primary/10 text-primary",
+      )}
+    >
+      {destinationPending ? (
+        <span className="animate-spin motion-reduce:animate-none" aria-hidden>
+          <LoaderCircle className="size-4" />
+        </span>
+      ) : (
+        <item.icon className="size-4" aria-hidden />
+      )}
+      {item.label}
+      <span className="sr-only" aria-live="polite">
+        {destinationPending ? `Opening ${item.label}` : ""}
+      </span>
+    </span>
   );
 }
 
-function usePendingDestination(pathname: string) {
-  const [pendingHref, setPendingHref] = useState<Route | null>(null);
+function MobileNavigationContent({ item, active }: { item: NavItem; active: boolean }) {
+  const { pending } = useLinkStatus();
+  const destinationPending = pending && !active;
 
-  useEffect(() => {
-    if (!pendingHref || isActive(pathname, pendingHref)) return;
-    const timeout = window.setTimeout(() => setPendingHref(null), 15_000);
-    return () => window.clearTimeout(timeout);
-  }, [pathname, pendingHref]);
-
-  return [pendingHref, setPendingHref] as const;
+  return (
+    <span
+      aria-busy={destinationPending || undefined}
+      className={cn(
+        "relative flex min-h-[4.25rem] min-w-0 flex-col items-center justify-center gap-1 px-0.5 text-[0.6875rem] font-medium text-muted-foreground transition-colors hover:text-foreground min-[360px]:text-xs",
+        "after:absolute after:inset-x-2 after:top-0 after:h-0.5 after:rounded-b-full after:bg-transparent",
+        active && "text-primary after:bg-primary",
+        destinationPending && "text-primary",
+      )}
+    >
+      {destinationPending ? (
+        <span className="animate-spin motion-reduce:animate-none" aria-hidden>
+          <LoaderCircle className="size-5" />
+        </span>
+      ) : (
+        <item.icon className="size-[1.15rem] min-[360px]:size-5" aria-hidden />
+      )}
+      <span className="max-w-full truncate">{item.label}</span>
+      <span className="sr-only" aria-live="polite">
+        {destinationPending ? `Opening ${item.label}` : ""}
+      </span>
+    </span>
+  );
 }
 
 export function DesktopNavigation() {
   const pathname = usePathname();
-  const [pendingHref, setPendingHref] = usePendingDestination(pathname);
 
   return (
     <nav className="flex flex-1 flex-col gap-1 px-3 py-4" aria-label="Vendor navigation">
       {navItems.map((item) => {
         const active = isActive(pathname, item.href);
-        const pending = pendingHref === item.href && !active;
 
         return (
           <Link
             key={item.label}
             href={item.href}
+            aria-label={item.label}
             aria-current={active ? "page" : undefined}
-            aria-busy={pending || undefined}
-            onClick={(event) => {
-              if (!shouldHandleNavigation(event) || active) return;
-              if (pending) {
-                event.preventDefault();
-                return;
-              }
-              setPendingHref(item.href);
-            }}
-            className={cn(
-              "flex h-11 items-center gap-3 rounded-md px-3 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground",
-              active && "bg-muted text-foreground",
-              pending && "bg-primary/10 text-primary",
-            )}
+            className="block rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
-            {pending ? (
-              <span className="animate-spin motion-reduce:animate-none" aria-hidden>
-                <LoaderCircle className="size-4" />
-              </span>
-            ) : (
-              <item.icon className="size-4" aria-hidden />
-            )}
-            {item.label}
+            <DesktopNavigationContent item={item} active={active} />
           </Link>
         );
       })}
-      <span className="sr-only" aria-live="polite">
-        {pendingHref && !isActive(pathname, pendingHref)
-          ? `Opening ${navItems.find((item) => item.href === pendingHref)?.label ?? "page"}`
-          : ""}
-      </span>
       <Link
         href={"/settings" as Route}
         aria-current={isActive(pathname, "/settings" as Route) ? "page" : undefined}
@@ -123,7 +131,6 @@ export function DesktopNavigation() {
 
 export function MobileNavigation() {
   const pathname = usePathname();
-  const [pendingHref, setPendingHref] = usePendingDestination(pathname);
 
   return (
     <nav
@@ -132,45 +139,19 @@ export function MobileNavigation() {
     >
       {navItems.map((item) => {
         const active = isActive(pathname, item.href);
-        const pending = pendingHref === item.href && !active;
 
         return (
           <Link
             key={item.label}
             href={item.href}
+            aria-label={item.label}
             aria-current={active ? "page" : undefined}
-            aria-busy={pending || undefined}
-            onClick={(event) => {
-              if (!shouldHandleNavigation(event) || active) return;
-              if (pending) {
-                event.preventDefault();
-                return;
-              }
-              setPendingHref(item.href);
-            }}
-            className={cn(
-              "relative flex min-h-[4.25rem] min-w-0 flex-col items-center justify-center gap-1 px-0.5 text-[0.6875rem] font-medium text-muted-foreground hover:text-foreground min-[360px]:text-xs",
-              "after:absolute after:inset-x-2 after:top-0 after:h-0.5 after:rounded-b-full after:bg-transparent",
-              active && "text-primary after:bg-primary",
-              pending && "text-primary",
-            )}
+            className="min-w-0 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
           >
-            {pending ? (
-              <span className="animate-spin motion-reduce:animate-none" aria-hidden>
-                <LoaderCircle className="size-5" />
-              </span>
-            ) : (
-              <item.icon className="size-[1.15rem] min-[360px]:size-5" aria-hidden />
-            )}
-            <span className="max-w-full truncate">{item.label}</span>
+            <MobileNavigationContent item={item} active={active} />
           </Link>
         );
       })}
-      <span className="sr-only" aria-live="polite">
-        {pendingHref && !isActive(pathname, pendingHref)
-          ? `Opening ${navItems.find((item) => item.href === pendingHref)?.label ?? "page"}`
-          : ""}
-      </span>
     </nav>
   );
 }

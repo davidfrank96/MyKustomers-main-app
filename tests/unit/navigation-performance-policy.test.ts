@@ -46,15 +46,17 @@ describe("authenticated navigation performance policy", () => {
   });
 
   it("keeps core navigation semantic and available to Next prefetch behavior", () => {
-    expect(navigation).toContain('import Link from "next/link"');
+    expect(navigation).toContain('from "next/link"');
     expect(navigation).not.toContain("router.push");
     expect(navigation).not.toContain("prefetch={false}");
   });
 
   it("acknowledges navigation without replacing semantic links or broad prefetching", () => {
-    expect(navigation).toContain("pendingHref");
-    expect(navigation).toContain("aria-busy={pending || undefined}");
-    expect(navigation).toContain("event.preventDefault()");
+    expect(navigation).toContain("useLinkStatus");
+    expect(navigation).toContain("aria-busy={destinationPending || undefined}");
+    expect(navigation).not.toContain("pendingHref");
+    expect(navigation).not.toContain("setTimeout");
+    expect(navigation).not.toContain("event.preventDefault()");
     expect(navigation).not.toContain("router.push");
     expect(navigation).not.toContain("router.prefetch");
   });

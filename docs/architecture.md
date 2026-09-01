@@ -545,7 +545,7 @@ dependent chains together without persisting authority across requests.
 
 ```text
 semantic Link click
-  -> immediate client-only destination acknowledgement
+  -> framework-owned per-Link destination acknowledgement
   -> route loading identity
   -> verified claims + selected active business
   -> authorized route shell
@@ -564,3 +564,11 @@ Default Next link prefetch remains the only prefetch policy. No tenant route is
 written to persistent browser, service-worker, CDN, Redis, or process-global
 cache. A business switch continues to hide the prior workspace and reauthorize
 the selected membership before rendering the new tenant.
+
+Primary navigation pending state represents navigation to a destination, not
+completion of all streamed data for the current route. It is owned by Next.js
+per Link and clears when that navigation completes; it is not retained in a
+component timer or inferred from unrelated Suspense boundaries. Ordinary
+authenticated route streaming must not unnecessarily disable unrelated primary
+navigation destinations. Business switching remains a separate tenant-safety
+transition and continues to use its opaque reauthorization boundary.
