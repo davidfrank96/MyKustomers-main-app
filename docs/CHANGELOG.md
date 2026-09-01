@@ -2,7 +2,7 @@
 
 ## 2026-09-01 - Delivery-To-Feedback Automation
 
-Status: IMPLEMENTED - PRODUCTION APPLICATION VERIFICATION PENDING
+Status: VERIFIED - PRODUCTION; TIGHTENING APPROVAL REQUIRED
 
 - Delivery now atomically transitions the booking, creates or recovers one
   booking-scoped feedback capability, and associates that exact link with the
@@ -38,12 +38,23 @@ Status: IMPLEMENTED - PRODUCTION APPLICATION VERIFICATION PENDING
   forged version 1 rejection, cross-tenant denial, historical version 0 validity,
   immediate deferred constraints, and zero fixture residue. No provider call or
   external email occurred during database diagnosis.
-- Local lint, typecheck, 682 Vitest checks, production build, zero-vulnerability
+- Local lint, typecheck, 686 Vitest checks, production build, zero-vulnerability
   dependency audit, and diff hygiene pass. The complete Playwright matrix now
   passes `51` with `16` intentional project skips, including canonical desktop
-  and mobile delivery-to-feedback journeys. PR, required CI, Vercel Production,
-  controlled real-provider smoke, rollout observation, and the unapplied
-  post-convergence tightening migration remain release gates.
+  and mobile delivery-to-feedback journeys.
+- PR #56 passed every required CI job and merged as `1dd7aed`. Vercel Production
+  deployment `dpl_9mykhqy4erja6aiDLzybk2jjAK5U` matched that merge and passed
+  canonical health and runtime-log checks.
+- Two controlled Brevo-backed Production deliveries each created one `SENT`,
+  provider-accepted event with an exact version 1 link. Email CTA redirects
+  resolved to the same manually recovered URLs. Feedback completed the paid
+  booking immediately; the outstanding booking stayed delivered until final
+  payment, then completed. Cleanup left zero tenant/Auth/audit residue.
+- The post-convergence pre-cleanup sample contained two delivery events, zero
+  null associations, and two version 1 links. Forward migration
+  `20260901230527_delivery_feedback_require_v1_association.sql` (SHA-256
+  `397dbaaa6fab4fb78902e13ef3273054d629df2316bfd0dd593d210d7cb9e6c4`) is
+  prepared and hash-locked but remains unapplied pending explicit approval.
 
 ## 2026-09-01 - Customer Contact, Validation, And Customer Lifecycle
 

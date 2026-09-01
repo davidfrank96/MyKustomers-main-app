@@ -36,9 +36,13 @@ the application rollout window, a `BOOKING_DELIVERED` event may retain the
 historical null `feedback_link_id` shape, but delivery must still produce exactly
 one event. Any non-null association remains tenant/booking exact, version 1,
 `booking_feedback` purpose, immutable, and protected by the composite foreign
-key. Historical null events are not backfilled or reinterpreted. A separate
-unapplied tightening migration restores the new-delivery non-null invariant only
-after Production convergence is demonstrated.
+key. Historical null events are not backfilled or reinterpreted. Production
+convergence is now demonstrated by two controlled post-deploy delivery events,
+zero null associations, and two exact version 1 links. Separate forward
+migration `20260901230527_delivery_feedback_require_v1_association.sql` restores
+the new-delivery non-null invariant for future writes and contains a fail-closed
+cutoff precondition. It does not rewrite historical rows and remains unapplied
+pending explicit approval.
 
 ## 2026-09-01 Customer Lifecycle And Confirmation Request Evidence
 

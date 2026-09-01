@@ -31,7 +31,7 @@ Focused unit/integration coverage exercises delivered/completed eligibility,
 same-link vendor UX, journey guidance, delivery-email CTA inclusion and
 post-feedback suppression, and non-retryable expired/horizon failures. The
 guarded Supabase runtime suites use the new atomic delivery RPC. Lint, route
-types, strict TypeScript, 128 Vitest files / 682 tests, production build, and an
+types, strict TypeScript, 129 Vitest files / 686 tests, production build, and an
 audit with zero vulnerabilities pass. The direct protected-runtime command
 retained 21 explicit skips because Production mutation opt-in was absent.
 
@@ -47,9 +47,25 @@ row counts returned zero after rollback and no dispatcher/provider was called.
 After restarting the stale local dev server, the focused canonical desktop and
 mobile journeys passed together. The complete browser matrix then passed `51`
 and skipped `16`, with no failures across desktop, mobile, and PWA projects.
-The generated screenshot artifacts were restored after verification. Required
-CI, Production application/provider smoke, and post-rollout evidence remain
-separate gates and are not claimed here.
+The generated screenshot artifacts were restored after verification. PR #56
+passed every required CI job, merged as `1dd7aed`, and the matching Vercel
+Production deployment passed canonical health and runtime-log checks. A
+controlled two-booking Production smoke then proved one `SENT` provider-accepted
+delivery event per booking, exact tenant/booking/version-1 link association,
+43-character manual capabilities whose hashes matched storage, and Brevo CTA
+redirects resolving to those exact manual URLs. Feedback auto-completed the
+fully paid booking; feedback left the outstanding booking delivered until its
+final recorded payment auto-completed it. Pre-cleanup convergence counts were
+two delivery events, zero null associations, and two version 1 links. Cleanup
+returned zero tenant rows, audit rows, profiles, or Auth user. Gmail required
+reauthentication, so message verification used the uniquely filtered signed-in
+Brevo delivery log and embedded message preview instead of requesting account
+credentials.
+
+Forward tightening migration
+`20260901230527_delivery_feedback_require_v1_association.sql` is statically
+hash-locked and restores strict future-write enforcement behind the deployment
+cutoff precondition. It was not applied.
 
 ## 2026-09-01 Customer Contact, Validation, And Customer Lifecycle
 
