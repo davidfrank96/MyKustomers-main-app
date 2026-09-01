@@ -80,6 +80,26 @@ those single-run diagnostics. These values are local evidence, not an SLO; the
 correctness guarantee is destination-scoped pending state and immediate
 availability of unrelated navigation.
 
+PR #48 merged as `37cf872`; Vercel deployment
+`dpl_FUmoNCREPDP3nTi9jjFCYyFCnabM` deployed that exact commit to Production.
+The following post-deployment return-to-Home measurements are controlled
+single-run diagnostics, not medians or an SLO:
+
+| Origin after Dashboard card | Desktop 1440x1000 | Mobile 390x844 |
+| --------------------------- | ----------------: | -------------: |
+| Bookings list               |            850 ms |         862 ms |
+| Booking detail              |            846 ms |         852 ms |
+| Customers list              |            845 ms |         844 ms |
+| Customer detail             |          1,849 ms |         848 ms |
+| Insights                    |            838 ms |         849 ms |
+| Business                    |          1,856 ms |         847 ms |
+
+Both Production viewport journeys passed the complete route sequence, browser
+Back remained usable, no stale busy state survived, and strict fixture cleanup
+passed. An independent post-smoke query returned zero matching controlled
+businesses and Auth users. The Vercel deployment log panel reported zero
+warning, error, or fatal entries in the checked window.
+
 ## Authenticated Navigation V2
 
 Implementation and production-verification date: 2026-08-27. PR #41 merged

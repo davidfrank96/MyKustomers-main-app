@@ -2,7 +2,7 @@
 
 ## 2026-09-01 - Dashboard Home Navigation Pending-State Hotfix
 
-Status: IMPLEMENTED - LOCAL RELEASE GATE VERIFIED
+Status: VERIFIED - PRODUCTION
 
 - Corrected a destination-state lifecycle defect in the shared desktop and
   mobile authenticated navigation. A completed Home click could remain stored
@@ -30,6 +30,16 @@ Status: IMPLEMENTED - LOCAL RELEASE GATE VERIFIED
   project/target-guarded browser cases retained their explicit skips.
 - Cleanup removed five fixtures left by interrupted pre-fix reproductions; the
   post-suite audit found zero matching controlled businesses and Auth users.
+- PR #48 passed Quality, Tests, Build, Dependency Security, E2E, and Vercel;
+  the protected Runtime Security job retained its expected explicit skip. It
+  merged as `37cf872`, and Vercel deployment
+  `dpl_FUmoNCREPDP3nTi9jjFCYyFCnabM` deployed that exact `main` commit to the
+  current Production domain.
+- Controlled Production journeys passed at 1440x1000 and 390x844 across every
+  covered Dashboard-card/list/detail return-to-Home path. Vercel reported zero
+  warning, error, or fatal entries for the deployment in the checked window,
+  and an independent post-smoke audit found zero matching businesses and Auth
+  users.
 - No database, migration, environment, dependency, cache, service-worker,
   authentication, authorization, RLS, business-switch, or infrastructure
   change is included.
