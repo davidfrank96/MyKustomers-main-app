@@ -11,10 +11,12 @@ import { useFormStatus } from "react-dom";
 import {
   CalendarDays,
   CheckCircle2,
+  ChevronDown,
   CircleDot,
   Clock3,
   Eye,
   Link2,
+  Mail,
   RefreshCw,
   Send,
   ShieldCheck,
@@ -108,13 +110,23 @@ function SubmitButton({
     <Button
       type="submit"
       variant={variant}
-      size="sm"
+      size="md"
       disabled={pending}
-      className={className}
+      className={cn("min-w-0 whitespace-nowrap", className)}
     >
-      <Icon className="size-4" aria-hidden="true" />
-      {pending ? pendingLabel : label}
+      <Icon className="size-4 shrink-0" aria-hidden="true" />
+      <span>{pending ? pendingLabel : label}</span>
     </Button>
+  );
+}
+
+function OrDivider() {
+  return (
+    <div className="flex items-center gap-3 py-0.5" aria-hidden="true">
+      <span className="h-px flex-1 bg-border" />
+      <span className="text-xs font-medium text-muted-foreground">OR</span>
+      <span className="h-px flex-1 bg-border" />
+    </div>
   );
 }
 
@@ -193,6 +205,7 @@ export function ConfirmationLinkPanel({
   );
   const [editedSendState, setEditedSendState] =
     useState<ConfirmationLinkActionState | null>(null);
+  const [customEmailOpen, setCustomEmailOpen] = useState(false);
   useEffect(() => {
     if (!sendState.fieldErrors?.recipientEmail?.length) return;
 
@@ -232,6 +245,7 @@ export function ConfirmationLinkPanel({
     editedSendState === sendState
       ? undefined
       : sendState.fieldErrors?.recipientEmail?.[0];
+  const customEmailVisible = customEmailOpen || sendState.status === "error";
 
   return (
     <div className="space-y-4">
@@ -333,162 +347,211 @@ export function ConfirmationLinkPanel({
             customerName={customerName}
             confirmationUrl={generatedUrl}
             recordShare={recordShareAction.bind(null, generatedLinkId)}
-            triggerClassName="h-11 w-full sm:w-full"
+            triggerClassName="h-11 w-full min-w-0 whitespace-nowrap px-4 sm:w-full"
           />
         </div>
       ) : null}
 
-      {showGenerateMessage ? (
-        <p className="text-sm text-muted-foreground">{showGenerateMessage}</p>
-      ) : null}
-      {showRevokeMessage ? (
-        <p className="text-sm text-muted-foreground">{showRevokeMessage}</p>
-      ) : null}
-
       {canManage ? (
         <div className="space-y-3">
-          <form
-            action={sendFormAction}
-            className="space-y-3 rounded-lg border border-primary/15 bg-primary/[0.025] p-4"
-            noValidate
-          >
-            <div>
-              <p className="text-sm font-semibold">Review the recipient before sending</p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Sending creates a fresh secure link. Changing this address revokes the
-                previous link.
-              </p>
-            </div>
-            <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
-              <div>
-                <label htmlFor="confirmation-recipient-email" className="sr-only">
-                  Confirmation email recipient
-                </label>
-                <input
-                  key={suggestedRecipient}
-                  id="confirmation-recipient-email"
-                  name="recipientEmail"
-                  type="email"
-                  autoComplete="email"
-                  defaultValue={suggestedRecipient}
-                  onChange={() => setEditedSendState(sendState)}
-                  onBlur={(event) => {
-                    event.currentTarget.value = normalizeCustomerContactEmail(
-                      event.currentTarget.value,
-                    );
-                  }}
-                  aria-invalid={Boolean(recipientError)}
-                  aria-describedby={
-                    recipientError ? "confirmation-recipient-error" : undefined
-                  }
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
-                  placeholder="customer@example.com"
-                />
-                {recipientError ? (
-                  <p
-                    id="confirmation-recipient-error"
-                    className="mt-1.5 text-sm text-destructive"
-                  >
-                    {recipientError}
-                  </p>
-                ) : null}
-              </div>
-              <SubmitButton
-                label="Send confirmation email"
-                pendingLabel="Sending..."
-                variant="primary"
-                icon="send"
-                className="w-full sm:w-auto"
-              />
-            </div>
-            {sendState.message ? (
-              <p
-                role="status"
-                className={cn(
-                  "text-sm",
-                  sendState.status === "error"
-                    ? "text-destructive"
-                    : "text-muted-foreground",
-                )}
-              >
-                {sendState.message}
-              </p>
-            ) : null}
-          </form>
-
           {active ? (
-            <div className="flex items-start gap-3">
-              <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary/[0.07] text-primary">
-                <Link2 className="size-[1.125rem]" aria-hidden={true} />
-              </span>
-              <div className="min-w-0">
-                <p className="text-sm font-semibold leading-5">
-                  {rawShareUrlAvailable
-                    ? "Confirmation link generated."
-                    : "An active confirmation link exists."}
-                </p>
-                <p className="mt-0.5 text-sm leading-5 text-muted-foreground">
-                  {rawShareUrlAvailable
-                    ? "Manage your link options below."
-                    : "The exact secure link is no longer available here. Regenerate it to create a fresh shareable link."}
-                </p>
+            <>
+              {rawShareUrlAvailable ? <OrDivider /> : null}
+
+              <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+                <button
+                  type="button"
+                  className="flex min-h-[4.5rem] w-full min-w-0 items-center gap-3 px-3.5 py-3 text-left outline-none transition-colors hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:px-4"
+                  aria-expanded={customEmailVisible}
+                  aria-controls="confirmation-custom-email-content"
+                  onClick={() => setCustomEmailOpen((current) => !current)}
+                >
+                  <span className="grid size-10 shrink-0 place-items-center rounded-full bg-primary/[0.07] text-primary">
+                    <Mail className="size-[1.125rem]" aria-hidden={true} />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-semibold leading-5">
+                      Custom email
+                    </span>
+                    <span className="mt-0.5 block text-sm leading-5 text-muted-foreground">
+                      Send the confirmation link to a specific email address.
+                    </span>
+                  </span>
+                  <ChevronDown
+                    className={cn(
+                      "size-4 shrink-0 text-muted-foreground transition-transform",
+                      customEmailVisible && "rotate-180",
+                    )}
+                    aria-hidden={true}
+                  />
+                </button>
+
+                <form
+                  id="confirmation-custom-email-content"
+                  action={sendFormAction}
+                  className="space-y-3 border-t border-border p-3.5 sm:p-4"
+                  hidden={!customEmailVisible}
+                  noValidate
+                >
+                    <div className="space-y-1.5">
+                      <label
+                        htmlFor="confirmation-recipient-email"
+                        className="text-sm font-medium"
+                      >
+                        Email address
+                      </label>
+                      <input
+                        key={suggestedRecipient}
+                        id="confirmation-recipient-email"
+                        name="recipientEmail"
+                        type="email"
+                        autoComplete="email"
+                        defaultValue={suggestedRecipient}
+                        onChange={() => setEditedSendState(sendState)}
+                        onBlur={(event) => {
+                          event.currentTarget.value = normalizeCustomerContactEmail(
+                            event.currentTarget.value,
+                          );
+                        }}
+                        aria-invalid={Boolean(recipientError)}
+                        aria-describedby={
+                          recipientError
+                            ? "confirmation-recipient-help confirmation-recipient-error"
+                            : "confirmation-recipient-help"
+                        }
+                        className="flex h-11 w-full min-w-0 rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
+                        placeholder="Enter email address"
+                      />
+                      {recipientError ? (
+                        <p
+                          id="confirmation-recipient-error"
+                          className="text-sm text-destructive"
+                        >
+                          {recipientError}
+                        </p>
+                      ) : null}
+                    </div>
+                    <p
+                      id="confirmation-recipient-help"
+                      className="text-xs leading-5 text-muted-foreground"
+                    >
+                      Sending creates a fresh secure link. Changing this address
+                      revokes the previous link.
+                    </p>
+                    <SubmitButton
+                      label="Send confirmation email"
+                      pendingLabel="Sending..."
+                      variant="primary"
+                      icon="send"
+                      className="w-full sm:w-auto"
+                    />
+                    {sendState.message ? (
+                      <p
+                        role="status"
+                        className={cn(
+                          "text-sm",
+                          sendState.status === "error"
+                            ? "text-destructive"
+                            : "text-muted-foreground",
+                        )}
+                      >
+                        {sendState.message}
+                      </p>
+                    ) : null}
+                </form>
               </div>
-            </div>
+
+              {showGenerateMessage ? (
+                <p className="text-sm text-muted-foreground" role="status">
+                  {showGenerateMessage}
+                </p>
+              ) : null}
+              {showRevokeMessage ? (
+                <p className="text-sm text-muted-foreground" role="status">
+                  {showRevokeMessage}
+                </p>
+              ) : null}
+
+              <div className="space-y-4 rounded-lg border border-border bg-card p-4 shadow-sm">
+                <div className="flex items-start gap-3">
+                  <span className="grid size-10 shrink-0 place-items-center rounded-full bg-primary/[0.07] text-primary">
+                    <Link2 className="size-[1.125rem]" aria-hidden={true} />
+                  </span>
+                  <div className="min-w-0 pt-0.5">
+                    <p className="text-sm font-semibold leading-5">
+                      {rawShareUrlAvailable
+                        ? "Confirmation link generated."
+                        : "An active confirmation link exists."}
+                    </p>
+                    <p className="mt-0.5 text-sm leading-5 text-muted-foreground">
+                      {rawShareUrlAvailable
+                        ? "Manage your link options below."
+                        : "The exact secure link is no longer available here. Regenerate it to create a fresh shareable link."}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid gap-2 min-[430px]:grid-cols-2 sm:flex sm:flex-wrap">
+                  <form action={generateFormAction} className="min-w-0">
+                    <SubmitButton
+                      label="Regenerate link"
+                      pendingLabel="Regenerating..."
+                      variant="secondary"
+                      icon="regenerate"
+                      className="w-full border-primary text-primary hover:bg-primary/[0.05] hover:text-primary sm:w-auto"
+                    />
+                  </form>
+                  <form action={revokeFormAction} className="min-w-0">
+                    <SubmitButton
+                      label="Revoke link"
+                      pendingLabel="Revoking..."
+                      variant="secondary"
+                      icon="revoke"
+                      className="w-full border-destructive/70 text-destructive hover:bg-destructive/5 hover:text-destructive sm:w-auto"
+                    />
+                  </form>
+                </div>
+              </div>
+            </>
           ) : null}
 
           {canGenerateFresh ? (
-            <div className="flex items-start gap-3">
-              <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary/[0.07] text-primary">
-                <Link2 className="size-[1.125rem]" aria-hidden={true} />
-              </span>
-              <div className="min-w-0">
-                <p className="text-sm font-semibold leading-5">
-                  {summary.status === "none"
-                    ? "No confirmation link generated yet."
-                    : summary.status === "revoked"
-                      ? "Confirmation link revoked."
-                      : "Confirmation link expired."}
-                </p>
-                <p className="mt-0.5 text-sm leading-5 text-muted-foreground">
-                  Generate a secure link when you&apos;re ready to ask the customer to
-                  confirm.
-                </p>
+            <div className="space-y-4 rounded-lg border border-border bg-card p-4 shadow-sm">
+              <div className="flex items-start gap-3">
+                <span className="grid size-10 shrink-0 place-items-center rounded-full bg-primary/[0.07] text-primary">
+                  <Link2 className="size-5" aria-hidden={true} />
+                </span>
+                <div className="min-w-0 pt-0.5">
+                  <p className="text-sm font-semibold leading-5">
+                    {summary.status === "none"
+                      ? "No confirmation link generated yet."
+                      : summary.status === "revoked"
+                        ? "Confirmation link revoked."
+                        : "Confirmation link expired."}
+                  </p>
+                  <p className="mt-0.5 text-sm leading-5 text-muted-foreground">
+                    Generate a secure link when you&apos;re ready to ask the customer
+                    to confirm.
+                  </p>
+                </div>
               </div>
-            </div>
-          ) : null}
-
-          {active || canGenerateFresh ? (
-            <div className="grid gap-2 min-[430px]:grid-cols-2 sm:flex sm:flex-wrap">
-              <form action={generateFormAction} className="min-w-0">
+              <form action={generateFormAction} className="min-w-0 w-full sm:w-auto">
                 <SubmitButton
                   label={
-                    active
-                      ? "Regenerate link"
-                      : summary.status === "none"
-                        ? "Generate confirmation link"
-                        : "Generate new confirmation link"
+                    summary.status === "none"
+                      ? "Generate confirmation link"
+                      : "Generate new confirmation link"
                   }
-                  pendingLabel={active ? "Regenerating..." : "Generating..."}
-                  variant={active ? "secondary" : "primary"}
-                  icon={active ? "regenerate" : "generate"}
-                  className={cn(
-                    "w-full sm:w-auto",
-                    active &&
-                      "border-primary text-primary hover:bg-primary/[0.05] hover:text-primary",
-                  )}
+                  pendingLabel="Generating..."
+                  variant="primary"
+                  icon="generate"
+                  className="w-full px-4 sm:w-auto"
                 />
               </form>
-
-              {active ? (
-                <form action={revokeFormAction} className="min-w-0">
-                  <SubmitButton
-                    label="Revoke link"
-                    pendingLabel="Revoking..."
-                    variant="secondary"
-                    icon="revoke"
-                    className="w-full border-destructive/70 text-destructive hover:bg-destructive/5 hover:text-destructive sm:w-auto"
-                  />
-                </form>
+              {showGenerateMessage ? (
+                <p className="text-sm text-muted-foreground" role="status">
+                  {showGenerateMessage}
+                </p>
               ) : null}
             </div>
           ) : null}
