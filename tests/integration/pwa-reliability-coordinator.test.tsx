@@ -42,6 +42,18 @@ describe("PwaReliabilityCoordinator", () => {
     vi.useRealTimers();
   });
 
+  it("exposes the pathname whose reconciliation listeners are active", () => {
+    const { container, rerender } = render(<PwaReliabilityCoordinator />);
+    const coordinator = container.querySelector(
+      "[data-pwa-reliability-coordinator]",
+    );
+    expect(coordinator).toHaveAttribute("data-reconcile-path", "/dashboard");
+
+    pathname = "/customers";
+    rerender(<PwaReliabilityCoordinator />);
+    expect(coordinator).toHaveAttribute("data-reconcile-path", "/customers");
+  });
+
   it("does not refresh after a short suspension but refreshes after a meaningful one", () => {
     vi.useFakeTimers();
     render(<PwaReliabilityCoordinator />);

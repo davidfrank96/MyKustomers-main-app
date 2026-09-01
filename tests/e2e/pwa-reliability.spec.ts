@@ -97,9 +97,14 @@ async function cleanupControlledFixture(
 }
 
 async function meaningfulResume(page: import("@playwright/test").Page) {
-  await expect(page.locator("[data-pwa-reliability-coordinator]")).toHaveAttribute(
+  const coordinator = page.locator("[data-pwa-reliability-coordinator]");
+  await expect(coordinator).toHaveAttribute(
     "data-ready",
     "true",
+  );
+  await expect(coordinator).toHaveAttribute(
+    "data-reconcile-path",
+    new URL(page.url()).pathname,
   );
   await page.evaluate(() => {
     const originalNow = Date.now;
