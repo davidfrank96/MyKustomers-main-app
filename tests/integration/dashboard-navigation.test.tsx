@@ -115,6 +115,43 @@ describe("dashboard navigation responsiveness", () => {
     },
   );
 
+  it.each([
+    ["Vendor navigation", DesktopNavigation],
+    ["Mobile vendor navigation", MobileNavigation],
+  ])("clears %s pending state when navigation fails", (name, Navigation) => {
+    const view = render(<Navigation />);
+    const navigation = screen.getByRole("navigation", { name });
+    const home = within(navigation).getByRole("link", { name: "Home" });
+    const bookings = within(navigation).getByRole("link", { name: "Bookings" });
+
+    fireEvent.click(bookings);
+    expectLinkPending(bookings, true);
+
+    setPendingHref(null);
+    view.rerender(<Navigation />);
+    expect(home).toHaveAttribute("aria-current", "page");
+    expectLinkPending(bookings, false);
+  });
+
+  it.each([
+    ["Vendor navigation", DesktopNavigation],
+    ["Mobile vendor navigation", MobileNavigation],
+  ])("follows the final route after %s navigation redirects", (name, Navigation) => {
+    const view = render(<Navigation />);
+    const navigation = screen.getByRole("navigation", { name });
+    const bookings = within(navigation).getByRole("link", { name: "Bookings" });
+    const customers = within(navigation).getByRole("link", { name: "Customers" });
+
+    fireEvent.click(bookings);
+    expectLinkPending(bookings, true);
+
+    setPendingHref(null);
+    pathname = "/customers";
+    view.rerender(<Navigation />);
+    expect(customers).toHaveAttribute("aria-current", "page");
+    expectLinkPending(bookings, false);
+  });
+
   it("keeps only the latest requested destination pending", () => {
     render(<DesktopNavigation />);
     const bookings = screen.getByRole("link", { name: "Bookings" });
