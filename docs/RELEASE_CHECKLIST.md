@@ -27,13 +27,21 @@ production-readiness work.
 - [x] Local lint, typecheck, unit/integration, serial full-browser,
       production-build, dependency-audit, formatting, and diff-hygiene gates
       pass.
-- [ ] Required CI and the Vercel Production deployment are green.
-- [ ] Controlled Production Google, password-recovery, Bookings, and Customers
+- [x] Required CI and the Vercel Production deployment are green.
+- [x] Controlled Production Google, password-recovery, Bookings, and Customers
       smoke checks pass with zero fixture residue.
 
-Release evidence is completed in this section after the reviewed merge and
-controlled Production smoke. No database migration, Supabase configuration,
-SMTP change, or Vercel environment change is expected for this release.
+Release evidence: PR #51 passed every required executable check, retained the
+protected Runtime Security skip, and merged as `49dbd51`. Vercel deployment
+`A9YGEEK3nBXnPW1M3vS81s5mHmXf` reported `Ready` for `main`/Production and served
+the canonical domain. Controlled Production checks covered the live Google
+account-selection boundary and cancellation, email signup/confirmation,
+provider-independent onboarding, real recovery-email delivery, password
+replacement, one-time-link rejection, Bookings/Customers 25 -> 50 -> 55 loading,
+and the 320-1440 responsive matrix. An independent residue audit returned zero
+generated Auth users, businesses, customers, and bookings. No database
+migration, Supabase configuration, SMTP, Vercel environment, dependency, or
+infrastructure change was part of this release.
 
 ## Dashboard Home Navigation Pending-State Hotfix
 

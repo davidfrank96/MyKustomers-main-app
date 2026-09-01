@@ -20,12 +20,23 @@ STATUS: VERIFIED
 - Authenticated Navigation V2 merge commit:
   `d2f55fd4ec06b78ae45e435d35431f59f22ea515`
 - Authenticated Navigation V2 deployment: `C5vYEdBCGV95PHPkjybFiNX9te4b`
+- Auth lifecycle/load-more merge commit:
+  `49dbd51075f3a3dd837e39cfa919f42ac9c29a80`
+- Auth lifecycle/load-more deployment: `A9YGEEK3nBXnPW1M3vS81s5mHmXf`
 
 The V2 deployment completed in 49 seconds, reported `Ready`, `Latest`,
 `Production`, and `Current`, and served `mykustomers.com` before controlled
 desktop, mobile, standalone, Nigeria-profile, and responsive smoke checks ran.
 No environment variable, database, provider, or infrastructure change was part
 of this deployment.
+
+The auth lifecycle/load-more deployment reported `Ready` for `main` and
+Production after PR #51's required checks passed. Canonical-domain smoke verified
+the real Google chooser boundary, email confirmation and password recovery,
+provider-independent onboarding, old/new password behavior, reused-link safety,
+and bounded Bookings/Customers loading across desktop and mobile. All controlled
+Auth and tenant fixtures were removed, and an independent production query
+returned zero residue.
 
 Vercel Git integration creates Production deployments from `main`. Pull requests
 and feature branches may create Preview deployments, but the current project

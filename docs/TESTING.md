@@ -2,13 +2,13 @@
 
 ## Status
 
-STATUS: IMPLEMENTED AND VERIFIED, WITH DOCUMENTED PHASE 2 EMAIL EXCEPTIONS
+STATUS: IMPLEMENTED AND VERIFIED
 
 The implemented Phase 1-9 surface has unit, static security, opt-in live
-Supabase, and browser journey coverage appropriate to each feature. Public
-signup confirmation and reset-password completion remain PARTIAL because they
-require a controlled inbox and Supabase default-email delivery; those exceptions
-do not reduce the verified tenant/RLS coverage.
+Supabase, and browser journey coverage appropriate to each feature. Controlled
+Production verification now includes real signup-confirmation and
+password-recovery delivery through Supabase Auth and the configured SMTP path,
+without weakening the existing tenant/RLS evidence.
 
 ## 2026-09-01 Auth Lifecycle And Load-More Normalization
 
@@ -27,6 +27,24 @@ medians remained about 80-106 ms while serialized customer/booking data grew
 from 2.4/5.4 KB to 6.1/13.5 KB. Under 390px Nigeria profiles, first-list usable
 timing stayed about 0.49-0.67 seconds in the final controlled pass. Cleanup
 returned zero business/Auth residue. These diagnostics are not an SLO.
+
+Post-merge Production evidence for PR #51 and merge `49dbd51`:
+
+- Vercel deployment `A9YGEEK3nBXnPW1M3vS81s5mHmXf` reported `Ready` for the
+  `main` Production deployment serving `https://mykustomers.com`.
+- Six canonical-domain auth/onboarding cases passed, including persistent login,
+  logout protection, OAuth-style provisioning, external-redirect rejection,
+  Google chooser parameters/pending UI, and full no-business onboarding.
+- A separate controlled-inbox journey received a real signup confirmation and a
+  real recovery email, completed the one-time reset, rejected the old password,
+  accepted the new password, and safely rejected the reused link.
+- The live provider handoff reached `accounts.google.com`, requested account
+  selection without forced consent, and returned safely after cancellation.
+- Production Bookings and Customers journeys passed 25 -> 50 -> 55 loading,
+  deduplication, rapid-click, concurrent-insert, search/filter, and 320-1440
+  responsive assertions.
+- The independent cleanup audit found zero current-run Auth users, businesses,
+  customers, or bookings.
 
 ## 2026-09-01 Dashboard Home Navigation Pending-State Hotfix
 

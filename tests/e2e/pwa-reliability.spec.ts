@@ -278,6 +278,7 @@ test.describe("authenticated PWA reliability", () => {
       await expect(page.getByText(updatedCustomerName, { exact: true })).toBeVisible({
         timeout: 30_000,
       });
+      await expect(page.locator("[data-pwa-reliability-status]")).toHaveCount(0);
 
       await page.goto("/bookings/new");
       const title = page.getByLabel("Title");
