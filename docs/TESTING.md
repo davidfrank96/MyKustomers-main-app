@@ -10,6 +10,44 @@ signup confirmation and reset-password completion remain PARTIAL because they
 require a controlled inbox and Supabase default-email delivery; those exceptions
 do not reduce the verified tenant/RLS coverage.
 
+## 2026-09-01 UI/Main Reconciliation Release Gate
+
+The normal merge of current `origin/main` into `ui/mobile-redesign` was checked
+as one integrated release candidate. All eight textual conflicts were resolved
+file by file, and the staged result was audited against main for authorization,
+tenant isolation, onboarding, logo, booking, email, PWA, admin, public
+capability, and observability preservation. No migration, generated database
+type, dependency, environment, Next.js/Vercel configuration, or route was
+removed or added by the reconciliation.
+
+The first full browser run caught one test-only integration defect: main's
+Insights fixture uses the real current UTC month, while the redesign's custom
+range still selected August 2026. The range now derives its first and last dates
+from the current UTC month. The focused Insights rerun and the complete browser
+suite then passed.
+
+Final local evidence:
+
+- Lint, route type generation, strict TypeScript, production build, staged diff
+  hygiene, conflict-marker scan, tracked-secret scan, and dependency audit:
+  PASS. `npm audit` reports zero vulnerabilities.
+- Vitest: 117 files / 608 tests passed; 20 protected live-runtime files/tests
+  skipped (137 files / 628 tests total).
+- Playwright: 46 journeys passed; 15 documented project/target-guarded journeys
+  skipped (61 total). The executable coverage includes authentication and
+  onboarding gates, multi-business isolation/revocation, booking lifecycle,
+  customers, Insights, approved redesign screens, public routes, and
+  Chromium/Pixel-class/WebKit PWA reliability.
+- Responsive coverage: 320x568, 360x800, 375x812, 390x844, 430x932, 768x1024,
+  1024x768, 1280x800, and 1440x900 where applicable. Representative 390px and
+  1440px screenshots were inspected after the passing run.
+- Protected Runtime Security: 20 files/tests skipped because the explicit
+  non-production target guard was not enabled; this is recorded as guarded,
+  not executed evidence.
+- Independent cleanup: zero matching controlled businesses; one stale August
+  25 platform-admin E2E user and its two exact audit rows were removed; the
+  final audit returned zero matching businesses and zero matching Auth users.
+
 ## 2026-08-31 Branch Release Gate
 
 The master release-candidate audit covers the complete dirty
@@ -56,17 +94,20 @@ cookie, and the server response must not contain the vendor shell.
 The multi-business journey covers one-business resolution, two-business
 selection and switching, forged-cookie fallback, single-membership revocation,
 last-membership revocation, and a stale customer-creation Server Action submitted
-after the last membership is removed. Admin E2E separately proves ordinary-user
-denial, disabled-admin denial, and active zero-business platform-admin access.
-Static/unit coverage distinguishes successful zero rows from failed membership
-queries and locks the shared callback/action/layout gate. Existing onboarding
-tests preserve first-business, required-logo, retry/resume, and existing-business
-redirect behavior. RLS/runtime suites remain defence in depth and retain their
-safe-target guards; a guarded skip is never reported as executed evidence.
+after the last membership is removed. Environment-gated Admin E2E separately
+covers ordinary-user denial, disabled-admin denial, and active zero-business
+platform-admin access; the local hotfix run retained that protected-target guard
+and exercised the unchanged separate-admin boundary through static/unit coverage.
+Static/unit coverage also distinguishes successful zero rows from failed
+membership queries and locks the shared callback/action/layout gate. Existing
+onboarding tests preserve first-business, required-logo, retry/resume, and
+existing-business redirect behavior. RLS/runtime suites remain defence in depth
+and retain their safe-target guards; a guarded skip is never reported as executed
+evidence.
 
 Local hotfix evidence: lint, route type generation, strict TypeScript, and diff
-hygiene pass; Vitest reports 117 files/608 tests passed with 20 guarded runtime
-files/tests skipped; Playwright reports 46 journeys passed with 15 documented
+hygiene pass; Vitest reports 92 files/482 tests passed with 20 guarded runtime
+files/tests skipped; Playwright reports 41 journeys passed with 10 documented
 project/target skips; production build and dependency audit pass. A separate
 service-side residue audit found and removed 17 historic controlled businesses
 and 19 controlled Auth users left by earlier non-asserting hooks. Cleanup order

@@ -73,6 +73,25 @@ function testEmail(projectName: string) {
   return email;
 }
 
+function currentMonthTimestamp(hour: number) {
+  const now = new Date();
+
+  return new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), hour),
+  ).toISOString();
+}
+
+function currentMonthDateRange() {
+  const now = new Date();
+  const year = now.getUTCFullYear();
+  const month = now.getUTCMonth();
+
+  return {
+    from: new Date(Date.UTC(year, month, 1)).toISOString().slice(0, 10),
+    to: new Date(Date.UTC(year, month + 1, 0)).toISOString().slice(0, 10),
+  };
+}
+
 async function seedInsightsBusiness({
   email,
   password,
@@ -141,13 +160,13 @@ async function seedInsightsBusiness({
       total_amount_minor: 1_000_000_428_000_000,
       deposit_amount_minor: 20_000,
       status: "COMPLETED",
-      scheduled_for: "2026-08-10T10:00:00.000Z",
-      started_at: "2026-08-10T08:00:00.000Z",
-      ready_at: "2026-08-10T08:30:00.000Z",
-      delivered_at: "2026-08-10T09:00:00.000Z",
-      completed_at: "2026-08-10T10:00:00.000Z",
+      scheduled_for: currentMonthTimestamp(10),
+      started_at: currentMonthTimestamp(8),
+      ready_at: currentMonthTimestamp(9),
+      delivered_at: currentMonthTimestamp(9),
+      completed_at: currentMonthTimestamp(10),
       created_by: userData.user!.id,
-      created_at: "2026-08-01T09:00:00.000Z",
+      created_at: currentMonthTimestamp(7),
     })
     .select("id")
     .single();
@@ -164,13 +183,13 @@ async function seedInsightsBusiness({
       total_amount_minor: 85_000,
       deposit_amount_minor: 0,
       status: "COMPLETED",
-      scheduled_for: "2026-08-11T10:00:00.000Z",
-      started_at: "2026-08-11T08:00:00.000Z",
-      ready_at: "2026-08-11T08:30:00.000Z",
-      delivered_at: "2026-08-11T09:00:00.000Z",
-      completed_at: "2026-08-11T10:00:00.000Z",
+      scheduled_for: currentMonthTimestamp(14),
+      started_at: currentMonthTimestamp(11),
+      ready_at: currentMonthTimestamp(12),
+      delivered_at: currentMonthTimestamp(13),
+      completed_at: currentMonthTimestamp(14),
       created_by: userData.user!.id,
-      created_at: "2026-08-02T09:00:00.000Z",
+      created_at: currentMonthTimestamp(7),
     })
     .select("id")
     .single();
@@ -477,12 +496,13 @@ test.describe("business insights", () => {
     await page.locator("[data-insights-custom-range]").screenshot({
       path: `${outputDirectory}/custom-range-expanded-390.png`,
     });
-    await page.getByLabel("From", { exact: true }).fill("2026-08-01");
-    await page.getByLabel("To", { exact: true }).fill("2026-08-31");
+    const customRange = currentMonthDateRange();
+    await page.getByLabel("From", { exact: true }).fill(customRange.from);
+    await page.getByLabel("To", { exact: true }).fill(customRange.to);
     await page.getByRole("button", { name: "Apply" }).click();
     await expect(page).toHaveURL(/range=custom/);
-    await expect(page).toHaveURL(/from=2026-08-01/);
-    await expect(page).toHaveURL(/to=2026-08-31/);
+    await expect(page).toHaveURL(new RegExp(`from=${customRange.from}`));
+    await expect(page).toHaveURL(new RegExp(`to=${customRange.to}`));
     await expect(largeNgnValue).toBeVisible();
 
     await page.getByRole("link", { name: "30D", exact: true }).click();

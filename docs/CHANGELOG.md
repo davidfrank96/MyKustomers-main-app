@@ -1,5 +1,36 @@
 # Changelog
 
+## 2026-09-01 - UI Redesign And Current Main Reconciliation
+
+Status: IMPLEMENTED - LOCAL RELEASE GATE VERIFIED
+
+- Reconciled `ui/mobile-redesign` with current `origin/main` by a normal merge,
+  preserving the approved presentation while retaining main's authentication,
+  onboarding, tenant, admin, booking, logo, email, PWA, and security behavior.
+- Resolved all eight textual conflicts individually across Settings,
+  documentation, authentication/multi-business browser coverage, and
+  authorization/request-cache policy tests. No blanket side selection, reset,
+  rebase, force push, file deletion, migration, environment, dependency, or
+  infrastructure change was used.
+- Preserved the redesigned Settings membership presentation behind main's
+  current server-side vendor-workspace gate. Combined both branches' zero-
+  business, forged-cookie, revocation, multi-business, request-deduplication,
+  and safe-navigation assertions.
+- Corrected one reconciliation-only test defect: Insights fixtures had moved to
+  the real current UTC month while the redesigned custom-range check still
+  selected August 2026. The custom range now derives from the same current UTC
+  month, preserving the product implementation unchanged.
+- Local verification passed lint, route type generation, strict TypeScript, 608
+  unit/integration/static tests, 46 executable browser journeys, the complete
+  320-1440px responsive matrix, the production build, dependency audit, secret
+  scan, conflict-marker/diff hygiene, and representative visual inspection.
+  Twenty live-runtime tests and 15 browser cases retained their documented
+  protected-target or project guards.
+- The post-suite audit returned zero matching controlled businesses. It also
+  found and removed one stale August 25 platform-admin E2E user and two exact
+  dependent audit rows; the final business/Auth-user residue audit returned
+  zero. No production customer or business record was changed.
+
 ## 2026-09-01 - Authentication And Onboarding Integrity Hotfix
 
 Status: VERIFIED - LOCAL RELEASE GATE
@@ -23,9 +54,9 @@ Status: VERIFIED - LOCAL RELEASE GATE
   forged-cookie attacks, a stale Server Action after last-membership revocation,
   admin exception checks, safe-redirect checks, and vendor-shell absence checks.
 - Local release verification passed lint, route type generation, strict
-  TypeScript, 608 unit/integration/static tests, 46 executable browser journeys,
+  TypeScript, 482 unit/integration/static tests, 41 executable browser journeys,
   the production build, dependency audit, and diff hygiene. Twenty live-runtime
-  tests and 15 browser cases retained their documented protected-target or
+  tests and 10 browser cases retained their documented protected-target or
   project guards.
 - The independent fixture audit exposed silent historic cleanup debt. Seventeen
   controlled E2E businesses and 19 controlled Auth users plus their dependent
