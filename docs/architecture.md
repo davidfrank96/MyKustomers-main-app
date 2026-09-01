@@ -23,6 +23,15 @@ account/session controls through a secondary account menu. Dashboard summary
 links use ordinary semantic routes and validated list query parameters rather
 than client-only navigation state.
 
+Authentication alone does not enter that shell. Password and OAuth sessions
+share a server-side post-auth destination resolver, while the vendor route-group
+layout requires a completed current business resolved from active
+`business_members` before it renders `DashboardShell`. `/onboarding` is a sibling
+route group with no vendor navigation. Leaf reads/actions and PostgreSQL RLS
+remain authoritative defence in depth, and membership resolution is memoized
+only within the current request. Platform Admin uses its separate active-role
+layout and is not treated as a vendor membership.
+
 ## Integration Architecture
 
 GitHub Actions is the repository CI boundary. Pull requests into and pushes to

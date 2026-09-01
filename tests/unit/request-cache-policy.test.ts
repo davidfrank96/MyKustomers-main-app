@@ -14,7 +14,9 @@ describe("request-scoped tenant context policy", () => {
   });
 
   it("uses the same zero-argument context key in layout and page renders", () => {
-    expect(dashboardLayout).toContain("getCurrentBusinessContext()");
+    expect(dashboardLayout).toContain("requireVendorWorkspace");
+    expect(authServer).toContain("getCurrentBusinessContext()");
+    expect(authServer).toContain("requireUser(next)");
     expect(dashboardLayout).not.toContain("getCurrentBusinessContext(user)");
   });
 

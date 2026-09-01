@@ -10,6 +10,38 @@ signup confirmation and reset-password completion remain PARTIAL because they
 require a controlled inbox and Supabase default-email delivery; those exceptions
 do not reduce the verified tenant/RLS coverage.
 
+## Authentication And Onboarding Integrity Matrix
+
+The provider-independent regression suite covers password and shared OAuth
+post-auth routing policy, safe/external `next` handling, and direct requests to
+Dashboard, Bookings (list/new/detail), Customers (list/new/detail), Insights,
+Business, Add another business, and Settings. A controlled zero-business user
+must reach `/onboarding` on every path, including with a forged current-business
+cookie, and the server response must not contain the vendor shell.
+
+The multi-business journey covers one-business resolution, two-business
+selection and switching, forged-cookie fallback, single-membership revocation,
+last-membership revocation, and a stale customer-creation Server Action submitted
+after the last membership is removed. Environment-gated Admin E2E separately
+covers ordinary-user denial, disabled-admin denial, and active zero-business
+platform-admin access; the local hotfix run retained that protected-target guard
+and exercised the unchanged separate-admin boundary through static/unit coverage.
+Static/unit coverage also distinguishes successful zero rows from failed
+membership queries and locks the shared callback/action/layout gate. Existing
+onboarding tests preserve first-business, required-logo, retry/resume, and
+existing-business redirect behavior. RLS/runtime suites remain defence in depth
+and retain their safe-target guards; a guarded skip is never reported as executed
+evidence.
+
+Local hotfix evidence: lint, route type generation, strict TypeScript, and diff
+hygiene pass; Vitest reports 92 files/482 tests passed with 20 guarded runtime
+files/tests skipped; Playwright reports 41 journeys passed with 10 documented
+project/target skips; production build and dependency audit pass. A separate
+service-side residue audit found and removed 17 historic controlled businesses
+and 19 controlled Auth users left by earlier non-asserting hooks. Cleanup order
+now removes memberships before businesses, and the final audit returned zero
+matching businesses and zero matching Auth users.
+
 ## Test Categories
 
 - Unit: Small deterministic utilities and isolated domain logic.

@@ -105,6 +105,7 @@ test.describe("business onboarding", () => {
           await admin.storage.from("business-logos").remove(logoPaths);
         }
         await admin.from("audit_logs").delete().in("business_id", businessIds);
+        await admin.from("business_members").delete().in("business_id", businessIds);
         await admin.from("businesses").delete().in("id", businessIds);
       }
     }

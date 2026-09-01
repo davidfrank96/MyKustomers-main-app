@@ -12,6 +12,8 @@ import { getBusinessLogoPublicUrl } from "@/features/businesses/logo-public";
 import { getPendingBusinessOnboardingId } from "@/features/businesses/pending-onboarding";
 import { getCurrentBusinessContext, requireUser } from "@/lib/auth/server";
 
+export const dynamic = "force-dynamic";
+
 export default async function OnboardingPage() {
   await requireUser("/onboarding");
   const [businessContext, pendingBusinessId] = await Promise.all([

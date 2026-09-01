@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { DashboardShell } from "@/components/layout/dashboard-shell";
-import { getCurrentBusinessContext, requireUser } from "@/lib/auth/server";
+import { requireVendorWorkspace } from "@/lib/auth/server";
 
 export const dynamic = "force-dynamic";
 
@@ -9,10 +9,7 @@ type DashboardLayoutProps = {
 };
 
 export default async function DashboardLayout({ children }: DashboardLayoutProps) {
-  const [user, businessContext] = await Promise.all([
-    requireUser("/dashboard"),
-    getCurrentBusinessContext(),
-  ]);
+  const { user, businessContext } = await requireVendorWorkspace("/dashboard");
 
   return (
     <DashboardShell user={user} businessContext={businessContext}>

@@ -233,6 +233,7 @@ test.describe("booking engine", () => {
         await admin.from("bookings").delete().in("business_id", businessIds);
         await admin.from("customers").delete().in("business_id", businessIds);
         await admin.from("audit_logs").delete().in("business_id", businessIds);
+        await admin.from("business_members").delete().in("business_id", businessIds);
         await admin.storage
           .from("business-logos")
           .remove(businessIds.map((businessId) => `${businessId}/logo.webp`));

@@ -116,6 +116,14 @@ Runtime Security remains a documented configuration follow-up.
 
 The 2026-08-21 mobile account, business identity, and dashboard navigation pass
 is VERIFIED cross-phase maintenance. It adds no billing or broad redesign.
+
+The 2026-09-01 authentication and onboarding integrity hotfix is cross-phase
+security maintenance. It implements one provider-independent post-auth resolver
+and one server-side pre-shell vendor membership gate, places onboarding outside
+the vendor route group, and makes membership-query failures fail closed. It
+changes no schema, migration, provider, environment, product phase, or approved
+onboarding UI. The complete local release gate and independent zero-residue
+fixture audit pass; remote PR/CI/deployment verification remains pending.
 Mobile Settings/logout uses the authenticated shell and existing auth action;
 owners can store a normalized website and one bounded WebP logo; public
 confirmation shows only safe public identity; and existing dashboard metrics

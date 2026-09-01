@@ -5,11 +5,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { logoutAction } from "@/features/auth/actions";
-import { getCurrentBusinessContext, requireUser } from "@/lib/auth/server";
+import { requireVendorWorkspace } from "@/lib/auth/server";
 
 export default async function SettingsPage() {
-  const user = await requireUser("/settings");
-  const context = await getCurrentBusinessContext();
+  const { user } = await requireVendorWorkspace("/settings");
 
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-5 py-6 sm:px-8 lg:px-10">
@@ -23,21 +22,19 @@ export default async function SettingsPage() {
         </div>
       </section>
 
-      {context.currentBusiness ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>Business settings</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Button asChild variant="secondary" className="w-full sm:w-fit">
-              <Link href={"/business" as Route}>
-                <BriefcaseBusiness className="size-4" aria-hidden="true" />
-                Open business profile
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
-      ) : null}
+      <Card>
+        <CardHeader>
+          <CardTitle>Business settings</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Button asChild variant="secondary" className="w-full sm:w-fit">
+            <Link href={"/business" as Route}>
+              <BriefcaseBusiness className="size-4" aria-hidden="true" />
+              Open business profile
+            </Link>
+          </Button>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

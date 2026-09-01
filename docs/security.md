@@ -77,6 +77,28 @@ Supabase-specific rules:
 - Storage policies must cover read, write, update, and delete behavior
   intentionally.
 
+## Zero-Business Workspace Boundary
+
+Authentication and tenant membership are separate proofs. Every vendor route
+group resolves a current completed business from active `business_members` on
+the server before rendering the authenticated vendor shell. Every vendor read or
+mutation retains a page/action-level authorization check, and PostgreSQL RLS
+remains the final tenant isolation boundary. A cookie, profile row, OAuth/user
+metadata, safe `next` value, previous membership, or client-rendered state grants
+no workspace authority.
+
+A successful zero-row membership lookup is the onboarding state. A failed
+membership query or an active membership whose business join cannot be resolved
+is an authorization-system failure and fails closed rather than being presented
+as zero-business onboarding. Request-scoped React memoization is permitted;
+persistent membership caching is not, so last-membership revocation applies on
+the next request or server action.
+
+The platform-admin surface is a separate exception with a separate active-admin
+role check: an active zero-business platform admin may enter `/admin`, while an
+ordinary zero-business user and a disabled admin are denied. Admin status does
+not grant access to the vendor workspace without an active completed business.
+
 ## Security Invariants
 
 SEC-001 - Tenant Isolation
