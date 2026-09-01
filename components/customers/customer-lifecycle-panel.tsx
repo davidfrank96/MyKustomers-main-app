@@ -71,8 +71,10 @@ export function CustomerLifecyclePanel({
   );
 
   useEffect(() => {
-    if (deleteState.status === "success") router.replace("/customers");
-  }, [deleteState.status, router]);
+    if (archiveState.status === "success" || deleteState.status === "success") {
+      router.replace("/customers");
+    }
+  }, [archiveState.status, deleteState.status, router]);
 
   const message = deleteState.message ?? archiveState.message ?? restoreState.message;
   const messageIsError =

@@ -36,7 +36,7 @@ therefore remain read-only unless a separately safe controlled target and
 recipients are available; skipped runtime cases must not be claimed as passed.
 
 Local release evidence passes lint, route type generation, strict TypeScript,
-126 Vitest files / 662 tests, the production build, moderate dependency audit
+126 Vitest files / 663 tests, the production build, moderate dependency audit
 with zero reported vulnerabilities, and diff hygiene. Twenty-one protected
 runtime tests retained their explicit skips. The non-mutating Playwright subset
 passed five public/auth-presentation/responsive journeys with three intended

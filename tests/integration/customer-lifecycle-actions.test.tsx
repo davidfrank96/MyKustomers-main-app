@@ -1,6 +1,8 @@
 import type { ComponentProps } from "react";
-import { fireEvent, render, screen } from "@testing-library/react";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+
+const mocks = vi.hoisted(() => ({ routerReplace: vi.fn() }));
 
 vi.mock("@/features/customers/actions", () => ({
   archiveCustomerLifecycleAction: vi.fn(async () => ({ status: "success" })),
@@ -8,7 +10,7 @@ vi.mock("@/features/customers/actions", () => ({
   deleteCustomerAction: vi.fn(async () => ({ status: "success" })),
 }));
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ replace: vi.fn() }),
+  useRouter: () => ({ replace: mocks.routerReplace }),
 }));
 vi.mock("next/link", () => ({
   default: ({ children, href, ...props }: ComponentProps<"a"> & { href: string }) => (
@@ -48,6 +50,10 @@ afterAll(() => {
   });
 });
 
+beforeEach(() => {
+  mocks.routerReplace.mockClear();
+});
+
 describe("customer lifecycle controls", () => {
   it("offers archive but not delete when booking history exists", () => {
     render(
@@ -67,6 +73,22 @@ describe("customer lifecycle controls", () => {
       screen.getByText(/booking history and can’t be permanently deleted/i),
     ).toBeVisible();
     expect(screen.getByText(/Active bookings remain active/i)).toBeVisible();
+  });
+
+  it("returns to the customer list after archiving from detail", async () => {
+    render(
+      <CustomerLifecyclePanel
+        customerId="00000000-0000-4000-8000-000000000001"
+        customerName="Ada Customer"
+        isArchived={false}
+        hasBookings
+        hasActiveBookings
+        canDelete
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Archive customer" }));
+    await waitFor(() => expect(mocks.routerReplace).toHaveBeenCalledWith("/customers"));
   });
 
   it("shows owner-only eligible delete behind explicit confirmation", () => {
