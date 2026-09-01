@@ -1,5 +1,39 @@
 # Changelog
 
+## 2026-09-01 - Dashboard Home Navigation Pending-State Hotfix
+
+Status: IMPLEMENTED - LOCAL RELEASE GATE VERIFIED
+
+- Corrected a destination-state lifecycle defect in the shared desktop and
+  mobile authenticated navigation. A completed Home click could remain stored
+  after Dashboard arrived, reappear when a Dashboard card opened another route,
+  and block Home until the former 15-second fallback elapsed.
+- Replaced the component-owned destination state, timer, and duplicate-click
+  interception with Next.js per-Link `useLinkStatus`. Pending feedback now
+  belongs only to the clicked destination and clears when Next completes that
+  navigation; ordinary streamed route data does not disable unrelated primary
+  destinations.
+- Preserved semantic links, browser Back, modifier and middle-click behavior,
+  default Next.js prefetching, the five-destination mobile information
+  architecture, stable icon geometry, reduced-motion behavior, authorization,
+  tenant isolation, route streaming, and the separate opaque business-switch
+  boundary.
+- Reproduced the defect before the fix in focused component coverage and a real
+  Chromium session, where Home remained pending for 15,451 ms after route
+  arrival. Post-fix controlled browser journeys pass at 1440x1000 and 390x844
+  in Chromium and WebKit emulation, including Dashboard cards, list/detail
+  routes, browser Back, and 390/768/1024/1440 responsive checks.
+- The complete local gate passed lint, route type generation, strict TypeScript,
+  611 unit/integration/static tests, 48 executable browser journeys, the
+  production build, dependency audit, secret/conflict/diff hygiene, and the
+  React client-boundary review. Twenty protected runtime checks and 15
+  project/target-guarded browser cases retained their explicit skips.
+- Cleanup removed five fixtures left by interrupted pre-fix reproductions; the
+  post-suite audit found zero matching controlled businesses and Auth users.
+- No database, migration, environment, dependency, cache, service-worker,
+  authentication, authorization, RLS, business-switch, or infrastructure
+  change is included.
+
 ## 2026-09-01 - UI Redesign And Current Main Reconciliation
 
 Status: IMPLEMENTED - LOCAL RELEASE GATE VERIFIED

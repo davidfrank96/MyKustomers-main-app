@@ -3,6 +3,29 @@
 This checklist separates verified development evidence from remaining
 production-readiness work.
 
+## Dashboard Home Navigation Pending-State Hotfix
+
+- [x] Pre-fix component and real-browser evidence reproduces the stale Home
+      pending state and its 15-second blocking window.
+- [x] Desktop and mobile primary navigation use framework-owned, per-Link
+      destination status without a timer, custom push, or prefetch override.
+- [x] Semantic links, browser Back, modifier/middle clicks, five mobile
+      destinations, responsive geometry, and reduced-motion behavior are
+      preserved.
+- [x] Controlled Chromium and WebKit-emulation journeys pass at 1440x1000 and
+      390x844 across Dashboard cards, lists, details, Insights, Business, and
+      return-to-Home.
+- [x] Responsive checks pass at 390, 768, 1024, and 1440 pixels without stale
+      pending state or horizontal overflow.
+- [x] Full lint, typecheck, unit/integration, runtime-security, browser,
+      production-build, dependency, and diff-hygiene gates pass.
+- [ ] Required CI, Vercel production deployment, and controlled production
+      navigation smoke pass.
+- [x] Controlled local navigation fixtures are removed and the residue audit
+      returns zero.
+- [ ] Controlled production navigation fixtures are removed and the production
+      residue audit returns zero.
+
 ## Build
 
 - [x] Local production build passes.
@@ -529,8 +552,9 @@ production-readiness work.
       recorded baseline using medians rather than a selected best run.
 - [x] Dashboard to Bookings, booking detail, Customers, Insights, Business,
       browser Back, search, and business switching pass without stale tenant data.
-- [x] Same-pending-destination repeated click produces no duplicate navigation;
-      modifier/new-tab behavior and unrelated navigation remain native.
+- [x] Framework-owned per-Link state identifies only the latest pending
+      destination; modifier/new-tab behavior and unrelated navigation remain
+      native.
 - [x] RSC request count/payload and vendor route gzip stay within documented
       budgets; admin and logo-preprocessor code remain route-isolated.
 - [x] Focused typical/constrained Nigeria profiles and standalone/PWA smoke show

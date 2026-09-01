@@ -10,6 +10,38 @@ signup confirmation and reset-password completion remain PARTIAL because they
 require a controlled inbox and Supabase default-email delivery; those exceptions
 do not reduce the verified tenant/RLS coverage.
 
+## 2026-09-01 Dashboard Home Navigation Pending-State Hotfix
+
+The regression was proved before implementation at both the component and real
+browser boundary. The focused desktop/mobile component cases failed because a
+completed Home destination became busy again after leaving Dashboard. A
+controlled Chromium journey then observed Home remain pending for 15,451 ms
+after Dashboard route arrival, matching the component's 15-second fallback.
+
+Post-fix focused evidence:
+
+- 17 navigation integration/policy assertions pass. They cover immediate
+  destination acknowledgement, route-arrival clearing, latest-intent behavior,
+  modifier and middle clicks, default prefetch policy, and the exact stale-Home
+  lifecycle on desktop and mobile.
+- Controlled Chromium journeys pass at 1440x1000 and 390x844. They cover
+  Dashboard to Bookings/booking detail, Customers/customer detail, Insights,
+  and Business, returning Home after each destination, plus browser Back.
+- Equivalent desktop and mobile WebKit emulation journeys pass. Physical iOS,
+  Android, and an installed operating-system PWA are not claimed by this local
+  evidence; the canonical PWA app-window/browser coverage remains in the full
+  suite.
+- Chromium responsive checks pass at 390, 768, 1024, and 1440 pixels with Home
+  visible, no residual busy state, and no horizontal document overflow.
+
+The complete local gate passes lint, route type generation, strict TypeScript,
+117 Vitest files / 611 tests, 48 executable Playwright journeys, the production
+build, dependency audit, and diff hygiene. Twenty protected runtime files/tests
+and 15 documented project/target browser cases retain explicit skips. Cleanup
+removed five fixtures from interrupted pre-fix runs; a post-suite query returned
+zero matching controlled businesses and Auth users. CI, deployment, and
+production smoke remain pending.
+
 ## 2026-09-01 UI/Main Reconciliation Release Gate
 
 The normal merge of current `origin/main` into `ui/mobile-redesign` was checked
@@ -977,13 +1009,18 @@ pixels without browser warnings or errors.
 ## Authenticated Navigation Performance V2 Coverage
 
 - `tests/integration/dashboard-navigation.test.tsx` renders desktop and mobile
-  navigation, proves immediate `aria-busy`/live-region acknowledgement, suppresses
-  a repeated click on the same pending destination, and clears pending state when
-  the authoritative pathname changes.
+  navigation, proves immediate per-Link `aria-busy`/live-region acknowledgement,
+  latest-destination ownership, route-arrival clearing, native modifier/middle
+  click behavior, and the exact stale-Home regression after leaving Dashboard.
 - `tests/unit/navigation-performance-policy.test.ts` preserves semantic links,
   framework-default prefetch, request-parallel layout startup, list and detail
   Suspense boundaries, destination-named loaders, narrow embedded projections,
-  admin/vendor bundle separation, and absence of a private service worker.
+  admin/vendor bundle separation, absence of component timers/custom pushes,
+  and absence of a private service worker.
+- `tests/e2e/dashboard-home-navigation.spec.ts` creates one controlled active
+  booking and customer, primes a completed Home navigation, then proves that
+  Dashboard cards, booking/customer list and detail routes, Insights, Business,
+  browser Back, and responsive resizing cannot resurrect or block Home.
 - Existing request-cache tests preserve zero-argument request memoization for
   authenticated user, memberships, and current-business context. The cache is
   request-scoped and is not a tenant authority across requests.

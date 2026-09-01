@@ -56,6 +56,30 @@ retain `force-dynamic`, `no-store`, `no-referrer`, and `noindex` controls.
 Because the measurements did not identify a safe release-blocking bottleneck,
 this audit intentionally makes no performance or cache behavior change.
 
+## 2026-09-01 Dashboard Home Navigation Pending-State Hotfix
+
+The authenticated navigation previously owned a `pendingHref` value and cleared
+it only through a 15-second timeout. Route arrival hid that value while the
+destination remained active but did not clear it. Leaving Dashboard through a
+card therefore made the stale Home state visible again and its duplicate-click
+handler blocked Home. A controlled pre-fix Chromium reproduction observed Home
+remaining pending for 15,451 ms after Dashboard had already arrived.
+
+Desktop and mobile navigation now use Next.js `useLinkStatus` inside each
+semantic Link. The status is framework-owned, scoped to the clicked Link, and
+ends when that navigation completes. There is no application timer, global
+transition flag, custom router push, prefetch override, persistent cache, or
+service-worker change. Default Next.js prefetch and route streaming remain in
+place.
+
+Post-fix controlled local journeys covered Dashboard cards, booking/customer
+list and detail routes, Insights, Business, browser Back, and return-to-Home at
+1440x1000 and 390x844 in Chromium and WebKit emulation. Dashboard useful-content
+arrival after the fixed Home click was observed at roughly 0.4-0.9 seconds in
+those single-run diagnostics. These values are local evidence, not an SLO; the
+correctness guarantee is destination-scoped pending state and immediate
+availability of unrelated navigation.
+
 ## Authenticated Navigation V2
 
 Implementation and production-verification date: 2026-08-27. PR #41 merged
@@ -260,6 +284,10 @@ variable is introduced here.
 
 ## Permanent Rules
 
+- Primary navigation pending state represents navigation to a destination, not
+  completion of all streamed data for the current route.
+- Ordinary authenticated route streaming must not unnecessarily disable
+  unrelated primary navigation destinations.
 - No cache may be introduced for authenticated or tenant-scoped data without
   explicit cache scope, key, invalidation behavior, and cross-tenant security
   analysis.
