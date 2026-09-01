@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { expect, test } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
@@ -44,6 +45,44 @@ const hasSupabaseEnv = Boolean(
 
 const createdEmails = new Set<string>();
 const createdBusinessSlugs = new Set<string>();
+const screenshotDirectory = path.resolve("output/playwright/create-business-redesign");
+
+async function expectNoHorizontalOverflow(page: import("@playwright/test").Page) {
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+    ),
+  ).toBe(true);
+}
+
+async function expectCreateFormAlignment(page: import("@playwright/test").Page) {
+  const alignment = await page.evaluate(() => {
+    const controls = [
+      document.getElementById("name"),
+      document.getElementById("slug"),
+      document.getElementById("category"),
+      document.getElementById("description"),
+      document.getElementById("whatsapp"),
+      document.getElementById("instagram"),
+      document.getElementById("website"),
+      document.getElementById("addressText"),
+      document.querySelector('button[type="submit"]'),
+    ].filter((control): control is HTMLElement => control instanceof HTMLElement);
+    const rects = controls.map((control) => control.getBoundingClientRect());
+    const leftEdges = rects.map((rect) => rect.left);
+    const rightEdges = rects.map((rect) => rect.right);
+
+    return {
+      controlCount: controls.length,
+      leftDrift: Math.max(...leftEdges) - Math.min(...leftEdges),
+      rightDrift: Math.max(...rightEdges) - Math.min(...rightEdges),
+    };
+  });
+
+  expect(alignment.controlCount).toBe(9);
+  expect(alignment.leftDrift).toBeLessThanOrEqual(1);
+  expect(alignment.rightDrift).toBeLessThanOrEqual(1);
+}
 
 function createAdminClient() {
   return createClient(
@@ -134,19 +173,62 @@ test.describe("business onboarding", () => {
     await installBusinessLogoTransportObserver(page);
     await page.goto("/login");
     await page.getByLabel("Email").fill(email);
-    await page.getByLabel("Password").fill(password);
+    await page.getByLabel("Password", { exact: true }).fill(password);
     await page.getByRole("button", { name: "Log in" }).click();
 
     await expect(page).toHaveURL(/\/onboarding/);
+    await expect(page.getByRole("heading", { name: "Create business" })).toBeVisible();
+    await page.addStyleTag({
+      content: "nextjs-portal { display: none !important; }",
+    });
+
+    fs.mkdirSync(screenshotDirectory, { recursive: true });
+    const responsiveViewports = [
+      { width: 320, height: 568 },
+      { width: 360, height: 800 },
+      { width: 375, height: 812 },
+      { width: 390, height: 844 },
+      { width: 430, height: 932 },
+      { width: 768, height: 1024 },
+      { width: 1024, height: 768 },
+      { width: 1280, height: 800 },
+      { width: 1440, height: 900 },
+    ] as const;
+
+    for (const viewport of responsiveViewports) {
+      await page.setViewportSize(viewport);
+      await expectNoHorizontalOverflow(page);
+      await expectCreateFormAlignment(page);
+      await page.screenshot({
+        path: path.join(screenshotDirectory, `empty-${viewport.width}.png`),
+        fullPage: true,
+      });
+    }
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    const mobileBottomSpacing = await page.evaluate(() => {
+      const workspace = document.querySelector<HTMLElement>("main");
+      if (!workspace) return null;
+      return Number.parseFloat(getComputedStyle(workspace).paddingBottom);
+    });
+    expect(mobileBottomSpacing).not.toBeNull();
+    expect(mobileBottomSpacing!).toBeGreaterThanOrEqual(16);
     await expect(
-      page.getByRole("heading", { name: "Set up your business" }),
-    ).toBeVisible();
+      page.getByRole("navigation", { name: "Mobile vendor navigation" }),
+    ).toHaveCount(0);
+    await page.evaluate(() => window.scrollTo(0, 0));
 
     await page.getByLabel("Business name").fill("Phase 3 E2E Bakery");
+    await page.getByLabel("Description").fill("E2E onboarding verification.");
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.screenshot({
+      path: path.join(screenshotDirectory, "partial-390.png"),
+      fullPage: true,
+    });
     await page.getByLabel("Business slug").fill(slug);
     await page.getByRole("combobox").click();
     await page.getByRole("option", { name: "Bakery" }).click();
-    await page.getByLabel("Description").fill("E2E onboarding verification.");
     await page.getByLabel("Phone").fill("+353 01 555 0199");
     await page.getByLabel("Business email").fill("bakery@example.com");
     await page.getByLabel("WhatsApp").fill("+353 01 555 0188");
@@ -157,6 +239,11 @@ test.describe("business onboarding", () => {
     await expect(
       page.getByText("Choose a business logo before creating your business."),
     ).toBeVisible();
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.screenshot({
+      path: path.join(screenshotDirectory, "validation-390.png"),
+      fullPage: true,
+    });
     const admin = createAdminClient();
     const { count: businessCountWithoutLogo } = await admin
       .from("businesses")
@@ -164,12 +251,56 @@ test.describe("business onboarding", () => {
       .eq("slug", slug);
     expect(businessCountWithoutLogo).toBe(0);
 
+    const previewLogo = await sharp({
+      create: {
+        width: 320,
+        height: 240,
+        channels: 4,
+        background: { r: 31, g: 100, b: 82, alpha: 1 },
+      },
+    })
+      .png()
+      .toBuffer();
+    await page.getByLabel("Logo image").setInputFiles({
+      name: "selected-logo-preview.png",
+      mimeType: "image/png",
+      buffer: previewLogo,
+    });
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.screenshot({
+      path: path.join(screenshotDirectory, "selected-logo-390.png"),
+      fullPage: true,
+    });
+    await page.getByLabel("Logo image").setInputFiles([]);
+
     await page.getByLabel("Logo image").setInputFiles({
       name: "not-an-image.png",
       mimeType: "image/png",
       buffer: Buffer.from("not an image"),
     });
-    await page.getByRole("button", { name: "Create business" }).click();
+    const createButton = page.getByRole("button", { name: "Create business" });
+    const settledButtonBox = await createButton.boundingBox();
+    let delayedCreationRequest = false;
+    await page.route("**/onboarding", async (route) => {
+      if (route.request().method() === "POST" && !delayedCreationRequest) {
+        delayedCreationRequest = true;
+        await new Promise((resolve) => setTimeout(resolve, 4_000));
+      }
+      await route.continue();
+    });
+    await createButton.click({ noWaitAfter: true });
+    const pendingButton = page.getByRole("button", { name: "Please wait..." });
+    await expect(pendingButton).toBeVisible();
+    await expect(pendingButton).toBeDisabled();
+    const pendingButtonBox = await pendingButton.boundingBox();
+    expect(settledButtonBox).not.toBeNull();
+    expect(pendingButtonBox).not.toBeNull();
+    expect(pendingButtonBox!.width).toBeCloseTo(settledButtonBox!.width, 0);
+    expect(pendingButtonBox!.height).toBeCloseTo(settledButtonBox!.height, 0);
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    await page.screenshot({
+      path: path.join(screenshotDirectory, "pending-390.png"),
+    });
     await expect(
       page.getByText("The uploaded file is not a valid supported image."),
     ).toBeVisible({
@@ -217,9 +348,10 @@ test.describe("business onboarding", () => {
     expect(requestBodySize!).toBeLessThan(4 * 1024 * 1024);
 
     await expect(page).toHaveURL(/\/dashboard/, { timeout: 30_000 });
-    await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Phase 3 E2E Bakery" })).toBeVisible();
-    await expect(page.getByText(`Slug: ${slug}`)).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Welcome back" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Open business profile" })).toHaveText(
+      "Phase 3 E2E Bakery",
+    );
 
     const { data: completedBusiness } = await admin
       .from("businesses")
@@ -251,9 +383,7 @@ test.describe("business onboarding", () => {
     expect(storedLogoObjects?.map((object) => object.name)).toEqual(["logo.webp"]);
     const {
       data: { publicUrl },
-    } = admin.storage
-      .from("business-logos")
-      .getPublicUrl(completedBusiness.logo_path);
+    } = admin.storage.from("business-logos").getPublicUrl(completedBusiness.logo_path);
     expect((await fetch(publicUrl)).ok).toBe(true);
 
     await page.goto("/onboarding");

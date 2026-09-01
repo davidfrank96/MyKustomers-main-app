@@ -23,8 +23,8 @@ function SwitchButton() {
     <Button
       type="submit"
       variant="secondary"
-      size="lg"
-      className="w-full sm:w-auto"
+      size="sm"
+      className="min-h-11 w-full sm:w-auto"
       disabled={pending}
     >
       {pending ? "Switching..." : "Switch"}
@@ -35,9 +35,11 @@ function SwitchButton() {
 export function BusinessMembershipList({
   businesses,
   currentBusinessId,
+  showAddBusiness = true,
 }: {
   businesses: BusinessSummary[];
   currentBusinessId: string;
+  showAddBusiness?: boolean;
 }) {
   return (
     <div>
@@ -48,13 +50,13 @@ export function BusinessMembershipList({
           return (
             <li
               key={business.id}
-              className="flex min-w-0 flex-col gap-4 py-4 first:pt-0 sm:flex-row sm:items-center"
+              className="flex min-w-0 items-center gap-3 py-3.5 first:pt-0"
             >
               <div className="flex min-w-0 flex-1 items-start gap-3">
                 <BusinessLogo
                   name={business.name}
                   url={getBusinessLogoPublicUrl(business.logoPath)}
-                  className="size-11"
+                  className="size-10"
                 />
                 <div className="min-w-0 flex-1">
                   <p className="break-words text-sm font-medium leading-5 [overflow-wrap:anywhere]">
@@ -67,7 +69,11 @@ export function BusinessMembershipList({
               </div>
 
               {isCurrent ? (
-                <Badge variant="outline" aria-current="true" className="min-h-9 gap-1.5">
+                <Badge
+                  variant="outline"
+                  aria-current="true"
+                  className="min-h-8 shrink-0 gap-1.5 border-primary/25 bg-primary/5 text-primary"
+                >
                   <Check className="size-4" aria-hidden="true" />
                   Current business
                 </Badge>
@@ -75,7 +81,7 @@ export function BusinessMembershipList({
                 <form
                   action={switchCurrentBusinessAction}
                   data-business-page-switch-form
-                  className="w-full sm:w-auto"
+                  className="ml-auto w-auto shrink-0"
                 >
                   <input type="hidden" name="businessId" value={business.id} />
                   <SwitchButton />
@@ -87,14 +93,19 @@ export function BusinessMembershipList({
         })}
       </ul>
 
-      <div className="border-t border-border pt-4">
-        <Button asChild variant="secondary" className="w-full sm:w-auto">
+      {showAddBusiness ? <div className="border-t border-border pt-4">
+        <Button
+          asChild
+          variant="secondary"
+          size="sm"
+          className="min-h-11 w-full sm:w-auto"
+        >
           <Link href={"/business/new" as Route}>
             <Plus className="size-4" aria-hidden="true" />
             Add another business
           </Link>
         </Button>
-      </div>
+      </div> : null}
     </div>
   );
 }

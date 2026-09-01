@@ -411,7 +411,7 @@ already belong to a business. Phase 9 calculates aggregate JSON inside
 PostgreSQL through a membership-checked RPC. Value aggregates are grouped by
 booking currency; mixed-currency totals are not stored or returned.
 
-Subscriptions represent vendor subscription billing for My Customers, not payments between vendors and their customers.
+Subscriptions represent vendor subscription billing for My Kustomers, not payments between vendors and their customers.
 
 ## Multi-Business Membership And Selection
 

@@ -20,7 +20,7 @@ export function GET() {
       >
         <div style={{ display: "flex", flexDirection: "column", maxWidth: "780px" }}>
           <div style={{ display: "flex", fontSize: 30, fontWeight: 700 }}>
-            My Customers
+            My Kustomers
           </div>
           <div
             style={{
@@ -58,7 +58,7 @@ export function GET() {
             fontWeight: 700,
           }}
         >
-          MC
+          MK
         </div>
       </div>
     ),

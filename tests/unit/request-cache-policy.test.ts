@@ -13,10 +13,11 @@ describe("request-scoped tenant context policy", () => {
     expect(authServer).not.toMatch(/unstable_cache|"use cache"|'use cache'/);
   });
 
-  it("uses the same zero-argument context key in layout and page renders", () => {
-    expect(dashboardLayout).toContain("requireVendorWorkspace");
+  it("uses the centralized zero-argument request-scoped workspace gate", () => {
+    expect(dashboardLayout).toContain('requireVendorWorkspace("/dashboard")');
     expect(authServer).toContain("getCurrentBusinessContext()");
     expect(authServer).toContain("requireUser(next)");
+    expect(authServer).not.toContain("getCurrentBusinessContext(user)");
     expect(dashboardLayout).not.toContain("getCurrentBusinessContext(user)");
   });
 

@@ -81,14 +81,16 @@ export function BusinessSwitcher({ businesses, currentBusiness }: BusinessSwitch
           type="button"
           variant="ghost"
           aria-label={`Switch business. Current business: ${currentBusiness.name}`}
-          className="h-10 min-w-0 max-w-52 justify-start gap-2 px-2 sm:max-w-64"
+          className="h-11 min-w-0 max-w-[11.5rem] justify-start gap-2 px-1.5 sm:max-w-64 sm:px-2"
         >
           <BusinessLogo
             name={currentBusiness.name}
             url={getBusinessLogoPublicUrl(currentBusiness.logoPath)}
-            className="size-7 shrink-0"
+            className="size-7 shrink-0 rounded-md"
           />
-          <span className="truncate text-sm font-medium">{currentBusiness.name}</span>
+          <span className="truncate text-[0.8125rem] font-semibold sm:text-sm">
+            {currentBusiness.name}
+          </span>
           <ChevronDown
             className="ml-auto size-4 shrink-0 text-muted-foreground"
             aria-hidden="true"

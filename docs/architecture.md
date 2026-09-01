@@ -9,7 +9,7 @@ distinguished from implemented code and verified behavior.
 
 ## Current Snapshot
 
-My Customers is one Next.js modular monolith. Supabase Auth supplies platform
+My Kustomers is one Next.js modular monolith. Supabase Auth supplies platform
 identity; PostgreSQL and RLS enforce tenant ownership. Validated server actions
 or server-only route handlers call tenant-scoped queries and narrow RPCs for
 atomic or privileged workflows. The service-role client is isolated to explicit
@@ -182,7 +182,7 @@ Instagram handle, and business name in addition to the established minimized
 booking view. These identity fields are not part of the immutable booking terms
 hash, so branding changes do not invalidate a customer's confirmed terms.
 
-My Customers is a modular monolith. The product should remain one deployable
+My Kustomers is a modular monolith. The product should remain one deployable
 Next.js application until there is concrete operational pressure to split a
 module out. Microservices are intentionally avoided because Phase 1 does not
 have independent scaling, ownership, or deployment needs that would justify the

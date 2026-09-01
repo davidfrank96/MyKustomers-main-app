@@ -12,11 +12,11 @@ Documentation is not implementation evidence. Future work must inspect repositor
 
 ## Product
 
-My Customers
+My Kustomers
 
 ## Product Vision
 
-My Customers is a mobile-first SaaS platform for small businesses and SMEs that commonly manage customer orders through informal channels such as WhatsApp, Instagram, phone calls, social media, referrals, and direct messages.
+My Kustomers is a mobile-first SaaS platform for small businesses and SMEs that commonly manage customer orders through informal channels such as WhatsApp, Instagram, phone calls, social media, referrals, and direct messages.
 
 It converts informal customer agreements into structured business records.
 
@@ -24,7 +24,7 @@ Businesses can manage customers, bookings/orders, private booking confirmation,
 fulfilment, recorded values and balances, private feedback, customer history,
 and operational insights. Vendor subscription management remains planned.
 
-Customers generally do not create My Customers accounts. They interact with individual bookings through secure customer-facing links.
+Customers generally do not create My Kustomers accounts. They interact with individual bookings through secure customer-facing links.
 
 The platform does not initially process payment between the vendor and their customer.
 
@@ -32,11 +32,11 @@ The platform does not initially process payment between the vendor and their cus
 
 Primary positioning:
 
-> My Customers helps small businesses turn informal customer conversations into organised business records.
+> My Kustomers helps small businesses turn informal customer conversations into organised business records.
 
 Supporting concept:
 
-> You already sell through WhatsApp, Instagram, phone calls, and direct messages. My Customers helps you keep track of what happens after the customer says yes.
+> You already sell through WhatsApp, Instagram, phone calls, and direct messages. My Kustomers helps you keep track of what happens after the customer says yes.
 
 The product should remain deliberately lightweight.
 

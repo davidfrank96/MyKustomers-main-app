@@ -1,11 +1,14 @@
 # Responsive QA
 
-STATUS: VERIFIED
+STATUS: VERIFIED FOR THE DEPLOYED BASELINE; BRANCH RELEASE MATRIX VERIFIED
 
-Audit date: 2026-08-21.
+Audit date: 2026-08-31.
 
 This maintenance pass stabilizes the existing interface. It does not start the
 planned broad visual redesign or Phase 11 PWA/UX hardening.
+
+The separate 2026-08-28 evidence below covers the approved mobile redesign on
+`ui/mobile-redesign`. It has not been merged or deployed.
 
 ## Matrix
 
@@ -39,8 +42,38 @@ planned broad visual redesign or Phase 11 PWA/UX hardening.
 | Booking journey stepper/action            | 320-1440              | Seven lifecycle labels and a primary action needed hierarchy without horizontal compression   | Vertical semantic stepper, two-column desktop composition, full-width mobile primary action, and secondary action disclosure | Canonical booking and cancellation E2E in desktop/mobile projects at 320, 360, 375, 390, 430, 768, 1024, and 1440 | VERIFIED    |
 | Completion dialog and required logo setup | 320-1440              | Terminal confirmation and logo controls must remain visible without browser UI or overflow    | Radix dialog with stacked mobile actions; bounded shared logo preview/input and staged setup                                 | Booking cancel/confirm at 320 plus onboarding and full responsive route matrix                                    | VERIFIED    |
 | Booking detail progressive disclosure     | 320-1440              | Accumulated operational sections made the initial page excessively long                       | Persistent journey plus 56px disclosure headers, concise summaries, contextual default-open logic, and independent expansion | Canonical desktop/Pixel 5 journey plus 320/360/375/390/430/768/1024/1440 overflow checks                          | VERIFIED    |
+| Operational timeline presentation         | 320-1440              | Raw event cards were visually repetitive and slow to scan                                     | Compact semantic timeline with aligned nodes, adaptive connectors, event icons, real metadata, and natural long-title wrapping | Mixed 16-event canonical fixture, disclosure ARIA, screenshots at 320/390/768/1024, and eight-width overflow gate | VERIFIED    |
+| Final authenticated release matrix        | 320-1440              | The branch-specific matrix omitted the required 1280x800 desktop width                         | Added 1280x800 while retaining all eight existing widths and every authenticated route/state assertion                         | Nine widths x eleven authenticated routes, overflow checks, actions, sticky/fixed navigation, and fresh screenshots | VERIFIED    |
 
 ## Evidence
+
+The 2026-08-31 final branch audit exercises Dashboard, Bookings, New Booking,
+Booking detail, Customers, New Customer, Customer detail, Insights, Business,
+Add another business, and Settings at 320x568, 360x800, 375x812, 390x844,
+430x932, 768x1024, 1024x768, 1280x800, and 1440x900. The self-cleaning fixture
+asserts no document overflow, usable compact controls, non-overlapping fixed
+navigation/actions, stable attention counts, and no legacy `My Customers`
+runtime label. Public homepage coverage independently includes the same primary
+widths plus 1600px; canonical confirmation and feedback journeys cover their
+responsive, validation, expired/revoked, share, and submission states.
+
+Representative 320, 390, 1024, 1280, and 1440 screenshots were visually
+reviewed for hierarchy, clipped text, whitespace, fixed navigation, disclosure
+layout, and form/action alignment. Regenerate/revoke feedback actions stack at
+390px and align as a two-column group from 430px before returning to intrinsic
+desktop controls. No page-level horizontal overflow was observed.
+
+The 2026-08-28 approved mobile-redesign pass exercised Dashboard, Bookings,
+Booking detail, Customers, Insights, Business, and Add another business at 320,
+360, 375, 390, and 430 pixels. The controlled Playwright fixture asserted zero
+document overflow at all 35 route/viewport combinations, exactly five mobile
+navigation destinations, a fully rendered authenticated shell, and responsive
+handling of a long business name, long booking title/reference, and
+`NGN 99,999,999,400`. It also captured every approved screen plus Booking detail
+with a disclosure expanded. Evidence is generated under the ignored
+`test-results/mobile-redesign` directory and was visually reviewed; no
+production data or product behavior was changed. Physical-device keyboard and
+screen-reader acceptance remain release-review work.
 
 The final automated audit traversed 265 route/viewport states, generated 160
 fresh screenshots in `/private/tmp/mycustomers-responsive-qa`, and reported
@@ -88,6 +121,14 @@ canonical journeys passed, including the explicit eight-width overflow matrix,
 minimum-height disclosure targets, current-context opening, and manual access to
 every preserved action. PR #33 passed required CI, deployed as merge `84aa736`,
 and the controlled production desktop and mobile canonical journeys passed.
+
+The 2026-08-31 Operational timeline presentation refactor keeps the existing
+oldest-to-newest server ordering and mixed status, reschedule, amendment, and
+add-on records. Focused component coverage verifies dynamic singular/plural
+counts, semantic list order, optional detail, long wrapping, and the safe empty
+state. The canonical booking journey exercises a 16-event mixed fixture at 320,
+360, 375, 390, 430, 768, 1024, and 1440 pixels, captures expanded 320/390/768/
+1024 and collapsed 390 evidence, and rejects page-level horizontal overflow.
 
 The 2026-08-26 business-logo hotfix retains the existing contained preview,
 native picker, and full-width mobile action layout. Automated coverage performs

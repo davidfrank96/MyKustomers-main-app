@@ -28,8 +28,8 @@ loadLocalEnv();
 
 const hasSupabaseEnv = Boolean(
   process.env.NEXT_PUBLIC_SUPABASE_URL &&
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY &&
-    process.env.SUPABASE_SERVICE_ROLE_KEY,
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY &&
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
 );
 
 const createdEmails = new Set<string>();
@@ -143,21 +143,23 @@ test.describe("customer management", () => {
     const password = `Phase4-E2E-${randomUUID()}-A1`;
     const slug = `phase4-e2e-customers-${Date.now()}-${randomUUID().slice(0, 8)}`;
     createdBusinessSlugs.add(slug);
-    await createConfirmedBusinessOwner({ email, password, slug });
+    const businessId = await createConfirmedBusinessOwner({ email, password, slug });
 
     const customerName = `Phase 4 Customer ${randomUUID().slice(0, 8)}`;
     const updatedName = `${customerName} Updated`;
 
     await page.goto("/login");
     await page.getByLabel("Email").fill(email);
-    await page.getByLabel("Password").fill(password);
+    await page.getByLabel("Password", { exact: true }).fill(password);
     await page.getByRole("button", { name: "Log in" }).click();
 
     await expect(page).toHaveURL(/\/dashboard/);
 
     await page.goto("/customers");
-    await expect(page.getByRole("heading", { name: "Customers", exact: true })).toBeVisible();
-    await page.getByRole("link", { name: "Add customer" }).click();
+    await expect(
+      page.getByRole("heading", { name: "Customers", exact: true }),
+    ).toBeVisible();
+    await page.getByRole("link", { name: "Add customer" }).first().click();
 
     await page.getByLabel("Name").fill(customerName);
     await page.getByLabel("Email").fill("phase4-customer@example.com");
@@ -174,19 +176,104 @@ test.describe("customer management", () => {
     await expect(page.getByText("Customer updated.")).toBeVisible();
     await expect(page.getByRole("heading", { name: updatedName })).toBeVisible();
 
-    await page.getByRole("button", { name: "Archive" }).click();
+    const detailUrl = new URL(page.url());
+    detailUrl.search = "";
+    await page.goto(detailUrl.toString());
+
+    for (const width of [320, 360, 375, 390, 430]) {
+      await page.setViewportSize({ width, height: 900 });
+      await expect(page.getByRole("heading", { name: updatedName })).toBeVisible();
+      await expect(page.getByRole("button", { name: "Archive customer" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Customer details" })).toBeVisible();
+      await expect(page.getByLabel("Phone (optional)")).toHaveAttribute(
+        "placeholder",
+        "Enter phone number",
+      );
+      await expect(page.getByLabel("Notes (optional)")).toHaveAttribute(
+        "placeholder",
+        "Add any notes about this customer...",
+      );
+
+      const saveCustomer = page.getByRole("button", { name: "Save customer" });
+      await saveCustomer.evaluate((element) =>
+        element.scrollIntoView({ block: "center" }),
+      );
+      const saveBox = await saveCustomer.boundingBox();
+      const navigationBox = await page
+        .getByRole("navigation", { name: "Mobile vendor navigation" })
+        .boundingBox();
+      expect(saveBox).not.toBeNull();
+      expect(navigationBox).not.toBeNull();
+      expect(saveBox!.y + saveBox!.height).toBeLessThanOrEqual(navigationBox!.y);
+
+      const dimensions = await page.evaluate(() => ({
+        clientWidth: document.documentElement.clientWidth,
+        scrollWidth: document.documentElement.scrollWidth,
+      }));
+      expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth + 1);
+
+      if (width === 390) {
+        fs.mkdirSync("test-results/mobile-customer-detail", { recursive: true });
+        await page.evaluate(() => window.scrollTo(0, 0));
+        await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+        const screenshotStyles = await page.addStyleTag({
+          content: `
+            header { position: relative !important; }
+            nav[aria-label="Mobile vendor navigation"] { position: static !important; }
+          `,
+        });
+        await page.evaluate(() => {
+          document.querySelectorAll("nextjs-portal").forEach((element) => {
+            element.parentNode?.removeChild(element);
+          });
+        });
+        await page.screenshot({
+          path: "test-results/mobile-customer-detail/customer-detail-390.png",
+          fullPage: true,
+        });
+        await screenshotStyles.evaluate((element) =>
+          element.parentNode?.removeChild(element),
+        );
+      }
+    }
+
+    await page.getByRole("button", { name: "Archive customer" }).click();
     await expect(page).toHaveURL(/\/customers$/);
-    await expect(page.getByRole("heading", { name: "Customers", exact: true })).toBeVisible();
-    await expect(page.getByRole("link", { name: new RegExp(updatedName) })).toHaveCount(0);
+    await expect(
+      page.getByRole("heading", { name: "Customers", exact: true }),
+    ).toBeVisible();
+    await expect(page.getByRole("link", { name: new RegExp(updatedName) })).toHaveCount(
+      0,
+    );
 
     await page.getByRole("link", { name: "Archived" }).click();
     await expect(page.getByRole("link", { name: new RegExp(updatedName) })).toBeVisible();
+
+    const nameOnlyCustomer = `Name Only Customer ${randomUUID().slice(0, 8)}`;
+    await page.goto("/customers/new");
+    await page.getByLabel("Name", { exact: true }).fill(nameOnlyCustomer);
+    await page.getByRole("button", { name: "Create customer" }).dblclick();
+    await expect(page).toHaveURL(/\/customers\/[0-9a-f-]+\?created=1/);
+    await expect(
+      page.getByRole("heading", { name: nameOnlyCustomer, exact: true }),
+    ).toBeVisible();
+
+    const { count: nameOnlyCount, error: nameOnlyError } = await createAdminClient()
+      .from("customers")
+      .select("id", { count: "exact", head: true })
+      .eq("business_id", businessId)
+      .eq("name", nameOnlyCustomer);
+    expect(nameOnlyError).toBeNull();
+    expect(nameOnlyCount).toBe(1);
   });
 
   test("customer search updates live, composes with archive filters, and clears", async ({
     page,
   }, testInfo) => {
-    test.skip(testInfo.project.name !== "chromium", "The explicit viewport matrix runs once.");
+    test.skip(
+      testInfo.project.name !== "chromium",
+      "The explicit viewport matrix runs once.",
+    );
 
     const email = testEmail(testInfo.project.name);
     const password = `Phase4-Search-${randomUUID()}-A1`;
@@ -197,6 +284,12 @@ test.describe("customer management", () => {
     const archivedName = `${searchQuery} Archived`;
     createdBusinessSlugs.add(slug);
     const businessId = await createConfirmedBusinessOwner({ email, password, slug });
+    const listCustomers = Array.from({ length: 12 }, (_, index) => ({
+      business_id: businessId,
+      name: `Customer List Fixture ${String(index + 1).padStart(2, "0")} ${suffix}`,
+      email: `list-${index + 1}-${suffix}@example.com`,
+      phone: null,
+    }));
     const admin = createAdminClient();
     const { data: customers, error: customersError } = await admin
       .from("customers")
@@ -219,10 +312,13 @@ test.describe("customer management", () => {
           email: `david-${suffix}@example.com`,
           phone: null,
         },
+        ...listCustomers,
       ])
       .select("id, name, created_at");
     expect(customersError).toBeNull();
-    const archivedCustomer = customers?.find((customer) => customer.name === archivedName);
+    const archivedCustomer = customers?.find(
+      (customer) => customer.name === archivedName,
+    );
     expect(archivedCustomer).toBeTruthy();
     const { error: archiveError } = await admin
       .from("customers")
@@ -236,33 +332,49 @@ test.describe("customer management", () => {
 
     await page.goto("/login");
     await page.getByLabel("Email").fill(email);
-    await page.getByLabel("Password").fill(password);
+    await page.getByLabel("Password", { exact: true }).fill(password);
     await page.getByRole("button", { name: "Log in" }).click();
     await expect(page).toHaveURL(/\/dashboard/);
 
     await page.goto("/customers?status=active&page=7");
     const search = page.getByLabel("Search customers");
     await search.fill(searchQuery);
-    await expect
-      .poll(() => new URL(page.url()).searchParams.get("q"))
-      .toBe(searchQuery);
+    await expect.poll(() => new URL(page.url()).searchParams.get("q")).toBe(searchQuery);
     expect(new URL(page.url()).searchParams.get("status")).toBe("active");
     expect(new URL(page.url()).searchParams.has("page")).toBe(false);
     await expect(page.getByRole("link", { name: new RegExp(activeName) })).toBeVisible();
-    await expect(page.getByRole("link", { name: new RegExp(archivedName) })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: new RegExp(archivedName) })).toHaveCount(
+      0,
+    );
 
     await page.getByRole("link", { name: "Archived", exact: true }).click();
     await expect
       .poll(() => new URL(page.url()).searchParams.get("status"))
       .toBe("archived");
     expect(new URL(page.url()).searchParams.get("q")).toBe(searchQuery);
-    await expect(page.getByRole("link", { name: new RegExp(archivedName) })).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: new RegExp(archivedName) }),
+    ).toBeVisible();
     await expect(page.getByRole("link", { name: new RegExp(activeName) })).toHaveCount(0);
+
+    await page.getByRole("link", { name: "All", exact: true }).click();
+    await expect.poll(() => new URL(page.url()).searchParams.get("status")).toBe("all");
+    expect(new URL(page.url()).searchParams.get("q")).toBe(searchQuery);
+    await expect(page.getByRole("link", { name: new RegExp(activeName) })).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: new RegExp(archivedName) }),
+    ).toBeVisible();
 
     await page.getByRole("button", { name: "Clear customer search" }).click();
     await expect.poll(() => new URL(page.url()).searchParams.has("q")).toBe(false);
-    expect(new URL(page.url()).searchParams.get("status")).toBe("archived");
-    await expect(page.getByRole("link", { name: new RegExp(archivedName) })).toBeVisible();
+    expect(new URL(page.url()).searchParams.get("status")).toBe("all");
+    await expect(page.getByText("Showing 10 of 15 customers.")).toBeVisible();
+
+    await page.goto("/customers?status=active");
+    const mobileActions = page.locator("[data-customers-mobile-actions]");
+    const addCustomerFab = mobileActions.getByRole("link", { name: "Add customer" });
+    const backToTop = mobileActions.locator('button[aria-label="Back to top"]');
+    const topAddCustomer = page.locator('a[href="/customers/new"]').first();
 
     for (const width of [320, 360, 375, 390, 430, 768, 1024, 1440]) {
       await page.setViewportSize({ width, height: width < 768 ? 900 : 1000 });
@@ -271,6 +383,97 @@ test.describe("customer management", () => {
         scrollWidth: document.documentElement.scrollWidth,
       }));
       expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth + 1);
+
+      if (width < 1024) {
+        await expect(topAddCustomer).toBeVisible();
+        await expect(mobileActions).toBeVisible();
+        await expect(addCustomerFab).toBeVisible();
+        const actionBox = await mobileActions.boundingBox();
+        const navigationBox = await page
+          .getByRole("navigation", { name: "Mobile vendor navigation" })
+          .boundingBox();
+        expect(actionBox).not.toBeNull();
+        expect(navigationBox).not.toBeNull();
+        expect(actionBox!.y + actionBox!.height).toBeLessThanOrEqual(navigationBox!.y);
+        expect(actionBox!.x + actionBox!.width).toBeLessThanOrEqual(width - 8);
+      } else {
+        await expect(mobileActions).toBeHidden();
+      }
     }
+
+    fs.mkdirSync("output/playwright/customers-mobile-actions", { recursive: true });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+    await expect(backToTop).toHaveAttribute("aria-hidden", "true");
+    await expect(page.locator('a[href="/customers/new"]')).toHaveCount(2);
+    await page.evaluate(() => {
+      document.querySelectorAll("nextjs-portal").forEach((element) => element.remove());
+    });
+    await page.screenshot({
+      path: "output/playwright/customers-mobile-actions/customers-top-390.png",
+    });
+
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    const scrolled390 = await page.evaluate(() => ({
+      scrollY: window.scrollY,
+      maxScroll: document.documentElement.scrollHeight - window.innerHeight,
+    }));
+    expect(scrolled390.scrollY).toBeGreaterThanOrEqual(scrolled390.maxScroll - 1);
+    await expect(backToTop).toHaveAttribute(
+      "aria-hidden",
+      scrolled390.maxScroll >= 480 ? "false" : "true",
+    );
+    await page.evaluate(() => {
+      document.querySelectorAll("nextjs-portal").forEach((element) => element.remove());
+    });
+    await page.screenshot({
+      path: "output/playwright/customers-mobile-actions/customers-scrolled-390.png",
+    });
+
+    await page.setViewportSize({ width: 320, height: 844 });
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    const scrolled320 = await page.evaluate(() => ({
+      scrollY: window.scrollY,
+      maxScroll: document.documentElement.scrollHeight - window.innerHeight,
+    }));
+    expect(scrolled320.scrollY).toBeGreaterThanOrEqual(scrolled320.maxScroll - 1);
+    await expect(backToTop).toHaveAttribute(
+      "aria-hidden",
+      scrolled320.maxScroll >= 480 ? "false" : "true",
+    );
+    await page.evaluate(() => {
+      document.querySelectorAll("nextjs-portal").forEach((element) => element.remove());
+    });
+    await page.screenshot({
+      path: "output/playwright/customers-mobile-actions/customers-scrolled-320.png",
+    });
+
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    const lastCustomerRow = page
+      .locator('a[href^="/customers/"]:not([href="/customers/new"])')
+      .last();
+    const lastCustomerBox = await lastCustomerRow.boundingBox();
+    const nextPageBox = await page.getByRole("link", { name: "Next" }).boundingBox();
+    const actionsBox = await mobileActions.boundingBox();
+    expect(lastCustomerBox).not.toBeNull();
+    expect(nextPageBox).not.toBeNull();
+    expect(actionsBox).not.toBeNull();
+    expect(lastCustomerBox!.y + lastCustomerBox!.height).toBeLessThanOrEqual(
+      actionsBox!.y,
+    );
+    expect(nextPageBox!.y + nextPageBox!.height).toBeLessThanOrEqual(actionsBox!.y);
+
+    if (scrolled320.maxScroll >= 480) {
+      await backToTop.click();
+      await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(10);
+      await expect(backToTop).toHaveAttribute("aria-hidden", "true");
+    } else {
+      await page.evaluate(() => window.scrollTo(0, 0));
+    }
+
+    await addCustomerFab.click();
+    await expect(page).toHaveURL(/\/customers\/new$/);
+    await expect(page.getByRole("heading", { name: "Add customer" })).toBeVisible();
   });
 });

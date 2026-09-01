@@ -2,6 +2,9 @@ import type { BookingCurrency } from "@/features/bookings/money";
 import type { BookingIssueCategory } from "@/features/feedback/validation";
 
 export const analyticsRangePresets = [
+  "last_7_days",
+  "last_3_months",
+  "last_6_months",
   "this_month",
   "last_month",
   "last_30_days",

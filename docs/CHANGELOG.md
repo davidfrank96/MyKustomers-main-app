@@ -1,5 +1,36 @@
 # Changelog
 
+## 2026-09-01 - UI Redesign And Current Main Reconciliation
+
+Status: IMPLEMENTED - LOCAL RELEASE GATE VERIFIED
+
+- Reconciled `ui/mobile-redesign` with current `origin/main` by a normal merge,
+  preserving the approved presentation while retaining main's authentication,
+  onboarding, tenant, admin, booking, logo, email, PWA, and security behavior.
+- Resolved all eight textual conflicts individually across Settings,
+  documentation, authentication/multi-business browser coverage, and
+  authorization/request-cache policy tests. No blanket side selection, reset,
+  rebase, force push, file deletion, migration, environment, dependency, or
+  infrastructure change was used.
+- Preserved the redesigned Settings membership presentation behind main's
+  current server-side vendor-workspace gate. Combined both branches' zero-
+  business, forged-cookie, revocation, multi-business, request-deduplication,
+  and safe-navigation assertions.
+- Corrected one reconciliation-only test defect: Insights fixtures had moved to
+  the real current UTC month while the redesigned custom-range check still
+  selected August 2026. The custom range now derives from the same current UTC
+  month, preserving the product implementation unchanged.
+- Local verification passed lint, route type generation, strict TypeScript, 608
+  unit/integration/static tests, 46 executable browser journeys, the complete
+  320-1440px responsive matrix, the production build, dependency audit, secret
+  scan, conflict-marker/diff hygiene, and representative visual inspection.
+  Twenty live-runtime tests and 15 browser cases retained their documented
+  protected-target or project guards.
+- The post-suite audit returned zero matching controlled businesses. It also
+  found and removed one stale August 25 platform-admin E2E user and two exact
+  dependent audit rows; the final business/Auth-user residue audit returned
+  zero. No production customer or business record was changed.
+
 ## 2026-09-01 - Authentication And Onboarding Integrity Hotfix
 
 Status: VERIFIED - LOCAL RELEASE GATE
@@ -33,6 +64,70 @@ Status: VERIFIED - LOCAL RELEASE GATE
   memberships before businesses, and the post-cleanup audit returned zero.
 - No database migration, environment, dependency, provider, Docker,
   infrastructure, public-capability, or production-data change is included.
+
+## 2026-08-31 - Master Release-Candidate Audit And Brand Consistency
+
+Status: IMPLEMENTED - LOCAL RELEASE GATE VERIFIED
+
+- Ran the existing `ui/mobile-redesign` worktree through core validation,
+  canonical browser journeys, the authenticated nine-width route matrix,
+  production-build bundle measurement, cold/warm navigation sampling,
+  dependency audit, cache/loading review, accessibility review, security
+  boundary review, and transactional-email smoke coverage.
+- Added the missing 1280x800 authenticated matrix width and made the dashboard
+  due-today fixture independent of the local time of day. The latter had caused
+  a correct post-4:30 PM overdue count to fail against a hard-coded test value.
+- Standardized all current runtime, public capability, installed-PWA, metadata,
+  admin, authentication, sharing-state, and current-documentation branding on
+  `My Kustomers`, `MyKustomers.com`, and the `MK` mark. Internal package names,
+  database identifiers, and protocol headers remain unchanged.
+- Preserved request-scoped tenant/auth deduplication, non-cacheable capability
+  routes, default Next.js prefetch, route streaming, lifecycle rules, payment
+  integrity, RLS, and service-role boundaries. No schema, migration, dependency,
+  environment, deployment, production-data, or infrastructure change is included.
+- Measured before considering optimization. The current route client JavaScript
+  remains 70.9-108.9 KiB gzip for the primary vendor surfaces, cold local LCP was
+  344-880 ms, and the constrained 1.2 Mbps mobile samples remained visually
+  stable. No speculative performance rewrite was justified.
+
+## 2026-08-31 - Operational Timeline Presentation Redesign
+
+Status: IMPLEMENTED - BRANCH REVIEW PENDING
+
+- Refactored the existing Booking-detail Operational timeline into a compact,
+  semantic vertical timeline with aligned nodes, adaptive connectors,
+  type-appropriate Lucide icons, an informational callout, real timestamps, and
+  accurate booking-activity helper copy.
+- Preserved the existing dynamic event count, human labels, optional detail,
+  oldest-to-newest ordering, empty state, disclosure behavior, and all current
+  status, reschedule, amendment, and add-on records.
+- Added focused integration coverage plus canonical mixed-event responsive and
+  screenshot gates across 320, 360, 375, 390, 430, 768, 1024, and 1440 pixels.
+- No event generation, lifecycle, confirmation, payment, delivery, feedback,
+  issue, authorization, tenant, RLS, database, API, or infrastructure behavior
+  changed.
+
+## 2026-08-28 - Approved Mobile Workspace Redesign
+
+Status: IMPLEMENTED - BRANCH REVIEW PENDING
+
+- Applied the locked mobile redesign references to Dashboard, Bookings, Booking
+  detail, Customers, Insights, Business, and Add another business while keeping
+  the repository as the functional source of truth.
+- Added shared compact workspace page/section primitives, grouped list rows,
+  progressive booking filters, an action-first booking journey, consistent
+  neutral surfaces, and a compact authenticated shell with exactly five primary
+  mobile destinations.
+- Preserved all existing booking lifecycle, confirmation, payment, customer,
+  analytics, business-switching, onboarding, logo, pagination, search,
+  authorization, and multi-tenant behavior. No generated-reference-only feature
+  was added.
+- Added focused component/policy coverage and a self-cleaning controlled E2E
+  matrix across seven routes and 320, 360, 375, 390, and 430 pixels, including
+  long identifiers, long names, large NGN values, and expanded booking detail.
+- No database, migration, environment, dependency, API, security-policy,
+  infrastructure, production-data, or deployment change is included. The branch
+  is intentionally unmerged pending visual review.
 
 ## 2026-08-27 - Sentry Production Observability
 

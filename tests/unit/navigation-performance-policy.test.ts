@@ -62,7 +62,7 @@ describe("authenticated navigation performance policy", () => {
   it("starts layout auth and tenant resolution together while retaining request caching", () => {
     expect(dashboardLayout).toContain('requireVendorWorkspace("/dashboard")');
     expect(fs.readFileSync("lib/auth/server.ts", "utf8")).toContain(
-      "await Promise.all([",
+      "const [user, context] = await Promise.all([",
     );
   });
 
@@ -98,7 +98,7 @@ describe("authenticated navigation performance policy", () => {
       ["app/(dashboard)/bookings/loading.tsx", "Bookings"],
       ["app/(dashboard)/customers/loading.tsx", "Customers"],
       ["app/(dashboard)/insights/loading.tsx", "Insights"],
-      ["app/(dashboard)/business/loading.tsx", "Business profile"],
+      ["app/(dashboard)/business/loading.tsx", "Business"],
       ["app/(dashboard)/bookings/[bookingId]/loading.tsx", "Booking details"],
       ["app/(dashboard)/customers/[customerId]/loading.tsx", "Customer details"],
     ]) {

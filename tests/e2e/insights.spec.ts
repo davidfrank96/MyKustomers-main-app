@@ -29,8 +29,8 @@ loadLocalEnv();
 
 const hasSupabaseEnv = Boolean(
   process.env.NEXT_PUBLIC_SUPABASE_URL &&
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY &&
-    process.env.SUPABASE_SERVICE_ROLE_KEY,
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY &&
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
 );
 
 const createdEmails = new Set<string>();
@@ -79,6 +79,17 @@ function currentMonthTimestamp(hour: number) {
   return new Date(
     Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), hour),
   ).toISOString();
+}
+
+function currentMonthDateRange() {
+  const now = new Date();
+  const year = now.getUTCFullYear();
+  const month = now.getUTCMonth();
+
+  return {
+    from: new Date(Date.UTC(year, month, 1)).toISOString().slice(0, 10),
+    to: new Date(Date.UTC(year, month + 1, 0)).toISOString().slice(0, 10),
+  };
 }
 
 async function seedInsightsBusiness({
@@ -146,7 +157,7 @@ async function seedInsightsBusiness({
       title: "Phase 9 Completed Insight",
       description: "Analytics fixture",
       currency: "NGN",
-      total_amount_minor: 120_000,
+      total_amount_minor: 1_000_000_428_000_000,
       deposit_amount_minor: 20_000,
       status: "COMPLETED",
       scheduled_for: currentMonthTimestamp(10),
@@ -185,15 +196,13 @@ async function seedInsightsBusiness({
   expect(eurError).toBeNull();
   expect(eurCompleted?.id).toBeTruthy();
 
-  const { error: otherBusinessError } = await admin
-    .from("businesses")
-    .insert({
-      name: "Phase 9 Hidden Business",
-      slug: `${slug}-hidden`,
-      category: "Other",
-      onboarding_completed_at: new Date().toISOString(),
-      created_by: userData.user!.id,
-    });
+  const { error: otherBusinessError } = await admin.from("businesses").insert({
+    name: "Phase 9 Hidden Business",
+    slug: `${slug}-hidden`,
+    category: "Other",
+    onboarding_completed_at: new Date().toISOString(),
+    created_by: userData.user!.id,
+  });
   expect(otherBusinessError).toBeNull();
   createdBusinessSlugs.add(`${slug}-hidden`);
 
@@ -223,7 +232,10 @@ async function seedInsightsBusiness({
   expect(feedbackError).toBeNull();
 
   const appClient = createAppClient();
-  const { error: signInError } = await appClient.auth.signInWithPassword({ email, password });
+  const { error: signInError } = await appClient.auth.signInWithPassword({
+    email,
+    password,
+  });
   expect(signInError).toBeNull();
   const { error: issueError } = await appClient.from("booking_issues").insert({
     business_id: business!.id,
@@ -259,7 +271,10 @@ test.describe("business insights", () => {
           await admin.from("booking_issues").delete().in("booking_id", bookingIds);
           await admin.from("feedback").delete().in("booking_id", bookingIds);
           await admin.from("feedback_links").delete().in("booking_id", bookingIds);
-          await admin.from("booking_status_history").delete().in("booking_id", bookingIds);
+          await admin
+            .from("booking_status_history")
+            .delete()
+            .in("booking_id", bookingIds);
           await admin.from("booking_changes").delete().in("booking_id", bookingIds);
         }
 
@@ -284,6 +299,11 @@ test.describe("business insights", () => {
   test("authenticated business member can view tenant analytics", async ({
     page,
   }, testInfo) => {
+    test.skip(
+      testInfo.project.name !== "chromium",
+      "The explicit responsive matrix runs once.",
+    );
+
     const email = testEmail(testInfo.project.name);
     const password = `Phase9-E2E-${randomUUID()}-A1`;
     const slug = `phase9-e2e-insights-${Date.now()}-${randomUUID().slice(0, 8)}`;
@@ -293,18 +313,25 @@ test.describe("business insights", () => {
 
     await page.goto("/login");
     await page.getByLabel("Email").fill(email);
-    await page.getByLabel("Password").fill(password);
+    await page.getByLabel("Password", { exact: true }).fill(password);
     await page.getByRole("button", { name: "Log in" }).click();
     await expect(page).toHaveURL(/\/dashboard/);
 
-    await page.goto("/insights?range=this_month");
+    await page.goto("/insights?range=last_30_days");
     await expect(page.getByRole("heading", { name: "Insights" })).toBeVisible();
-    await expect(page.getByText("Private business insights")).toBeVisible();
+    await expect(
+      page.getByText("Private metrics calculated from saved business records."),
+    ).toBeVisible();
     const completedBookingsCard = page
       .getByRole("heading", { name: "Completed bookings" })
-      .locator("../..");
+      .locator("..")
+      .locator("..");
     await expect(completedBookingsCard.getByText("2", { exact: true })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Recorded booking value" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Recorded booking value" }),
+    ).toBeVisible();
+    const largeNgnValue = page.getByText("₦10,000,004,280,000").first();
+    await expect(largeNgnValue).toBeVisible();
     await expect(page.getByText("NGN", { exact: true }).first()).toBeVisible();
     await expect(page.getByText("EUR", { exact: true }).first()).toBeVisible();
     await expect(page.getByText("GBP", { exact: true })).toHaveCount(0);
@@ -314,10 +341,172 @@ test.describe("business insights", () => {
     await expect(page.getByText("Late delivery")).toBeVisible();
     await expect(page.getByText("Phase 9 Hidden Business")).toHaveCount(0);
 
-    await page.getByLabel("Range").selectOption("last_month");
+    const outputDirectory = "output/playwright/insights-redesign";
+    fs.mkdirSync(outputDirectory, { recursive: true });
+    const viewportMatrix = [
+      { width: 320, height: 568 },
+      { width: 360, height: 800 },
+      { width: 375, height: 812 },
+      { width: 390, height: 844 },
+      { width: 430, height: 932 },
+      { width: 768, height: 1024 },
+      { width: 1024, height: 768 },
+      { width: 1440, height: 900 },
+    ];
+    const screenshotWidths = new Set([320, 360, 390, 430, 768, 1024, 1440]);
+    const customerScroller = page.locator('[data-insights-scroller="customer-activity"]');
+
+    for (const viewport of viewportMatrix) {
+      await page.setViewportSize(viewport);
+      await page.evaluate(() => window.scrollTo(0, 0));
+
+      const documentDimensions = await page.evaluate(() => ({
+        clientWidth: document.documentElement.clientWidth,
+        scrollWidth: document.documentElement.scrollWidth,
+      }));
+      expect(documentDimensions.scrollWidth).toBeLessThanOrEqual(
+        documentDimensions.clientWidth + 1,
+      );
+
+      const scrollerDimensions = await customerScroller.evaluate((element) => ({
+        clientWidth: element.clientWidth,
+        scrollWidth: element.scrollWidth,
+      }));
+      if (viewport.width < 640) {
+        expect(scrollerDimensions.scrollWidth).toBeGreaterThan(
+          scrollerDimensions.clientWidth,
+        );
+        const scrollerBox = await customerScroller.boundingBox();
+        const secondCardBox = await customerScroller
+          .locator("[data-insights-metric]")
+          .nth(1)
+          .boundingBox();
+        expect(scrollerBox).not.toBeNull();
+        expect(secondCardBox).not.toBeNull();
+        expect(secondCardBox!.x).toBeLessThan(scrollerBox!.x + scrollerBox!.width);
+        expect(secondCardBox!.x + secondCardBox!.width).toBeGreaterThan(
+          scrollerBox!.x + scrollerBox!.width,
+        );
+      } else {
+        expect(scrollerDimensions.scrollWidth).toBeLessThanOrEqual(
+          scrollerDimensions.clientWidth + 1,
+        );
+      }
+
+      const largeValueFits = await largeNgnValue.evaluate(
+        (element) => element.scrollWidth <= element.clientWidth + 1,
+      );
+      expect(largeValueFits).toBe(true);
+
+      if (viewport.width < 1024) {
+        const mobileNavigation = page.getByRole("navigation", {
+          name: "Mobile vendor navigation",
+        });
+        await expect(mobileNavigation).toBeVisible();
+        await expect(
+          mobileNavigation.getByRole("link", { name: "Insights" }),
+        ).toBeVisible();
+      }
+
+      if (screenshotWidths.has(viewport.width)) {
+        await page.evaluate(() => {
+          document
+            .querySelectorAll("nextjs-portal")
+            .forEach((element) => element.remove());
+        });
+        await page.screenshot({
+          path: `${outputDirectory}/insights-${viewport.width}.png`,
+        });
+        if (viewport.width === 390) {
+          await page.screenshot({
+            path: `${outputDirectory}/insights-top-390.png`,
+          });
+        }
+      }
+    }
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    const sectionScreenshots = [
+      {
+        name: "customer-activity",
+        locator: page.locator('[data-insights-scroller="customer-activity"]'),
+      },
+      {
+        name: "bookings-value",
+        locator: page.locator('[data-insights-scroller="bookings-value"]'),
+      },
+      { name: "booking-trend", locator: page.locator("[data-booking-trend]") },
+      {
+        name: "operations",
+        locator: page
+          .getByRole("heading", { name: "Operations", exact: true })
+          .locator(".."),
+      },
+      {
+        name: "feedback",
+        locator: page
+          .getByRole("heading", { name: "Feedback", exact: true })
+          .locator(".."),
+      },
+      {
+        name: "issues",
+        locator: page.getByRole("heading", { name: "Issues", exact: true }).locator(".."),
+      },
+    ];
+    const sectionScreenshotStyles = await page.addStyleTag({
+      content: `nav[aria-label="Mobile vendor navigation"] { display: none !important; }`,
+    });
+    for (const screenshot of sectionScreenshots) {
+      await screenshot.locator.screenshot({
+        path: `${outputDirectory}/${screenshot.name}-390.png`,
+      });
+    }
+    await sectionScreenshotStyles.evaluate((element) =>
+      element.parentNode?.removeChild(element),
+    );
+
+    await page
+      .getByRole("heading", { name: "Bookings & value", exact: true })
+      .evaluate((element) => element.scrollIntoView({ block: "start" }));
+    await page.screenshot({
+      path: `${outputDirectory}/insights-middle-390.png`,
+    });
+    await page
+      .getByRole("heading", { name: "Issues", exact: true })
+      .evaluate((element) => element.scrollIntoView({ block: "start" }));
+    await page.screenshot({
+      path: `${outputDirectory}/insights-bottom-390.png`,
+    });
+    await page.evaluate(() => window.scrollTo(0, 0));
+
+    for (const preset of [
+      { label: "7D", value: "last_7_days" },
+      { label: "30D", value: "last_30_days" },
+      { label: "3M", value: "last_3_months" },
+      { label: "6M", value: "last_6_months" },
+    ]) {
+      await page.getByRole("link", { name: preset.label, exact: true }).click();
+      await expect(page).toHaveURL(new RegExp(`range=${preset.value}`));
+      await expect(page.getByRole("heading", { name: "Insights" })).toBeVisible();
+    }
+
+    await page.getByRole("button", { name: "Custom" }).click();
+    await expect(page.getByLabel("From", { exact: true })).toBeVisible();
+    await expect(page.getByLabel("To", { exact: true })).toBeVisible();
+    await page.locator("[data-insights-custom-range]").screenshot({
+      path: `${outputDirectory}/custom-range-expanded-390.png`,
+    });
+    const customRange = currentMonthDateRange();
+    await page.getByLabel("From", { exact: true }).fill(customRange.from);
+    await page.getByLabel("To", { exact: true }).fill(customRange.to);
     await page.getByRole("button", { name: "Apply" }).click();
-    await expect(page).toHaveURL(/range=last_month/);
-    await expect(page.locator("span").filter({ hasText: /^Last month$/ })).toBeVisible();
-    await expect(page.getByText("No completed bookings in this period.")).toBeVisible();
+    await expect(page).toHaveURL(/range=custom/);
+    await expect(page).toHaveURL(new RegExp(`from=${customRange.from}`));
+    await expect(page).toHaveURL(new RegExp(`to=${customRange.to}`));
+    await expect(largeNgnValue).toBeVisible();
+
+    await page.getByRole("link", { name: "30D", exact: true }).click();
+    await expect(page).toHaveURL(/range=last_30_days/);
+    await expect(page.getByLabel("From", { exact: true })).toHaveCount(0);
   });
 });

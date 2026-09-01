@@ -2,7 +2,7 @@
 
 STATUS: ADMIN PHASES 0/1-6A VERIFIED IN PRODUCTION
 
-This document defines the security boundary for My Customers platform
+This document defines the security boundary for My Kustomers platform
 administration. It is intentionally narrower than a complete admin-console
 design. The only implemented operational capability is read-only. Admin Phase
 6A adds native MFA and a privileged-action security framework, but no admin
@@ -13,7 +13,7 @@ this work.
 
 `business_members` authorizes access to one business tenant.
 
-`platform_admins` authorizes access to the My Customers platform-admin
+`platform_admins` authorizes access to the My Kustomers platform-admin
 namespace.
 
 Neither system grants the other automatically. Owning one or many businesses

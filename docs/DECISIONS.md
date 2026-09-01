@@ -16,7 +16,7 @@ Status: Accepted
 
 Date: 2026-08-18
 
-Context: My Customers is early-stage and does not yet have operational pressure requiring separately deployed services.
+Context: My Kustomers is early-stage and does not yet have operational pressure requiring separately deployed services.
 
 Decision: Use a modular monolith rather than microservices.
 
@@ -34,7 +34,7 @@ Date: 2026-08-18
 
 Context: Primary users are small-business operators who often work from phones.
 
-Decision: Build My Customers as a responsive web application / PWA first. Native mobile applications are not part of V1.
+Decision: Build My Kustomers as a responsive web application / PWA first. Native mobile applications are not part of V1.
 
 Rationale: A web/PWA approach reaches mobile and desktop users with one codebase and lower release overhead.
 
@@ -82,7 +82,7 @@ Date: 2026-08-18
 
 Context: Business customers are usually people interacting through informal sales channels.
 
-Decision: Customers are business-owned records and do not normally authenticate into My Customers.
+Decision: Customers are business-owned records and do not normally authenticate into My Kustomers.
 
 Rationale: Customer-facing flows should stay lightweight and link-based.
 
@@ -131,9 +131,9 @@ Status: Accepted
 
 Date: 2026-08-18
 
-Context: My Customers will eventually need subscription billing for vendors.
+Context: My Kustomers will eventually need subscription billing for vendors.
 
-Decision: My Customers subscription billing is separate from business customer transactions.
+Decision: My Kustomers subscription billing is separate from business customer transactions.
 
 Rationale: Platform subscription billing and vendor/customer payments have different responsibilities and risk profiles.
 
@@ -163,7 +163,7 @@ Status: Accepted
 
 Date: 2026-08-18
 
-Context: Customers should not need My Customers accounts for booking confirmation or feedback.
+Context: Customers should not need My Kustomers accounts for booking confirmation or feedback.
 
 Decision: Customer booking confirmation and feedback interactions use scoped web links rather than requiring customer accounts.
 
@@ -478,7 +478,7 @@ Status: Accepted
 Date: 2026-08-19
 
 Context: Phase 8 needs customers to submit private feedback after a booking is
-completed without creating My Customers accounts. Confirmation tokens already
+completed without creating My Kustomers accounts. Confirmation tokens already
 exist, but confirmation and feedback authorize different actions and happen at
 different lifecycle stages.
 

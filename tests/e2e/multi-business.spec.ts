@@ -95,10 +95,10 @@ test.describe("multi-business account support", () => {
 
       await page.goto("/login");
       await page.getByLabel("Email").fill(email);
-      await page.getByLabel("Password").fill(password);
+      await page.getByLabel("Password", { exact: true }).fill(password);
       await page.getByRole("button", { name: "Log in" }).click();
       await expect(page).toHaveURL(/\/dashboard$/);
-      await page.goto("/business");
+      await page.goto("/settings#my-businesses");
 
       const memberships = page.getByRole("list", {
         name: "Active business memberships",
@@ -112,9 +112,7 @@ test.describe("multi-business account support", () => {
 
       await page.getByRole("link", { name: "Add another business" }).click();
       await expect(page).toHaveURL(/\/business\/new$/);
-      await expect(
-        page.getByRole("heading", { name: "Add another business" }),
-      ).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Create business" })).toBeVisible();
     } finally {
       if (businessId) {
         await admin.from("business_members").delete().eq("business_id", businessId);
@@ -268,7 +266,7 @@ test.describe("multi-business account support", () => {
     try {
       await page.goto("/login");
       await page.getByLabel("Email").fill(email);
-      await page.getByLabel("Password").fill(password);
+      await page.getByLabel("Password", { exact: true }).fill(password);
       await page.getByRole("button", { name: "Log in" }).click();
       await expect(page).toHaveURL(/\/dashboard/);
       await expect(
@@ -298,7 +296,7 @@ test.describe("multi-business account support", () => {
       await expect(page.getByRole("heading", { name: bookingBTitle })).toBeVisible();
       await expect(page.getByText(bookingATitle)).toHaveCount(0);
 
-      await page.goto("/business");
+      await page.goto("/settings#my-businesses");
       const membershipList = page.getByRole("list", {
         name: "Active business memberships",
       });
@@ -322,7 +320,7 @@ test.describe("multi-business account support", () => {
         }),
       ).toBeVisible();
 
-      await page.goto("/business");
+      await page.goto("/settings#my-businesses");
       await expect(
         page
           .getByRole("list", { name: "Active business memberships" })
@@ -330,6 +328,8 @@ test.describe("multi-business account support", () => {
           .filter({ hasText: businessAName })
           .getByText("Current business", { exact: true }),
       ).toBeVisible();
+      await page.goto("/business");
+      await page.getByRole("button", { name: /Business information/ }).click();
       await expect(page.getByLabel("Business name")).toBeEnabled();
 
       await page.context().addCookies([
@@ -349,7 +349,7 @@ test.describe("multi-business account support", () => {
         }),
       ).toBeVisible();
 
-      await page.goto("/business");
+      await page.goto("/settings#my-businesses");
       const forgedForm = page
         .getByRole("list", { name: "Active business memberships" })
         .getByRole("listitem")
@@ -368,7 +368,9 @@ test.describe("multi-business account support", () => {
         businessIdInput.value = businessId;
         (form as HTMLFormElement).requestSubmit(submitter);
       }, businessCId);
-      await expect(page).toHaveURL(/\/dashboard\?business=unavailable$/);
+      await expect(page).toHaveURL(
+        /\/dashboard\?business=unavailable(?:#my-businesses)?$/,
+      );
       await expect(
         page.getByRole("button", {
           name: `Switch business. Current business: ${businessAName}`,
@@ -440,7 +442,7 @@ test.describe("multi-business account support", () => {
           await page.setViewportSize({ width, height: width < 768 ? 900 : 1000 });
           await page.goto("/dashboard");
           await expectNoOverflow(page);
-          await page.goto("/business");
+          await page.goto("/settings#my-businesses");
           await expect(
             page.getByRole("heading", { name: "My businesses" }),
           ).toBeVisible();
@@ -468,9 +470,7 @@ test.describe("multi-business account support", () => {
       await admin.from("business_members").delete().eq("user_id", userData.user!.id);
       await page.getByRole("button", { name: "Create customer" }).click();
       await expect(page).toHaveURL(/\/onboarding$/);
-      await expect(
-        page.getByRole("heading", { name: "Set up your business" }),
-      ).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Create business" })).toBeVisible();
 
       await page.context().addCookies([
         {
@@ -484,9 +484,7 @@ test.describe("multi-business account support", () => {
       ]);
       await page.goto("/dashboard");
       await expect(page).toHaveURL(/\/onboarding$/);
-      await expect(
-        page.getByRole("heading", { name: "Set up your business" }),
-      ).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Create business" })).toBeVisible();
       await expect(
         page.getByRole("navigation", { name: "Vendor navigation" }),
       ).toHaveCount(0);

@@ -36,9 +36,10 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   return (
     <AuthForm
       title="Log in"
-      description="Access your My Customers workspace."
+      description="Access your My Kustomers workspace."
       action={loginAction}
       submitLabel="Log in"
+      presentation="mobile"
       hiddenFields={{ next }}
       googleAuth={{ enabled: googleAuthEnabled, next }}
       message={params.message ? messages[params.message] : undefined}
@@ -49,6 +50,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           type: "email",
           autoComplete: "email",
           required: true,
+          placeholder: "Enter your email address",
         },
         {
           name: "password",
@@ -56,6 +58,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           type: "password",
           autoComplete: "current-password",
           required: true,
+          placeholder: "Enter your password",
         },
       ]}
       footer={
@@ -64,7 +67,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             Forgot your password?
           </Link>
           <span>
-            New to My Customers?{" "}
+            New to My Kustomers?{" "}
             <Link href={"/signup" as Route} className="font-medium text-primary">
               Create an account
             </Link>

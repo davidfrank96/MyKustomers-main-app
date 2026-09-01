@@ -10,6 +10,78 @@ signup confirmation and reset-password completion remain PARTIAL because they
 require a controlled inbox and Supabase default-email delivery; those exceptions
 do not reduce the verified tenant/RLS coverage.
 
+## 2026-09-01 UI/Main Reconciliation Release Gate
+
+The normal merge of current `origin/main` into `ui/mobile-redesign` was checked
+as one integrated release candidate. All eight textual conflicts were resolved
+file by file, and the staged result was audited against main for authorization,
+tenant isolation, onboarding, logo, booking, email, PWA, admin, public
+capability, and observability preservation. No migration, generated database
+type, dependency, environment, Next.js/Vercel configuration, or route was
+removed or added by the reconciliation.
+
+The first full browser run caught one test-only integration defect: main's
+Insights fixture uses the real current UTC month, while the redesign's custom
+range still selected August 2026. The range now derives its first and last dates
+from the current UTC month. The focused Insights rerun and the complete browser
+suite then passed.
+
+Final local evidence:
+
+- Lint, route type generation, strict TypeScript, production build, staged diff
+  hygiene, conflict-marker scan, tracked-secret scan, and dependency audit:
+  PASS. `npm audit` reports zero vulnerabilities.
+- Vitest: 117 files / 608 tests passed; 20 protected live-runtime files/tests
+  skipped (137 files / 628 tests total).
+- Playwright: 46 journeys passed; 15 documented project/target-guarded journeys
+  skipped (61 total). The executable coverage includes authentication and
+  onboarding gates, multi-business isolation/revocation, booking lifecycle,
+  customers, Insights, approved redesign screens, public routes, and
+  Chromium/Pixel-class/WebKit PWA reliability.
+- Responsive coverage: 320x568, 360x800, 375x812, 390x844, 430x932, 768x1024,
+  1024x768, 1280x800, and 1440x900 where applicable. Representative 390px and
+  1440px screenshots were inspected after the passing run.
+- Protected Runtime Security: 20 files/tests skipped because the explicit
+  non-production target guard was not enabled; this is recorded as guarded,
+  not executed evidence.
+- Independent cleanup: zero matching controlled businesses; one stale August
+  25 platform-admin E2E user and its two exact audit rows were removed; the
+  final audit returned zero matching businesses and zero matching Auth users.
+
+## 2026-08-31 Branch Release Gate
+
+The master release-candidate audit covers the complete dirty
+`ui/mobile-redesign` worktree without merging, pushing, deploying, applying a
+migration, or touching production data. The release matrix now includes
+320x568, 360x800, 375x812, 390x844, 430x932, 768x1024, 1024x768, 1280x800, and
+1440x900 across eleven authenticated routes. Public homepage, authentication,
+confirmation, feedback, amendment, add-on, onboarding, customer, booking,
+business, Insights, and PWA reliability coverage remains in the canonical suite.
+
+The first full Chromium/WebKit/browser run exposed one audit-fixture defect:
+the due-today booking was fixed at 4:30 PM and correctly became overdue when the
+suite ran later that evening, while the assertion remained hard-coded to seven.
+The fixture now uses the end of the current day. The focused nine-width route
+matrix passes with the correct seven-overdue result and fresh screenshots.
+
+Release-specific focused checks pass:
+
+- Brand/confirmation/feedback component and metadata coverage: 36/36.
+- Transactional email/provider/retry/boundary smoke: 52/52.
+- Dependency audit: zero known vulnerabilities at `moderate` or higher (and
+  `npm audit` reports zero vulnerabilities overall).
+- Protected live Runtime Security: 20 files/tests skipped because the explicit
+  non-production target guard is not enabled; static security and canonical
+  disposable-fixture security paths remain executable in the normal suites.
+- Final lint, typecheck, production build, and diff hygiene: PASS.
+- Final Vitest: 115 files / 599 tests passed; 20 guarded runtime files/tests
+  skipped (135 files / 619 tests total).
+- Final Playwright: 42 journeys passed; 15 project/configuration-gated journeys
+  skipped (57 total). This includes desktop/mobile canonical booking and feedback,
+  the nine-width authenticated matrix, public responsive/branding, auth,
+  onboarding, customers, Insights, multi-business isolation, and Chromium/WebKit
+  PWA reliability.
+
 ## Authentication And Onboarding Integrity Matrix
 
 The provider-independent regression suite covers password and shared OAuth
@@ -1069,6 +1141,35 @@ and fixture cleanup passed against merge commit `d2f55fd`.
   checks every response, and then deletes the Auth user. Silent cleanup failure
   is a test failure. The final production audit found zero controlled PWA
   businesses, customers, bookings, or Auth users.
+
+## Approved Mobile Redesign Coverage
+
+- `tests/integration/workspace-page.test.tsx` verifies the shared page and
+  section primitives retain semantic headings, actions, and descriptions.
+- `tests/integration/dashboard-navigation.test.tsx` locks the authenticated
+  mobile navigation to the five approved, existing destinations and preserves
+  accessible current/pending state.
+- `tests/unit/mobile-redesign-policy.test.ts` prevents unsupported design-only
+  product concepts, locks the progressive booking-filter set, verifies shared
+  workspace usage across approved routes, and preserves the real 5 MiB logo
+  source policy.
+- `tests/e2e/mobile-redesign.spec.ts` creates one isolated controlled tenant and
+  verifies all seven approved routes at 320, 360, 375, 390, and 430 pixels. It
+  asserts the authenticated shell is complete, all data has left its structural
+  loading state, there is no horizontal document overflow, exactly five mobile
+  navigation items render, and booking detail can expand without distortion.
+- The visual test generates 35 viewport captures, seven complete 390-pixel page
+  captures, and one expanded Booking-detail capture under ignored
+  `test-results/mobile-redesign`. Fixture rows and the temporary Auth user are
+  removed in `finally`; no production customer or business is used.
+- The redesign changes presentation only. Existing unit, integration, runtime
+  security, E2E, and build gates remain mandatory regression evidence.
+- Operational timeline integration coverage preserves authoritative DOM order,
+  mixed status/reschedule/add-on presentation, optional detail, real `time`
+  semantics, long-title wrapping, the empty state, and dynamic singular/plural
+  counts. The canonical booking E2E adds a 16-event mixed timeline, disclosure
+  ARIA checks, expanded/collapsed screenshots, and the full 320-1440 overflow
+  matrix without changing event generation or lifecycle actions.
 
 ## Sentry Observability Verification
 

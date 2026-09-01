@@ -18,6 +18,6 @@ export function buildPublicAmendmentMetadata({
     title: (safeName) => `Review an update to your booking with ${safeName}`,
     description: (safeName) =>
       `${safeName} has proposed changes for your review and confirmation.`,
-    imageAlt: "My Customers secure booking update",
+    imageAlt: "My Kustomers secure booking update",
   });
 }

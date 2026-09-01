@@ -28,8 +28,8 @@ loadLocalEnv();
 
 const hasSupabaseEnv = Boolean(
   process.env.NEXT_PUBLIC_SUPABASE_URL &&
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY &&
-    process.env.SUPABASE_SERVICE_ROLE_KEY,
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY &&
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
 );
 
 const createdEmails = new Set<string>();
@@ -141,9 +141,9 @@ test.describe("Supabase authentication journeys", () => {
     await page.getByLabel("Confirm password").fill(password);
     await page.getByRole("button", { name: "Create account" }).click();
 
-    const successState = page.getByText(/check your email|authenticated workspace/i).or(
-      page.getByRole("heading", { name: "Dashboard" }),
-    );
+    const successState = page
+      .getByText(/check your email|authenticated workspace/i)
+      .or(page.getByRole("heading", { name: "Welcome back" }));
     const providerLimitOrGenericError = page.getByText(
       /Too many attempts\. Please wait and try again\.|Something went wrong\. Please try again\./,
     );
@@ -202,15 +202,15 @@ test.describe("Supabase authentication journeys", () => {
 
     await page.goto("/login");
     await page.getByLabel("Email").fill(email);
-    await page.getByLabel("Password").fill(password);
+    await page.getByLabel("Password", { exact: true }).fill(password);
     await page.getByRole("button", { name: "Log in" }).click();
 
     await expect(page).toHaveURL(/\/onboarding/);
-    await expect(page.getByRole("heading", { name: "Set up your business" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Create business" })).toBeVisible();
 
     await page.reload();
     await expect(page).toHaveURL(/\/onboarding/);
-    await expect(page.getByRole("heading", { name: "Set up your business" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Create business" })).toBeVisible();
 
     await page.goto("/logout");
     await page.getByRole("button", { name: "Log out" }).click();
@@ -272,9 +272,7 @@ test.describe("Supabase authentication journeys", () => {
     ]) {
       await page.goto(path);
       await expect(page).toHaveURL(/\/onboarding$/);
-      await expect(
-        page.getByRole("heading", { name: "Set up your business" }),
-      ).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Create business" })).toBeVisible();
     }
   });
 
@@ -291,9 +289,7 @@ test.describe("Supabase authentication journeys", () => {
     await page.getByRole("button", { name: "Log in" }).click();
 
     await expect(page).toHaveURL(/\/onboarding$/);
-    await expect(
-      page.getByRole("heading", { name: "Set up your business" }),
-    ).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Create business" })).toBeVisible();
     await expect(page.getByRole("navigation", { name: "Vendor navigation" })).toHaveCount(
       0,
     );
@@ -331,7 +327,7 @@ test.describe("Supabase authentication journeys", () => {
 
     await page.goto("/login");
     await page.getByLabel("Email").fill(email);
-    await page.getByLabel("Password").fill(password);
+    await page.getByLabel("Password", { exact: true }).fill(password);
     await page.getByRole("button", { name: "Log in" }).click();
     await expect(page).toHaveURL(/\/onboarding/);
   });
@@ -394,7 +390,9 @@ test.describe("Supabase authentication journeys", () => {
     }
   });
 
-  test("invalid login and forgot password responses are safe", async ({ page }, testInfo) => {
+  test("invalid login and forgot password responses are safe", async ({
+    page,
+  }, testInfo) => {
     const email = testEmail("missing", testInfo.project.name);
 
     await page.goto("/auth/callback?next=%E0%A4%A");
@@ -405,7 +403,7 @@ test.describe("Supabase authentication journeys", () => {
 
     await page.goto("/login?next=https://attacker.example");
     await page.getByLabel("Email").fill(email);
-    await page.getByLabel("Password").fill("WrongPassword1");
+    await page.getByLabel("Password", { exact: true }).fill("WrongPassword1");
     await page.getByRole("button", { name: "Log in" }).click();
     await expect(page.getByText("We could not verify those credentials.")).toBeVisible();
     await expect(

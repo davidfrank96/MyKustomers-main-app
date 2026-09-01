@@ -1,15 +1,17 @@
 # Design System
 
-STATUS: PLANNED AND PARTIALLY IMPLEMENTED
+STATUS: IMPLEMENTED, WITH APPROVED MOBILE REDESIGN UNDER BRANCH REVIEW
 
-Phase 1 implemented foundational UI primitives and responsive shells. Full brand and product UI are still planned.
+Phase 1 implemented foundational UI primitives and responsive shells. The
+current brand and approved mobile workspace system are implemented; future work
+may refine them without changing the product name or domain contract.
 Phases 3 through 9.5 add verified product workflows for onboarding, customers,
 bookings, customer confirmation links, operational booking lifecycle, private
 feedback, operational issues, business insights, and product UX refinement.
 
 ## Design Philosophy
 
-My Customers should feel:
+My Kustomers should feel:
 
 - Modern.
 - Premium.
@@ -29,6 +31,16 @@ Avoid:
 - Overloaded cards.
 - Tiny touch targets.
 - Dense enterprise UI.
+
+## Brand And Domain
+
+- The product name rendered to users is `My Kustomers`.
+- The public domain attribution is `MyKustomers.com`; `MyCustomers.com` must not
+  appear in product UI, public pages, email copy, metadata, or screenshots.
+- Compact application marks use `MK`. Business-logo fallbacks continue to use
+  the business name's own initials.
+- Internal package names, database identifiers, migration history, and protocol
+  header names are implementation details and must not leak into user-facing copy.
 
 ## Responsive Behavior
 
@@ -66,7 +78,33 @@ Current structural rules:
   stale tenant data must never remain visually presented as the selected tenant.
 
 Required viewport and route evidence is recorded in `docs/RESPONSIVE_QA.md`.
-These rules stabilize the current design and do not start the broad redesign.
+
+## Approved Mobile Workspace System
+
+The `ui/mobile-redesign` branch applies the approved mobile redesign package to
+the existing product without changing domain behavior. The repository remains
+the functional source of truth; generated references cannot introduce fields,
+actions, routes, lifecycle states, or analytics that the product does not
+support.
+
+The mobile workspace uses:
+
+- one compact authenticated shell with exactly five primary destinations;
+- `WorkspacePage`, `WorkspacePageHeader`, and `WorkspaceSectionHeader` for
+  consistent page rhythm and hierarchy;
+- compact linked dashboard metrics and one grouped needs-attention surface;
+- grouped, scan-oriented customer and booking rows rather than nested cards;
+- a bounded quick-filter set with less-common booking states disclosed under
+  More statuses;
+- an action-first booking journey with secondary operational detail in existing
+  accessible disclosures;
+- restrained neutral surfaces, dark-green primary actions, subtle borders and
+  shadows, and zero negative letter spacing;
+- structural loading states that retain the redesigned page geometry.
+
+Approved visual references guide presentation only. Existing confirmation,
+payment, lifecycle, add-on, feedback, search, pagination, multi-business, logo,
+authorization, and tenant-isolation behavior is unchanged.
 
 ## Current Implementation Evidence
 
@@ -89,6 +127,14 @@ Implemented in Phase 1:
 - Reusable dashboard/list/detail/form loading structures for Dashboard,
   Bookings, Customers, Insights, Business, and creation/detail transitions,
   plus tenant-switch pending protection.
+- Approved mobile redesign of Dashboard, Bookings, Booking detail, Customers,
+  Insights, Business, and Add another business, using the shared workspace
+  components and preserving existing product contracts.
+- Operational timeline presentation uses the shared Booking-detail disclosure,
+  a compact semantic vertical event list, restrained type-specific Lucide icons,
+  an adaptive connector, real timestamps, and naturally wrapping event detail.
+  Its count, ordering, labels, and mixed status/change/amendment/add-on content
+  remain derived from the existing authoritative server data.
 
 Current copy rules:
 

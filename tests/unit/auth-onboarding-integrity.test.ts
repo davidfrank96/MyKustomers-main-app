@@ -17,7 +17,7 @@ describe("auth onboarding integrity", () => {
       "/insights?range=this_month",
       "/business",
       "/business/new",
-      "/settings#business-settings",
+      "/settings#my-businesses",
     ]) {
       expect(isVendorWorkspacePath(path), path).toBe(true);
       expect(resolvePostAuthPath(path, false), path).toBe("/onboarding");

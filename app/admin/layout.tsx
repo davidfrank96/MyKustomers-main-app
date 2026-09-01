@@ -70,7 +70,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
               <ShieldCheck className="size-5" aria-hidden="true" />
             </span>
             <div className="min-w-0">
-              <p className="truncate text-lg font-semibold">My Customers Admin</p>
+              <p className="truncate text-lg font-semibold">My Kustomers Admin</p>
               <p className="truncate text-sm text-muted-foreground">
                 Signed in as {user.email ?? "authenticated account"}
               </p>

@@ -8,7 +8,7 @@ This document describes product intent and domain concepts. It is not implementa
 
 ## Product Summary
 
-My Customers helps small businesses turn informal customer conversations into organised business records.
+My Kustomers helps small businesses turn informal customer conversations into organised business records.
 
 The platform is not replacing WhatsApp, Instagram, phone calls, or direct messages. It captures the structured agreement after the vendor and customer have reached an agreement externally.
 
@@ -16,7 +16,7 @@ The platform is not replacing WhatsApp, Instagram, phone calls, or direct messag
 
 ### Platform User
 
-An authenticated My Customers user.
+An authenticated My Kustomers user.
 
 Platform users may authenticate with email/password or, when the Supabase Google
 provider is configured, Google OAuth. Both methods resolve to the same
@@ -32,7 +32,7 @@ Examples:
 
 ### Business
 
-A tenant within My Customers.
+A tenant within My Kustomers.
 
 A platform user may eventually belong to one or more businesses. Do not assume one-user-one-business unless a later accepted decision explicitly does so.
 
@@ -45,7 +45,7 @@ flow. The authenticated header remains the quick-switch surface.
 
 A customer belongs to a business.
 
-A customer is not normally an authenticated My Customers user. Customer records may contain name, phone, email, customer history, and related bookings.
+A customer is not normally an authenticated My Kustomers user. Customer records may contain name, phone, email, customer history, and related bookings.
 
 ### Booking
 
@@ -93,7 +93,7 @@ Analytics
 
 ## Booking Philosophy
 
-The vendor creates the booking. The customer does not independently define the agreed booking terms inside My Customers.
+The vendor creates the booking. The customer does not independently define the agreed booking terms inside My Kustomers.
 
 Conceptual workflow:
 
@@ -152,7 +152,7 @@ required bounded plain-text reason. It preserves the original confirmation
 evidence and atomically queues one `BOOKING_CANCELLED` email to the immutable
 confirmation contact, falling back to current customer email only for legacy
 evidence without contact. Delivery failure changes only outbox state. Email
-wording never claims that My Customers issued or controls a refund.
+wording never claims that My Kustomers issued or controls a refund.
 
 Phase B implements explicit amendments for `CONFIRMED` and `IN_PROGRESS`
 bookings. The vendor submits a structured proposed title, customer-facing
@@ -247,7 +247,7 @@ added as a new public confirmation link in this pass.
 
 Customer-facing flows should generally:
 
-- Require no My Customers account.
+- Require no My Kustomers account.
 - Open directly in the browser.
 - Be mobile optimized.
 - Expose only data required for the specific booking.
@@ -278,7 +278,7 @@ outside this feature.
 
 ## Platform Administrator
 
-A platform administrator operates My Customers itself and is not a tenant
+A platform administrator operates My Kustomers itself and is not a tenant
 business role. Admin authorization recognizes only an `ACTIVE SUPER_ADMIN` record in
 `platform_admins`. Owning or belonging to any number of businesses grants no
 platform authority, and an administrator may have zero business memberships.

@@ -1,8 +1,22 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { ConfirmationLinkPanel } from "@/components/forms/confirmation-link-panel";
-import { initialConfirmationLinkActionState } from "@/features/confirmation-links/action-state";
+import {
+  initialConfirmationLinkActionState,
+  type ConfirmationLinkActionState,
+} from "@/features/confirmation-links/action-state";
 import type { ConfirmationLinkSummary } from "@/features/confirmation-links/queries";
+import type { ConfirmationShareMethod } from "@/features/confirmation-links/share";
+
+type LinkAction = (
+  previousState: ConfirmationLinkActionState,
+  formData: FormData,
+) => Promise<ConfirmationLinkActionState>;
+
+type RecordShareAction = (
+  confirmationLinkId: string,
+  method: ConfirmationShareMethod,
+) => Promise<void>;
 
 const summary: ConfirmationLinkSummary = {
   id: "00000000-0000-4000-8000-000000000001",
@@ -20,19 +34,40 @@ const summary: ConfirmationLinkSummary = {
   shareMethod: null,
 };
 
-function renderPanel(customerProfileEmail: string | null) {
+function renderPanel(
+  customerProfileEmail: string | null,
+  options: {
+    panelSummary?: ConfirmationLinkSummary;
+    canManage?: boolean;
+    generateAction?: LinkAction;
+    revokeAction?: LinkAction;
+    recordShareAction?: RecordShareAction;
+  } = {},
+) {
+  const generateAction = vi.fn(
+    options.generateAction ?? (async () => initialConfirmationLinkActionState),
+  );
+  const revokeAction = vi.fn(
+    options.revokeAction ?? (async () => initialConfirmationLinkActionState),
+  );
+  const recordShareAction = vi.fn(
+    options.recordShareAction ?? (async () => undefined),
+  );
+
   render(
     <ConfirmationLinkPanel
-      summary={summary}
-      canManage={false}
+      summary={options.panelSummary ?? summary}
+      canManage={options.canManage ?? false}
       businessName="Test business"
       customerName="Test customer"
       customerProfileEmail={customerProfileEmail}
-      generateAction={vi.fn(async () => initialConfirmationLinkActionState)}
-      revokeAction={vi.fn(async () => initialConfirmationLinkActionState)}
-      recordShareAction={vi.fn(async () => undefined)}
+      generateAction={generateAction}
+      revokeAction={revokeAction}
+      recordShareAction={recordShareAction}
     />,
   );
+
+  return { generateAction, revokeAction, recordShareAction };
 }
 
 describe("confirmation contact evidence", () => {
@@ -50,5 +85,205 @@ describe("confirmation contact evidence", () => {
 
     expect(screen.getByText("Booking contact")).toBeVisible();
     expect(screen.queryByText("Customer profile email")).toBeNull();
+  });
+
+  it("renders status and every existing confirmation metadata field", () => {
+    renderPanel("old@example.com");
+
+    expect(screen.getByText("Customer confirmed")).toBeVisible();
+    for (const label of [
+      "Status",
+      "Created",
+      "Expires",
+      "Confirmed",
+      "Last share action",
+      "First viewed",
+    ]) {
+      expect(screen.getByText(label)).toBeVisible();
+    }
+    expect(screen.getByText("Not shared from My Kustomers")).toBeVisible();
+  });
+
+  it("keeps regenerate and revoke wired to their existing form actions", async () => {
+    const activeSummary: ConfirmationLinkSummary = {
+      ...summary,
+      status: "active",
+      usedAt: null,
+      confirmedAt: null,
+    };
+    const { generateAction, revokeAction } = renderPanel("new@example.com", {
+      panelSummary: activeSummary,
+      canManage: true,
+    });
+
+    expect(screen.getByText("Active")).toBeVisible();
+    expect(screen.getByText("An active confirmation link exists.")).toBeVisible();
+    expect(
+      screen.getByText(
+        "The exact secure link is no longer available here. Regenerate it to create a fresh shareable link.",
+      ),
+    ).toBeVisible();
+    expect(screen.queryByRole("button", { name: "Share with customer" })).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: "Generate confirmation link" }),
+    ).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Regenerate link" }));
+    await waitFor(() => expect(generateAction).toHaveBeenCalledTimes(1));
+
+    fireEvent.click(screen.getByRole("button", { name: "Revoke link" }));
+    await waitFor(() => expect(revokeAction).toHaveBeenCalledTimes(1));
+  });
+
+  it("shows the established share flow after generation without visibly exposing the token", async () => {
+    const confirmationUrl = "https://app.example.com/c/controlled-token";
+    const activeSummary: ConfirmationLinkSummary = {
+      ...summary,
+      status: "active",
+      usedAt: null,
+      confirmedAt: null,
+    };
+    const generateAction = vi.fn(async () => ({
+      status: "success" as const,
+      message: "Confirmation link generated.",
+      confirmationUrl,
+      confirmationLinkId: "00000000-0000-4000-8000-000000000002",
+    }));
+    renderPanel(null, {
+      panelSummary: activeSummary,
+      canManage: true,
+      generateAction,
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Regenerate link" }));
+    expect(
+      await screen.findByText("Your confirmation request is ready."),
+    ).toBeVisible();
+    const generatedLink = screen.getByLabelText("Generated confirmation link");
+    expect(generatedLink).toHaveClass("sr-only");
+    expect(document.body).not.toHaveTextContent("controlled-token");
+    expect(screen.getAllByText("Confirmation link generated.")).toHaveLength(1);
+    expect(screen.queryByText("An active confirmation link exists.")).toBeNull();
+    expect(screen.getByRole("button", { name: "Share with customer" })).toBeVisible();
+  });
+
+  it("shows only generation before any confirmation link exists", () => {
+    renderPanel(null, {
+      panelSummary: {
+        ...summary,
+        id: "",
+        status: "none",
+        createdAt: null,
+        expiresAt: null,
+        usedAt: null,
+        confirmedAt: null,
+        contactEmail: null,
+        firstOpenedAt: null,
+      },
+      canManage: true,
+    });
+
+    expect(screen.getByText("No confirmation link generated yet.")).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "Generate confirmation link" }),
+    ).toBeVisible();
+    expect(
+      screen.queryByRole("button", { name: "Share with customer" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Regenerate link" }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Revoke link" })).not.toBeInTheDocument();
+  });
+
+  it.each(["revoked", "expired"] as const)(
+    "offers fresh generation without active-link actions when %s",
+    (status) => {
+      renderPanel(null, {
+        panelSummary: {
+          ...summary,
+          status,
+          usedAt: null,
+          revokedAt: status === "revoked" ? "2026-08-26T11:00:00.000Z" : null,
+          confirmedAt: null,
+          contactEmail: null,
+        },
+        canManage: true,
+      });
+
+      expect(
+        screen.getByRole("button", { name: "Generate new confirmation link" }),
+      ).toBeVisible();
+      expect(
+        screen.queryByRole("button", { name: "Share with customer" }),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: "Regenerate link" }),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: "Revoke link" }),
+      ).not.toBeInTheDocument();
+    },
+  );
+
+  it("shows confirmation evidence without reopening link controls", () => {
+    renderPanel("new@example.com", { panelSummary: summary, canManage: false });
+
+    expect(screen.getByText("Customer confirmed")).toBeVisible();
+    expect(
+      screen.getByText("Customer confirmation is recorded for this booking."),
+    ).toBeVisible();
+    expect(screen.queryByRole("button", { name: /confirmation link/i })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Share with customer" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Revoke link" })).toBeNull();
+  });
+
+  it("removes the one-time Share card when authoritative state becomes revoked", async () => {
+    const confirmationUrl = "https://app.example.com/c/controlled-token";
+    const activeSummary: ConfirmationLinkSummary = {
+      ...summary,
+      status: "active",
+      usedAt: null,
+      confirmedAt: null,
+    };
+    const generateAction = vi.fn(async () => ({
+      status: "success" as const,
+      message: "Confirmation link generated.",
+      confirmationUrl,
+      confirmationLinkId: "00000000-0000-4000-8000-000000000002",
+    }));
+    const commonProps = {
+      canManage: true,
+      businessName: "Test business",
+      customerName: "Test customer",
+      customerProfileEmail: null,
+      generateAction,
+      revokeAction: vi.fn(async () => initialConfirmationLinkActionState),
+      recordShareAction: vi.fn(async () => undefined),
+    };
+    const { rerender } = render(
+      <ConfirmationLinkPanel summary={activeSummary} {...commonProps} />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Regenerate link" }));
+    expect(
+      await screen.findByRole("button", { name: "Share with customer" }),
+    ).toBeVisible();
+
+    rerender(
+      <ConfirmationLinkPanel
+        summary={{
+          ...activeSummary,
+          status: "revoked",
+          revokedAt: "2026-08-26T11:00:00.000Z",
+        }}
+        {...commonProps}
+      />,
+    );
+
+    expect(screen.queryByRole("button", { name: "Share with customer" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Revoke link" })).toBeNull();
+    expect(
+      screen.getByRole("button", { name: "Generate new confirmation link" }),
+    ).toBeVisible();
   });
 });

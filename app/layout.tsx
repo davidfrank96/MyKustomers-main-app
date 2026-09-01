@@ -13,12 +13,12 @@ const inter = Inter({
 export const metadata: Metadata = {
   metadataBase: new URL(publicEnv.NEXT_PUBLIC_APP_URL),
   title: {
-    default: "My Customers",
-    template: "%s | My Customers",
+    default: "My Kustomers",
+    template: "%s | My Kustomers",
   },
   description:
     "A mobile-first customer and booking operations platform for small businesses.",
-  applicationName: "My Customers",
+  applicationName: "My Kustomers",
   manifest: "/manifest.webmanifest",
   icons: {
     icon: "/icon.svg",

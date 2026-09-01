@@ -2,11 +2,13 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { Route } from "next";
 import { Suspense } from "react";
-import { Plus } from "lucide-react";
+import { ChevronRight, Plus } from "lucide-react";
+import { CustomersMobileActions } from "@/components/customers/customers-mobile-actions";
+import { WorkspacePage, WorkspacePageHeader } from "@/components/layout/workspace-page";
 import { DebouncedSearchInput } from "@/components/shared/debounced-search-input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getCurrentBusinessContext } from "@/lib/auth/server";
@@ -57,19 +59,19 @@ function pageHref({
 
 function CustomerRowsFallback() {
   return (
-    <div className="grid gap-3" role="status" aria-label="Loading customer rows">
+    <Card
+      className="divide-y divide-border overflow-hidden"
+      role="status"
+      aria-label="Loading customer rows"
+    >
       <span className="sr-only">Loading customer rows</span>
       {Array.from({ length: 4 }, (_, index) => (
-        <div
-          key={index}
-          className="rounded-lg border border-border bg-card p-4"
-          aria-hidden
-        >
+        <div key={index} className="p-4" aria-hidden>
           <Skeleton className="h-5 w-full max-w-56" />
           <Skeleton className="mt-3 h-4 w-full max-w-xs" />
         </div>
       ))}
-    </div>
+    </Card>
   );
 }
 
@@ -100,45 +102,53 @@ async function CustomerResults({
           }
         />
       ) : (
-        <div className="grid gap-3">
+        <Card className="divide-y divide-border overflow-hidden">
           {result.customers.map((customer) => {
             const contact = customer.phone || customer.email || "No contact saved";
+            const initial = customer.name.trim().charAt(0).toUpperCase() || "C";
 
             return (
               <Link
                 key={customer.id}
                 href={`/customers/${customer.id}` as Route}
-                className="rounded-lg border border-border bg-card p-4 shadow-sm transition-colors hover:bg-muted/70"
+                className="group flex min-w-0 items-center gap-3 p-4 transition-colors hover:bg-muted/60 sm:px-5"
               >
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
+                <span className="grid size-10 shrink-0 place-items-center rounded-full bg-muted text-sm font-semibold text-primary">
+                  {initial}
+                </span>
+                <div className="min-w-0 flex-1 sm:flex sm:items-center sm:justify-between sm:gap-4">
+                  <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <h2 className="text-base font-semibold leading-6">
+                      <h2 className="truncate text-sm font-semibold leading-5 sm:text-base">
                         {customer.name}
                       </h2>
                       {customer.archived_at ? (
                         <Badge variant="outline">Archived</Badge>
                       ) : null}
                     </div>
-                    <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                    <p className="mt-1 truncate text-xs leading-5 text-muted-foreground sm:text-sm">
                       {contact}
                     </p>
                   </div>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="mt-1 shrink-0 text-xs text-muted-foreground sm:mt-0 sm:text-sm">
                     Customer since {formatDate(customer.created_at)}
                   </p>
                 </div>
+                <ChevronRight
+                  className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5"
+                  aria-hidden="true"
+                />
               </Link>
             );
           })}
-        </div>
+        </Card>
       )}
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
           Showing {result.customers.length} of {result.total} customers.
         </p>
-        <div className="flex gap-2">
+        <div className="flex shrink-0 gap-2">
           <Button asChild variant="secondary" size="sm" disabled={result.page <= 1}>
             <Link
               href={pageHref({
@@ -184,60 +194,53 @@ export default async function CustomersPage({ searchParams }: CustomersPageProps
   const resultPromise = listCustomersForBusiness(currentBusiness.id, params);
 
   return (
-    <main className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-5 py-6 sm:px-8 lg:px-10">
-      <section className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <WorkspacePage className="pb-52 sm:pb-52 lg:pb-7">
+      <WorkspacePageHeader
+        title="Customers"
+        description={`Contact details and private notes for ${currentBusiness.name}.`}
+        eyebrow={<Badge variant="outline">Customer records</Badge>}
+        action={
+          <Button asChild size="sm">
+            <Link href={"/customers/new" as Route}>
+              <Plus className="size-4" aria-hidden="true" />
+              <span className="hidden min-[360px]:inline">Add customer</span>
+              <span className="min-[360px]:hidden">Add</span>
+            </Link>
+          </Button>
+        }
+      />
+
+      <Card className="p-3 sm:p-4">
         <div className="flex flex-col gap-3">
-          <Badge variant="outline">Customer records</Badge>
-          <div>
-            <h1 className="text-2xl font-semibold leading-tight sm:text-3xl">
-              Customers
-            </h1>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-              Manage customer contact details and private notes for {currentBusiness.name}
-              {"."}
-            </p>
+          <DebouncedSearchInput
+            clearLabel="Clear customer search"
+            initialValue={params.q}
+            placeholder="Search name, email, or phone"
+            label="Search customers"
+          />
+
+          <div className="flex flex-wrap gap-2" aria-label="Customer archive filters">
+            {(["active", "archived", "all"] as const).map((status) => (
+              <Button
+                key={status}
+                asChild
+                variant={params.status === status ? "primary" : "secondary"}
+                size="sm"
+              >
+                <Link href={filterHref(status, params.q)}>
+                  {status[0].toUpperCase()}
+                  {status.slice(1)}
+                </Link>
+              </Button>
+            ))}
           </div>
         </div>
-        <Button asChild className="w-full sm:w-fit">
-          <Link href={"/customers/new" as Route}>
-            <Plus className="size-4" aria-hidden="true" />
-            Add customer
-          </Link>
-        </Button>
-      </section>
-
-      <Card>
-        <CardContent className="p-4 sm:p-5">
-          <div className="flex flex-col gap-4">
-            <DebouncedSearchInput
-              clearLabel="Clear customer search"
-              initialValue={params.q}
-              placeholder="Search name, email, or phone"
-              label="Search customers"
-            />
-
-            <div className="flex flex-wrap gap-2" aria-label="Customer archive filters">
-              {(["active", "archived", "all"] as const).map((status) => (
-                <Button
-                  key={status}
-                  asChild
-                  variant={params.status === status ? "primary" : "secondary"}
-                  size="sm"
-                >
-                  <Link href={filterHref(status, params.q)}>
-                    {status[0].toUpperCase()}
-                    {status.slice(1)}
-                  </Link>
-                </Button>
-              ))}
-            </div>
-          </div>
-        </CardContent>
       </Card>
 
       <Suspense fallback={<CustomerRowsFallback />}>
         <CustomerResults resultPromise={resultPromise} params={params} />
       </Suspense>
-    </main>
+      <CustomersMobileActions />
+    </WorkspacePage>
   );
 }

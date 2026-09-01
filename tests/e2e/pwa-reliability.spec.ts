@@ -218,10 +218,10 @@ test.describe("authenticated PWA reliability", () => {
 
       await page.goto("/login");
       await page.getByLabel("Email").fill(email);
-      await page.getByLabel("Password").fill(password);
+      await page.getByLabel("Password", { exact: true }).fill(password);
       await page.getByRole("button", { name: "Log in" }).click();
       await expect(page).toHaveURL(/\/dashboard$/);
-      await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Welcome back" })).toBeVisible();
       expect(context.serviceWorkers()).toHaveLength(0);
 
       const switcher = page.getByRole("button", {
@@ -338,6 +338,13 @@ test.describe("authenticated PWA reliability", () => {
       await expect(page.locator("[data-pwa-reliability-status]")).toHaveCount(0);
 
       await page.goto("/business");
+      const businessInformation = page.getByRole("button", {
+        name: /Business information/,
+      });
+      if ((await businessInformation.getAttribute("aria-expanded")) !== "true") {
+        await businessInformation.click();
+      }
+      await expect(businessInformation).toHaveAttribute("aria-expanded", "true");
       const logoInput = page.getByLabel("Logo image");
       await page.waitForTimeout(500);
       await logoInput.setInputFiles({

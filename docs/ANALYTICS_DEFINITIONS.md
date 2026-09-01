@@ -42,7 +42,7 @@ existing metric period; they never create another booking count.
 
 ## Financial Terminology
 
-My Customers does not process vendor/customer payments. Values are recorded
+My Kustomers does not process vendor/customer payments. Values are recorded
 booking amounts, not independently verified revenue, cash received, profit, tax,
 or accounting balances.
 

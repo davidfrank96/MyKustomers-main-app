@@ -29,6 +29,16 @@ describe("booking payments", () => {
             recorded_at: "2026-08-26T10:00:00.000Z",
             created_at: "2026-08-26T10:00:00.000Z",
           },
+          {
+            id: "00000000-0000-4000-8000-000000000020",
+            business_id: "00000000-0000-4000-8000-000000000011",
+            booking_id: "00000000-0000-4000-8000-000000000012",
+            operation_id: "00000000-0000-4000-8000-000000000023",
+            amount_minor: 250_000,
+            recorded_by: "00000000-0000-4000-8000-000000000014",
+            recorded_at: "2026-08-27T11:30:00.000Z",
+            created_at: "2026-08-27T11:30:00.000Z",
+          },
         ]}
         canRecordPayment
         action={vi.fn()}
@@ -39,7 +49,58 @@ describe("booking payments", () => {
     expect(screen.getByText("₦17,500")).toBeInTheDocument();
     expect(screen.getByText("₦27,500")).toBeInTheDocument();
     expect(screen.getByText("Confirmed add-on deposits")).toBeInTheDocument();
-    expect(screen.getByText(/Payment recorded/)).toBeInTheDocument();
+    expect(screen.getAllByText(/Payment recorded/)).toHaveLength(2);
+    expect(screen.getByText("Payment recording only")).toBeVisible();
+    expect(
+      screen.getByText(
+        "Payments are recorded as reported. My Kustomers does not process payments.",
+      ),
+    ).toBeVisible();
+  });
+
+  it("shows a truthful empty breakdown when no payment components exist", () => {
+    render(
+      <BookingPayments
+        summary={{
+          ...summary,
+          initialDepositAmountMinor: 0,
+          confirmedAddonDepositAmountMinor: 0,
+          subsequentPaymentAmountMinor: 0,
+          recordedPaidAmountMinor: 0,
+          outstandingAmountMinor: summary.effectiveTotalAmountMinor,
+        }}
+        payments={[]}
+        canRecordPayment={false}
+        action={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText("No payments recorded yet.")).toBeVisible();
+    expect(screen.queryByText("Initial deposit")).toBeNull();
+    expect(screen.getByText("₦0")).toBeVisible();
+  });
+
+  it("renders large server-derived values without changing currency semantics", () => {
+    render(
+      <BookingPayments
+        summary={{
+          ...summary,
+          currency: "EUR",
+          effectiveTotalAmountMinor: 1_000_000_428_000_000,
+          initialDepositAmountMinor: 0,
+          confirmedAddonDepositAmountMinor: 0,
+          subsequentPaymentAmountMinor: 0,
+          recordedPaidAmountMinor: 0,
+          outstandingAmountMinor: 1_000_000_428_000_000,
+        }}
+        payments={[]}
+        canRecordPayment={false}
+        action={vi.fn()}
+      />,
+    );
+
+    expect(screen.getAllByText("€10,000,004,280,000")).toHaveLength(2);
+    expect(screen.queryByText(/₦/)).toBeNull();
   });
 
   it("opens an application dialog and explains that recording does not process payment", () => {

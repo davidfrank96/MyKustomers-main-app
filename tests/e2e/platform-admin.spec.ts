@@ -53,7 +53,7 @@ function createAdminClient() {
 async function signIn(page: Page, email: string, password: string) {
   await page.goto("/login");
   await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Password").fill(password);
+  await page.getByLabel("Password", { exact: true }).fill(password);
   await page.getByRole("button", { name: "Log in" }).click();
 }
 
@@ -140,7 +140,7 @@ test.describe("platform admin route authorization", () => {
       await expect(page).toHaveURL(/\/dashboard/);
       await page.goto("/admin");
       await expect(page.getByRole("heading", { name: "Not authorized" })).toBeVisible();
-      await expect(page.getByText("My Customers Admin")).toHaveCount(0);
+      await expect(page.getByText("My Kustomers Admin")).toHaveCount(0);
       await page.goto("/admin/users");
       await expect(page.getByRole("heading", { name: "Not authorized" })).toBeVisible();
       await page.goto("/admin/bookings");
@@ -156,7 +156,7 @@ test.describe("platform admin route authorization", () => {
       await signIn(page, activeAdmin.email, password);
       await expect(page).toHaveURL(/\/onboarding/);
       await page.goto("/admin");
-      await expect(page.getByText("My Customers Admin")).toBeVisible();
+      await expect(page.getByText("My Kustomers Admin")).toBeVisible();
       await expect(page.getByText("Role: Super Admin")).toBeVisible();
       await expect(page.getByRole("heading", { name: "Overview" })).toBeVisible();
       await expect(page.getByRole("heading", { name: "Platform scale" })).toBeVisible();
@@ -363,7 +363,7 @@ test.describe("platform admin route authorization", () => {
       expect(disableError).toBeNull();
       await page.reload();
       await expect(page.getByRole("heading", { name: "Not authorized" })).toBeVisible();
-      await expect(page.getByText("My Customers Admin")).toHaveCount(0);
+      await expect(page.getByText("My Kustomers Admin")).toHaveCount(0);
       await page.goto("/admin/businesses");
       await expect(page.getByRole("heading", { name: "Not authorized" })).toBeVisible();
       await page.goto("/admin/users");

@@ -9,6 +9,53 @@ both a local production build and the deployed Vercel application. Samples are
 three-run medians unless stated otherwise. They are diagnostic evidence, not a
 latency service-level objective.
 
+## 2026-08-31 Release-Candidate Measurement
+
+The `ui/mobile-redesign` release candidate was measured from a local production
+build before any performance change was considered. A disposable, isolated
+Supabase user/tenant/customer/booking fixture was created and removed by the
+harness. The measurements below are single-run diagnostics in the local
+environment, not production medians or an SLO.
+
+| Route                 | Client JS gzip | Cold local LCP | Cold local CLS |
+| --------------------- | -------------: | -------------: | -------------: |
+| Homepage              |       70.7 KiB |  not observable |         0.0000 |
+| Dashboard             |       70.9 KiB |         880 ms |         0.0000 |
+| Bookings              |       75.3 KiB |         372 ms |         0.0000 |
+| Booking detail        |      108.9 KiB |         684 ms |         0.0000 |
+| Customers             |       75.3 KiB |         348 ms |         0.0000 |
+| Insights              |       74.1 KiB |         356 ms |         0.0000 |
+| Business              |       87.9 KiB |         344 ms |         0.0000 |
+
+The global stylesheet is 12.5 KiB gzip and is reported separately from route
+JavaScript. Cold local route transfer ranged from 357.2 to 473.8 KiB, including
+shared framework JavaScript, CSS, fonts, HTML/RSC, and other resources. Warm RSC
+transfers for the primary routes were 11.3-16.3 KiB. A cold 390x844 Bookings
+sample at 120 ms latency and 1.2 Mbps downlink produced 784 ms LCP, 0.0001 CLS,
+and a 3.57 s full load; the following warm Booking-detail transition produced
+1.03 s LCP and a 1.15 s full load. One unthrottled warm detail sample reached
+2.74 s LCP while the isolated cold and constrained samples were materially
+faster, so it is recorded as run-to-run backend/browser variance rather than
+used to justify a speculative rewrite.
+
+Booking detail is the largest route manifest because it owns the preserved edit,
+payment, confirmation, reschedule, amendment, add-on, feedback, issue, and share
+interactions. Its 108.9 KiB gzip JavaScript is recorded as the review ceiling for
+this branch. The observed 684 ms cold local and 1.03 s constrained warm LCP do
+not justify a release-time lazy-hydration rewrite of lifecycle-critical forms;
+future growth should be measured against this value and split only with complete
+interaction and accessibility coverage.
+
+Source and manifest review found no new dependency, persistent tenant cache,
+private service-worker cache, explicit broad prefetch, duplicate destination
+request, or oversized client boundary. Auth/current-business reads remain
+request-scoped through React `cache`; list/detail reads remain tenant-scoped;
+independent reads use `Promise.all`; lists and bounded secondary detail continue
+to stream through meaningful Suspense boundaries. Public capability routes
+retain `force-dynamic`, `no-store`, `no-referrer`, and `noindex` controls.
+Because the measurements did not identify a safe release-blocking bottleneck,
+this audit intentionally makes no performance or cache behavior change.
+
 ## Authenticated Navigation V2
 
 Implementation and production-verification date: 2026-08-27. PR #41 merged

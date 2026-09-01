@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Route } from "next";
 import type { ReactNode } from "react";
-import { LogOut, Settings } from "lucide-react";
+import { BriefcaseBusiness, Building2, LogOut, Plus, Settings } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { BusinessSwitcher } from "@/components/layout/business-switcher";
@@ -32,7 +32,7 @@ function getInitials(user: AuthenticatedUser) {
       : user.email;
 
   if (!name) {
-    return "MC";
+    return "MK";
   }
 
   return name
@@ -47,29 +47,29 @@ export function DashboardShell({ children, user, businessContext }: DashboardShe
   const workspaceLabel = businessContext.currentBusiness?.name ?? "No business selected";
 
   return (
-    <div className="min-h-dvh bg-background pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-0">
+    <div className="min-h-dvh bg-background pb-[calc(4.5rem+env(safe-area-inset-bottom))] lg:pb-0">
       <aside className="fixed inset-y-0 left-0 hidden w-64 border-r border-border bg-card lg:flex lg:flex-col">
         <div className="flex h-16 items-center gap-3 border-b border-border px-5">
           <span className="grid size-9 place-items-center rounded-lg bg-primary text-sm font-semibold text-primary-foreground">
-            MC
+            MK
           </span>
-          <span className="font-semibold">My Customers</span>
+          <span className="font-semibold">My Kustomers</span>
         </div>
         <DesktopNavigation />
       </aside>
 
       <div className="lg:pl-64">
-        <header className="sticky top-0 z-20 flex h-[calc(4rem+env(safe-area-inset-top))] items-center justify-between gap-2 border-b border-border bg-background/95 px-3 pt-[env(safe-area-inset-top)] backdrop-blur sm:px-5 lg:h-16 lg:px-10 lg:pt-0">
+        <header className="sticky top-0 z-20 flex h-[calc(3.75rem+env(safe-area-inset-top))] items-center justify-between gap-2 border-b border-border bg-card/95 px-3 pt-[env(safe-area-inset-top)] shadow-[0_1px_2px_rgba(23,33,29,0.03)] backdrop-blur sm:px-5 lg:h-16 lg:px-10 lg:pt-0">
           <div className="flex min-w-0 flex-1 items-center gap-2 lg:hidden">
             <Link
               href="/"
               className="flex items-center gap-3"
-              aria-label="My Customers home"
+              aria-label="My Kustomers home"
             >
-              <span className="grid size-9 place-items-center rounded-lg bg-primary text-sm font-semibold text-primary-foreground">
-                MC
+              <span className="grid size-8 place-items-center rounded-md bg-primary text-xs font-semibold text-primary-foreground sm:size-9 sm:text-sm">
+                MK
               </span>
-              <span className="hidden font-semibold sm:inline">My Customers</span>
+              <span className="hidden font-semibold sm:inline">My Kustomers</span>
             </Link>
             <BusinessSwitcher
               businesses={businessContext.businesses}
@@ -110,7 +110,25 @@ export function DashboardShell({ children, user, businessContext }: DashboardShe
                 <DropdownMenuItem asChild>
                   <Link href={"/settings" as Route} className="gap-2">
                     <Settings className="size-4" aria-hidden="true" />
-                    Settings
+                    Profile &amp; account
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href={"/settings#my-businesses" as Route} className="gap-2">
+                    <Building2 className="size-4" aria-hidden="true" />
+                    My businesses
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href={"/business" as Route} className="gap-2">
+                    <BriefcaseBusiness className="size-4" aria-hidden="true" />
+                    Business profile
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href={"/business/new" as Route} className="gap-2">
+                    <Plus className="size-4" aria-hidden="true" />
+                    Add another business
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />

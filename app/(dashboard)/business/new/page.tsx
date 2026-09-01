@@ -1,7 +1,10 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { Route } from "next";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArrowLeft } from "lucide-react";
+import { WorkspacePage } from "@/components/layout/workspace-page";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { BusinessOnboardingForm } from "@/components/forms/business-onboarding-form";
 import {
   completeBusinessOnboardingAction,
@@ -42,25 +45,25 @@ export default async function NewBusinessPage() {
     : undefined;
 
   return (
-    <main className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-5 py-6 sm:px-8 lg:px-10">
-      <section className="flex flex-col gap-3">
-        <Badge variant="outline">New business</Badge>
-        <div>
-          <h1 className="text-2xl font-semibold leading-tight sm:text-3xl">
-            Add another business
-          </h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-            Create a separate workspace with its own customers, bookings, insights, and
-            settings.
-          </p>
-        </div>
-      </section>
+    <WorkspacePage className="max-w-4xl gap-4 pb-28 lg:pb-8">
+      <div className="flex min-w-0 items-center gap-2">
+        <Button
+          asChild
+          variant="ghost"
+          size="icon"
+          className="-ml-2 shrink-0 text-foreground"
+        >
+          <Link href={"/business" as Route} aria-label="Back to business profile">
+            <ArrowLeft className="size-5" aria-hidden="true" />
+          </Link>
+        </Button>
+        <h1 className="min-w-0 break-words text-2xl font-semibold leading-tight">
+          Create business
+        </h1>
+      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Business profile</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <Card className="overflow-hidden">
+        <CardContent className="p-4 sm:p-6">
           <BusinessOnboardingForm
             action={createAdditionalBusinessAction}
             completeAction={completeBusinessOnboardingAction}
@@ -69,6 +72,6 @@ export default async function NewBusinessPage() {
           />
         </CardContent>
       </Card>
-    </main>
+    </WorkspacePage>
   );
 }

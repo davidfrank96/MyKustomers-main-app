@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import type { Route } from "next";
 import { Suspense } from "react";
-import { Archive, ArrowLeft } from "lucide-react";
+import { Archive, ArrowLeft, CalendarDays, ChevronRight } from "lucide-react";
 import { CustomerForm } from "@/components/forms/customer-form";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,18 @@ function formatDateTime(value: string) {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(value));
+}
+
+function formatCreatedDateTime(value: string) {
+  const createdAt = new Date(value);
+  const date = new Intl.DateTimeFormat("en", { dateStyle: "medium" }).format(
+    createdAt,
+  );
+  const time = new Intl.DateTimeFormat("en", { timeStyle: "short" }).format(
+    createdAt,
+  );
+
+  return `${date} • ${time}`;
 }
 
 function CustomerFeedbackFallback() {
@@ -120,34 +132,59 @@ export default async function CustomerDetailPage({
   const created = query.created === "1";
 
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-5 py-6 sm:px-8 lg:px-10">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <Button asChild variant="ghost" size="sm">
-            <Link href={"/customers" as Route}>
-              <ArrowLeft className="size-4" aria-hidden="true" />
-              Customers
-            </Link>
-          </Button>
-          <div className="mt-4 flex flex-wrap items-center gap-2">
-            <h1 className="text-2xl font-semibold leading-tight sm:text-3xl">
-              {customer.name}
-            </h1>
-            {isArchived ? <Badge variant="outline">Archived</Badge> : null}
-          </div>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground">
-            Created {formatDateTime(customer.created_at)}
-          </p>
+    <main className="mx-auto flex w-full max-w-3xl flex-col gap-5 px-4 py-5 sm:gap-6 sm:px-8 sm:py-8 lg:px-10">
+      <div>
+        <Button
+          asChild
+          variant="ghost"
+          size="sm"
+          className="-ml-3 text-primary hover:text-primary"
+        >
+          <Link href={"/customers" as Route}>
+            <ArrowLeft className="size-5" aria-hidden="true" />
+            Customers
+          </Link>
+        </Button>
+        <div className="mt-5 flex flex-wrap items-center gap-2">
+          <h1 className="min-w-0 break-words text-3xl font-semibold leading-tight sm:text-4xl">
+            {customer.name}
+          </h1>
+          {isArchived ? <Badge variant="outline">Archived</Badge> : null}
         </div>
-        {!isArchived ? (
-          <form action={archiveCustomerAction.bind(null, customer.id)}>
-            <Button type="submit" variant="secondary" className="w-full sm:w-fit">
-              <Archive className="size-4" aria-hidden="true" />
-              Archive
-            </Button>
-          </form>
-        ) : null}
+        <p className="mt-3 flex items-center gap-2 text-sm leading-6 text-muted-foreground sm:text-base">
+          <CalendarDays className="size-4 shrink-0" aria-hidden="true" />
+          <span>Created {formatCreatedDateTime(customer.created_at)}</span>
+        </p>
       </div>
+
+      {!isArchived ? (
+        <form action={archiveCustomerAction.bind(null, customer.id)}>
+          <button
+            type="submit"
+            className="group flex min-h-20 w-full items-center gap-3 rounded-lg border border-border bg-card p-3 text-left transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:p-4"
+            aria-label="Archive customer"
+          >
+            <span
+              className="grid size-12 shrink-0 place-items-center rounded-lg bg-primary/5 text-primary"
+              aria-hidden="true"
+            >
+              <Archive className="size-5" aria-hidden="true" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block font-semibold text-foreground">
+                Archive customer
+              </span>
+              <span className="mt-1 block text-sm leading-5 text-muted-foreground">
+                Move this customer to archive
+              </span>
+            </span>
+            <ChevronRight
+              className="size-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5"
+              aria-hidden="true"
+            />
+          </button>
+        </form>
+      ) : null}
 
       {created ? (
         <p className="rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground">
@@ -162,29 +199,18 @@ export default async function CustomerDetailPage({
         </p>
       ) : null}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Customer details</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <CustomerForm
-            action={updateCustomerAction.bind(null, customer.id)}
-            submitLabel="Save customer"
-            disabled={isArchived}
-            initialValues={{
-              name: customer.name,
-              email: customer.email,
-              phone: customer.phone,
-              notes: customer.notes,
-            }}
-          />
-          {isArchived ? (
-            <p className="mt-5 rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground">
-              Archived customers are read-only in Phase 4.
-            </p>
-          ) : null}
-        </CardContent>
-      </Card>
+      <CustomerForm
+        action={updateCustomerAction.bind(null, customer.id)}
+        submitLabel="Save customer"
+        disabled={isArchived}
+        presentation="detail"
+        initialValues={{
+          name: customer.name,
+          email: customer.email,
+          phone: customer.phone,
+          notes: customer.notes,
+        }}
+      />
 
       <Suspense fallback={<CustomerFeedbackFallback />}>
         <CustomerFeedback feedbackPromise={feedbackPromise} />

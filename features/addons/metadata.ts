@@ -18,6 +18,6 @@ export function buildPublicAddonMetadata({
     title: (safeName) => `Review an addition to your booking with ${safeName}`,
     description: (safeName) =>
       `${safeName} has sent you an addition for review and confirmation.`,
-    imageAlt: "My Customers secure booking addition",
+    imageAlt: "My Kustomers secure booking addition",
   });
 }

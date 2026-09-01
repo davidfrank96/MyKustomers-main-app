@@ -320,7 +320,7 @@ audit, and runtime Supabase security tests.
 Documentation requirements: Update security, testing, data model, changelog.
 
 Acceptance criteria: Customer can confirm only the intended booking through a
-valid scoped link, without a My Customers account, and links cannot expose
+valid scoped link, without a My Kustomers account, and links cannot expose
 tenant-private data or authorize unrelated bookings.
 
 Verification evidence: Migration
@@ -715,7 +715,7 @@ evidence-preserving workflow.
 
 Status: PLANNED
 
-Objective: Implement My Customers subscription billing.
+Objective: Implement My Kustomers subscription billing.
 
 Dependencies: Auth, business tenancy, subscription design.
 

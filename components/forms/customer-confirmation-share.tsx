@@ -27,6 +27,7 @@ import {
   composeCustomerConfirmationShareMessage,
   type ConfirmationShareMethod,
 } from "@/features/confirmation-links/share";
+import { cn } from "@/lib/utils/cn";
 
 type CustomerConfirmationShareProps = {
   businessName: string;
@@ -41,6 +42,7 @@ type CustomerConfirmationShareProps = {
   linkLabel?: string;
   messageHelp?: string;
   idPrefix?: string;
+  triggerClassName?: string;
 };
 
 async function writeToClipboard(value: string) {
@@ -90,6 +92,7 @@ export function CustomerConfirmationShare({
   linkLabel = "Confirmation link",
   messageHelp = "You can edit this message before sharing. The secure confirmation link will be included automatically.",
   idPrefix = "confirmation",
+  triggerClassName,
 }: CustomerConfirmationShareProps) {
   const initialMessage =
     initialMessageOverride ??
@@ -182,7 +185,7 @@ export function CustomerConfirmationShare({
     <ToastProvider swipeDirection="right">
       <Dialog>
         <DialogTrigger asChild>
-          <Button type="button" className="w-full sm:w-auto">
+          <Button type="button" className={cn("w-full sm:w-auto", triggerClassName)}>
             <Share2 className="size-4" aria-hidden="true" />
             {triggerLabel}
           </Button>

@@ -1,6 +1,6 @@
-# My Customers
+# My Kustomers
 
-My Customers is a mobile-first SaaS application for small businesses that manage
+My Kustomers is a mobile-first SaaS application for small businesses that manage
 customers, bookings, orders, confirmations, feedback, and customer history through
 informal channels today.
 
@@ -449,7 +449,7 @@ claimed because the active Brevo API does not support those standard headers.
 
 Booking completion now uses an accessible application-owned confirmation
 dialog. The final `DELIVERED -> COMPLETED` mutation runs only after confirmation
-inside My Customers; browser-native confirm, alert, and prompt dialogs are not
+inside My Kustomers; browser-native confirm, alert, and prompt dialogs are not
 lifecycle dependencies. New first and additional business setup also requires
 one successfully persisted optimized logo before the workspace is selected and
 setup is considered complete. The existing owner-authorized logo API,

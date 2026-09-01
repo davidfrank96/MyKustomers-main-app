@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
-import { FilePenLine, XCircle } from "lucide-react";
+import { FilePenLine, Info, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -362,10 +362,23 @@ export function BookingAmendmentPanel({
           </DialogContent>
         </Dialog>
       ) : (
-        <p className="text-sm text-muted-foreground">
-          Booking changes can be proposed only while a confirmed booking is confirmed or
-          in progress.
-        </p>
+        <div
+          role="note"
+          className="rounded-md border border-primary/15 bg-primary/[0.035] p-3 sm:p-4"
+        >
+          <div className="flex items-start gap-3">
+            <span
+              className="grid size-8 shrink-0 place-items-center rounded-full bg-primary/[0.08] text-primary"
+              aria-hidden="true"
+            >
+              <Info className="size-4" />
+            </span>
+            <p className="min-w-0 pt-1 text-sm leading-6 text-muted-foreground">
+              Booking changes can be proposed only while a confirmed booking is confirmed
+              or in progress.
+            </p>
+          </div>
+        </div>
       )}
     </div>
   );
