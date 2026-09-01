@@ -37,10 +37,9 @@ const hasSupabaseEnv = Boolean(
   process.env.SUPABASE_SERVICE_ROLE_KEY,
 );
 
-const createdEmails = new Set<string>();
+const createdUserIds = new Set<string>();
 const createdBusinessSlugs = new Set<string>();
 const createdRateLimitBuckets = new Set<string>();
-const testRunStartedAt = new Date().toISOString();
 const serverActionTimeout = 15_000;
 
 function createAdminClient() {
@@ -75,9 +74,7 @@ async function resetLocalRateLimitBuckets(
 
 function testEmail(projectName: string) {
   const safeProject = projectName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-  const email = `phase5-e2e-bookings-${safeProject}-${Date.now()}-${randomUUID()}@example.com`;
-  createdEmails.add(email);
-  return email;
+  return `phase5-e2e-bookings-${safeProject}-${Date.now()}-${randomUUID()}@example.com`;
 }
 
 function futureLocalDateTime() {
@@ -135,6 +132,7 @@ async function createConfirmedBusinessOwner({
 
   expect(userError).toBeNull();
   expect(userData.user?.id).toBeTruthy();
+  createdUserIds.add(userData.user!.id);
 
   const { data: business, error: businessError } = await admin
     .from("businesses")
@@ -183,72 +181,51 @@ test.describe("booking engine", () => {
   test.skip(!hasSupabaseEnv, "Requires configured Supabase runtime credentials.");
 
   test.afterAll(async () => {
+    test.setTimeout(120_000);
     const admin = createAdminClient();
 
     if (createdRateLimitBuckets.size > 0) {
-      await admin
+      const { error } = await admin
         .from("confirmation_rate_limits")
         .delete()
         .in("bucket_key", [...createdRateLimitBuckets]);
+      expect(error).toBeNull();
     }
 
-    await admin
-      .from("confirmation_rate_limits")
-      .delete()
-      .gte("updated_at", testRunStartedAt);
-
     if (createdBusinessSlugs.size > 0) {
-      const { data: businesses } = await admin
+      const { data: businesses, error: businessesError } = await admin
         .from("businesses")
         .select("id")
         .in("slug", [...createdBusinessSlugs]);
+      expect(businessesError).toBeNull();
       const businessIds = businesses?.map((business) => business.id) ?? [];
 
       if (businessIds.length > 0) {
-        const { data: bookings } = await admin
-          .from("bookings")
-          .select("id")
+        const { error: auditLogError } = await admin
+          .from("audit_logs")
+          .delete()
           .in("business_id", businessIds);
-        const bookingIds = bookings?.map((booking) => booking.id) ?? [];
+        expect(auditLogError).toBeNull();
 
-        if (bookingIds.length > 0) {
-          await admin.from("email_events").delete().in("booking_id", bookingIds);
-          await admin
-            .from("booking_addon_confirmation_links")
-            .delete()
-            .in("booking_id", bookingIds);
-          await admin.from("booking_addons").delete().in("booking_id", bookingIds);
-          await admin.from("booking_issues").delete().in("booking_id", bookingIds);
-          await admin.from("feedback").delete().in("booking_id", bookingIds);
-          await admin.from("feedback_links").delete().in("booking_id", bookingIds);
-          await admin.from("booking_confirmations").delete().in("booking_id", bookingIds);
-          await admin.from("confirmation_links").delete().in("booking_id", bookingIds);
-          await admin
-            .from("booking_status_history")
-            .delete()
-            .in("booking_id", bookingIds);
-          await admin.from("booking_changes").delete().in("booking_id", bookingIds);
-        }
-
-        await admin.from("bookings").delete().in("business_id", businessIds);
-        await admin.from("customers").delete().in("business_id", businessIds);
-        await admin.from("audit_logs").delete().in("business_id", businessIds);
-        await admin.from("business_members").delete().in("business_id", businessIds);
-        await admin.storage
+        const { error: logoError } = await admin.storage
           .from("business-logos")
           .remove(businessIds.map((businessId) => `${businessId}/logo.webp`));
-        await admin.from("businesses").delete().in("id", businessIds);
+        expect(logoError).toBeNull();
+
+        const { error: businessDeleteError } = await admin
+          .from("businesses")
+          .delete()
+          .in("id", businessIds);
+        expect(businessDeleteError).toBeNull();
       }
     }
 
-    const { data } = await admin.auth.admin.listUsers({ page: 1, perPage: 200 });
-    const usersToDelete = data?.users.filter((user) =>
-      user.email ? createdEmails.has(user.email) : false,
+    const userDeletionResults = await Promise.all(
+      [...createdUserIds].map((userId) => admin.auth.admin.deleteUser(userId)),
     );
-
-    await Promise.allSettled(
-      (usersToDelete ?? []).map((user) => admin.auth.admin.deleteUser(user.id)),
-    );
+    for (const { error } of userDeletionResults) {
+      expect(error).toBeNull();
+    }
   });
 
   test("canonical customer, booking, confirmation, fulfilment, feedback, and insights journey", async ({

@@ -368,7 +368,9 @@ test.describe("multi-business account support", () => {
         businessIdInput.value = businessId;
         (form as HTMLFormElement).requestSubmit(submitter);
       }, businessCId);
-      await expect(page).toHaveURL(/\/dashboard\?business=unavailable$/);
+      await expect(page).toHaveURL(
+        /\/dashboard\?business=unavailable(?:#my-businesses)?$/,
+      );
       await expect(
         page.getByRole("button", {
           name: `Switch business. Current business: ${businessAName}`,

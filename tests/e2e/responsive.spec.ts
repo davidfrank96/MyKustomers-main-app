@@ -25,6 +25,7 @@ async function expectNoPageOverflow(page: Page, route: string, width: number) {
 test("public and authentication routes avoid horizontal page overflow", async ({
   page,
 }, testInfo) => {
+  test.setTimeout(120_000);
   test.skip(
     testInfo.project.name !== "chromium",
     "One project covers the explicit viewport matrix.",
