@@ -4,17 +4,22 @@ import { useActionState, useMemo, useState, type ReactNode } from "react";
 import { useFormStatus } from "react-dom";
 import {
   AlertCircle,
+  Banknote,
   CalendarDays,
   CheckCircle2,
+  Coins,
   FileText,
   Info,
+  LockKeyhole,
   LoaderCircle,
   NotebookPen,
   Plus,
   Save,
   Search,
+  Tag,
   UserRound,
   UsersRound,
+  WalletCards,
   X,
   type LucideIcon,
 } from "lucide-react";
@@ -36,6 +41,7 @@ import {
 } from "@/features/bookings/action-state";
 import { bookingCurrencies } from "@/features/bookings/money";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import { cn } from "@/lib/utils/cn";
 
 type CustomerOption = {
   id: string;
@@ -159,6 +165,31 @@ function CreateFormSection({
   );
 }
 
+function EditFieldControl({
+  icon: Icon,
+  multiline = false,
+  children,
+}: {
+  icon: LucideIcon;
+  multiline?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <div className="relative min-w-0">
+      <span
+        className={cn(
+          "pointer-events-none absolute left-2 z-10 grid size-8 place-items-center rounded-md bg-primary/[0.06] text-primary",
+          multiline ? "top-2.5" : "top-2",
+        )}
+        aria-hidden="true"
+      >
+        <Icon className="size-4" />
+      </span>
+      {children}
+    </div>
+  );
+}
+
 function SummaryRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-3 border-t border-border px-4 py-3 first:border-t-0 sm:px-5">
@@ -194,6 +225,7 @@ export function BookingForm({
   scheduledDisabled = false,
   materialDisabled = false,
 }: BookingFormProps) {
+  const editing = mode === "edit";
   const [state, formAction] = useActionState(action, initialBookingActionState);
   const [customerMode, setCustomerMode] = useState<"existing" | "new">(
     defaultCustomerMode,
@@ -555,24 +587,42 @@ export function BookingForm({
   );
 
   const titleField = (
-    <div className="space-y-2 md:col-span-2">
+    <div
+      className={cn(!editing && "md:col-span-2", editing ? "space-y-2.5" : "space-y-2")}
+    >
       <Label
         htmlFor="title"
         className="after:ml-0.5 after:text-destructive after:content-['*']"
       >
         Booking title
       </Label>
-      <Input
-        id="title"
-        name="title"
-        value={title}
-        onChange={(event) => setTitle(event.target.value)}
-        placeholder={mode === "create" ? "e.g. Website redesign" : undefined}
-        required
-        disabled={disabled || materialDisabled}
-        aria-invalid={Boolean(fieldError(state, "title"))}
-        aria-describedby={fieldError(state, "title") ? "title-error" : undefined}
-      />
+      {editing ? (
+        <EditFieldControl icon={Tag}>
+          <Input
+            id="title"
+            name="title"
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            required
+            disabled={disabled || materialDisabled}
+            aria-invalid={Boolean(fieldError(state, "title"))}
+            aria-describedby={fieldError(state, "title") ? "title-error" : undefined}
+            className="h-12 pl-12 aria-invalid:border-destructive focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
+          />
+        </EditFieldControl>
+      ) : (
+        <Input
+          id="title"
+          name="title"
+          value={title}
+          onChange={(event) => setTitle(event.target.value)}
+          placeholder="e.g. Website redesign"
+          required
+          disabled={disabled || materialDisabled}
+          aria-invalid={Boolean(fieldError(state, "title"))}
+          aria-describedby={fieldError(state, "title") ? "title-error" : undefined}
+        />
+      )}
       {fieldError(state, "title") ? (
         <p id="title-error" className="text-sm leading-5 text-destructive">
           {fieldError(state, "title")}
@@ -582,23 +632,39 @@ export function BookingForm({
   );
 
   const descriptionField = (
-    <div className="space-y-2 md:col-span-2">
+    <div
+      className={cn(!editing && "md:col-span-2", editing ? "space-y-2.5" : "space-y-2")}
+    >
       <Label htmlFor="description">Description</Label>
-      <Textarea
-        id="description"
-        name="description"
-        value={description}
-        onChange={(event) => setDescription(event.target.value)}
-        placeholder={mode === "create" ? "Describe the agreed work..." : undefined}
-        maxLength={5000}
-        disabled={disabled || materialDisabled}
-        className={mode === "create" ? "min-h-28" : undefined}
-      />
+      {editing ? (
+        <EditFieldControl icon={FileText} multiline>
+          <Textarea
+            id="description"
+            name="description"
+            value={description}
+            onChange={(event) => setDescription(event.target.value)}
+            maxLength={5000}
+            disabled={disabled || materialDisabled}
+            className="min-h-32 pl-12 pt-3 aria-invalid:border-destructive focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
+          />
+        </EditFieldControl>
+      ) : (
+        <Textarea
+          id="description"
+          name="description"
+          value={description}
+          onChange={(event) => setDescription(event.target.value)}
+          placeholder="Describe the agreed work..."
+          maxLength={5000}
+          disabled={disabled || materialDisabled}
+          className="min-h-28"
+        />
+      )}
     </div>
   );
 
   const currencyField = (
-    <div className="space-y-2">
+    <div className={editing ? "space-y-2.5" : "space-y-2"}>
       <Label htmlFor="currency">Currency</Label>
       <Select
         name="currency"
@@ -606,12 +672,24 @@ export function BookingForm({
         onValueChange={setCurrency}
         disabled={disabled || materialDisabled}
       >
-        <SelectTrigger
-          id="currency"
-          aria-invalid={Boolean(fieldError(state, "currency"))}
-        >
-          <SelectValue />
-        </SelectTrigger>
+        {editing ? (
+          <EditFieldControl icon={Coins}>
+            <SelectTrigger
+              id="currency"
+              aria-invalid={Boolean(fieldError(state, "currency"))}
+              className="h-12 pl-12 aria-invalid:border-destructive focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            >
+              <SelectValue />
+            </SelectTrigger>
+          </EditFieldControl>
+        ) : (
+          <SelectTrigger
+            id="currency"
+            aria-invalid={Boolean(fieldError(state, "currency"))}
+          >
+            <SelectValue />
+          </SelectTrigger>
+        )}
         <SelectContent>
           {bookingCurrencies.map((currencyOption) => (
             <SelectItem key={currencyOption} value={currencyOption}>
@@ -629,19 +707,36 @@ export function BookingForm({
   );
 
   const scheduleField = (
-    <div className="space-y-2">
+    <div className={editing ? "space-y-2.5" : "space-y-2"}>
       <Label htmlFor="scheduledForLocal">Scheduled delivery date</Label>
-      <Input
-        id="scheduledForLocal"
-        type="datetime-local"
-        value={scheduledLocal}
-        onChange={(event) => setScheduledLocal(event.target.value)}
-        disabled={disabled || scheduledDisabled || materialDisabled}
-        aria-invalid={Boolean(fieldError(state, "scheduledFor"))}
-        aria-describedby={
-          fieldError(state, "scheduledFor") ? "scheduled-error" : undefined
-        }
-      />
+      {editing ? (
+        <EditFieldControl icon={CalendarDays}>
+          <Input
+            id="scheduledForLocal"
+            type="datetime-local"
+            value={scheduledLocal}
+            onChange={(event) => setScheduledLocal(event.target.value)}
+            disabled={disabled || scheduledDisabled || materialDisabled}
+            aria-invalid={Boolean(fieldError(state, "scheduledFor"))}
+            aria-describedby={
+              fieldError(state, "scheduledFor") ? "scheduled-error" : undefined
+            }
+            className="h-12 pl-12 aria-invalid:border-destructive focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
+          />
+        </EditFieldControl>
+      ) : (
+        <Input
+          id="scheduledForLocal"
+          type="datetime-local"
+          value={scheduledLocal}
+          onChange={(event) => setScheduledLocal(event.target.value)}
+          disabled={disabled || scheduledDisabled || materialDisabled}
+          aria-invalid={Boolean(fieldError(state, "scheduledFor"))}
+          aria-describedby={
+            fieldError(state, "scheduledFor") ? "scheduled-error" : undefined
+          }
+        />
+      )}
       {scheduledDisabled ? (
         <p className="text-xs leading-5 text-muted-foreground">
           Use reschedule to change this date after customer confirmation starts.
@@ -656,25 +751,44 @@ export function BookingForm({
   );
 
   const totalField = (
-    <div className="space-y-2">
+    <div className={editing ? "space-y-2.5" : "space-y-2"}>
       <Label
         htmlFor="totalAmount"
         className="after:ml-0.5 after:text-destructive after:content-['*']"
       >
         Agreed total
       </Label>
-      <Input
-        id="totalAmount"
-        name="totalAmount"
-        inputMode="decimal"
-        value={totalAmount}
-        onChange={(event) => setTotalAmount(event.target.value)}
-        placeholder="Enter amount"
-        required
-        disabled={disabled || materialDisabled}
-        aria-invalid={Boolean(fieldError(state, "totalAmount"))}
-        aria-describedby={fieldError(state, "totalAmount") ? "total-error" : undefined}
-      />
+      {editing ? (
+        <EditFieldControl icon={Banknote}>
+          <Input
+            id="totalAmount"
+            name="totalAmount"
+            inputMode="decimal"
+            value={totalAmount}
+            onChange={(event) => setTotalAmount(event.target.value)}
+            required
+            disabled={disabled || materialDisabled}
+            aria-invalid={Boolean(fieldError(state, "totalAmount"))}
+            aria-describedby={
+              fieldError(state, "totalAmount") ? "total-error" : undefined
+            }
+            className="h-12 pl-12 aria-invalid:border-destructive focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
+          />
+        </EditFieldControl>
+      ) : (
+        <Input
+          id="totalAmount"
+          name="totalAmount"
+          inputMode="decimal"
+          value={totalAmount}
+          onChange={(event) => setTotalAmount(event.target.value)}
+          placeholder="Enter amount"
+          required
+          disabled={disabled || materialDisabled}
+          aria-invalid={Boolean(fieldError(state, "totalAmount"))}
+          aria-describedby={fieldError(state, "totalAmount") ? "total-error" : undefined}
+        />
+      )}
       {fieldError(state, "totalAmount") ? (
         <p id="total-error" className="text-sm leading-5 text-destructive">
           {fieldError(state, "totalAmount")}
@@ -684,21 +798,39 @@ export function BookingForm({
   );
 
   const depositField = (
-    <div className="space-y-2">
+    <div className={editing ? "space-y-2.5" : "space-y-2"}>
       <Label htmlFor="depositAmount">Deposit recorded</Label>
-      <Input
-        id="depositAmount"
-        name="depositAmount"
-        inputMode="decimal"
-        value={depositAmount}
-        onChange={(event) => setDepositAmount(event.target.value)}
-        placeholder="Optional"
-        disabled={disabled || materialDisabled}
-        aria-invalid={Boolean(fieldError(state, "depositAmount"))}
-        aria-describedby={
-          fieldError(state, "depositAmount") ? "deposit-error" : undefined
-        }
-      />
+      {editing ? (
+        <EditFieldControl icon={WalletCards}>
+          <Input
+            id="depositAmount"
+            name="depositAmount"
+            inputMode="decimal"
+            value={depositAmount}
+            onChange={(event) => setDepositAmount(event.target.value)}
+            disabled={disabled || materialDisabled}
+            aria-invalid={Boolean(fieldError(state, "depositAmount"))}
+            aria-describedby={
+              fieldError(state, "depositAmount") ? "deposit-error" : undefined
+            }
+            className="h-12 pl-12 aria-invalid:border-destructive focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
+          />
+        </EditFieldControl>
+      ) : (
+        <Input
+          id="depositAmount"
+          name="depositAmount"
+          inputMode="decimal"
+          value={depositAmount}
+          onChange={(event) => setDepositAmount(event.target.value)}
+          placeholder="Optional"
+          disabled={disabled || materialDisabled}
+          aria-invalid={Boolean(fieldError(state, "depositAmount"))}
+          aria-describedby={
+            fieldError(state, "depositAmount") ? "deposit-error" : undefined
+          }
+        />
+      )}
       {fieldError(state, "depositAmount") ? (
         <p id="deposit-error" className="text-sm leading-5 text-destructive">
           {fieldError(state, "depositAmount")}
@@ -708,18 +840,37 @@ export function BookingForm({
   );
 
   const notesField = (
-    <div className="space-y-2 md:col-span-2">
+    <div
+      className={cn(!editing && "md:col-span-2", editing ? "space-y-2.5" : "space-y-2")}
+    >
       <Label htmlFor="internalNotes">Internal notes</Label>
-      <Textarea
-        id="internalNotes"
-        name="internalNotes"
-        value={internalNotes}
-        onChange={(event) => setInternalNotes(event.target.value)}
-        placeholder={mode === "create" ? "Add any internal notes..." : undefined}
-        maxLength={5000}
-        disabled={disabled}
-      />
-      <p className="text-xs leading-5 text-muted-foreground">
+      {editing ? (
+        <EditFieldControl icon={NotebookPen} multiline>
+          <Textarea
+            id="internalNotes"
+            name="internalNotes"
+            value={internalNotes}
+            onChange={(event) => setInternalNotes(event.target.value)}
+            maxLength={5000}
+            disabled={disabled}
+            className="min-h-28 pl-12 pt-3 aria-invalid:border-destructive focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
+          />
+        </EditFieldControl>
+      ) : (
+        <Textarea
+          id="internalNotes"
+          name="internalNotes"
+          value={internalNotes}
+          onChange={(event) => setInternalNotes(event.target.value)}
+          placeholder="Add any internal notes..."
+          maxLength={5000}
+          disabled={disabled}
+        />
+      )}
+      <p className="flex items-center gap-1.5 text-xs leading-5 text-muted-foreground">
+        {editing ? (
+          <LockKeyhole className="size-3.5 shrink-0" aria-hidden="true" />
+        ) : null}
         Only visible to your business.
       </p>
     </div>
@@ -729,12 +880,16 @@ export function BookingForm({
     mode === "create" && customerMode === "new" && duplicateWarningActive ? (
       <DuplicateCustomerSubmitButton fullWidth />
     ) : (
-      <SubmitButton label={submitLabel} fullWidth={mode === "create"} />
+      <SubmitButton label={submitLabel} fullWidth />
     )
   ) : null;
 
   return (
-    <form action={formAction} className="min-w-0 space-y-5" noValidate>
+    <form
+      action={formAction}
+      className={cn("min-w-0 space-y-5", editing && "space-y-6")}
+      noValidate
+    >
       {state.message ? (
         <div
           className="flex gap-2 rounded-md border border-border bg-muted px-3 py-2 text-sm"
@@ -831,7 +986,20 @@ export function BookingForm({
         </>
       ) : (
         <>
-          <div className="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2">
+          {!disabled ? (
+            <div
+              className="flex gap-3 rounded-lg border border-primary/15 bg-primary/[0.04] px-3.5 py-3 text-sm leading-6 text-foreground sm:px-4"
+              role="note"
+            >
+              <Info className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden="true" />
+              <p>
+                {materialDisabled
+                  ? "Update the internal notes for this booking. Notes are private to your business."
+                  : "Update the details for this booking. Changes are private to your business."}
+              </p>
+            </div>
+          ) : null}
+          <div className="grid min-w-0 grid-cols-1 gap-5">
             {titleField}
             {descriptionField}
             {currencyField}

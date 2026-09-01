@@ -1,11 +1,10 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { Route } from "next";
-import {
-  WorkspacePage,
-  WorkspacePageHeader,
-} from "@/components/layout/workspace-page";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArrowLeft } from "lucide-react";
+import { WorkspacePage } from "@/components/layout/workspace-page";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { BusinessOnboardingForm } from "@/components/forms/business-onboarding-form";
 import {
   completeBusinessOnboardingAction,
@@ -46,18 +45,25 @@ export default async function NewBusinessPage() {
     : undefined;
 
   return (
-    <WorkspacePage className="max-w-4xl">
-      <WorkspacePageHeader
-        title="Add another business"
-        description="Create a separate workspace with its own customers, bookings, insights, and settings."
-        eyebrow={<Badge variant="outline">New business</Badge>}
-      />
+    <WorkspacePage className="max-w-4xl gap-4 pb-28 lg:pb-8">
+      <div className="flex min-w-0 items-center gap-2">
+        <Button
+          asChild
+          variant="ghost"
+          size="icon"
+          className="-ml-2 shrink-0 text-foreground"
+        >
+          <Link href={"/business" as Route} aria-label="Back to business profile">
+            <ArrowLeft className="size-5" aria-hidden="true" />
+          </Link>
+        </Button>
+        <h1 className="min-w-0 break-words text-2xl font-semibold leading-tight">
+          Create business
+        </h1>
+      </div>
 
-      <Card>
-        <CardHeader className="p-4 pb-0 sm:p-5 sm:pb-0">
-          <CardTitle>Business profile</CardTitle>
-        </CardHeader>
-        <CardContent className="p-4 pt-3 sm:p-5 sm:pt-3">
+      <Card className="overflow-hidden">
+        <CardContent className="p-4 sm:p-6">
           <BusinessOnboardingForm
             action={createAdditionalBusinessAction}
             completeAction={completeBusinessOnboardingAction}

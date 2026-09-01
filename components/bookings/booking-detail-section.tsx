@@ -10,7 +10,19 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { ChevronDown } from "lucide-react";
+import {
+  AlertTriangle,
+  CalendarClock,
+  ChevronDown,
+  ClipboardCheck,
+  FilePenLine,
+  History,
+  Link2,
+  MessageSquareLock,
+  PackagePlus,
+  PencilLine,
+  WalletCards,
+} from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
 type BookingDetailSectionProps = {
@@ -19,6 +31,17 @@ type BookingDetailSectionProps = {
   summary: string;
   defaultOpen?: boolean;
   attention?: boolean;
+  icon?:
+    | "addon"
+    | "changes"
+    | "edit"
+    | "feedback"
+    | "issues"
+    | "link"
+    | "progress"
+    | "reschedule"
+    | "timeline"
+    | "wallet";
   children: ReactNode;
 };
 
@@ -61,6 +84,7 @@ export function BookingDetailSection({
   summary,
   defaultOpen = false,
   attention = false,
+  icon,
   children,
 }: BookingDetailSectionProps) {
   const contentId = useId();
@@ -91,10 +115,46 @@ export function BookingDetailSection({
           aria-controls={contentId}
           onClick={() => setOpen((current) => !current)}
         >
-          <span className="min-w-0">
-            <span className="block text-sm font-semibold leading-5 sm:text-base sm:leading-6">{title}</span>
-            <span className="mt-0.5 block break-words text-xs font-normal leading-5 text-muted-foreground sm:text-sm">
-              {summary}
+          <span className="flex min-w-0 items-center gap-3">
+            {icon ? (
+              <span
+                className={cn(
+                  "grid size-10 shrink-0 place-items-center rounded-full sm:size-11",
+                  icon === "issues" && attention
+                    ? "bg-destructive/[0.08] text-destructive"
+                    : "bg-primary/[0.07] text-primary",
+                )}
+              >
+                {icon === "link" ? (
+                  <Link2 className="size-5" aria-hidden={true} />
+                ) : icon === "addon" ? (
+                  <PackagePlus className="size-5" aria-hidden={true} />
+                ) : icon === "changes" ? (
+                  <FilePenLine className="size-5" aria-hidden={true} />
+                ) : icon === "edit" ? (
+                  <PencilLine className="size-5" aria-hidden={true} />
+                ) : icon === "feedback" ? (
+                  <MessageSquareLock className="size-5" aria-hidden={true} />
+                ) : icon === "progress" ? (
+                  <ClipboardCheck className="size-5" aria-hidden={true} />
+                ) : icon === "reschedule" ? (
+                  <CalendarClock className="size-5" aria-hidden={true} />
+                ) : icon === "timeline" ? (
+                  <History className="size-5" aria-hidden={true} />
+                ) : icon === "issues" ? (
+                  <AlertTriangle className="size-5" aria-hidden={true} />
+                ) : (
+                  <WalletCards className="size-5" aria-hidden={true} />
+                )}
+              </span>
+            ) : null}
+            <span className="min-w-0">
+              <span className="block text-sm font-semibold leading-5 sm:text-base sm:leading-6">
+                {title}
+              </span>
+              <span className="mt-0.5 block break-words text-xs font-normal leading-5 text-muted-foreground sm:text-sm">
+                {summary}
+              </span>
             </span>
           </span>
           <ChevronDown

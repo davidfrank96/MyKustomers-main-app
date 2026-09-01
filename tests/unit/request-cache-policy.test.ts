@@ -13,9 +13,10 @@ describe("request-scoped tenant context policy", () => {
     expect(authServer).not.toMatch(/unstable_cache|"use cache"|'use cache'/);
   });
 
-  it("uses the same zero-argument context key in layout and page renders", () => {
-    expect(dashboardLayout).toContain("getCurrentBusinessContext()");
-    expect(dashboardLayout).not.toContain("getCurrentBusinessContext(user)");
+  it("uses the centralized request-scoped workspace gate in the vendor layout", () => {
+    expect(dashboardLayout).toContain('requireVendorWorkspace("/dashboard")');
+    expect(authServer).toContain("getCurrentBusinessContext()");
+    expect(authServer).not.toContain("getCurrentBusinessContext(user)");
   });
 
   it("resolves memberships and business summaries through one RLS-scoped relation read", () => {

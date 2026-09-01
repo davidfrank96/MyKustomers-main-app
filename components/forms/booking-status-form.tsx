@@ -1,6 +1,7 @@
 "use client";
 
 import { useFormStatus } from "react-dom";
+import { LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -24,16 +25,19 @@ type BookingStatusFormProps = {
   };
   cancellationReason?: boolean;
   cancellationReasonRequired?: boolean;
+  fullWidth?: boolean;
 };
 
 function SubmitButton({
   label,
   pendingLabel,
   variant,
+  fullWidth,
 }: {
   label: string;
   pendingLabel: string;
   variant: "primary" | "secondary" | "destructive";
+  fullWidth: boolean;
 }) {
   const { pending } = useFormStatus();
 
@@ -41,10 +45,16 @@ function SubmitButton({
     <Button
       type="submit"
       variant={variant}
-      size="sm"
-      className="w-full sm:w-fit"
+      size={fullWidth ? "md" : "sm"}
+      className={fullWidth ? "w-full" : "w-full sm:w-fit"}
       disabled={pending}
+      aria-live="polite"
     >
+      {pending ? (
+        <span className="animate-spin" aria-hidden="true">
+          <LoaderCircle className="size-4" />
+        </span>
+      ) : null}
       {pending ? pendingLabel : label}
     </Button>
   );
@@ -58,6 +68,7 @@ export function BookingStatusForm({
   confirmation,
   cancellationReason = false,
   cancellationReasonRequired = false,
+  fullWidth = false,
 }: BookingStatusFormProps) {
   const form = (
     <form
@@ -76,7 +87,12 @@ export function BookingStatusForm({
           required={cancellationReasonRequired}
         />
       ) : null}
-      <SubmitButton label={label} pendingLabel={pendingLabel} variant={variant} />
+      <SubmitButton
+        label={label}
+        pendingLabel={pendingLabel}
+        variant={variant}
+        fullWidth={fullWidth}
+      />
     </form>
   );
 
@@ -87,7 +103,12 @@ export function BookingStatusForm({
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button type="button" variant={variant} size="sm" className="w-full sm:w-fit">
+        <Button
+          type="button"
+          variant={variant}
+          size={fullWidth ? "md" : "sm"}
+          className={fullWidth ? "w-full" : "w-full sm:w-fit"}
+        >
           {label}
         </Button>
       </DialogTrigger>
@@ -119,6 +140,7 @@ export function BookingStatusForm({
                   label={confirmation.confirmLabel}
                   pendingLabel={pendingLabel}
                   variant={variant}
+                  fullWidth={false}
                 />
               </div>
             </form>

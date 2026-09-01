@@ -1,4 +1,20 @@
-import { AlertTriangle, Check, Circle, Clock3, X } from "lucide-react";
+import {
+  Activity,
+  AlertTriangle,
+  Ban,
+  Check,
+  CheckCircle2,
+  ChevronDown,
+  Circle,
+  Clock3,
+  FileText,
+  Info,
+  MoreHorizontal,
+  PackageCheck,
+  Truck,
+  UserCheck,
+  X,
+} from "lucide-react";
 import { BookingCompletionDialog } from "@/components/forms/booking-completion-dialog";
 import { BookingStatusForm } from "@/components/forms/booking-status-form";
 import { Button } from "@/components/ui/button";
@@ -46,6 +62,29 @@ function StageIcon({ state }: { state: keyof typeof stateLabels }) {
   return <Circle className="size-3" fill="currentColor" aria-hidden="true" />;
 }
 
+function JourneyStateIcon({ status }: { status: BookingStatus }) {
+  const className = "size-5";
+
+  switch (status) {
+    case "DRAFT":
+      return <FileText className={className} aria-hidden="true" />;
+    case "AWAITING_CUSTOMER":
+      return <Clock3 className={className} aria-hidden="true" />;
+    case "CONFIRMED":
+      return <UserCheck className={className} aria-hidden="true" />;
+    case "IN_PROGRESS":
+      return <Activity className={className} aria-hidden="true" />;
+    case "READY":
+      return <PackageCheck className={className} aria-hidden="true" />;
+    case "DELIVERED":
+      return <Truck className={className} aria-hidden="true" />;
+    case "COMPLETED":
+      return <CheckCircle2 className={className} aria-hidden="true" />;
+    case "CANCELLED":
+      return <Ban className={className} aria-hidden="true" />;
+  }
+}
+
 export function BookingJourney({
   journey,
   transitionAction,
@@ -63,166 +102,196 @@ export function BookingJourney({
   return (
     <section
       aria-labelledby="booking-journey-title"
-      className="border-y border-border py-4 sm:py-6"
+      className="space-y-3"
+      data-booking-journey
     >
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.85fr)] lg:gap-8">
-        <div className="min-w-0 lg:col-start-1 lg:row-start-1">
-          <p className="text-[0.6875rem] font-medium uppercase text-muted-foreground sm:text-xs">
-            Booking journey
-          </p>
-          <h2
-            id="booking-journey-title"
-            className="mt-1 break-words text-xl font-semibold"
+      <div className="rounded-lg border border-border bg-card p-4 shadow-[0_1px_3px_rgba(23,33,29,0.04)] sm:p-5">
+        <div className="flex min-w-0 items-start gap-3 sm:gap-4">
+          <span
+            className={cn(
+              "grid size-11 shrink-0 place-items-center rounded-full bg-primary/[0.08] text-primary sm:size-12",
+              journey.status === "CANCELLED" && "bg-destructive/[0.07] text-destructive",
+            )}
           >
-            {journey.title}
-          </h2>
-          <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
-            {journey.description}
-          </p>
+            <JourneyStateIcon status={journey.status} />
+          </span>
+          <div className="min-w-0 pt-0.5">
+            <p className="text-[0.6875rem] font-semibold uppercase leading-4 text-primary sm:text-xs">
+              Booking journey
+            </p>
+            <h2
+              id="booking-journey-title"
+              className="mt-1 break-words text-xl font-semibold leading-7 sm:text-2xl sm:leading-8"
+            >
+              {journey.title}
+            </h2>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground sm:text-base">
+              {journey.description}
+            </p>
+          </div>
         </div>
 
-        <div className="min-w-0 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:pt-1">
-          <div className="rounded-lg border border-primary/15 bg-primary/[0.045] p-4 sm:p-5">
-            <p className="text-xs font-medium uppercase text-muted-foreground">
-              {journey.complete ? "Journey status" : "What to do next"}
-            </p>
+        <div className="mt-4 rounded-md border border-primary/15 bg-primary/[0.035] p-3.5 sm:ml-16 sm:p-4">
+          <div className="flex items-start gap-3">
+            <Info className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold uppercase leading-5 text-foreground/75">
+                {journey.complete ? "Journey status" : "What to do next"}
+              </p>
 
-            {journey.primaryAction ? (
-              <>
-                <p className="mt-2 text-sm leading-6">
-                  {journey.primaryAction.description}
+              {journey.primaryAction ? (
+                <>
+                  <p className="mt-1 text-sm leading-6">
+                    {journey.primaryAction.description}
+                  </p>
+                  <div className="mt-3">
+                    {journey.primaryAction.kind === "transition" &&
+                    journey.primaryAction.toStatus === "COMPLETED" ? (
+                      <BookingCompletionDialog action={completionAction} />
+                    ) : journey.primaryAction.kind === "transition" ? (
+                      <BookingStatusForm
+                        action={transitionAction.bind(
+                          null,
+                          journey.primaryAction.toStatus,
+                        )}
+                        label={journey.primaryAction.label}
+                        pendingLabel={journey.primaryAction.pendingLabel}
+                        variant="primary"
+                        fullWidth
+                      />
+                    ) : (
+                      <Button asChild className="w-full">
+                        <a
+                          href={journey.primaryAction.href}
+                          style={{ color: "var(--primary-foreground)" }}
+                        >
+                          {journey.primaryAction.label}
+                        </a>
+                      </Button>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                  {journey.status === "CANCELLED"
+                    ? "No further fulfilment actions are available."
+                    : "No further action is required for this journey."}
                 </p>
-                <div className="mt-4">
-                  {journey.primaryAction.kind === "transition" &&
-                  journey.primaryAction.toStatus === "COMPLETED" ? (
-                    <BookingCompletionDialog action={completionAction} />
-                  ) : journey.primaryAction.kind === "transition" ? (
-                    <BookingStatusForm
-                      action={transitionAction.bind(null, journey.primaryAction.toStatus)}
-                      label={journey.primaryAction.label}
-                      pendingLabel={journey.primaryAction.pendingLabel}
-                      variant="primary"
-                    />
-                  ) : (
-                    <Button asChild className="w-full sm:w-fit">
-                      <a
-                        href={journey.primaryAction.href}
-                        style={{ color: "var(--primary-foreground)" }}
-                      >
-                        {journey.primaryAction.label}
-                      </a>
-                    </Button>
-                  )}
+              )}
+
+              {journey.waitingReason ? (
+                <p className="mt-3 border-l-2 border-accent pl-3 text-sm leading-6 text-muted-foreground">
+                  {journey.waitingReason}
+                </p>
+              ) : null}
+
+              {journey.status === "CANCELLED" ? (
+                <div className="mt-3 space-y-1 text-sm text-muted-foreground">
+                  <p>Cancelled {formatDateTime(cancelledAt)}</p>
+                  {cancellationReason ? (
+                    <p className="break-words">Reason: {cancellationReason}</p>
+                  ) : null}
                 </div>
-              </>
-            ) : (
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                {journey.status === "CANCELLED"
-                  ? "No further fulfilment actions are available."
-                  : "No further action is required for this journey."}
-              </p>
-            )}
-
-            {journey.waitingReason ? (
-              <p className="mt-4 border-l-2 border-accent pl-3 text-sm leading-6 text-muted-foreground">
-                {journey.waitingReason}
-              </p>
-            ) : null}
-
-            {journey.status === "CANCELLED" ? (
-              <div className="mt-4 space-y-1 text-sm text-muted-foreground">
-                <p>Cancelled {formatDateTime(cancelledAt)}</p>
-                {cancellationReason ? (
-                  <p className="break-words">Reason: {cancellationReason}</p>
-                ) : null}
-              </div>
-            ) : null}
+              ) : null}
+            </div>
           </div>
+        </div>
 
-          {journey.attention.length > 0 ? (
-            <div className="mt-4 space-y-3" aria-label="Booking attention items">
-              {journey.attention.map((item) => (
-                <div
-                  key={item.kind}
-                  className="rounded-md border border-accent/40 bg-accent/5 p-3"
-                >
-                  <div className="flex items-start gap-2">
-                    <AlertTriangle
-                      className="mt-0.5 size-4 shrink-0 text-accent"
-                      aria-hidden="true"
-                    />
-                    <div className="min-w-0">
-                      <p className="text-sm leading-6">{item.message}</p>
-                      <a
-                        href={item.href}
-                        className="mt-1 inline-block text-sm font-medium text-primary underline-offset-4 hover:underline"
-                      >
-                        {item.actionLabel}
-                      </a>
-                    </div>
+        {journey.attention.length > 0 ? (
+          <div className="mt-4 space-y-2 sm:ml-16" aria-label="Booking attention items">
+            {journey.attention.map((item) => (
+              <div
+                key={item.kind}
+                className="rounded-md border border-accent/40 bg-accent/5 p-3"
+              >
+                <div className="flex items-start gap-2">
+                  <AlertTriangle
+                    className="mt-0.5 size-4 shrink-0 text-accent"
+                    aria-hidden="true"
+                  />
+                  <div className="min-w-0">
+                    <p className="text-sm leading-6">{item.message}</p>
+                    <a
+                      href={item.href}
+                      className="mt-1 inline-block text-sm font-medium text-primary underline-offset-4 hover:underline"
+                    >
+                      {item.actionLabel}
+                    </a>
                   </div>
                 </div>
-              ))}
-            </div>
-          ) : null}
-
-          {hasOtherActions ? (
-            <details className="mt-4 rounded-md border border-border bg-card p-3">
-              <summary className="cursor-pointer text-sm font-medium">
-                Other actions
-              </summary>
-              <div className="mt-3 flex flex-col items-start gap-3">
-                <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm">
-                  {canReschedule ? (
-                    <a href="#reschedule" className="text-primary hover:underline">
-                      Reschedule
-                    </a>
-                  ) : null}
-                  {canAmend ? (
-                    <a href="#booking-changes" className="text-primary hover:underline">
-                      Propose changes
-                    </a>
-                  ) : null}
-                  {canAdd ? (
-                    <a href="#booking-addons" className="text-primary hover:underline">
-                      Add to booking
-                    </a>
-                  ) : null}
-                </div>
-                {canCancel ? (
-                  <BookingStatusForm
-                    action={transitionAction.bind(null, "CANCELLED")}
-                    label="Cancel booking"
-                    pendingLabel="Cancelling booking..."
-                    variant="destructive"
-                    confirmation={{
-                      title: "Cancel this booking?",
-                      description:
-                        "This will cancel the booking and stop the current fulfilment journey.",
-                      confirmLabel: "Cancel booking",
-                    }}
-                    cancellationReason
-                    cancellationReasonRequired={cancellationReasonRequired}
-                  />
-                ) : null}
               </div>
-            </details>
-          ) : null}
-        </div>
+            ))}
+          </div>
+        ) : null}
+      </div>
 
-        <ol className="rounded-lg border border-border bg-card p-4 lg:col-start-1 lg:row-start-2" aria-label="Booking progress">
+      {hasOtherActions ? (
+        <details className="group rounded-lg border border-border bg-card shadow-[0_1px_3px_rgba(23,33,29,0.03)]">
+          <summary className="flex min-h-16 cursor-pointer list-none items-center gap-3 px-4 py-3 marker:content-none [&::-webkit-details-marker]:hidden sm:px-5">
+            <span className="grid size-9 shrink-0 place-items-center rounded-full bg-muted text-primary">
+              <MoreHorizontal className="size-5" aria-hidden="true" />
+            </span>
+            <span className="min-w-0 flex-1 text-sm font-semibold sm:text-base">
+              Other actions
+            </span>
+            <ChevronDown
+              className="size-5 shrink-0 text-primary transition-transform group-open:rotate-180"
+              aria-hidden="true"
+            />
+          </summary>
+          <div className="border-t border-border px-4 py-4 sm:px-5">
+            <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+              {canReschedule ? (
+                <Button asChild variant="secondary" size="sm">
+                  <a href="#reschedule">Reschedule</a>
+                </Button>
+              ) : null}
+              {canAmend ? (
+                <Button asChild variant="secondary" size="sm">
+                  <a href="#booking-changes">Propose changes</a>
+                </Button>
+              ) : null}
+              {canAdd ? (
+                <Button asChild variant="secondary" size="sm">
+                  <a href="#booking-addons">Add to booking</a>
+                </Button>
+              ) : null}
+              {canCancel ? (
+                <BookingStatusForm
+                  action={transitionAction.bind(null, "CANCELLED")}
+                  label="Cancel booking"
+                  pendingLabel="Cancelling booking..."
+                  variant="destructive"
+                  confirmation={{
+                    title: "Cancel this booking?",
+                    description:
+                      "This will cancel the booking and stop the current fulfilment journey.",
+                    confirmLabel: "Cancel booking",
+                  }}
+                  cancellationReason
+                  cancellationReasonRequired={cancellationReasonRequired}
+                />
+              ) : null}
+            </div>
+          </div>
+        </details>
+      ) : null}
+
+      <div className="rounded-lg border border-border bg-card p-4 shadow-[0_1px_3px_rgba(23,33,29,0.03)] sm:p-5">
+        <h3 className="text-base font-semibold">Booking journey</h3>
+        <ol className="mt-4" aria-label="Booking progress">
           {journey.stages.map((stage, index) => {
             const isCurrent = stage.state === "current" || stage.state === "attention";
             return (
               <li
                 key={stage.key}
-                className="relative flex min-h-[3.25rem] gap-3 pb-2.5 last:min-h-0 last:pb-0"
+                className="relative flex min-h-[3.75rem] gap-3 pb-3 last:min-h-0 last:pb-0"
                 aria-current={isCurrent ? "step" : undefined}
               >
                 {index < journey.stages.length - 1 ? (
                   <span
                     className={cn(
-                      "absolute left-[13px] top-7 h-[calc(100%-0.75rem)] w-px",
+                      "absolute left-[15px] top-8 h-[calc(100%-0.75rem)] w-px",
                       stage.state === "completed" ? "bg-primary/45" : "bg-border",
                     )}
                     aria-hidden="true"
@@ -230,7 +299,7 @@ export function BookingJourney({
                 ) : null}
                 <span
                   className={cn(
-                    "relative z-10 flex size-7 shrink-0 items-center justify-center rounded-full border",
+                    "relative z-10 flex size-8 shrink-0 items-center justify-center rounded-full border",
                     stage.state === "completed" &&
                       "border-primary bg-primary text-primary-foreground",
                     stage.state === "current" &&
@@ -245,16 +314,22 @@ export function BookingJourney({
                 >
                   <StageIcon state={stage.state} />
                 </span>
-                <span className="min-w-0 pt-1">
+                <span className="min-w-0 pt-0.5">
                   <span
                     className={cn(
-                      "block break-words text-sm font-medium",
+                      "block break-words text-sm font-semibold leading-5 sm:text-base",
+                      isCurrent && "text-primary",
                       stage.state === "upcoming" && "text-muted-foreground",
                     )}
                   >
                     {stage.label}
                   </span>
-                  <span className="mt-0.5 block text-xs text-muted-foreground">
+                  <span
+                    className={cn(
+                      "mt-0.5 block text-xs text-muted-foreground",
+                      isCurrent && "font-medium text-primary",
+                    )}
+                  >
                     {stateLabels[stage.state]}
                   </span>
                 </span>

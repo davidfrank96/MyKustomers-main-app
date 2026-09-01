@@ -7,11 +7,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { logoutAction } from "@/features/auth/actions";
-import { getCurrentBusinessContext, requireUser } from "@/lib/auth/server";
+import { requireVendorWorkspace } from "@/lib/auth/server";
 
 export default async function SettingsPage() {
-  const user = await requireUser("/settings");
-  const context = await getCurrentBusinessContext();
+  const {
+    user,
+    business,
+    businessContext: context,
+  } = await requireVendorWorkspace("/settings");
 
   return (
     <WorkspacePage className="max-w-3xl">
@@ -27,31 +30,28 @@ export default async function SettingsPage() {
         </div>
       </section>
 
-      {context.currentBusiness ? (
-        <Card id="my-businesses" className="scroll-mt-20">
-          <CardHeader>
-            <CardTitle>My businesses</CardTitle>
-            <p className="text-sm leading-5 text-muted-foreground">
-              View the businesses you can access, switch workspace, or add another
-              business.
-            </p>
-          </CardHeader>
-          <CardContent className="space-y-5">
-            <BusinessMembershipList
-              businesses={context.businesses}
-              currentBusinessId={context.currentBusiness.id}
-            />
-            <div className="border-t border-border pt-4">
-              <Button asChild variant="secondary" className="w-full sm:w-fit">
-                <Link href={"/business" as Route}>
-                  <BriefcaseBusiness className="size-4" aria-hidden="true" />
-                  Open current business profile
-                </Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      ) : null}
+      <Card id="my-businesses" className="scroll-mt-20">
+        <CardHeader>
+          <CardTitle>My businesses</CardTitle>
+          <p className="text-sm leading-5 text-muted-foreground">
+            View the businesses you can access, switch workspace, or add another business.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          <BusinessMembershipList
+            businesses={context.businesses}
+            currentBusinessId={business.id}
+          />
+          <div className="border-t border-border pt-4">
+            <Button asChild variant="secondary" className="w-full sm:w-fit">
+              <Link href={"/business" as Route}>
+                <BriefcaseBusiness className="size-4" aria-hidden="true" />
+                Open current business profile
+              </Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

@@ -43,7 +43,7 @@ export function buildPublicCapabilityMetadata({
       title,
       description,
       url: canonicalUrl,
-      siteName: "My Customers",
+      siteName: "My Kustomers",
       type: "website",
       images: [{ url: imageUrl, alt: imageAlt }],
     },
@@ -68,6 +68,6 @@ export function buildPublicConfirmationMetadata(
     title: (businessName) => `Review your order with ${businessName}`,
     description: (businessName) =>
       `${businessName} has sent you an order for review and confirmation.`,
-    imageAlt: "My Customers secure order confirmation",
+    imageAlt: "My Kustomers secure order confirmation",
   });
 }

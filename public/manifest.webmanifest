@@ -1,6 +1,6 @@
 {
-  "name": "My Customers",
-  "short_name": "Customers",
+  "name": "My Kustomers",
+  "short_name": "Kustomers",
   "description": "A mobile-first customer and booking operations platform for small businesses.",
   "start_url": "/",
   "scope": "/",

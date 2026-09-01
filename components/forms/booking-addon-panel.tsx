@@ -2,10 +2,21 @@
 
 import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
-import { Plus, Send, XCircle } from "lucide-react";
+import {
+  FileText,
+  Inbox,
+  Info,
+  PackagePlus,
+  PieChart,
+  Plus,
+  Send,
+  WalletCards,
+  XCircle,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogHeader,
@@ -93,7 +104,13 @@ function SubmitButton({
 function CancelButton() {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" variant="destructive" size="sm" disabled={pending}>
+    <Button
+      type="submit"
+      variant="secondary"
+      size="sm"
+      className="border-destructive/30 text-destructive hover:bg-destructive/5"
+      disabled={pending}
+    >
       <XCircle className="size-4" aria-hidden="true" />
       {pending ? "Cancelling..." : "Cancel add-on"}
     </Button>
@@ -131,7 +148,7 @@ function AddonRow({
   const hasSubmittedLink = addon.status === "AWAITING_CUSTOMER" && addon.latestLink;
 
   return (
-    <li className="space-y-3 border-t border-border py-4 first:border-t-0 first:pt-0">
+    <li className="space-y-3 rounded-md border border-border p-3 sm:p-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
@@ -145,7 +162,7 @@ function AddonRow({
               {addon.description}
             </p>
           ) : null}
-          <p className="mt-2 text-sm">
+          <p className="mt-2 text-sm tabular-nums">
             {formatMoneyMinor(addon.total_amount_minor, currency)} · Deposit recorded{" "}
             {formatMoneyMinor(addon.deposit_amount_minor, currency)}
           </p>
@@ -177,22 +194,29 @@ function AddonRow({
         ) : null}
       </div>
       {requestBlocked && addon.status === "DRAFT" ? (
-        <p className="text-sm text-muted-foreground">
-          Resolve the current customer agreement request before sending this draft.
-        </p>
+        <div className="flex items-start gap-2 rounded-md border border-primary/15 bg-primary/[0.035] px-3 py-2.5 text-sm text-muted-foreground">
+          <Info className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
+          <p>Resolve the current customer agreement request before sending this draft.</p>
+        </div>
       ) : null}
       {submitState.message ? (
-        <p className="text-sm text-muted-foreground" role="status">
+        <p
+          className="rounded-md border border-border bg-muted/40 px-3 py-2 text-sm text-muted-foreground"
+          role="status"
+        >
           {submitState.message}
         </p>
       ) : null}
       {cancelState.message ? (
-        <p className="text-sm text-muted-foreground" role="status">
+        <p
+          className="rounded-md border border-border bg-muted/40 px-3 py-2 text-sm text-muted-foreground"
+          role="status"
+        >
           {cancelState.message}
         </p>
       ) : null}
       {submitState.addonUrl && submitState.confirmationLinkId ? (
-        <div className="space-y-3 border-y border-border py-3">
+        <div className="space-y-3 rounded-md border border-primary/15 bg-primary/[0.025] p-3">
           <Label htmlFor={`addon-link-${addon.id}`}>Generated add-on link</Label>
           <Input id={`addon-link-${addon.id}`} value={submitState.addonUrl} readOnly />
           <CustomerConfirmationShare
@@ -216,19 +240,30 @@ function AddonRow({
   );
 }
 
-function CreateButton() {
+function CreateActions() {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" className="w-full sm:w-auto" disabled={pending}>
-      <Plus className="size-4" aria-hidden="true" />
-      {pending ? "Saving draft..." : "Save add-on draft"}
-    </Button>
+    <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:justify-end">
+      <DialogClose asChild>
+        <Button type="button" variant="secondary" disabled={pending}>
+          Cancel
+        </Button>
+      </DialogClose>
+      <Button type="submit" disabled={pending}>
+        <Plus className="size-4" aria-hidden="true" />
+        {pending ? "Saving draft..." : "Save add-on draft"}
+      </Button>
+    </div>
   );
 }
 
 function FieldError({ state, name }: { state: AddonActionState; name: string }) {
   const message = state.fieldErrors?.[name]?.[0];
-  return message ? <p className="text-sm text-destructive">{message}</p> : null;
+  return message ? (
+    <p id={`addon-${name}-error`} className="text-sm text-destructive" role="alert">
+      {message}
+    </p>
+  ) : null;
 }
 
 export function BookingAddonPanel({
@@ -257,140 +292,233 @@ export function BookingAddonPanel({
   const confirmed = summary.items.filter((addon) => addon.status === "CONFIRMED");
 
   return (
-    <div className="space-y-6">
-      <div className="grid gap-3 sm:grid-cols-3">
-        <div>
-          <p className="text-xs font-medium text-muted-foreground">
-            Current agreed value
-          </p>
-          <p className="mt-1 text-lg font-semibold">
-            {formatMoneyMinor(summary.totalAmountMinor, currency)}
-          </p>
-        </div>
-        <div>
-          <p className="text-xs font-medium text-muted-foreground">
-            Current deposit recorded
-          </p>
-          <p className="mt-1 text-lg font-semibold">
-            {formatMoneyMinor(summary.depositAmountMinor, currency)}
-          </p>
-        </div>
-        <div>
-          <p className="text-xs font-medium text-muted-foreground">Current balance</p>
-          <p className="mt-1 text-lg font-semibold">
-            {formatMoneyMinor(summary.balanceAmountMinor, currency)}
-          </p>
-        </div>
-      </div>
-
-      <div className="border-y border-border py-4 text-sm">
-        <p className="font-medium">Value breakdown</p>
-        <div className="mt-3 flex justify-between gap-4">
-          <span className="text-muted-foreground">Original booking</span>
-          <span>{formatMoneyMinor(originalTotalAmountMinor, currency)}</span>
-        </div>
-        {confirmed.map((addon) => (
-          <div key={addon.id} className="mt-2 flex justify-between gap-4">
-            <span className="min-w-0 break-words text-muted-foreground">
-              {addon.title}
-            </span>
-            <span>{formatMoneyMinor(addon.total_amount_minor, currency)}</span>
+    <div className="space-y-5">
+      <dl className="grid gap-2.5 sm:grid-cols-3">
+        <div className="flex min-w-0 items-center gap-3 rounded-md border border-border px-3 py-3">
+          <span className="grid size-10 shrink-0 place-items-center rounded-md bg-primary/[0.07] text-primary">
+            <FileText className="size-5" aria-hidden="true" />
+          </span>
+          <div className="min-w-0">
+            <dt className="text-sm leading-5 text-muted-foreground">
+              Current agreed value
+            </dt>
+            <dd className="mt-0.5 break-words text-lg font-semibold leading-6 tabular-nums [overflow-wrap:anywhere] sm:text-xl">
+              {formatMoneyMinor(summary.totalAmountMinor, currency)}
+            </dd>
           </div>
-        ))}
-        <div className="mt-3 flex justify-between gap-4 border-t border-border pt-3 font-medium">
-          <span>Current agreed value</span>
-          <span>{formatMoneyMinor(summary.totalAmountMinor, currency)}</span>
         </div>
-        <p className="mt-3 text-xs text-muted-foreground">
-          Original deposit recorded:{" "}
-          {formatMoneyMinor(originalDepositAmountMinor, currency)}. Only confirmed add-ons
-          contribute to current totals.
-        </p>
-      </div>
+        <div className="flex min-w-0 items-center gap-3 rounded-md border border-border px-3 py-3">
+          <span className="grid size-10 shrink-0 place-items-center rounded-md bg-primary/[0.07] text-primary">
+            <WalletCards className="size-5" aria-hidden="true" />
+          </span>
+          <div className="min-w-0">
+            <dt className="text-sm leading-5 text-muted-foreground">
+              Current deposit recorded
+            </dt>
+            <dd className="mt-0.5 break-words text-lg font-semibold leading-6 tabular-nums [overflow-wrap:anywhere] sm:text-xl">
+              {formatMoneyMinor(summary.depositAmountMinor, currency)}
+            </dd>
+          </div>
+        </div>
+        <div className="flex min-w-0 items-center gap-3 rounded-md border border-primary/20 bg-primary/[0.035] px-3 py-3">
+          <span className="grid size-10 shrink-0 place-items-center rounded-md bg-primary/[0.09] text-primary">
+            <PieChart className="size-5" aria-hidden="true" />
+          </span>
+          <div className="min-w-0">
+            <dt className="text-sm leading-5 text-muted-foreground">Current balance</dt>
+            <dd className="mt-0.5 break-words text-lg font-semibold leading-6 text-primary tabular-nums [overflow-wrap:anywhere] sm:text-xl">
+              {formatMoneyMinor(summary.balanceAmountMinor, currency)}
+            </dd>
+          </div>
+        </div>
+      </dl>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="font-medium">Add-ons</p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Additional scope shares this booking&apos;s delivery schedule.
+      <section
+        className="border-t border-border pt-4"
+        aria-labelledby="addon-value-heading"
+      >
+        <h3 id="addon-value-heading" className="text-base font-semibold leading-6">
+          Value breakdown
+        </h3>
+        <dl className="mt-2 divide-y divide-border text-sm">
+          <div className="flex min-w-0 justify-between gap-4 py-2.5">
+            <dt className="text-muted-foreground">Original booking</dt>
+            <dd className="shrink-0 font-medium tabular-nums">
+              {formatMoneyMinor(originalTotalAmountMinor, currency)}
+            </dd>
+          </div>
+          {confirmed.map((addon) => (
+            <div key={addon.id} className="flex min-w-0 justify-between gap-4 py-2.5">
+              <dt className="min-w-0 break-words text-muted-foreground">{addon.title}</dt>
+              <dd className="shrink-0 font-medium tabular-nums">
+                {formatMoneyMinor(addon.total_amount_minor, currency)}
+              </dd>
+            </div>
+          ))}
+          <div className="flex min-w-0 justify-between gap-4 py-2.5 font-medium">
+            <dt>Current agreed value</dt>
+            <dd className="shrink-0 tabular-nums">
+              {formatMoneyMinor(summary.totalAmountMinor, currency)}
+            </dd>
+          </div>
+        </dl>
+        <div className="mt-3 flex items-start gap-2.5 rounded-md border border-primary/15 bg-primary/[0.035] px-3 py-2.5 text-sm text-muted-foreground">
+          <Info className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
+          <p>
+            Original deposit recorded:{" "}
+            <span className="font-medium tabular-nums text-foreground">
+              {formatMoneyMinor(originalDepositAmountMinor, currency)}
+            </span>
+            . Only confirmed add-ons contribute to current totals.
           </p>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button
-              type="button"
-              variant="secondary"
-              disabled={!canCreate || requestBlocked}
-            >
-              <Plus className="size-4" aria-hidden="true" />
-              Add item
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add item</DialogTitle>
-              <DialogDescription>
-                Create additional scope for the same booking and delivery. You will review
-                the draft before sending it to the customer.
-              </DialogDescription>
-            </DialogHeader>
-            <form action={createFormAction} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="addon-title">Title</Label>
-                <Input id="addon-title" name="title" maxLength={160} required />
-                <FieldError state={createState} name="title" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="addon-description">Description</Label>
-                <Textarea id="addon-description" name="description" maxLength={5000} />
-                <FieldError state={createState} name="description" />
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
+      </section>
+
+      <section className="border-t border-border pt-4" aria-labelledby="addons-heading">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <h3 id="addons-heading" className="text-base font-semibold leading-6">
+              Add-ons
+            </h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Additional scope shares this booking&apos;s delivery schedule.
+            </p>
+          </div>
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button
+                type="button"
+                variant="secondary"
+                className="w-full border-primary/30 text-primary hover:bg-primary/[0.04] sm:w-auto"
+                disabled={!canCreate || requestBlocked}
+              >
+                <Plus className="size-4" aria-hidden="true" />
+                Add item
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-lg">
+              <DialogHeader>
+                <div className="flex items-start gap-3">
+                  <span className="grid size-10 shrink-0 place-items-center rounded-md bg-primary/[0.08] text-primary">
+                    <PackagePlus className="size-5" aria-hidden="true" />
+                  </span>
+                  <div className="min-w-0">
+                    <DialogTitle>Add item</DialogTitle>
+                    <DialogDescription className="mt-1">
+                      Create additional scope for the same booking and delivery. You will
+                      review the draft before sending it to the customer.
+                    </DialogDescription>
+                  </div>
+                </div>
+              </DialogHeader>
+              <form action={createFormAction} className="mt-5 space-y-4" noValidate>
                 <div className="space-y-2">
-                  <Label htmlFor="addon-total">Agreed amount</Label>
+                  <Label htmlFor="addon-title">Title</Label>
                   <Input
-                    id="addon-total"
-                    name="totalAmount"
-                    inputMode="decimal"
+                    id="addon-title"
+                    name="title"
+                    maxLength={160}
+                    placeholder="e.g. Additional cupcakes"
                     required
+                    aria-invalid={Boolean(createState.fieldErrors?.title)}
+                    aria-describedby={
+                      createState.fieldErrors?.title ? "addon-title-error" : undefined
+                    }
                   />
-                  <FieldError state={createState} name="totalAmount" />
+                  <FieldError state={createState} name="title" />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="addon-deposit">Deposit recorded</Label>
-                  <Input
-                    id="addon-deposit"
-                    name="depositAmount"
-                    inputMode="decimal"
-                    defaultValue="0"
-                    required
+                  <Label htmlFor="addon-description">Description</Label>
+                  <Textarea
+                    id="addon-description"
+                    name="description"
+                    maxLength={5000}
+                    placeholder="Describe the additional scope..."
+                    className="min-h-24"
+                    aria-invalid={Boolean(createState.fieldErrors?.description)}
+                    aria-describedby={
+                      createState.fieldErrors?.description
+                        ? "addon-description-error"
+                        : undefined
+                    }
                   />
-                  <FieldError state={createState} name="depositAmount" />
+                  <FieldError state={createState} name="description" />
                 </div>
-              </div>
-              {createState.message && createState.status === "error" ? (
-                <p className="text-sm text-destructive" role="status">
-                  {createState.message}
-                </p>
-              ) : null}
-              <CreateButton />
-            </form>
-          </DialogContent>
-        </Dialog>
-      </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="addon-total">Agreed amount</Label>
+                    <Input
+                      id="addon-total"
+                      name="totalAmount"
+                      inputMode="decimal"
+                      placeholder="0.00"
+                      required
+                      aria-invalid={Boolean(createState.fieldErrors?.totalAmount)}
+                      aria-describedby={
+                        createState.fieldErrors?.totalAmount
+                          ? "addon-totalAmount-error"
+                          : undefined
+                      }
+                    />
+                    <FieldError state={createState} name="totalAmount" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="addon-deposit">Deposit recorded</Label>
+                    <Input
+                      id="addon-deposit"
+                      name="depositAmount"
+                      inputMode="decimal"
+                      defaultValue="0"
+                      required
+                      aria-invalid={Boolean(createState.fieldErrors?.depositAmount)}
+                      aria-describedby={
+                        createState.fieldErrors?.depositAmount
+                          ? "addon-depositAmount-error"
+                          : undefined
+                      }
+                    />
+                    <FieldError state={createState} name="depositAmount" />
+                  </div>
+                </div>
+                {createState.message && createState.status === "error" ? (
+                  <p
+                    className="rounded-md border border-destructive/25 bg-destructive/5 px-3 py-2 text-sm text-destructive"
+                    role="alert"
+                  >
+                    {createState.message}
+                  </p>
+                ) : null}
+                <CreateActions />
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </section>
       {!canCreate ? (
-        <p className="text-sm text-muted-foreground">
-          Add-ons are available only while a confirmed booking is confirmed or in
-          progress.
-        </p>
+        <div
+          role="note"
+          className="flex items-start gap-2.5 rounded-md border border-primary/15 bg-primary/[0.035] px-3 py-2.5 text-sm text-muted-foreground"
+        >
+          <Info className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
+          <p>
+            Add-ons are available only while a confirmed booking is confirmed or in
+            progress.
+          </p>
+        </div>
       ) : requestBlocked ? (
-        <p className="text-sm text-muted-foreground">
-          Resolve the current customer agreement request before adding another item.
-        </p>
+        <div
+          role="note"
+          className="flex items-start gap-2.5 rounded-md border border-primary/15 bg-primary/[0.035] px-3 py-2.5 text-sm text-muted-foreground"
+        >
+          <Info className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
+          <p>
+            Resolve the current customer agreement request before adding another item.
+          </p>
+        </div>
       ) : null}
 
       {summary.items.length > 0 ? (
-        <ol aria-label="Booking add-ons">
+        <ol aria-label="Booking add-ons" className="space-y-3">
           {summary.items.map((addon) => (
             <AddonRow
               key={addon.id}
@@ -406,7 +534,10 @@ export function BookingAddonPanel({
           ))}
         </ol>
       ) : (
-        <p className="text-sm text-muted-foreground">No add-ons recorded.</p>
+        <div className="flex items-center gap-3 rounded-md border border-border bg-muted/25 px-3 py-3 text-sm text-muted-foreground">
+          <Inbox className="size-5 shrink-0" aria-hidden="true" />
+          <p>No add-ons recorded.</p>
+        </div>
       )}
     </div>
   );

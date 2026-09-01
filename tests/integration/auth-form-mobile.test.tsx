@@ -56,4 +56,27 @@ describe("mobile auth presentation", () => {
 
     expect(screen.getByRole("button", { name: "Log in" })).toHaveClass("h-14");
   });
+
+  it("uses the current brand in the desktop presentation", () => {
+    render(
+      <AuthForm
+        title="Log in"
+        description="Access your My Kustomers workspace."
+        action={async () => initialAuthActionState}
+        submitLabel="Log in"
+        fields={[
+          {
+            name: "email",
+            label: "Email",
+            type: "email",
+            autoComplete: "email",
+          },
+        ]}
+      />,
+    );
+
+    expect(screen.getByRole("link", { name: "My Kustomers home" })).toBeVisible();
+    expect(screen.getByText("My Kustomers", { exact: true })).toBeVisible();
+    expect(screen.queryByText("My Customers", { exact: true })).not.toBeInTheDocument();
+  });
 });

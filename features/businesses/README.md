@@ -81,6 +81,25 @@ switching, refresh persistence, and logout through a real Google-authenticated
 local session. The merged production deployment repeated the callback,
 multi-business resolution, switching, persistence, and logout journey.
 
+## Membership State Matrix
+
+- Zero active memberships: vendor routes and vendor server actions resolve to
+  `/onboarding`; the onboarding page has no vendor shell.
+- First-business setup pending: the durable business/membership is retained, the
+  existing logo step resumes, and normal workspace selection remains blocked.
+- One active completed membership: that business is selected deterministically.
+- Multiple active completed memberships: a validated current-business cookie is
+  honored; a missing, forged, or revoked value falls back to the first permitted
+  business.
+- Last active membership revoked: the next request or server action loses vendor
+  access immediately and returns to onboarding; no persistent membership cache
+  delays revocation.
+
+`business_members` is the tenant-access authority. Profile rows, auth metadata,
+cookies, URL parameters, browser state, and the fact that a user previously had
+a workspace are never membership substitutes. `/business/new` is an additional-
+business flow only; it is not the primary zero-business gate.
+
 Every newly created business must complete a valid optimized business-logo
 upload before setup is considered complete. First and additional creation
 require a logo selection before the atomic creation RPC. The returned business

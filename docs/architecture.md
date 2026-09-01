@@ -9,7 +9,7 @@ distinguished from implemented code and verified behavior.
 
 ## Current Snapshot
 
-My Customers is one Next.js modular monolith. Supabase Auth supplies platform
+My Kustomers is one Next.js modular monolith. Supabase Auth supplies platform
 identity; PostgreSQL and RLS enforce tenant ownership. Validated server actions
 or server-only route handlers call tenant-scoped queries and narrow RPCs for
 atomic or privileged workflows. The service-role client is isolated to explicit
@@ -22,6 +22,15 @@ The authenticated shell keeps five primary mobile destinations and exposes
 account/session controls through a secondary account menu. Dashboard summary
 links use ordinary semantic routes and validated list query parameters rather
 than client-only navigation state.
+
+Authentication alone does not enter that shell. Password and OAuth sessions
+share a server-side post-auth destination resolver, while the vendor route-group
+layout requires a completed current business resolved from active
+`business_members` before it renders `DashboardShell`. `/onboarding` is a sibling
+route group with no vendor navigation. Leaf reads/actions and PostgreSQL RLS
+remain authoritative defence in depth, and membership resolution is memoized
+only within the current request. Platform Admin uses its separate active-role
+layout and is not treated as a vendor membership.
 
 ## Integration Architecture
 
@@ -173,7 +182,7 @@ Instagram handle, and business name in addition to the established minimized
 booking view. These identity fields are not part of the immutable booking terms
 hash, so branding changes do not invalidate a customer's confirmed terms.
 
-My Customers is a modular monolith. The product should remain one deployable
+My Kustomers is a modular monolith. The product should remain one deployable
 Next.js application until there is concrete operational pressure to split a
 module out. Microservices are intentionally avoided because Phase 1 does not
 have independent scaling, ownership, or deployment needs that would justify the

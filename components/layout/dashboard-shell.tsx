@@ -32,7 +32,7 @@ function getInitials(user: AuthenticatedUser) {
       : user.email;
 
   if (!name) {
-    return "MC";
+    return "MK";
   }
 
   return name
@@ -51,9 +51,9 @@ export function DashboardShell({ children, user, businessContext }: DashboardShe
       <aside className="fixed inset-y-0 left-0 hidden w-64 border-r border-border bg-card lg:flex lg:flex-col">
         <div className="flex h-16 items-center gap-3 border-b border-border px-5">
           <span className="grid size-9 place-items-center rounded-lg bg-primary text-sm font-semibold text-primary-foreground">
-            MC
+            MK
           </span>
-          <span className="font-semibold">My Customers</span>
+          <span className="font-semibold">My Kustomers</span>
         </div>
         <DesktopNavigation />
       </aside>
@@ -64,12 +64,12 @@ export function DashboardShell({ children, user, businessContext }: DashboardShe
             <Link
               href="/"
               className="flex items-center gap-3"
-              aria-label="My Customers home"
+              aria-label="My Kustomers home"
             >
               <span className="grid size-8 place-items-center rounded-md bg-primary text-xs font-semibold text-primary-foreground sm:size-9 sm:text-sm">
-                MC
+                MK
               </span>
-              <span className="hidden font-semibold sm:inline">My Customers</span>
+              <span className="hidden font-semibold sm:inline">My Kustomers</span>
             </Link>
             <BusinessSwitcher
               businesses={businessContext.businesses}

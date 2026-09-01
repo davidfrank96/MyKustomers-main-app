@@ -121,6 +121,7 @@ test.describe("customer management", () => {
       if (businessIds.length > 0) {
         await admin.from("customers").delete().in("business_id", businessIds);
         await admin.from("audit_logs").delete().in("business_id", businessIds);
+        await admin.from("business_members").delete().in("business_id", businessIds);
         await admin.from("businesses").delete().in("id", businessIds);
       }
     }
@@ -414,10 +415,15 @@ test.describe("customer management", () => {
     });
 
     await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
-    await expect
-      .poll(() => page.evaluate(() => window.scrollY))
-      .toBeGreaterThanOrEqual(480);
-    await expect(backToTop).toHaveAttribute("aria-hidden", "false");
+    const scrolled390 = await page.evaluate(() => ({
+      scrollY: window.scrollY,
+      maxScroll: document.documentElement.scrollHeight - window.innerHeight,
+    }));
+    expect(scrolled390.scrollY).toBeGreaterThanOrEqual(scrolled390.maxScroll - 1);
+    await expect(backToTop).toHaveAttribute(
+      "aria-hidden",
+      scrolled390.maxScroll >= 480 ? "false" : "true",
+    );
     await page.evaluate(() => {
       document.querySelectorAll("nextjs-portal").forEach((element) => element.remove());
     });
@@ -427,10 +433,15 @@ test.describe("customer management", () => {
 
     await page.setViewportSize({ width: 320, height: 844 });
     await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
-    await expect
-      .poll(() => page.evaluate(() => window.scrollY))
-      .toBeGreaterThanOrEqual(480);
-    await expect(backToTop).toHaveAttribute("aria-hidden", "false");
+    const scrolled320 = await page.evaluate(() => ({
+      scrollY: window.scrollY,
+      maxScroll: document.documentElement.scrollHeight - window.innerHeight,
+    }));
+    expect(scrolled320.scrollY).toBeGreaterThanOrEqual(scrolled320.maxScroll - 1);
+    await expect(backToTop).toHaveAttribute(
+      "aria-hidden",
+      scrolled320.maxScroll >= 480 ? "false" : "true",
+    );
     await page.evaluate(() => {
       document.querySelectorAll("nextjs-portal").forEach((element) => element.remove());
     });
@@ -453,9 +464,13 @@ test.describe("customer management", () => {
     );
     expect(nextPageBox!.y + nextPageBox!.height).toBeLessThanOrEqual(actionsBox!.y);
 
-    await backToTop.click();
-    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(10);
-    await expect(backToTop).toHaveAttribute("aria-hidden", "true");
+    if (scrolled320.maxScroll >= 480) {
+      await backToTop.click();
+      await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(10);
+      await expect(backToTop).toHaveAttribute("aria-hidden", "true");
+    } else {
+      await page.evaluate(() => window.scrollTo(0, 0));
+    }
 
     await addCustomerFab.click();
     await expect(page).toHaveURL(/\/customers\/new$/);

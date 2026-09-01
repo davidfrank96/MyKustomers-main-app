@@ -3,14 +3,14 @@
 Status: VERIFIED - PRODUCTION
 
 `/admin/emails` is the platform administrator's operational view of the existing
-My Customers transactional email outbox. Lists and reads remain side-effect
+My Kustomers transactional email outbox. Lists and reads remain side-effect
 free. Phase 6B adds one detail-only privileged retry action without creating a
 second delivery architecture or exposing customer communications.
 
 ## Authoritative Semantics
 
 Persisted states are `PENDING`, `SENDING`, `SENT`, and `FAILED`. `SENT` means the
-configured adapter or provider accepted the request. My Customers does not
+configured adapter or provider accepted the request. My Kustomers does not
 currently receive authoritative delivery, bounce, open, or read evidence, so
 those terms are not used as statuses.
 

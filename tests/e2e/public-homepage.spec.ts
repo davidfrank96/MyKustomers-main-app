@@ -41,6 +41,7 @@ test.describe("public homepage", () => {
   test("uses approved branding, landmarks, routes, and section navigation", async ({
     page,
   }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto("/");
 
     await expect(page).toHaveTitle(
@@ -57,7 +58,7 @@ test.describe("public homepage", () => {
       "/login",
     );
     for (const signupLink of await page
-      .getByRole("link", { name: /Create account|Get started/ })
+      .getByRole("link", { name: "Get started" })
       .all()) {
       await expect(signupLink).toHaveAttribute("href", "/signup");
     }
@@ -86,7 +87,11 @@ test.describe("public homepage", () => {
 
     await page.goto("/");
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.getByRole("link", { name: "Create account" }).click();
+    await page
+      .locator("main > section")
+      .first()
+      .getByRole("link", { name: "Get started" })
+      .click();
     await expect(page).toHaveURL(/\/signup$/);
     await expect(
       page.getByRole("heading", { name: "Create your account" }),
@@ -111,9 +116,29 @@ test.describe("public homepage", () => {
       await expect(page.getByRole("link", { name: "My Kustomers home" })).toBeVisible();
       await expect(
         page.getByRole("heading", {
-          name: "Manage customers. Book, deliver, follow up. All in one place.",
+          name: "From customer request to confirmation, delivery, and feedback — one clear journey.",
         }),
       ).toBeVisible();
+      await expect(
+        page.getByText(
+          "Manage bookings, send digital receipts and updates, collect private feedback, and keep every customer journey organized in one place.",
+        ),
+      ).toBeVisible();
+      for (const [title, description] of [
+        ["Customers", "Keep customer details organized and easy to access."],
+        ["Bookings", "Create, manage, and track every booking with ease."],
+        [
+          "Digital receipts",
+          "Send digital receipts and customer updates automatically.",
+        ],
+        ["Feedback", "Collect private feedback and respond quickly."],
+        ["Insights", "See what's working and grow with confidence."],
+      ] as const) {
+        const featureCard = page
+          .getByRole("heading", { name: title, exact: true })
+          .locator("xpath=ancestor::article[1]");
+        await expect(featureCard).toContainText(description);
+      }
       await expect(
         page.getByLabel("Illustrative My Kustomers workspace preview"),
       ).toBeVisible();

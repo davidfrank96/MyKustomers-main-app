@@ -6,6 +6,7 @@ import { loginAction } from "@/features/auth/actions";
 import { getAuthenticatedUser } from "@/lib/auth/server";
 import { getSafeRedirectPath } from "@/lib/security/redirects";
 import { isGoogleAuthEnabled } from "@/features/auth/provider-status";
+import { resolvePostAuthDestination } from "@/lib/auth/post-auth";
 
 type LoginPageProps = {
   searchParams: Promise<{
@@ -29,7 +30,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   ]);
 
   if (user) {
-    redirect(next as Route);
+    redirect((await resolvePostAuthDestination(next, user)) as Route);
   }
 
   return (

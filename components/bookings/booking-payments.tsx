@@ -1,7 +1,14 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { CheckCircle2, CreditCard } from "lucide-react";
+import {
+  ArrowDownToLine,
+  CheckCircle2,
+  CreditCard,
+  FileText,
+  PieChart,
+  ShieldCheck,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -143,22 +150,28 @@ export function BookingPayments({
   embedded = false,
   action,
 }: BookingPaymentsProps) {
+  const hasPaymentBreakdown = Boolean(
+    summary &&
+      (summary.initialDepositAmountMinor > 0 ||
+        summary.confirmedAddonDepositAmountMinor > 0 ||
+        payments.length > 0),
+  );
+
   return (
     <div
       id={embedded ? undefined : "booking-payments"}
       className={embedded ? undefined : "scroll-mt-6 border-y border-border py-5 sm:py-6"}
     >
-      <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <p className="text-xs font-medium uppercase text-muted-foreground">Payments</p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <p className="text-xs font-semibold uppercase text-primary">Payments</p>
           {embedded ? (
-            <h3 className="mt-1 text-lg font-semibold">Payment record</h3>
+            <h3 className="mt-1 text-lg font-semibold leading-6">Payment record</h3>
           ) : (
-            <h2 className="mt-1 text-lg font-semibold">Payment record</h2>
+            <h2 className="mt-1 text-lg font-semibold leading-6">Payment record</h2>
           )}
-          <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
-            A record of amounts reported as received. My Kustomers does not process these
-            payments.
+          <p className="mt-1 max-w-2xl text-sm leading-5 text-muted-foreground">
+            A record of amounts reported as received.
           </p>
         </div>
         {summary && canRecordPayment && summary.outstandingAmountMinor > 0 ? (
@@ -172,29 +185,46 @@ export function BookingPayments({
 
       {summary ? (
         <>
-          <dl className="mt-5 grid gap-4 sm:grid-cols-3">
-            <div>
-              <dt className="text-sm text-muted-foreground">Effective total</dt>
-              <dd className="mt-1 text-xl font-semibold">
-                {formatMoneyMinor(summary.effectiveTotalAmountMinor, summary.currency)}
-              </dd>
+          <dl className="mt-4 grid gap-2.5 sm:grid-cols-3">
+            <div className="flex min-w-0 items-center gap-3 rounded-md border border-border px-3 py-3">
+              <span className="grid size-10 shrink-0 place-items-center rounded-md bg-primary/[0.07] text-primary">
+                <FileText className="size-5" aria-hidden="true" />
+              </span>
+              <div className="min-w-0">
+                <dt className="text-sm leading-5 text-muted-foreground">Effective total</dt>
+                <dd className="mt-0.5 break-words text-lg font-semibold leading-6 tabular-nums [overflow-wrap:anywhere] sm:text-xl">
+                  {formatMoneyMinor(summary.effectiveTotalAmountMinor, summary.currency)}
+                </dd>
+              </div>
             </div>
-            <div>
-              <dt className="text-sm text-muted-foreground">Recorded as received</dt>
-              <dd className="mt-1 text-xl font-semibold">
-                {formatMoneyMinor(summary.recordedPaidAmountMinor, summary.currency)}
-              </dd>
+            <div className="flex min-w-0 items-center gap-3 rounded-md border border-border px-3 py-3">
+              <span className="grid size-10 shrink-0 place-items-center rounded-md bg-primary/[0.07] text-primary">
+                <ArrowDownToLine className="size-5" aria-hidden="true" />
+              </span>
+              <div className="min-w-0">
+                <dt className="text-sm leading-5 text-muted-foreground">
+                  Recorded as received
+                </dt>
+                <dd className="mt-0.5 break-words text-lg font-semibold leading-6 tabular-nums [overflow-wrap:anywhere] sm:text-xl">
+                  {formatMoneyMinor(summary.recordedPaidAmountMinor, summary.currency)}
+                </dd>
+              </div>
             </div>
-            <div>
-              <dt className="text-sm text-muted-foreground">Outstanding</dt>
-              <dd className="mt-1 text-xl font-semibold">
-                {formatMoneyMinor(summary.outstandingAmountMinor, summary.currency)}
-              </dd>
+            <div className="flex min-w-0 items-center gap-3 rounded-md border border-primary/20 bg-primary/[0.035] px-3 py-3">
+              <span className="grid size-10 shrink-0 place-items-center rounded-md bg-primary/[0.09] text-primary">
+                <PieChart className="size-5" aria-hidden="true" />
+              </span>
+              <div className="min-w-0">
+                <dt className="text-sm leading-5 text-muted-foreground">Outstanding</dt>
+                <dd className="mt-0.5 break-words text-lg font-semibold leading-6 text-primary tabular-nums [overflow-wrap:anywhere] sm:text-xl">
+                  {formatMoneyMinor(summary.outstandingAmountMinor, summary.currency)}
+                </dd>
+              </div>
             </div>
           </dl>
 
           {summary.outstandingAmountMinor === 0 ? (
-            <div className="mt-5 flex items-start gap-2 border-l-2 border-primary pl-3">
+            <div className="mt-3 flex items-start gap-2 rounded-md border border-primary/20 bg-primary/[0.035] px-3 py-2.5">
               <CheckCircle2
                 className="mt-0.5 size-4 shrink-0 text-primary"
                 aria-hidden="true"
@@ -208,38 +238,62 @@ export function BookingPayments({
             </div>
           ) : null}
 
-          <div className="mt-6 border-t border-border pt-4">
-            <h3 className="text-sm font-semibold">Payment breakdown</h3>
-            <dl className="mt-3 divide-y divide-border text-sm">
-              <div className="flex items-center justify-between gap-4 py-3 first:pt-0">
-                <dt>Initial deposit</dt>
-                <dd className="font-medium">
-                  {formatMoneyMinor(summary.initialDepositAmountMinor, summary.currency)}
-                </dd>
-              </div>
-              {summary.confirmedAddonDepositAmountMinor > 0 ? (
-                <div className="flex items-center justify-between gap-4 py-3">
-                  <dt>Confirmed add-on deposits</dt>
-                  <dd className="font-medium">
-                    {formatMoneyMinor(
-                      summary.confirmedAddonDepositAmountMinor,
-                      summary.currency,
-                    )}
-                  </dd>
-                </div>
-              ) : null}
-              {payments.map((payment) => (
-                <div
-                  key={payment.id}
-                  className="flex flex-col gap-1 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
-                >
-                  <dt>Payment recorded {formatPaymentDate(payment.recorded_at)}</dt>
-                  <dd className="font-medium">
-                    {formatMoneyMinor(payment.amount_minor, summary.currency)}
-                  </dd>
-                </div>
-              ))}
-            </dl>
+          <div className="mt-5 border-t border-border pt-4">
+            <h3 className="text-sm font-semibold leading-5">Payment breakdown</h3>
+            {hasPaymentBreakdown ? (
+              <dl className="mt-2 divide-y divide-border rounded-md border border-border px-3 text-sm">
+                {summary.initialDepositAmountMinor > 0 ? (
+                  <div className="flex items-start justify-between gap-4 border-l-2 border-primary py-3 pl-3">
+                    <dt>Initial deposit</dt>
+                    <dd className="shrink-0 font-medium tabular-nums">
+                      {formatMoneyMinor(
+                        summary.initialDepositAmountMinor,
+                        summary.currency,
+                      )}
+                    </dd>
+                  </div>
+                ) : null}
+                {summary.confirmedAddonDepositAmountMinor > 0 ? (
+                  <div className="flex items-start justify-between gap-4 py-3">
+                    <dt>Confirmed add-on deposits</dt>
+                    <dd className="shrink-0 font-medium tabular-nums">
+                      {formatMoneyMinor(
+                        summary.confirmedAddonDepositAmountMinor,
+                        summary.currency,
+                      )}
+                    </dd>
+                  </div>
+                ) : null}
+                {payments.map((payment) => (
+                  <div
+                    key={payment.id}
+                    className="flex flex-col gap-1 py-3 min-[430px]:flex-row min-[430px]:items-start min-[430px]:justify-between min-[430px]:gap-4"
+                  >
+                    <dt>Payment recorded {formatPaymentDate(payment.recorded_at)}</dt>
+                    <dd className="font-medium tabular-nums min-[430px]:shrink-0">
+                      {formatMoneyMinor(payment.amount_minor, summary.currency)}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            ) : (
+              <p className="mt-2 rounded-md border border-border px-3 py-3 text-sm text-muted-foreground">
+                No payments recorded yet.
+              </p>
+            )}
+          </div>
+
+          <div className="mt-4 flex items-start gap-3 rounded-md border border-primary/15 bg-primary/[0.035] px-3 py-3">
+            <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary/[0.08] text-primary">
+              <ShieldCheck className="size-4" aria-hidden="true" />
+            </span>
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-primary">Payment recording only</p>
+              <p className="mt-0.5 text-sm leading-5 text-muted-foreground">
+                Payments are recorded as reported. My Kustomers does not process
+                payments.
+              </p>
+            </div>
           </div>
         </>
       ) : (

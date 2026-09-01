@@ -78,7 +78,7 @@ describe("trusted confirmation sharing", () => {
     expect(metadata.openGraph).toMatchObject({
       title: "Review your order with Bella Cakes",
       description: "Bella Cakes has sent you an order for review and confirmation.",
-      siteName: "My Customers",
+      siteName: "My Kustomers",
       type: "website",
     });
     expect(metadata.twitter).toMatchObject({ card: "summary_large_image" });

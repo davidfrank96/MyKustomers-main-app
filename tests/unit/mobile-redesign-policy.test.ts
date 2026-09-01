@@ -9,7 +9,7 @@ const targetPaths = [
   "features/analytics/components/insights-view.tsx",
   "app/(dashboard)/business/page.tsx",
   "app/(dashboard)/business/new/page.tsx",
-  "app/(dashboard)/onboarding/page.tsx",
+  "app/(onboarding)/onboarding/page.tsx",
 ];
 
 const targetSource = targetPaths.map((path) => fs.readFileSync(path, "utf8")).join("\n");

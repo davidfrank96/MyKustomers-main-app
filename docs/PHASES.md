@@ -29,6 +29,14 @@ The two forward migrations are applied to development; static, live storage/RLS,
 responsive, confirmation, and focused E2E evidence passed. Billing and the broad
 redesign remain unstarted.
 
+The 2026-09-01 authentication and onboarding integrity hotfix is cross-phase
+security maintenance, not a new product phase. It corrects the implementation to
+match the accepted authentication/multi-tenancy and onboarding decisions: active
+membership is checked before the vendor shell, onboarding is shell-free, all
+auth providers share the same destination rule, and Platform Admin retains its
+separate active-role gate. No data-model, migration, environment, dependency,
+provider, or approved onboarding presentation change is included.
+
 The 2026-08-24 business-switcher discoverability and Google Auth pass is
 IMPLEMENTED with full Google verification blocked by Supabase redirect
 configuration. The Business page now exposes
@@ -312,7 +320,7 @@ audit, and runtime Supabase security tests.
 Documentation requirements: Update security, testing, data model, changelog.
 
 Acceptance criteria: Customer can confirm only the intended booking through a
-valid scoped link, without a My Customers account, and links cannot expose
+valid scoped link, without a My Kustomers account, and links cannot expose
 tenant-private data or authorize unrelated bookings.
 
 Verification evidence: Migration
@@ -707,7 +715,7 @@ evidence-preserving workflow.
 
 Status: PLANNED
 
-Objective: Implement My Customers subscription billing.
+Objective: Implement My Kustomers subscription billing.
 
 Dependencies: Auth, business tenancy, subscription design.
 

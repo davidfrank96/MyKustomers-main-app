@@ -30,6 +30,7 @@ const requiredViewports = [
   { width: 430, height: 932 },
   { width: 768, height: 1024 },
   { width: 1024, height: 768 },
+  { width: 1280, height: 800 },
   { width: 1440, height: 900 },
 ] as const;
 const screenshotDirectory = path.resolve("test-results/mobile-redesign");
@@ -70,6 +71,7 @@ async function expectNoPageOverflow(page: Page, route: string, width: number) {
 
 async function waitForRouteContent(page: Page, route: string) {
   await expect(page.getByRole("button", { name: "Open account menu" })).toBeVisible();
+  await expect(page.getByText("My Customers", { exact: true })).toHaveCount(0);
   await expect(
     page.getByRole("button", { name: /^Switch business\. Current business:/ }),
   ).toBeVisible();
@@ -468,7 +470,7 @@ test.describe("approved mobile redesign", () => {
 
       const now = new Date();
       const dueToday = new Date(now);
-      dueToday.setHours(16, 30, 0, 0);
+      dueToday.setHours(23, 59, 59, 999);
       const tomorrow = new Date(now.getTime() + 86_400_000);
       const yesterday = new Date(now.getTime() - 86_400_000);
       const { data: bookings, error: bookingError } = await admin

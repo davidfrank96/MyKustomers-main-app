@@ -1,5 +1,81 @@
 # Changelog
 
+## 2026-09-01 - Authentication And Onboarding Integrity Hotfix
+
+Status: VERIFIED - LOCAL RELEASE GATE
+
+- Corrected a server-authorization gap where the shared dashboard layout could
+  render the vendor shell without a current business and Settings lacked its own
+  zero-business redirect. A safe post-login `next=/settings` could therefore
+  admit a newly authenticated zero-business user to a normal workspace surface.
+- Added one provider-independent post-auth destination resolver and one
+  pre-shell vendor workspace gate backed only by active `business_members` and a
+  completed current business. Password, Google callback, immediate signup,
+  password-reset, and already-authenticated Auth-page paths now converge.
+- Moved `/onboarding` outside the vendor route group, preserving the existing
+  first-business, mandatory logo, resumable partial-setup, and existing-business
+  behavior without changing the approved onboarding presentation.
+- Membership query/data-integrity failures now fail closed instead of being
+  collapsed into a zero-row onboarding result. Request-scoped memoization, leaf
+  authorization, RLS, public capabilities, and the independent Platform Admin
+  active-role exception remain unchanged.
+- Added zero/one/member/multi/revoked state coverage, direct vendor-route and
+  forged-cookie attacks, a stale Server Action after last-membership revocation,
+  admin exception checks, safe-redirect checks, and vendor-shell absence checks.
+- Local release verification passed lint, route type generation, strict
+  TypeScript, 608 unit/integration/static tests, 46 executable browser journeys,
+  the production build, dependency audit, and diff hygiene. Twenty live-runtime
+  tests and 15 browser cases retained their documented protected-target or
+  project guards.
+- The independent fixture audit exposed silent historic cleanup debt. Seventeen
+  controlled E2E businesses and 19 controlled Auth users plus their dependent
+  rows/logo objects were removed, the responsible hooks were corrected to delete
+  memberships before businesses, and the post-cleanup audit returned zero.
+- No database migration, environment, dependency, provider, Docker,
+  infrastructure, public-capability, or production-data change is included.
+
+## 2026-08-31 - Master Release-Candidate Audit And Brand Consistency
+
+Status: IMPLEMENTED - LOCAL RELEASE GATE VERIFIED
+
+- Ran the existing `ui/mobile-redesign` worktree through core validation,
+  canonical browser journeys, the authenticated nine-width route matrix,
+  production-build bundle measurement, cold/warm navigation sampling,
+  dependency audit, cache/loading review, accessibility review, security
+  boundary review, and transactional-email smoke coverage.
+- Added the missing 1280x800 authenticated matrix width and made the dashboard
+  due-today fixture independent of the local time of day. The latter had caused
+  a correct post-4:30 PM overdue count to fail against a hard-coded test value.
+- Standardized all current runtime, public capability, installed-PWA, metadata,
+  admin, authentication, sharing-state, and current-documentation branding on
+  `My Kustomers`, `MyKustomers.com`, and the `MK` mark. Internal package names,
+  database identifiers, and protocol headers remain unchanged.
+- Preserved request-scoped tenant/auth deduplication, non-cacheable capability
+  routes, default Next.js prefetch, route streaming, lifecycle rules, payment
+  integrity, RLS, and service-role boundaries. No schema, migration, dependency,
+  environment, deployment, production-data, or infrastructure change is included.
+- Measured before considering optimization. The current route client JavaScript
+  remains 70.9-108.9 KiB gzip for the primary vendor surfaces, cold local LCP was
+  344-880 ms, and the constrained 1.2 Mbps mobile samples remained visually
+  stable. No speculative performance rewrite was justified.
+
+## 2026-08-31 - Operational Timeline Presentation Redesign
+
+Status: IMPLEMENTED - BRANCH REVIEW PENDING
+
+- Refactored the existing Booking-detail Operational timeline into a compact,
+  semantic vertical timeline with aligned nodes, adaptive connectors,
+  type-appropriate Lucide icons, an informational callout, real timestamps, and
+  accurate booking-activity helper copy.
+- Preserved the existing dynamic event count, human labels, optional detail,
+  oldest-to-newest ordering, empty state, disclosure behavior, and all current
+  status, reschedule, amendment, and add-on records.
+- Added focused integration coverage plus canonical mixed-event responsive and
+  screenshot gates across 320, 360, 375, 390, 430, 768, 1024, and 1440 pixels.
+- No event generation, lifecycle, confirmation, payment, delivery, feedback,
+  issue, authorization, tenant, RLS, database, API, or infrastructure behavior
+  changed.
+
 ## 2026-08-28 - Approved Mobile Workspace Redesign
 
 Status: IMPLEMENTED - BRANCH REVIEW PENDING

@@ -2,20 +2,33 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import type { Route } from "next";
 import { Suspense } from "react";
-import { ArrowLeft } from "lucide-react";
+import {
+  ArrowLeft,
+  CalendarDays,
+  CheckCircle2,
+  MessageSquareQuote,
+  Star,
+  Timer,
+  UserRound,
+} from "lucide-react";
 import { WorkspacePage } from "@/components/layout/workspace-page";
 import {
   BookingDetailSection,
   BookingDetailSections,
 } from "@/components/bookings/booking-detail-section";
 import { BookingJourney } from "@/components/bookings/booking-journey";
+import { BookingIssuesPanel } from "@/components/bookings/booking-issues-panel";
 import { BookingLiveSync } from "@/components/bookings/booking-live-sync";
+import { BookingOperationalProgress } from "@/components/bookings/booking-operational-progress";
+import {
+  BookingOperationalTimeline,
+  formatTimelineEventCount,
+} from "@/components/bookings/booking-operational-timeline";
 import { BookingPayments } from "@/components/bookings/booking-payments";
 import { BookingStatusBadge } from "@/components/bookings/booking-status-badge";
 import { BookingForm } from "@/components/forms/booking-form";
 import { BookingAmendmentPanel } from "@/components/forms/booking-amendment-panel";
 import { BookingAddonPanel } from "@/components/forms/booking-addon-panel";
-import { BookingIssueForm } from "@/components/forms/booking-issue-form";
 import { BookingRescheduleForm } from "@/components/forms/booking-reschedule-form";
 import { ConfirmationLinkPanel } from "@/components/forms/confirmation-link-panel";
 import { FeedbackLinkPanel } from "@/components/forms/feedback-link-panel";
@@ -66,10 +79,7 @@ import {
   getFeedbackLinkSummaryForBooking,
   listBookingIssuesForBooking,
 } from "@/features/feedback/queries";
-import {
-  isFeedbackEligibleStatus,
-  issueCategoryLabels,
-} from "@/features/feedback/validation";
+import { isFeedbackEligibleStatus } from "@/features/feedback/validation";
 import { getCurrentBusinessContext } from "@/lib/auth/server";
 import {
   createBookingAmendmentAction,
@@ -112,6 +122,7 @@ function BookingIssuesFallback() {
       id="operational-issues"
       title="Operational issues"
       summary="Loading issues"
+      icon="issues"
     >
       <div role="status" aria-label="Loading booking issues" aria-busy="true">
         <span className="sr-only">Loading booking issues</span>
@@ -132,69 +143,13 @@ async function BookingIssuesSection({
   issuesPromise: ReturnType<typeof listBookingIssuesForBooking>;
 }) {
   const issues = await issuesPromise;
-  const openIssueCount = issues.filter((issue) => issue.status === "OPEN").length;
 
   return (
-    <BookingDetailSection
-      id="operational-issues"
-      title="Operational issues"
-      summary={
-        openIssueCount > 0
-          ? `${openIssueCount} open issue${openIssueCount === 1 ? "" : "s"}`
-          : issues.length > 0
-            ? "No open issues"
-            : "No issues recorded"
-      }
-      attention={openIssueCount > 0}
-    >
-      <div className="space-y-5">
-        <BookingIssueForm action={createBookingIssueAction.bind(null, bookingId)} />
-
-        {issues.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No issues recorded.</p>
-        ) : (
-          <ol className="space-y-3">
-            {issues.map((issue) => (
-              <li key={issue.id} className="rounded-md border border-border p-3 text-sm">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="font-medium">{issueCategoryLabels[issue.category]}</p>
-                      <Badge variant={issue.status === "OPEN" ? "accent" : "outline"}>
-                        {issue.status === "OPEN" ? "Open" : "Resolved"}
-                      </Badge>
-                    </div>
-                    <p className="mt-2 leading-6 text-muted-foreground">
-                      {issue.description}
-                    </p>
-                    <p className="mt-2 text-xs text-muted-foreground">
-                      Created {formatDateTime(issue.created_at)}
-                      {issue.resolved_at
-                        ? ` · Resolved ${formatDateTime(issue.resolved_at)}`
-                        : ""}
-                    </p>
-                  </div>
-                  {issue.status === "OPEN" ? (
-                    <form
-                      action={resolveBookingIssueAction.bind(
-                        null,
-                        bookingId,
-                        issue.id,
-                        issue.status,
-                      )}
-                    >
-                      <Button type="submit" variant="secondary" size="sm">
-                        Resolve
-                      </Button>
-                    </form>
-                  ) : null}
-                </div>
-              </li>
-            ))}
-          </ol>
-        )}
-      </div>
-    </BookingDetailSection>
+    <BookingIssuesPanel
+      issues={issues}
+      createAction={createBookingIssueAction.bind(null, bookingId)}
+      resolveAction={resolveBookingIssueAction.bind(null, bookingId)}
+    />
   );
 }
 
@@ -377,35 +332,90 @@ export default async function BookingDetailPage({
   const confirmationSectionSummary = confirmationSummary.confirmedAt
     ? "Customer confirmed"
     : confirmationSummary.status === "active"
-      ? "Confirmation link ready - awaiting customer"
-      : "Awaiting customer confirmation";
+      ? "Awaiting customer"
+      : confirmationSummary.status === "expired"
+        ? "Link expired"
+        : confirmationSummary.status === "revoked"
+          ? "Link revoked"
+          : confirmationSummary.status === "used"
+            ? "Customer confirmed"
+            : "Not generated";
   const paymentSectionSummary = paymentState.summary
     ? paymentState.summary.outstandingAmountMinor > 0
       ? `${formatMoneyMinor(paymentState.summary.outstandingAmountMinor, paymentState.summary.currency)} outstanding`
       : "Payment fully recorded"
     : "Payment status unavailable";
+  const feedbackSectionSummary = feedback
+    ? "Feedback received"
+    : booking.status !== "COMPLETED"
+      ? "Available after completion"
+      : feedbackSummary.status === "active"
+        ? "Feedback request ready"
+        : feedbackSummary.status === "expired"
+          ? "Feedback request expired"
+          : feedbackSummary.status === "revoked"
+            ? "Feedback request revoked"
+            : feedbackSummary.status === "submitted"
+              ? "Feedback received"
+              : "Not requested";
 
   return (
     <WorkspacePage className="max-w-6xl gap-4 sm:gap-6">
       <BookingLiveSync bookingId={booking.id} initialState={liveState} />
       <div className="min-w-0">
-        <Button asChild variant="ghost" size="sm" className="-ml-2 px-2 text-muted-foreground">
+        <Button
+          asChild
+          variant="ghost"
+          size="sm"
+          className="-ml-2 px-2 text-muted-foreground"
+        >
           <Link href={"/bookings" as Route}>
             <ArrowLeft className="size-4" aria-hidden="true" />
             Bookings
           </Link>
         </Button>
-        <div className="mt-3 flex flex-wrap items-center gap-2">
-          <Badge variant="outline">{booking.reference}</Badge>
-          <BookingStatusBadge status={booking.status} overdue={overdue} />
-        </div>
-        <h1 className="mt-2.5 break-words text-[1.625rem] font-semibold leading-tight sm:text-3xl">
-          {booking.title}
-        </h1>
-        <p className="mt-1.5 text-sm leading-5 text-muted-foreground sm:leading-6">
-          {booking.customer?.name ?? "Customer unavailable"} · Scheduled delivery{" "}
-          {formatDateTime(booking.scheduled_for)}
-        </p>
+        <section
+          className="mt-3 rounded-lg border border-border bg-card p-4 shadow-[0_1px_3px_rgba(23,33,29,0.04)] sm:p-5"
+          aria-labelledby="booking-detail-title"
+          data-booking-identity
+        >
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge
+              variant="outline"
+              className="max-w-full break-all border-border bg-muted/45 px-2.5 py-1 text-xs font-medium text-muted-foreground"
+            >
+              {booking.reference}
+            </Badge>
+            <BookingStatusBadge
+              status={booking.status}
+              overdue={overdue}
+              className="px-2.5 py-1 text-xs font-semibold"
+            />
+          </div>
+          <h1
+            id="booking-detail-title"
+            className="mt-3 break-words text-[1.625rem] font-semibold leading-tight sm:text-3xl"
+          >
+            {booking.title}
+          </h1>
+          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm leading-5 text-muted-foreground sm:text-base sm:leading-6">
+            <span className="flex min-w-0 items-center gap-2">
+              <UserRound className="size-4 shrink-0 text-primary" aria-hidden="true" />
+              <span className="break-words">
+                {booking.customer?.name ?? "Customer unavailable"}
+              </span>
+            </span>
+            <span className="hidden text-border sm:inline" aria-hidden="true">
+              •
+            </span>
+            <span className="flex min-w-0 items-center gap-2">
+              <CalendarDays className="size-4 shrink-0 text-primary" aria-hidden="true" />
+              <span className="break-words">
+                Scheduled delivery {formatDateTime(booking.scheduled_for)}
+              </span>
+            </span>
+          </div>
+        </section>
       </div>
 
       {query.created === "1" ? (
@@ -469,6 +479,7 @@ export default async function BookingDetailPage({
           id="booking-payments"
           title="Payment & completion"
           summary={paymentSectionSummary}
+          icon="wallet"
           defaultOpen={defaultOpenSection === "booking-payments"}
           attention={
             booking.status === "DELIVERED" &&
@@ -490,30 +501,31 @@ export default async function BookingDetailPage({
           id="operational-progress"
           title="Operational progress"
           summary={getBookingStatusLabel(booking.status)}
+          icon="progress"
           defaultOpen={defaultOpenSection === "operational-progress"}
         >
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-            <div>
-              <p className="text-xs font-medium text-muted-foreground">Started</p>
-              <p className="mt-1 text-sm">{formatDateTime(booking.started_at)}</p>
-            </div>
-            <div>
-              <p className="text-xs font-medium text-muted-foreground">Ready</p>
-              <p className="mt-1 text-sm">{formatDateTime(booking.ready_at)}</p>
-            </div>
-            <div>
-              <p className="text-xs font-medium text-muted-foreground">Delivered</p>
-              <p className="mt-1 text-sm">{formatDateTime(booking.delivered_at)}</p>
-            </div>
-            <div>
-              <p className="text-xs font-medium text-muted-foreground">Completed</p>
-              <p className="mt-1 text-sm">{formatDateTime(booking.completed_at)}</p>
-            </div>
-            <div>
-              <p className="text-xs font-medium text-muted-foreground">Cancelled</p>
-              <p className="mt-1 text-sm">{formatDateTime(booking.cancelled_at)}</p>
-            </div>
-          </div>
+          <BookingOperationalProgress
+            started={{
+              value: booking.started_at,
+              displayValue: formatDateTime(booking.started_at),
+            }}
+            ready={{
+              value: booking.ready_at,
+              displayValue: formatDateTime(booking.ready_at),
+            }}
+            delivered={{
+              value: booking.delivered_at,
+              displayValue: formatDateTime(booking.delivered_at),
+            }}
+            completed={{
+              value: booking.completed_at,
+              displayValue: formatDateTime(booking.completed_at),
+            }}
+            cancelled={{
+              value: booking.cancelled_at,
+              displayValue: formatDateTime(booking.cancelled_at),
+            }}
+          />
           {booking.cancellation_reason ? (
             <p className="mt-4 rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground">
               Cancellation reason: {booking.cancellation_reason}
@@ -526,7 +538,7 @@ export default async function BookingDetailPage({
           title="Customer confirmation"
           summary={confirmationSectionSummary}
           defaultOpen={defaultOpenSection === "customer-confirmation"}
-          attention={booking.status === "AWAITING_CUSTOMER"}
+          icon="link"
         >
           <ConfirmationLinkPanel
             summary={confirmationSummary}
@@ -550,6 +562,7 @@ export default async function BookingDetailPage({
                 ? "No changes"
                 : `${amendmentSummary.history.length} change request${amendmentSummary.history.length === 1 ? "" : "s"}`
           }
+          icon="changes"
           defaultOpen={defaultOpenSection === "booking-changes"}
           attention={amendmentSummary.displayStatus === "pending"}
         >
@@ -588,6 +601,7 @@ export default async function BookingDetailPage({
                 ? `${addonSummary.confirmedAddonCount} confirmed`
                 : "No confirmed add-ons"
           }
+          icon="addon"
           defaultOpen={defaultOpenSection === "booking-addons"}
           attention={addonSummary.hasAwaitingAddon}
         >
@@ -613,46 +627,64 @@ export default async function BookingDetailPage({
         <BookingDetailSection
           id="private-feedback"
           title="Private feedback"
-          summary={
-            feedback
-              ? "Feedback received"
-              : booking.status === "COMPLETED"
-                ? feedbackSummary.status === "active"
-                  ? "Feedback request ready"
-                  : "Not requested"
-                : "Available after completion"
-          }
+          summary={feedbackSectionSummary}
+          icon="feedback"
           defaultOpen={defaultOpenSection === "private-feedback"}
           attention={booking.status === "COMPLETED" && !feedback}
         >
           {feedback ? (
             <div className="space-y-4">
-              <div className="grid gap-3 sm:grid-cols-3">
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground">
-                    Overall rating
-                  </p>
-                  <p className="mt-1 text-sm font-medium">{feedback.overall_rating}/5</p>
+              <div className="grid gap-2 sm:grid-cols-3">
+                <div className="flex min-w-0 items-center gap-3 rounded-lg border border-border bg-muted/40 p-3">
+                  <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary/[0.07] text-primary">
+                    <Star className="size-[1.125rem]" aria-hidden="true" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium text-muted-foreground">
+                      Overall rating
+                    </p>
+                    <p className="mt-0.5 text-sm font-semibold">
+                      {feedback.overall_rating}/5
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground">On time</p>
-                  <p className="mt-1 text-sm">{feedback.on_time ? "Yes" : "No"}</p>
+                <div className="flex min-w-0 items-center gap-3 rounded-lg border border-border bg-muted/40 p-3">
+                  <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary/[0.07] text-primary">
+                    <Timer className="size-[1.125rem]" aria-hidden="true" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium text-muted-foreground">On time</p>
+                    <p className="mt-0.5 text-sm font-semibold">
+                      {feedback.on_time ? "Yes" : "No"}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground">
-                    Met expectations
-                  </p>
-                  <p className="mt-1 text-sm">
-                    {feedback.met_expectations ? "Yes" : "No"}
-                  </p>
+                <div className="flex min-w-0 items-center gap-3 rounded-lg border border-border bg-muted/40 p-3">
+                  <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary/[0.07] text-primary">
+                    <CheckCircle2 className="size-[1.125rem]" aria-hidden="true" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium text-muted-foreground">
+                      Met expectations
+                    </p>
+                    <p className="mt-0.5 text-sm font-semibold">
+                      {feedback.met_expectations ? "Yes" : "No"}
+                    </p>
+                  </div>
                 </div>
               </div>
               {feedback.comment ? (
-                <p className="rounded-md border border-border bg-muted px-3 py-2 text-sm leading-6 text-muted-foreground">
-                  {feedback.comment}
-                </p>
+                <div className="flex items-start gap-3 rounded-lg border border-border bg-muted/40 p-3">
+                  <MessageSquareQuote
+                    className="mt-0.5 size-[1.125rem] shrink-0 text-primary"
+                    aria-hidden="true"
+                  />
+                  <p className="min-w-0 break-words text-sm leading-6 text-muted-foreground">
+                    {feedback.comment}
+                  </p>
+                </div>
               ) : null}
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs leading-5 text-muted-foreground">
                 Submitted {formatDateTime(feedback.submitted_at)}
               </p>
             </div>
@@ -677,11 +709,13 @@ export default async function BookingDetailPage({
           id="reschedule"
           title="Reschedule"
           summary={`Scheduled ${formatDateTime(booking.scheduled_for)}`}
+          icon="reschedule"
         >
           <BookingRescheduleForm
             action={rescheduleBookingAction.bind(null, booking.id)}
             currentScheduledFor={booking.scheduled_for}
             disabled={!rescheduleEligible}
+            reconfirmationExpected={confirmationEverCompleted}
           />
           {!rescheduleEligible ? (
             <p className="mt-3 rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground">
@@ -699,7 +733,8 @@ export default async function BookingDetailPage({
                 ? "Customer-confirmed details"
                 : "Edit booking"
           }
-          summary={`${booking.reference} - ${formatDateTime(booking.scheduled_for)}`}
+          summary={`${booking.reference} • ${formatDateTime(booking.scheduled_for)}`}
+          icon="edit"
         >
           <BookingForm
             action={(materialLocked
@@ -737,26 +772,13 @@ export default async function BookingDetailPage({
         <BookingDetailSection
           id="operational-timeline"
           title="Operational timeline"
-          summary={`${timeline.length} event${timeline.length === 1 ? "" : "s"}`}
+          summary={formatTimelineEventCount(timeline.length)}
+          icon="timeline"
         >
-          {timeline.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No timeline events recorded.</p>
-          ) : (
-            <ol className="space-y-3">
-              {timeline.map((event) => (
-                <li
-                  key={event.id}
-                  className="rounded-md border border-border p-3 text-sm"
-                >
-                  <p className="font-medium">{event.title}</p>
-                  <p className="mt-1 text-muted-foreground">{event.detail}</p>
-                  <p className="mt-1 text-muted-foreground">
-                    {formatDateTime(event.occurredAt)}
-                  </p>
-                </li>
-              ))}
-            </ol>
-          )}
+          <BookingOperationalTimeline
+            events={timeline}
+            formatTimestamp={formatDateTime}
+          />
         </BookingDetailSection>
       </BookingDetailSections>
     </WorkspacePage>

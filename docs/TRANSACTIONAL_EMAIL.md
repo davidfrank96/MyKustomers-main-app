@@ -2,7 +2,7 @@
 
 Status: VERIFIED - PRODUCTION
 
-My Customers uses its own durable transactional outbox. Supabase Auth email is
+My Kustomers uses its own durable transactional outbox. Supabase Auth email is
 a separate system. Business-domain workflows must never call an email vendor
 directly. They create durable email events; provider adapters own external
 delivery.

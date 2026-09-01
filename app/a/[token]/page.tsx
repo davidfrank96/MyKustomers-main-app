@@ -133,7 +133,7 @@ export default async function AmendmentPage({
       <main className="min-h-dvh bg-background px-5 py-8 text-foreground">
         <div className="mx-auto w-full max-w-xl">
           <p className="text-sm font-medium text-muted-foreground">
-            My Customers secure booking update
+            My Kustomers secure booking update
           </p>
           <h1 className="mt-16 text-2xl font-semibold">Review booking changes</h1>
           <p className="mt-3 text-sm leading-6 text-muted-foreground">
@@ -153,7 +153,7 @@ export default async function AmendmentPage({
     <main className="min-h-dvh bg-background px-5 py-8 text-foreground">
       <div className="mx-auto flex w-full max-w-xl flex-col">
         <p className="text-sm font-medium text-muted-foreground">
-          My Customers secure booking update
+          My Kustomers secure booking update
         </p>
         {amendment ? (
           <>
@@ -207,7 +207,7 @@ export default async function AmendmentPage({
           </div>
         )}
         <p className="mt-8 text-center text-xs text-muted-foreground">
-          Powered by My Customers
+          Powered by My Kustomers
         </p>
       </div>
     </main>

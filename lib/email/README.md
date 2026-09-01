@@ -49,7 +49,7 @@ confirmation contact. The request message contains the secure link, business,
 and booking reference but omits add-on title and amounts. Customer approval
 atomically creates one `BOOKING_ADDON_CONFIRMED` event. Its message includes the
 confirmed add-on and current booking/add-on totals while stating that deposits
-are recorded information and My Customers did not process payment. Delivery
+are recorded information and My Kustomers did not process payment. Delivery
 failure never changes add-on state.
 
 The default `development` provider performs no external request and returns a

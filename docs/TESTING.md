@@ -10,6 +10,69 @@ signup confirmation and reset-password completion remain PARTIAL because they
 require a controlled inbox and Supabase default-email delivery; those exceptions
 do not reduce the verified tenant/RLS coverage.
 
+## 2026-08-31 Branch Release Gate
+
+The master release-candidate audit covers the complete dirty
+`ui/mobile-redesign` worktree without merging, pushing, deploying, applying a
+migration, or touching production data. The release matrix now includes
+320x568, 360x800, 375x812, 390x844, 430x932, 768x1024, 1024x768, 1280x800, and
+1440x900 across eleven authenticated routes. Public homepage, authentication,
+confirmation, feedback, amendment, add-on, onboarding, customer, booking,
+business, Insights, and PWA reliability coverage remains in the canonical suite.
+
+The first full Chromium/WebKit/browser run exposed one audit-fixture defect:
+the due-today booking was fixed at 4:30 PM and correctly became overdue when the
+suite ran later that evening, while the assertion remained hard-coded to seven.
+The fixture now uses the end of the current day. The focused nine-width route
+matrix passes with the correct seven-overdue result and fresh screenshots.
+
+Release-specific focused checks pass:
+
+- Brand/confirmation/feedback component and metadata coverage: 36/36.
+- Transactional email/provider/retry/boundary smoke: 52/52.
+- Dependency audit: zero known vulnerabilities at `moderate` or higher (and
+  `npm audit` reports zero vulnerabilities overall).
+- Protected live Runtime Security: 20 files/tests skipped because the explicit
+  non-production target guard is not enabled; static security and canonical
+  disposable-fixture security paths remain executable in the normal suites.
+- Final lint, typecheck, production build, and diff hygiene: PASS.
+- Final Vitest: 115 files / 599 tests passed; 20 guarded runtime files/tests
+  skipped (135 files / 619 tests total).
+- Final Playwright: 42 journeys passed; 15 project/configuration-gated journeys
+  skipped (57 total). This includes desktop/mobile canonical booking and feedback,
+  the nine-width authenticated matrix, public responsive/branding, auth,
+  onboarding, customers, Insights, multi-business isolation, and Chromium/WebKit
+  PWA reliability.
+
+## Authentication And Onboarding Integrity Matrix
+
+The provider-independent regression suite covers password and shared OAuth
+post-auth routing policy, safe/external `next` handling, and direct requests to
+Dashboard, Bookings (list/new/detail), Customers (list/new/detail), Insights,
+Business, Add another business, and Settings. A controlled zero-business user
+must reach `/onboarding` on every path, including with a forged current-business
+cookie, and the server response must not contain the vendor shell.
+
+The multi-business journey covers one-business resolution, two-business
+selection and switching, forged-cookie fallback, single-membership revocation,
+last-membership revocation, and a stale customer-creation Server Action submitted
+after the last membership is removed. Admin E2E separately proves ordinary-user
+denial, disabled-admin denial, and active zero-business platform-admin access.
+Static/unit coverage distinguishes successful zero rows from failed membership
+queries and locks the shared callback/action/layout gate. Existing onboarding
+tests preserve first-business, required-logo, retry/resume, and existing-business
+redirect behavior. RLS/runtime suites remain defence in depth and retain their
+safe-target guards; a guarded skip is never reported as executed evidence.
+
+Local hotfix evidence: lint, route type generation, strict TypeScript, and diff
+hygiene pass; Vitest reports 117 files/608 tests passed with 20 guarded runtime
+files/tests skipped; Playwright reports 46 journeys passed with 15 documented
+project/target skips; production build and dependency audit pass. A separate
+service-side residue audit found and removed 17 historic controlled businesses
+and 19 controlled Auth users left by earlier non-asserting hooks. Cleanup order
+now removes memberships before businesses, and the final audit returned zero
+matching businesses and zero matching Auth users.
+
 ## Test Categories
 
 - Unit: Small deterministic utilities and isolated domain logic.
@@ -1060,6 +1123,12 @@ and fixture cleanup passed against merge commit `d2f55fd`.
   removed in `finally`; no production customer or business is used.
 - The redesign changes presentation only. Existing unit, integration, runtime
   security, E2E, and build gates remain mandatory regression evidence.
+- Operational timeline integration coverage preserves authoritative DOM order,
+  mixed status/reschedule/add-on presentation, optional detail, real `time`
+  semantics, long-title wrapping, the empty state, and dynamic singular/plural
+  counts. The canonical booking E2E adds a 16-event mixed timeline, disclosure
+  ARIA checks, expanded/collapsed screenshots, and the full 320-1440 overflow
+  matrix without changing event generation or lifecycle actions.
 
 ## Sentry Observability Verification
 

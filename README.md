@@ -1,6 +1,6 @@
-# My Customers
+# My Kustomers
 
-My Customers is a mobile-first SaaS application for small businesses that manage
+My Kustomers is a mobile-first SaaS application for small businesses that manage
 customers, bookings, orders, confirmations, feedback, and customer history through
 informal channels today.
 
@@ -43,6 +43,12 @@ authenticated routes provide neutral structural loading states, tenant switches
 hide the prior workspace while navigation is pending, and authenticated context
 reads are deduplicated only within one server request. Public capability routes
 remain explicitly non-cacheable.
+Authentication and workspace authorization now converge through a shared server
+boundary: active `business_members` is resolved before any vendor shell renders,
+and zero-business users receive a shell-free `/onboarding` route regardless of
+password/Google provider, vendor `next`, forged cookie, or previous membership.
+Query failures fail closed; page/action checks and RLS remain defence in depth,
+and active Platform Admin access keeps its independent role gate.
 Authenticated Navigation Performance V2 adds immediate accessible pending state
 to desktop/mobile product navigation and names each destination in its loading
 shell. Bookings and Customers stream authorized controls before paginated rows;
@@ -443,7 +449,7 @@ claimed because the active Brevo API does not support those standard headers.
 
 Booking completion now uses an accessible application-owned confirmation
 dialog. The final `DELIVERED -> COMPLETED` mutation runs only after confirmation
-inside My Customers; browser-native confirm, alert, and prompt dialogs are not
+inside My Kustomers; browser-native confirm, alert, and prompt dialogs are not
 lifecycle dependencies. New first and additional business setup also requires
 one successfully persisted optimized logo before the workspace is selected and
 setup is considered complete. The existing owner-authorized logo API,

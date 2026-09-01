@@ -37,27 +37,27 @@ const features: Array<{
 }> = [
   {
     title: "Customers",
-    description: "Keep every customer in one organized place.",
+    description: "Keep customer details organized and easy to access.",
     icon: Users,
   },
   {
     title: "Bookings",
-    description: "Create, manage and update bookings easily.",
+    description: "Create, manage, and track every booking with ease.",
     icon: CalendarDays,
   },
   {
-    title: "Confirmations",
-    description: "Send email confirmations automatically.",
+    title: "Digital receipts",
+    description: "Send digital receipts and customer updates automatically.",
     icon: Mail,
   },
   {
-    title: "Private feedback",
-    description: "Collect feedback privately and respond fast.",
+    title: "Feedback",
+    description: "Collect private feedback and respond quickly.",
     icon: MessageCircle,
   },
   {
     title: "Insights",
-    description: "Understand what's working and grow with confidence.",
+    description: "See what's working and grow with confidence.",
     icon: BarChart3,
   },
 ];
@@ -181,19 +181,19 @@ export default function HomePage() {
               Built for small businesses
             </p>
             <h1 className="mt-5 max-w-2xl text-[1.875rem] font-semibold leading-[1.08] sm:mt-6 sm:text-5xl lg:text-[2.75rem] xl:text-[3.35rem]">
-              <span className="block">Manage customers.</span>
-              <span className="mt-1 block">Book, deliver, follow up.</span>
-              <span className="mt-1 block text-primary">All in one place.</span>
+              <span className="block">From customer request to</span>
+              <span className="mt-1 block">confirmation, delivery, and feedback —</span>
+              <span className="mt-1 block text-primary">one clear journey.</span>
             </h1>
             <p className="mt-5 max-w-xl text-[0.9375rem] leading-6 text-muted-foreground sm:mt-6 sm:text-lg sm:leading-8">
-              From bookings to confirmations, deliveries, private feedback, and powerful
-              insights — keep every customer experience organized and professional.
+              Manage bookings, send digital receipts and updates, collect private
+              feedback, and keep every customer journey organized in one place.
             </p>
 
             <div className="mt-6 grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 sm:mt-7 sm:flex sm:flex-wrap">
               <Button asChild size="lg" className="h-14 min-w-0 px-4 sm:px-6">
                 <Link href="/signup">
-                  <span className="lg:hidden">Create account</span>
+                  <span className="lg:hidden">Get started</span>
                   <span className="hidden lg:inline">Get started</span>
                   <ArrowRight className="size-4" aria-hidden="true" />
                 </Link>
@@ -345,8 +345,8 @@ export default function HomePage() {
                   {"Run your business. We'll handle the rest."}
                 </h2>
                 <p className="mt-1 text-xs leading-5 text-white/80 lg:text-base lg:leading-6">
-                  Save time, stay organized, and give your customers the experience they
-                  deserve.
+                  Save time, look professional, and give your customers the experience
+                  they deserve.
                 </p>
               </div>
             </div>

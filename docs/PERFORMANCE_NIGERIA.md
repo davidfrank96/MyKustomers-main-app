@@ -338,7 +338,7 @@ All controlled fixtures and storage objects were deleted after testing.
 
 **GOOD**
 
-My Customers is sufficiently fast for the tested Nigerian SME profile on
+My Kustomers is sufficiently fast for the tested Nigerian SME profile on
 typical and constrained 4G. Core operations are small-data, layout-stable, and
 usually complete below the 1.2-second GOOD threshold. Real Lagos first byte is
 about 1.1 seconds, so geographic and carrier-path variance remains visible.

@@ -11,7 +11,7 @@ function businessInitials(name: string) {
     .map((part) => part[0]?.toUpperCase())
     .join("");
 
-  return initials || "MC";
+  return initials || "MK";
 }
 
 export function BusinessLogo({

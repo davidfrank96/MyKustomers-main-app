@@ -2,14 +2,16 @@
 
 STATUS: IMPLEMENTED, WITH APPROVED MOBILE REDESIGN UNDER BRANCH REVIEW
 
-Phase 1 implemented foundational UI primitives and responsive shells. Full brand and product UI are still planned.
+Phase 1 implemented foundational UI primitives and responsive shells. The
+current brand and approved mobile workspace system are implemented; future work
+may refine them without changing the product name or domain contract.
 Phases 3 through 9.5 add verified product workflows for onboarding, customers,
 bookings, customer confirmation links, operational booking lifecycle, private
 feedback, operational issues, business insights, and product UX refinement.
 
 ## Design Philosophy
 
-My Customers should feel:
+My Kustomers should feel:
 
 - Modern.
 - Premium.
@@ -29,6 +31,16 @@ Avoid:
 - Overloaded cards.
 - Tiny touch targets.
 - Dense enterprise UI.
+
+## Brand And Domain
+
+- The product name rendered to users is `My Kustomers`.
+- The public domain attribution is `MyKustomers.com`; `MyCustomers.com` must not
+  appear in product UI, public pages, email copy, metadata, or screenshots.
+- Compact application marks use `MK`. Business-logo fallbacks continue to use
+  the business name's own initials.
+- Internal package names, database identifiers, migration history, and protocol
+  header names are implementation details and must not leak into user-facing copy.
 
 ## Responsive Behavior
 
@@ -118,6 +130,11 @@ Implemented in Phase 1:
 - Approved mobile redesign of Dashboard, Bookings, Booking detail, Customers,
   Insights, Business, and Add another business, using the shared workspace
   components and preserving existing product contracts.
+- Operational timeline presentation uses the shared Booking-detail disclosure,
+  a compact semantic vertical event list, restrained type-specific Lucide icons,
+  an adaptive connector, real timestamps, and naturally wrapping event detail.
+  Its count, ordering, labels, and mixed status/change/amendment/add-on content
+  remain derived from the existing authoritative server data.
 
 Current copy rules:
 

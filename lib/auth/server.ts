@@ -9,6 +9,10 @@ import { getSafeRedirectPath } from "@/lib/security/redirects";
 import { createClient } from "@/lib/supabase/server";
 import type { BusinessMemberRole } from "@/types/database";
 import { isBusinessOnboardingPending } from "@/features/businesses/onboarding";
+import {
+  BusinessMembershipLookupError,
+  requireBusinessAccessRows,
+} from "@/lib/auth/business-access";
 
 export type AuthenticatorAssuranceLevel = "aal1" | "aal2";
 
@@ -62,6 +66,22 @@ export class AuthorizationError extends Error {
   }
 }
 
+export { BusinessMembershipLookupError };
+
+type SupabaseUserIdentity = {
+  id: string;
+  email?: string | null;
+  user_metadata?: Record<string, unknown> | null;
+};
+
+export function toAuthenticatedUser(user: SupabaseUserIdentity): AuthenticatedUser {
+  return {
+    id: user.id,
+    email: user.email ?? undefined,
+    userMetadata: user.user_metadata ?? {},
+  };
+}
+
 const getVerifiedAuthClaims = cache(async function getVerifiedAuthClaims() {
   if (!isSupabasePublicEnvConfigured()) {
     return null;
@@ -85,14 +105,14 @@ export const getAuthenticatedUser = cache(
       return null;
     }
 
-    return {
+    return toAuthenticatedUser({
       id: claims.sub,
       email: typeof claims.email === "string" ? claims.email : undefined,
-      userMetadata:
+      user_metadata:
         typeof claims.user_metadata === "object" && claims.user_metadata !== null
           ? claims.user_metadata
           : {},
-    };
+    });
   },
 );
 
@@ -134,11 +154,9 @@ export const getBusinessMemberships = cache(async function getBusinessMembership
     .order("created_at", { ascending: true })
     .order("business_id", { ascending: true });
 
-  if (error || !data) {
-    return [];
-  }
+  const rows = requireBusinessAccessRows(data, error);
 
-  return data.map((membership) => ({
+  return rows.map((membership) => ({
     businessId: membership.business_id,
     role: membership.role,
     status: membership.status,
@@ -170,16 +188,10 @@ export const getCurrentBusinessContext = cache(async function getCurrentBusiness
     .order("created_at", { ascending: true })
     .order("business_id", { ascending: true });
 
-  if (error || !data) {
-    return {
-      memberships: [],
-      businesses: [],
-      pendingBusinesses: [],
-      currentBusiness: null,
-    };
+  const rows = requireBusinessAccessRows(data, error) as unknown as BusinessAccessRow[];
+  if (rows.some((row) => row.businesses === null)) {
+    throw new BusinessMembershipLookupError();
   }
-
-  const rows = data as unknown as BusinessAccessRow[];
   const memberships = rows.map((row) => ({
     businessId: row.business_id,
     role: row.role,
@@ -261,6 +273,12 @@ export async function requireBusinessRole(
 }
 
 export async function requireCurrentBusiness(next = "/dashboard") {
+  const { user, business } = await requireVendorWorkspace(next);
+
+  return { user, business };
+}
+
+export async function requireVendorWorkspace(next = "/dashboard") {
   const [user, context] = await Promise.all([
     requireUser(next),
     getCurrentBusinessContext(),
@@ -270,5 +288,9 @@ export async function requireCurrentBusiness(next = "/dashboard") {
     redirect("/onboarding" as Route);
   }
 
-  return { user, business: context.currentBusiness };
+  return {
+    user,
+    business: context.currentBusiness,
+    businessContext: context,
+  };
 }

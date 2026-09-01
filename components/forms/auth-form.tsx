@@ -155,7 +155,7 @@ export function AuthForm({
               ? "mx-auto flex w-fit items-center justify-center gap-3"
               : "flex w-fit items-center gap-3"
           }
-          aria-label={mobilePresentation ? "My Kustomers home" : "My Customers home"}
+          aria-label="My Kustomers home"
         >
           <span
             className={
@@ -164,7 +164,7 @@ export function AuthForm({
                 : "grid size-10 place-items-center rounded-lg bg-primary text-sm font-semibold text-primary-foreground"
             }
           >
-            {mobilePresentation ? "MK" : "MC"}
+            MK
           </span>
           <span
             className={
@@ -173,7 +173,7 @@ export function AuthForm({
                 : "text-base font-semibold"
             }
           >
-            {mobilePresentation ? "My Kustomers" : "My Customers"}
+            My Kustomers
           </span>
         </Link>
         <h1

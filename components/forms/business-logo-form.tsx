@@ -331,7 +331,11 @@ export function BusinessLogoForm({
         <BusinessLogo
           name={businessName}
           url={previewUrl ?? persistedUrl}
-          className="size-16 sm:size-20"
+          className={
+            mode === "onboarding"
+              ? "size-20 rounded-lg bg-primary/5 text-lg text-primary"
+              : "size-16 sm:size-20"
+          }
         />
         <div className="min-w-0">
           <p className="font-medium">{businessName}</p>
@@ -353,24 +357,44 @@ export function BusinessLogoForm({
             </p>
           ) : null}
           <div className="space-y-2">
-            <Label htmlFor="business-logo">Logo image</Label>
-            <Input
-              ref={inputRef}
-              id="business-logo"
-              type="file"
-              accept="image/png,image/jpeg,image/webp"
-              onChange={(event) => selectPreview(event.target.files?.[0])}
-              disabled={
-                status === "pending" || Boolean(persistedUrl && mode === "onboarding")
-              }
-              required={mode === "onboarding"}
-              aria-invalid={status === "error"}
-              aria-describedby={
-                message
-                  ? "business-logo-help business-logo-message"
-                  : "business-logo-help"
-              }
-            />
+            <Label htmlFor="business-logo">
+              Logo image{" "}
+              {mode === "onboarding" ? (
+                <span className="text-destructive" aria-hidden="true">
+                  *
+                </span>
+              ) : null}
+            </Label>
+            <div className="relative">
+              {mode === "onboarding" ? (
+                <ImageUp
+                  className="pointer-events-none absolute left-3 top-1/2 z-10 size-4 -translate-y-1/2 text-foreground"
+                  aria-hidden="true"
+                />
+              ) : null}
+              <Input
+                ref={inputRef}
+                id="business-logo"
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                onChange={(event) => selectPreview(event.target.files?.[0])}
+                disabled={
+                  status === "pending" || Boolean(persistedUrl && mode === "onboarding")
+                }
+                required={mode === "onboarding"}
+                className={
+                  mode === "onboarding"
+                    ? "h-12 cursor-pointer px-2 text-sm file:mr-3 file:h-9 file:cursor-pointer file:rounded-md file:border-0 file:bg-muted file:pl-8 file:pr-3 file:text-sm file:font-medium file:text-foreground"
+                    : undefined
+                }
+                aria-invalid={status === "error"}
+                aria-describedby={
+                  message
+                    ? "business-logo-help business-logo-message"
+                    : "business-logo-help"
+                }
+              />
+            </div>
             <p
               id="business-logo-help"
               className="text-xs leading-5 text-muted-foreground"

@@ -28,8 +28,8 @@ loadLocalEnv();
 
 const hasSupabaseEnv = Boolean(
   process.env.NEXT_PUBLIC_SUPABASE_URL &&
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY &&
-    process.env.SUPABASE_SERVICE_ROLE_KEY,
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY &&
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
 );
 
 const createdEmails = new Set<string>();
@@ -141,9 +141,9 @@ test.describe("Supabase authentication journeys", () => {
     await page.getByLabel("Confirm password").fill(password);
     await page.getByRole("button", { name: "Create account" }).click();
 
-    const successState = page.getByText(/check your email|authenticated workspace/i).or(
-      page.getByRole("heading", { name: "Welcome back" }),
-    );
+    const successState = page
+      .getByText(/check your email|authenticated workspace/i)
+      .or(page.getByRole("heading", { name: "Welcome back" }));
     const providerLimitOrGenericError = page.getByText(
       /Too many attempts\. Please wait and try again\.|Something went wrong\. Please try again\./,
     );
@@ -206,11 +206,11 @@ test.describe("Supabase authentication journeys", () => {
     await page.getByRole("button", { name: "Log in" }).click();
 
     await expect(page).toHaveURL(/\/onboarding/);
-    await expect(page.getByRole("heading", { name: "Set up your business" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Create business" })).toBeVisible();
 
     await page.reload();
     await expect(page).toHaveURL(/\/onboarding/);
-    await expect(page.getByRole("heading", { name: "Set up your business" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Create business" })).toBeVisible();
 
     await page.goto("/logout");
     await page.getByRole("button", { name: "Log out" }).click();
@@ -218,6 +218,85 @@ test.describe("Supabase authentication journeys", () => {
 
     await page.goto("/dashboard");
     await expect(page).toHaveURL(/\/login\?next=%2Fdashboard/);
+  });
+
+  test("zero-business login and direct vendor routes stay behind onboarding", async ({
+    page,
+  }, testInfo) => {
+    const email = testEmail("zero-business-gate", testInfo.project.name);
+    const password = `Phase2v-Zero-Business-${randomUUID()}-A1`;
+    await createConfirmedUser(email, password);
+
+    await page.goto("/login?next=/settings");
+    await page.getByLabel("Email").fill(email);
+    await page.getByLabel("Password", { exact: true }).fill(password);
+    await page.getByRole("button", { name: "Log in" }).click();
+    await expect(page).toHaveURL(/\/onboarding$/);
+
+    const unknownId = randomUUID();
+    await page.context().addCookies([
+      {
+        name: "my-customers-current-business",
+        value: unknownId,
+        domain: "127.0.0.1",
+        path: "/",
+        httpOnly: true,
+        sameSite: "Lax",
+      },
+    ]);
+    const serverGateResponse = await page.context().request.get("/settings", {
+      maxRedirects: 0,
+    });
+    const serverGateBody = await serverGateResponse.text();
+    expect([200, 307]).toContain(serverGateResponse.status());
+    expect(
+      serverGateResponse.headers().location === "/onboarding" ||
+        (serverGateBody.includes("NEXT_REDIRECT") &&
+          serverGateBody.includes("/onboarding")),
+    ).toBe(true);
+    expect(serverGateBody).not.toContain("No business selected");
+    expect(serverGateBody).not.toContain("Mobile vendor navigation");
+
+    for (const path of [
+      "/dashboard",
+      "/bookings",
+      "/bookings/new",
+      `/bookings/${unknownId}`,
+      "/customers",
+      "/customers/new",
+      `/customers/${unknownId}`,
+      "/insights",
+      "/business",
+      "/business/new",
+      "/settings",
+    ]) {
+      await page.goto(path);
+      await expect(page).toHaveURL(/\/onboarding$/);
+      await expect(page.getByRole("heading", { name: "Create business" })).toBeVisible();
+    }
+  });
+
+  test("zero-business onboarding does not render the vendor workspace shell", async ({
+    page,
+  }, testInfo) => {
+    const email = testEmail("onboarding-shell", testInfo.project.name);
+    const password = `Phase2v-Onboarding-Shell-${randomUUID()}-A1`;
+    await createConfirmedUser(email, password);
+
+    await page.goto("/login");
+    await page.getByLabel("Email").fill(email);
+    await page.getByLabel("Password", { exact: true }).fill(password);
+    await page.getByRole("button", { name: "Log in" }).click();
+
+    await expect(page).toHaveURL(/\/onboarding$/);
+    await expect(page.getByRole("heading", { name: "Create business" })).toBeVisible();
+    await expect(page.getByRole("navigation", { name: "Vendor navigation" })).toHaveCount(
+      0,
+    );
+    await expect(
+      page.getByRole("navigation", { name: "Mobile vendor navigation" }),
+    ).toHaveCount(0);
+    await expect(page.getByText("No business selected")).toHaveCount(0);
   });
 
   test("OAuth-style profile metadata provisions safely and follows normal onboarding", async ({
@@ -311,7 +390,9 @@ test.describe("Supabase authentication journeys", () => {
     }
   });
 
-  test("invalid login and forgot password responses are safe", async ({ page }, testInfo) => {
+  test("invalid login and forgot password responses are safe", async ({
+    page,
+  }, testInfo) => {
     const email = testEmail("missing", testInfo.project.name);
 
     await page.goto("/auth/callback?next=%E0%A4%A");

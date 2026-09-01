@@ -5,7 +5,7 @@ test("home page loads", async ({ page }) => {
   await expect(page.getByRole("link", { name: "My Kustomers home" })).toBeVisible();
   await expect(
     page.getByRole("heading", {
-      name: "Manage customers. Book, deliver, follow up. All in one place.",
+      name: "From customer request to confirmation, delivery, and feedback — one clear journey.",
     }),
   ).toBeVisible();
   await expect(page.getByText("My Customers", { exact: true })).toHaveCount(0);

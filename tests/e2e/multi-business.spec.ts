@@ -112,11 +112,12 @@ test.describe("multi-business account support", () => {
 
       await page.getByRole("link", { name: "Add another business" }).click();
       await expect(page).toHaveURL(/\/business\/new$/);
-      await expect(
-        page.getByRole("heading", { name: "Add another business" }),
-      ).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Create business" })).toBeVisible();
     } finally {
-      if (businessId) await admin.from("businesses").delete().eq("id", businessId);
+      if (businessId) {
+        await admin.from("business_members").delete().eq("business_id", businessId);
+        await admin.from("businesses").delete().eq("id", businessId);
+      }
       if (userId) await admin.auth.admin.deleteUser(userId);
     }
   });
@@ -461,6 +462,30 @@ test.describe("multi-business account support", () => {
           }
         }
       }
+
+      await page.goto("/customers/new");
+      await page.getByLabel("Name", { exact: true }).fill("Revoked membership customer");
+      await admin.from("business_members").delete().eq("user_id", userData.user!.id);
+      await page.getByRole("button", { name: "Create customer" }).click();
+      await expect(page).toHaveURL(/\/onboarding$/);
+      await expect(page.getByRole("heading", { name: "Create business" })).toBeVisible();
+
+      await page.context().addCookies([
+        {
+          name: CURRENT_BUSINESS_COOKIE_NAME,
+          value: businessAId,
+          domain: "127.0.0.1",
+          path: "/",
+          httpOnly: true,
+          sameSite: "Lax",
+        },
+      ]);
+      await page.goto("/dashboard");
+      await expect(page).toHaveURL(/\/onboarding$/);
+      await expect(page.getByRole("heading", { name: "Create business" })).toBeVisible();
+      await expect(
+        page.getByRole("navigation", { name: "Vendor navigation" }),
+      ).toHaveCount(0);
     } finally {
       const { data: businesses } = await admin
         .from("businesses")
@@ -484,6 +509,7 @@ test.describe("multi-business account support", () => {
       await admin.from("bookings").delete().in("business_id", businessIds);
       await admin.from("customers").delete().in("business_id", businessIds);
       await admin.from("audit_logs").delete().in("business_id", businessIds);
+      await admin.from("business_members").delete().in("business_id", businessIds);
       await admin.from("businesses").delete().in("id", businessIds);
       await Promise.allSettled(
         userIds.map((userId) => admin.auth.admin.deleteUser(userId)),
