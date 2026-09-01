@@ -2663,7 +2663,7 @@ test.describe("booking engine", () => {
       .eq("id", inlineCustomerId)
       .single();
     expect(confirmedInlineCustomer).toEqual({
-      email: duplicateEmail,
+      email: normalizeCustomerContactEmail(duplicateEmail.toUpperCase()),
       phone: "+353 01 555 0188",
     });
   });
