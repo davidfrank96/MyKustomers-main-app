@@ -19,12 +19,19 @@ production-readiness work.
       pending state or horizontal overflow.
 - [x] Full lint, typecheck, unit/integration, runtime-security, browser,
       production-build, dependency, and diff-hygiene gates pass.
-- [ ] Required CI, Vercel production deployment, and controlled production
+- [x] Required CI, Vercel production deployment, and controlled production
       navigation smoke pass.
 - [x] Controlled local navigation fixtures are removed and the residue audit
       returns zero.
-- [ ] Controlled production navigation fixtures are removed and the production
+- [x] Controlled production navigation fixtures are removed and the production
       residue audit returns zero.
+
+Release evidence: PR #48 passed six executable CI/deployment checks with the
+protected Runtime Security job explicitly skipped, merged as `37cf872`, and was
+deployed by Vercel deployment `dpl_FUmoNCREPDP3nTi9jjFCYyFCnabM`. Production
+smoke passed at 1440x1000 and 390x844; deployment logs showed zero warning,
+error, or fatal entries in the checked window; the independent residue audit
+returned zero matching businesses and Auth users.
 
 ## Build
 

@@ -39,8 +39,19 @@ The complete local gate passes lint, route type generation, strict TypeScript,
 build, dependency audit, and diff hygiene. Twenty protected runtime files/tests
 and 15 documented project/target browser cases retain explicit skips. Cleanup
 removed five fixtures from interrupted pre-fix runs; a post-suite query returned
-zero matching controlled businesses and Auth users. CI, deployment, and
-production smoke remain pending.
+zero matching controlled businesses and Auth users.
+
+PR #48 then passed Quality, Tests, Build, Dependency Security, E2E, and Vercel;
+the protected Runtime Security job retained its expected explicit skip. The PR
+merged as `37cf872`, and Vercel deployment
+`dpl_FUmoNCREPDP3nTi9jjFCYyFCnabM` deployed that exact commit to Production.
+The same controlled regression passed against `https://mykustomers.com` at
+1440x1000 and 390x844, covering every listed return-to-Home path and strict
+cleanup. Desktop Dashboard useful-content arrival ranged from 838 to 1,856 ms;
+mobile ranged from 844 to 862 ms. These are single-run correctness diagnostics,
+not an SLO. The deployment log panel reported zero warning, error, or fatal
+entries in the checked window, and an independent post-smoke audit returned zero
+matching controlled businesses and Auth users.
 
 ## 2026-09-01 UI/Main Reconciliation Release Gate
 
