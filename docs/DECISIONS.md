@@ -1311,3 +1311,31 @@ server-owned while append position is intentionally ephemeral. Data transfer
 grows proportionally over 10 rows but measured query latency stays within remote
 variance. No migration, index, RLS, environment, dependency, or cache change is
 introduced. Virtualization and a 50-row default require new evidence.
+
+## ADR-056 - Confirmation Requests Are Link-Bound Outbox Events; Customer Delete Is Exceptional
+
+Status: Accepted
+
+Date: 2026-09-01
+
+Context: Manual confirmation-link sharing had no durable initial email event,
+whole-address lowercasing changed customer-entered mailbox characters, and an
+application-only customer delete check could race a new booking.
+
+Decision: Keep manual generation share-only. A separate member-authorized,
+booking-locked RPC creates a fresh hash-only capability and one exact-link
+`BOOKING_CONFIRMATION_REQUESTED` event atomically. Normalize customer-contact
+addresses by trimming and lowercasing only the domain. Treat a same-recipient
+request within 30 seconds as a no-send duplicate. Keep Archive/Restore as the
+ordinary lifecycle; permit permanent deletion only to a current owner through
+an atomic database function that rejects any booking history or protected
+dependency.
+
+Consequences: Recipient correction supersedes the old open capability without
+destroying the booking. Provider acceptance remains distinct from destination
+delivery, and secure request events cannot use the generic admin retry because
+their raw token is intentionally unreconstructable. Existing lowercased
+historical recipients are not speculatively backfilled. Delete never cascades
+bookings, members never receive permanent-delete authority, and no dependency,
+environment, webhook, provider-failover, or Supabase Auth semantic changes are
+introduced.

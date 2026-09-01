@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { normalizeCustomerContactEmail } from "@/features/customers/email";
 
 const phonePattern = /^[0-9+().\s-]+$/;
 
@@ -27,9 +28,17 @@ export const customerEmailSchema = z.preprocess((value) => {
     return undefined;
   }
 
-  const trimmed = value.trim().toLowerCase();
-  return trimmed.length === 0 ? undefined : trimmed;
+  const normalized = normalizeCustomerContactEmail(value);
+  return normalized.length === 0 ? undefined : normalized;
 }, z.string().email("Enter a valid customer email.").max(254).optional());
+
+export const requiredCustomerEmailSchema = z.preprocess((value) => {
+  if (typeof value !== "string") {
+    return "";
+  }
+
+  return normalizeCustomerContactEmail(value);
+}, z.string().min(1, "Customer email is required.").email("Enter a valid customer email.").max(254));
 
 export const customerPhoneSchema = z.preprocess((value) => {
   if (typeof value !== "string") {

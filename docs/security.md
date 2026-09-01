@@ -946,3 +946,29 @@ server-secret, never `NEXT_PUBLIC_`, and used solely for release/source-map
 upload. Sentry project-side default/additional scrubbers and IP storage
 prevention provide defense in depth. Replay, feedback, profiling, logs, metrics,
 and arbitrary form/request capture are prohibited for this integration.
+
+SEC-053 - Customer Contact Correction Revokes Capability; Delete Never Cascades
+
+Status: IMPLEMENTED - PRODUCTION MUTATION VERIFICATION PENDING
+
+Initial confirmation email is a member-authorized, booking-locked transaction.
+The reviewed recipient is validated and normalized by preserving the local part
+and lowercasing only its domain. A correction revokes every prior open
+confirmation capability before creating a fresh hash-only link and one exact
+linked outbox event in the same commit. If event creation fails, revocation and
+replacement roll back together. A same-recipient request within 30 seconds is a
+normal duplicate outcome and emits no email. Raw tokens, URLs, recipient values,
+provider payloads, cookies, and credentials remain outside audit and Sentry.
+
+Manual link generation remains separate and does not imply email delivery.
+`SENT` means adapter/provider acceptance, not inbox delivery. The secure initial
+request cannot use generic retry because the plaintext token is intentionally
+not reconstructable; the vendor must create a fresh request.
+
+Customer Archive/Restore remains available to an active business member and
+does not alter bookings. Permanent deletion is owner-only and must pass the
+postgres-owned empty-search-path `delete_customer_if_eligible` boundary. That
+function derives the caller, rechecks owner membership/tenant association under
+lock, rejects every historical booking and protected dependency, and deletes no
+booking. UI eligibility is advisory and fails closed; the database check defeats
+concurrent booking/delete races and cross-tenant attempts.

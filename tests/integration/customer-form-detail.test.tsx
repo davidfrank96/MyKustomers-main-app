@@ -1,5 +1,5 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 import { CustomerForm } from "@/components/forms/customer-form";
 import { initialCustomerActionState } from "@/features/customers/action-state";
 
@@ -98,5 +98,31 @@ describe("customer detail form presentation", () => {
       "h-14",
       "w-full",
     );
+  });
+
+  it("focuses the first invalid field and clears its stale error on correction", async () => {
+    const validationAction = vi.fn(async () => ({
+      status: "error" as const,
+      message: "Check the highlighted fields.",
+      fieldErrors: {
+        name: ["Customer name is required."],
+        email: ["Enter a valid customer email."],
+      },
+    }));
+    render(
+      <CustomerForm
+        action={validationAction}
+        submitLabel="Create customer"
+        presentation="create"
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Create customer" }));
+    expect(await screen.findByText("Customer name is required.")).toBeVisible();
+    await waitFor(() => expect(screen.getByLabelText("Name")).toHaveFocus());
+
+    fireEvent.change(screen.getByLabelText("Name"), { target: { value: "Ada" } });
+    expect(screen.queryByText("Customer name is required.")).toBeNull();
+    expect(screen.getByText("Enter a valid customer email.")).toBeVisible();
   });
 });

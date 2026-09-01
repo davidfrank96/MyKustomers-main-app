@@ -4,6 +4,12 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { CustomerLoadMoreList } from "@/components/customers/customer-load-more-list";
 import type { CustomerListItem } from "@/features/customers/queries";
 
+vi.mock("@/features/customers/actions", () => ({
+  archiveCustomerLifecycleAction: vi.fn(async () => ({ status: "success" })),
+  restoreCustomerAction: vi.fn(async () => ({ status: "success" })),
+  deleteCustomerAction: vi.fn(async () => ({ status: "success" })),
+}));
+
 vi.mock("next/link", () => ({
   default: ({ children, href, ...props }: ComponentProps<"a"> & { href: string }) => (
     <a href={href} {...props}>
@@ -33,13 +39,11 @@ describe("bounded Load more lists", () => {
       customer(index + 1),
     );
     let resolveFetch: ((response: Response) => void) | undefined;
-    const fetchMock = vi
-      .spyOn(globalThis, "fetch")
-      .mockReturnValue(
-        new Promise<Response>((resolve) => {
-          resolveFetch = resolve;
-        }),
-      );
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockReturnValue(
+      new Promise<Response>((resolve) => {
+        resolveFetch = resolve;
+      }),
+    );
 
     render(
       <CustomerLoadMoreList
@@ -64,10 +68,10 @@ describe("bounded Load more lists", () => {
     expect(requestUrl).toContain("cursorId=");
 
     resolveFetch?.(
-      new Response(
-        JSON.stringify({ customers: [customer(26)], hasMore: false }),
-        { status: 200, headers: { "Content-Type": "application/json" } },
-      ),
+      new Response(JSON.stringify({ customers: [customer(26)], hasMore: false }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
     );
 
     await expect.poll(() => screen.getAllByRole("link").length).toBe(26);

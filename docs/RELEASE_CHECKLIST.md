@@ -666,3 +666,28 @@ returned zero matching businesses and Auth users.
 - [x] Exact merge `b0bd805` deployed to Production; desktop Chromium,
       Pixel-class Chromium, iPhone-class WebKit, and Chromium app-window smoke
       passed, with independent zero-fixture cleanup.
+
+## Customer Contact, Validation, And Customer Lifecycle
+
+- [x] Gmail, Outlook/Hotmail, Yahoo, iCloud, `.ie`, `.co.uk`, and custom-domain
+      syntax coverage uses no provider allowlist and preserves mailbox case.
+- [x] Customer recipient review/edit, malformed-address rejection, exact-link
+      outbox association, correction reissue, old-link revocation invariant,
+      and rapid duplicate no-send behavior have focused coverage.
+- [x] Booking required-field failures are visible, first-invalid focused and
+      scrolled, field-local when corrected, and still server-authoritative.
+- [x] Customer Archive/Restore, owner-only zero-booking Delete, booking-history
+      denial, booking preservation, race-safe database eligibility, member and
+      cross-tenant denial are implemented and statically/integration tested.
+- [x] Mobile swipe reveals but never executes actions; vertical scrolling,
+      left-edge navigation, desktop menu, keyboard, and accessible labels are
+      preserved in component coverage.
+- [ ] Guarded mutation runtime suite executed on an explicitly safe dev/test
+      target. It must remain skipped on the configured production-backed target.
+- [ ] Complete local lint/typecheck/test/runtime/E2E/build/audit/diff gate passes.
+- [ ] Required PR checks pass and the exact merge deploys to Production.
+- [ ] Read-only production responsive, validation-presentation, navigation,
+      auth, list, and Sentry smoke passes without creating customer/email data.
+- [ ] Controlled provider/inbox, wrong-recipient, archive/restore, and delete
+      mutation smoke runs only if a separately safe target and controlled
+      recipients are available; otherwise record the limitation, not a pass.

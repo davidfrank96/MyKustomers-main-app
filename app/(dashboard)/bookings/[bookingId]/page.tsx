@@ -64,6 +64,7 @@ import {
   generateConfirmationLinkAction,
   recordConfirmationShareAction,
   revokeConfirmationLinkAction,
+  sendConfirmationEmailAction,
 } from "@/features/confirmation-links/actions";
 import { getConfirmationLinkSummaryForBooking } from "@/features/confirmation-links/queries";
 import { isConfirmationEligibleStatus } from "@/features/confirmation-links/terms";
@@ -547,6 +548,7 @@ export default async function BookingDetailPage({
             customerName={booking.customer?.name ?? null}
             customerProfileEmail={booking.customer?.email ?? null}
             generateAction={generateConfirmationLinkAction.bind(null, booking.id)}
+            sendAction={sendConfirmationEmailAction.bind(null, booking.id)}
             revokeAction={revokeConfirmationLinkAction.bind(null, booking.id)}
             recordShareAction={recordConfirmationShareAction.bind(null, booking.id)}
           />

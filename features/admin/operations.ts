@@ -228,6 +228,7 @@ const adminBookingDetailSchema = z
       z
         .object({
           event_type: z.enum([
+            "BOOKING_CONFIRMATION_REQUESTED",
             "BOOKING_CONFIRMED",
             "BOOKING_CANCELLED",
             "BOOKING_AMENDMENT_REQUESTED",

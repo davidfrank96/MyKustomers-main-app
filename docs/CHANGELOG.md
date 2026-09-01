@@ -1,5 +1,38 @@
 # Changelog
 
+## 2026-09-01 - Customer Contact, Validation, And Customer Lifecycle
+
+Status: IMPLEMENTED - VERIFICATION PENDING
+
+- Added a reviewed/editable customer recipient step and a separate Send
+  confirmation path backed by a durable exact-link
+  `BOOKING_CONFIRMATION_REQUESTED` outbox event. Manual link generation remains
+  share-only; correction revokes the prior open capability, and a locked
+  30-second same-recipient duplicate creates and sends nothing.
+- Corrected customer-contact normalization to preserve the local part and
+  lowercase only the domain across scoped booking, confirmation, amendment,
+  add-on, and outbox paths. Validation accepts arbitrary supported domains with
+  no Gmail allowlist; historical case loss is not guessed or backfilled.
+- Added visible form-error navigation: every returned required-field error is
+  rendered, the first invalid control scrolls/focuses, and correcting one field
+  clears its own error without hiding others. Server validation remains
+  authoritative.
+- Added reversible Archive/Restore throughout Customer list/detail, a mobile
+  swipe-to-reveal interaction with vertical/edge-gesture protection, and a
+  visible keyboard/desktop menu. Permanent Delete is owner-only, explicit, and
+  atomically denied when any booking or protected dependency exists; bookings
+  never cascade.
+- Applied the three explicitly approved migrations to the configured
+  production-backed project with frozen hashes, rollback compilation, and
+  post-apply catalog/count verification. No dependency, environment variable,
+  provider failover, webhook, Auth semantic, or historical-data change was
+  introduced.
+- Local lint, strict TypeScript, 662 tests, production build, dependency audit,
+  diff hygiene, and five non-mutating browser journeys pass. Twenty-one protected
+  runtime tests and the fixture-backed local E2E matrix were intentionally not
+  executed against the production-backed target. CI, deployment, and read-only
+  production smoke remain pending; live mutations are not claimed.
+
 ## 2026-09-01 - Auth Lifecycle And Bounded Load-More Normalization
 
 Status: VERIFIED - PRODUCTION

@@ -10,6 +10,40 @@ Production verification now includes real signup-confirmation and
 password-recovery delivery through Supabase Auth and the configured SMTP path,
 without weakening the existing tenant/RLS evidence.
 
+## 2026-09-01 Customer Contact, Validation, And Customer Lifecycle
+
+Focused unit/static coverage verifies arbitrary syntactically valid email
+domains, local-part case preservation with domain-only lowercasing, malformed
+recipient rejection, the initial confirmation-request template, exact-link
+dispatch, secure-token handling, request-action duplicate/failure semantics,
+safe admin retry exclusion, migration ownership/grants/constraints, and the
+owner-only no-booking delete contract.
+
+Integration coverage verifies the reviewed/editable recipient UI, visible send
+state, manual-share separation, first-invalid-field focus/scroll, multiple field
+errors, clear-on-correction behavior, and retained server validation for Booking
+and Customer forms. Customer lifecycle coverage verifies owner/member action
+surfaces, archive/restore, booking-history delete denial, explicit delete
+confirmation, horizontal reveal versus vertical scrolling, left-edge avoidance,
+keyboard/menu access, and Load-more row reconciliation.
+
+`tests/security/customer-contact-lifecycle-runtime.test.ts` is guarded for an
+explicitly safe development/test Supabase target. It is intentionally not run
+against the configured production-backed project. The environment safety review
+also prohibited rollback-only Auth/domain fixtures because Auth triggers may
+have external side effects. Production verification for this change must
+therefore remain read-only unless a separately safe controlled target and
+recipients are available; skipped runtime cases must not be claimed as passed.
+
+Local release evidence passes lint, route type generation, strict TypeScript,
+126 Vitest files / 662 tests, the production build, moderate dependency audit
+with zero reported vulnerabilities, and diff hygiene. Twenty-one protected
+runtime tests retained their explicit skips. The non-mutating Playwright subset
+passed five public/auth-presentation/responsive journeys with three intended
+project skips. The complete fixture-backed Playwright command was not run locally
+because the configured backend is production-backed; dedicated non-production
+CI remains the executable browser gate.
+
 ## 2026-09-01 Auth Lifecycle And Load-More Normalization
 
 Focused local evidence covers Google's pending state and exact

@@ -4,6 +4,29 @@ STATUS: PLANNED AND PARTIALLY IMPLEMENTED
 
 This document describes the planned conceptual data model and current migration evidence. Documentation is not implementation evidence.
 
+## 2026-09-01 Customer Lifecycle And Confirmation Request Evidence
+
+`20260901090000_customer_safe_delete.sql` adds no customer column and no booking
+deletion relationship. It adds the owner-authorized
+`delete_customer_if_eligible(uuid)` mutation boundary and `CUSTOMER_DELETED`
+audit type. Eligibility means the current tenant customer exists and has no row
+in `bookings`; the locked database check, not list UI state, is authoritative.
+
+`20260901090010_booking_confirmation_request_event_type.sql` and
+`20260901090011_booking_confirmation_request_outbox.sql` add
+`BOOKING_CONFIRMATION_REQUESTED`, require its exact
+`email_events.confirmation_link_id`, and enforce one request event per link.
+`create_booking_confirmation_request` serializes on the booking, validates the
+member and recipient, returns a normal duplicate result for the same normalized
+recipient within 30 seconds, or atomically revokes open links and inserts a new
+hash-only capability plus event. No raw capability is persisted in the event or
+audit metadata. Existing historical values and links are not rewritten.
+
+Customer-contact normalization is `trim(local-part) + '@' + lower(domain)`
+after supported syntax validation. This policy applies to booking customer
+contact, confirmation, amendment, add-on, and outbox paths only; Auth identity
+comparison remains outside this change.
+
 The immutable repository migration ledger and deployment discipline are
 documented in `docs/MIGRATIONS.md`.
 

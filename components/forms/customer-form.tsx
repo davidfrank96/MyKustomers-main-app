@@ -23,6 +23,9 @@ import {
   initialCustomerActionState,
   type CustomerActionState,
 } from "@/features/customers/action-state";
+import { useFormErrorNavigation } from "@/hooks/use-form-error-navigation";
+
+const customerFieldOrder = ["name", "email", "phone", "notes"] as const;
 
 type CustomerFormValues = {
   name?: string;
@@ -203,14 +206,24 @@ export function CustomerForm({
   presentation = "default",
   cancelHref,
 }: CustomerFormProps) {
-  const [state, formAction] = useActionState(action, initialCustomerActionState);
+  const [actionState, formAction] = useActionState(action, initialCustomerActionState);
+  const { formRef, visibleFieldErrors, onInputCapture, onChangeCapture } =
+    useFormErrorNavigation(actionState.fieldErrors, customerFieldOrder);
+  const state = { ...actionState, fieldErrors: visibleFieldErrors };
   const [createNotesLength, setCreateNotesLength] = useState(
     initialValues.notes?.length ?? 0,
   );
 
   if (presentation === "create") {
     return (
-      <form action={formAction} className="space-y-4 sm:space-y-5" noValidate>
+      <form
+        ref={formRef}
+        action={formAction}
+        onInputCapture={onInputCapture}
+        onChangeCapture={onChangeCapture}
+        className="space-y-4 sm:space-y-5"
+        noValidate
+      >
         {state.message ? (
           <div
             className="flex gap-2 rounded-lg border border-border bg-muted px-4 py-3 text-sm"
@@ -327,7 +340,14 @@ export function CustomerForm({
 
   if (presentation === "detail") {
     return (
-      <form action={formAction} className="space-y-4 sm:space-y-5" noValidate>
+      <form
+        ref={formRef}
+        action={formAction}
+        onInputCapture={onInputCapture}
+        onChangeCapture={onChangeCapture}
+        className="space-y-4 sm:space-y-5"
+        noValidate
+      >
         {state.message ? (
           <div
             className="flex gap-2 rounded-lg border border-border bg-muted px-4 py-3 text-sm"
@@ -420,7 +440,14 @@ export function CustomerForm({
   }
 
   return (
-    <form action={formAction} className="space-y-5" noValidate>
+    <form
+      ref={formRef}
+      action={formAction}
+      onInputCapture={onInputCapture}
+      onChangeCapture={onChangeCapture}
+      className="space-y-5"
+      noValidate
+    >
       {state.message ? (
         <div
           className="flex gap-2 rounded-md border border-border bg-muted px-3 py-2 text-sm"

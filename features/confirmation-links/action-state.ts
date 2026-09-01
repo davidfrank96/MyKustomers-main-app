@@ -4,6 +4,9 @@ export type ConfirmationLinkActionState = {
   confirmationUrl?: string;
   confirmationLinkId?: string;
   expiresAt?: string;
+  recipientEmail?: string;
+  deliveryStatus?: "accepted" | "failed" | "duplicate";
+  fieldErrors?: Partial<Record<"recipientEmail", string[]>>;
 };
 
 export const initialConfirmationLinkActionState: ConfirmationLinkActionState = {

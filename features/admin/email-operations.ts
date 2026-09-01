@@ -18,6 +18,7 @@ export const adminEmailStatuses = [
 ] as const;
 
 export const adminEmailEventTypeValues = [
+  "BOOKING_CONFIRMATION_REQUESTED",
   "BOOKING_CONFIRMED",
   "BOOKING_CANCELLED",
   "BOOKING_AMENDMENT_REQUESTED",

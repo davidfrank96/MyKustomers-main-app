@@ -16,7 +16,7 @@ describe("customer validation", () => {
     expect(parsed.success).toBe(true);
     if (parsed.success) {
       expect(parsed.data.name).toBe("Ada Buyer");
-      expect(parsed.data.email).toBe("ada@example.com");
+      expect(parsed.data.email).toBe("ADA@example.com");
       expect(parsed.data.phone).toBeUndefined();
     }
   });

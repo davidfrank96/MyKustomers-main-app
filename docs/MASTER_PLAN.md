@@ -731,3 +731,20 @@ feedback, automatic incident actions, schema changes, Docker, or product
 workflow changes. Production status requires the secret build token, normal
 PR/CI/Vercel deployment, readable source-map evidence, and controlled
 privacy-inspected client/server events.
+
+## Customer Contact, Validation, And Customer Lifecycle Maintenance
+
+Status: IMPLEMENTED - VERIFICATION PENDING
+
+Scope: domain-only customer-contact email normalization; reviewed and editable
+initial confirmation email; exact-link durable request outbox; wrong-recipient
+capability replacement; visible first-invalid form feedback; reversible customer
+Archive/Restore; owner-only race-safe permanent deletion for zero-booking
+customers; and accessible mobile/desktop action presentation.
+
+The explicitly approved migrations are applied to the configured
+production-backed project with frozen hashes and non-mutating catalog evidence.
+No provider failover/webhook, dependency, environment change, Auth semantic,
+booking cascade, speculative historical backfill, or Admin Phase 8 is included.
+Full CI/deployment and read-only production verification remain before closure;
+mutation verification remains guarded to an explicitly safe target.

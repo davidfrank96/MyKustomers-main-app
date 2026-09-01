@@ -133,7 +133,10 @@ export async function updateCustomerAction(
 
   const changedFields = previousCustomer
     ? Object.entries(nextCustomer)
-        .filter(([key, value]) => previousCustomer[key as keyof typeof previousCustomer] !== value)
+        .filter(
+          ([key, value]) =>
+            previousCustomer[key as keyof typeof previousCustomer] !== value,
+        )
         .map(([key]) => key)
     : Object.keys(nextCustomer);
 
@@ -177,4 +180,136 @@ export async function archiveCustomerAction(customerId: string) {
   revalidatePath("/dashboard");
   revalidatePath("/customers");
   redirect("/customers" as Route);
+}
+
+export async function archiveCustomerLifecycleAction(
+  customerId: string,
+  _previousState: CustomerActionState,
+  _formData: FormData,
+): Promise<CustomerActionState> {
+  void _previousState;
+  void _formData;
+  const { user, business } = await requireCurrentBusiness(`/customers/${customerId}`);
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("customers")
+    .update({ archived_at: new Date().toISOString() })
+    .eq("business_id", business.id)
+    .eq("id", customerId)
+    .is("archived_at", null)
+    .select("id")
+    .maybeSingle();
+
+  if (error) {
+    return { status: "error", message: "The customer could not be archived." };
+  }
+
+  if (data) {
+    await recordAuditEvent({
+      actorUserId: user.id,
+      businessId: business.id,
+      eventType: "CUSTOMER_ARCHIVED",
+      metadata: { customer_id: customerId },
+    });
+  }
+
+  revalidatePath("/dashboard");
+  revalidatePath("/customers");
+  revalidatePath(`/customers/${customerId}`);
+  return {
+    status: "success",
+    message: data
+      ? "Customer archived. Bookings remain unchanged."
+      : "Customer is already archived.",
+  };
+}
+
+export async function restoreCustomerAction(
+  customerId: string,
+  _previousState: CustomerActionState,
+  _formData: FormData,
+): Promise<CustomerActionState> {
+  void _previousState;
+  void _formData;
+  const { user, business } = await requireCurrentBusiness(`/customers/${customerId}`);
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("customers")
+    .update({ archived_at: null })
+    .eq("business_id", business.id)
+    .eq("id", customerId)
+    .not("archived_at", "is", null)
+    .select("id")
+    .maybeSingle();
+
+  if (error) {
+    return { status: "error", message: "The customer could not be restored." };
+  }
+
+  if (data) {
+    await recordAuditEvent({
+      actorUserId: user.id,
+      businessId: business.id,
+      eventType: "CUSTOMER_UPDATED",
+      metadata: {
+        customer_id: customerId,
+        changed_fields: ["archived_at"],
+        operation: "restored",
+      },
+    });
+  }
+
+  revalidatePath("/dashboard");
+  revalidatePath("/customers");
+  revalidatePath(`/customers/${customerId}`);
+  return {
+    status: "success",
+    message: data
+      ? "Customer restored to the active list."
+      : "Customer is already active.",
+  };
+}
+
+export async function deleteCustomerAction(
+  customerId: string,
+  _previousState: CustomerActionState,
+  _formData: FormData,
+): Promise<CustomerActionState> {
+  void _previousState;
+  void _formData;
+  const { business } = await requireCurrentBusiness(`/customers/${customerId}`);
+  const supabase = await createClient();
+  const { data: customer, error: customerError } = await supabase
+    .from("customers")
+    .select("id")
+    .eq("id", customerId)
+    .eq("business_id", business.id)
+    .maybeSingle();
+
+  if (customerError || !customer) {
+    return { status: "error", message: "The customer could not be deleted." };
+  }
+
+  const { data, error } = await supabase.rpc("delete_customer_if_eligible", {
+    p_customer_id: customerId,
+  });
+  const result = data?.[0];
+
+  if (error || !result) {
+    return { status: "error", message: "The customer could not be deleted." };
+  }
+
+  if (!result.deleted) {
+    return {
+      status: "error",
+      message:
+        result.reason === "booking_history_exists"
+          ? "This customer has booking history and can’t be permanently deleted. Archive them instead."
+          : "This customer has protected records and can’t be permanently deleted.",
+    };
+  }
+
+  revalidatePath("/dashboard");
+  revalidatePath("/customers");
+  return { status: "success", message: "Customer permanently deleted." };
 }

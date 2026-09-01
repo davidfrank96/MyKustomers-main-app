@@ -29,6 +29,9 @@ const summary: ConfirmationLinkSummary = {
   contactEmail: "new@example.com",
   contactPhone: null,
   emailStatus: "SENT",
+  requestRecipientEmail: null,
+  requestEmailStatus: null,
+  requestCreatedAt: null,
   firstOpenedAt: "2026-08-26T10:04:00.000Z",
   sharedAt: null,
   shareMethod: null,
@@ -41,6 +44,7 @@ function renderPanel(
     canManage?: boolean;
     generateAction?: LinkAction;
     revokeAction?: LinkAction;
+    sendAction?: LinkAction;
     recordShareAction?: RecordShareAction;
   } = {},
 ) {
@@ -50,8 +54,9 @@ function renderPanel(
   const revokeAction = vi.fn(
     options.revokeAction ?? (async () => initialConfirmationLinkActionState),
   );
-  const recordShareAction = vi.fn(
-    options.recordShareAction ?? (async () => undefined),
+  const recordShareAction = vi.fn(options.recordShareAction ?? (async () => undefined));
+  const sendAction = vi.fn(
+    options.sendAction ?? (async () => initialConfirmationLinkActionState),
   );
 
   render(
@@ -62,12 +67,13 @@ function renderPanel(
       customerName="Test customer"
       customerProfileEmail={customerProfileEmail}
       generateAction={generateAction}
+      sendAction={sendAction}
       revokeAction={revokeAction}
       recordShareAction={recordShareAction}
     />,
   );
 
-  return { generateAction, revokeAction, recordShareAction };
+  return { generateAction, revokeAction, sendAction, recordShareAction };
 }
 
 describe("confirmation contact evidence", () => {
@@ -81,7 +87,7 @@ describe("confirmation contact evidence", () => {
   });
 
   it("does not duplicate the same normalized profile email", () => {
-    renderPanel(" NEW@example.com ");
+    renderPanel(" new@EXAMPLE.COM ");
 
     expect(screen.getByText("Booking contact")).toBeVisible();
     expect(screen.queryByText("Customer profile email")).toBeNull();
@@ -152,12 +158,11 @@ describe("confirmation contact evidence", () => {
       panelSummary: activeSummary,
       canManage: true,
       generateAction,
+      sendAction: vi.fn(async () => initialConfirmationLinkActionState),
     });
 
     fireEvent.click(screen.getByRole("button", { name: "Regenerate link" }));
-    expect(
-      await screen.findByText("Your confirmation request is ready."),
-    ).toBeVisible();
+    expect(await screen.findByText("Your confirmation request is ready.")).toBeVisible();
     const generatedLink = screen.getByLabelText("Generated confirmation link");
     expect(generatedLink).toHaveClass("sr-only");
     expect(document.body).not.toHaveTextContent("controlled-token");
@@ -193,6 +198,51 @@ describe("confirmation contact evidence", () => {
       screen.queryByRole("button", { name: "Regenerate link" }),
     ).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Revoke link" })).not.toBeInTheDocument();
+  });
+
+  it("reviews and submits an editable confirmation email recipient", async () => {
+    const sendAction = vi.fn<LinkAction>(async () => ({
+      status: "success",
+      message: "Email accepted for delivery to Updated.Person@hotmail.com.",
+      recipientEmail: "Updated.Person@hotmail.com",
+      deliveryStatus: "accepted",
+    }));
+    renderPanel("Original.Person@EXAMPLE.COM", {
+      panelSummary: {
+        ...summary,
+        status: "none",
+        id: "",
+        createdAt: null,
+        expiresAt: null,
+        usedAt: null,
+        confirmedAt: null,
+        contactEmail: null,
+        requestRecipientEmail: "Original.Person@example.com",
+        requestEmailStatus: "FAILED",
+        requestCreatedAt: "2026-08-26T10:00:00.000Z",
+      },
+      canManage: true,
+      sendAction,
+    });
+
+    const recipient = screen.getByLabelText("Confirmation email recipient");
+    expect(recipient).toHaveValue("Original.Person@example.com");
+    fireEvent.change(recipient, {
+      target: { value: "Updated.Person@HOTMAIL.COM" },
+    });
+    fireEvent.blur(recipient);
+    expect(recipient).toHaveValue("Updated.Person@hotmail.com");
+    fireEvent.click(screen.getByRole("button", { name: "Send confirmation email" }));
+
+    await waitFor(() => expect(sendAction).toHaveBeenCalledTimes(1));
+    expect(sendAction.mock.calls[0]?.[1].get("recipientEmail")).toBe(
+      "Updated.Person@hotmail.com",
+    );
+    expect(
+      await screen.findByText(
+        "Email accepted for delivery to Updated.Person@hotmail.com.",
+      ),
+    ).toBeVisible();
   });
 
   it.each(["revoked", "expired"] as const)(
@@ -257,6 +307,7 @@ describe("confirmation contact evidence", () => {
       customerName: "Test customer",
       customerProfileEmail: null,
       generateAction,
+      sendAction: vi.fn(async () => initialConfirmationLinkActionState),
       revokeAction: vi.fn(async () => initialConfirmationLinkActionState),
       recordShareAction: vi.fn(async () => undefined),
     };

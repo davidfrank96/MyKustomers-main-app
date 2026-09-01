@@ -6,6 +6,8 @@ import { publicEnv } from "@/lib/config/public-env";
 import { recordAuditEvent } from "@/lib/security/audit";
 import { canUseServiceRoleClient, createServiceRoleClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { deliverEmailEvent } from "@/lib/email/outbox";
+import { requiredCustomerEmailSchema } from "@/features/customers/validation";
 import {
   confirmationLinkExpiresAt,
   generateConfirmationToken,
@@ -56,6 +58,83 @@ export async function generateConfirmationLinkAction(
     confirmationUrl,
     confirmationLinkId: data[0].confirmation_link_id,
     expiresAt: data[0].expires_at,
+  };
+}
+
+export async function sendConfirmationEmailAction(
+  bookingId: string,
+  previousState: ConfirmationLinkActionState,
+  formData: FormData,
+): Promise<ConfirmationLinkActionState> {
+  void previousState;
+  await requireCurrentBusiness(`/bookings/${bookingId}`);
+  const parsed = requiredCustomerEmailSchema.safeParse(formData.get("recipientEmail"));
+
+  if (!parsed.success) {
+    return {
+      status: "error",
+      message: "Check the recipient email before sending.",
+      fieldErrors: { recipientEmail: parsed.error.issues.map((issue) => issue.message) },
+    };
+  }
+
+  const token = generateConfirmationToken();
+  const expiresAt = confirmationLinkExpiresAt();
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("create_booking_confirmation_request", {
+    p_booking_id: bookingId,
+    p_contact_email: parsed.data,
+    p_token_hash: hashConfirmationToken(token),
+    p_expires_at: expiresAt.toISOString(),
+  });
+  const request = data?.[0];
+
+  if (error || !request) {
+    return {
+      status: "error",
+      message: "The confirmation request could not be created. Nothing was sent.",
+      recipientEmail: parsed.data,
+    };
+  }
+
+  if (request.request_status === "duplicate_ignored") {
+    return {
+      status: "success",
+      message: `A request to ${request.recipient_email} was already queued moments ago. No duplicate email was sent.`,
+      recipientEmail: request.recipient_email,
+      deliveryStatus: "duplicate",
+      confirmationLinkId: request.confirmation_link_id,
+      expiresAt: request.expires_at,
+    };
+  }
+
+  const baseUrl = publicEnv.NEXT_PUBLIC_APP_URL.replace(/\/$/, "");
+  const confirmationUrl = `${baseUrl}/c/${token}`;
+  const delivery = await deliverEmailEvent(request.email_event_id, undefined, {
+    confirmationUrl,
+  });
+
+  revalidatePath("/bookings");
+  revalidatePath(`/bookings/${bookingId}`);
+
+  if (delivery.status === "sent") {
+    return {
+      status: "success",
+      message: `Email accepted for delivery to ${request.recipient_email}.`,
+      recipientEmail: request.recipient_email,
+      deliveryStatus: "accepted",
+      confirmationLinkId: request.confirmation_link_id,
+      expiresAt: request.expires_at,
+    };
+  }
+
+  return {
+    status: "error",
+    message: `The request was saved, but the email was not accepted for delivery to ${request.recipient_email}. You can try again safely.`,
+    recipientEmail: request.recipient_email,
+    deliveryStatus: "failed",
+    confirmationLinkId: request.confirmation_link_id,
+    expiresAt: request.expires_at,
   };
 }
 
@@ -126,6 +205,7 @@ export async function revokeConfirmationLinkAction(
 
   return {
     status: "success",
-    message: data && data > 0 ? "Confirmation link revoked." : "No active link to revoke.",
+    message:
+      data && data > 0 ? "Confirmation link revoked." : "No active link to revoke.",
   };
 }

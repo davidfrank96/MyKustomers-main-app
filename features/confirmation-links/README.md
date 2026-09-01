@@ -6,6 +6,8 @@ Phase 6 implements secure customer confirmation links for bookings.
 
 - Opaque token generation and SHA-256 hashing.
 - Vendor server actions for generating, regenerating, and revoking links.
+- A separate email-request action that atomically creates a fresh capability
+  and durable `BOOKING_CONFIRMATION_REQUESTED` outbox event.
 - Server-only public lookup and confirmation helpers for `/c/[token]`.
 - Required customer-provided email and optional phone validation.
 - Immutable confirmation contact evidence and atomic booking-confirmed event
@@ -24,6 +26,13 @@ Phase 6 implements secure customer confirmation links for bookings.
   as base64url.
 - Only `token_hash` is stored in `public.confirmation_links`; raw tokens are
   shown once after generation.
+- Email request events reference the exact `confirmation_link_id`; dispatch
+  never guesses the latest link for a booking.
+- Correcting the reviewed recipient revokes any previous open capability and
+  creates a new link/event atomically. A rapid same-recipient request within 30
+  seconds is a normal duplicate result and creates neither link nor email.
+- Email normalization trims, preserves the local part, and lowercases only the
+  domain. Syntax validation is authoritative in both application and database.
 - Booking references, booking IDs, and customer IDs are not public
   authorization credentials.
 - Public GET lookup does not consume a link.
@@ -78,14 +87,17 @@ Primary tables:
 Primary RPCs:
 
 - `public.create_booking_confirmation_link`
+- `public.create_booking_confirmation_request`
 - `public.revoke_booking_confirmation_link`
 - `public.get_confirmation_public_view`
 - `public.confirm_booking_by_token_hash`
 - `public.consume_confirmation_rate_limit`
 - `public.record_confirmation_link_open`
 
-Vendor generate/revoke RPCs are granted to `authenticated`. Public lookup,
-confirmation, and rate-limit RPCs are server-only service-role calls.
+Vendor generate/request/revoke RPCs are granted to `authenticated` and enforce
+active business membership internally. Generating a manual share link never
+queues email. Public lookup, confirmation, and rate-limit RPCs are server-only
+service-role calls.
 
 Amendment vendor RPCs are `public.create_booking_amendment` and
 `public.revoke_booking_amendment`. Public amendment view/open/confirm RPCs are

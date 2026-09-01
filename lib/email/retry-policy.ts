@@ -32,6 +32,7 @@ export type EmailRetryAttemptEvidence = {
 export type EmailRetryPolicyInput = {
   status: "PENDING" | "SENDING" | "SENT" | "FAILED";
   eventType:
+    | "BOOKING_CONFIRMATION_REQUESTED"
     | "BOOKING_CONFIRMED"
     | "BOOKING_CANCELLED"
     | "BOOKING_AMENDMENT_REQUESTED"
@@ -101,6 +102,7 @@ export function getEmailRetryEligibility({
   }
 
   if (
+    eventType === "BOOKING_CONFIRMATION_REQUESTED" ||
     eventType === "BOOKING_AMENDMENT_REQUESTED" ||
     eventType === "BOOKING_ADDON_REQUESTED" ||
     eventType === "BOOKING_RESCHEDULED"

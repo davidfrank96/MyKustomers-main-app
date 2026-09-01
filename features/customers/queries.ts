@@ -11,7 +11,7 @@ export type Customer = Database["public"]["Tables"]["customers"]["Row"];
 export type CustomerListItem = Pick<
   Customer,
   "id" | "name" | "email" | "phone" | "archived_at" | "created_at"
->;
+> & { hasBookings?: boolean };
 
 export type CustomerListResult = {
   customers: CustomerListItem[];
@@ -82,13 +82,50 @@ export async function listCustomersForBusiness(
     };
   }
 
+  const rows = data ?? [];
+  const customerIds = rows.map((customer) => customer.id);
+  const { data: bookingRows, error: bookingLookupError } = customerIds.length
+    ? await supabase
+        .from("bookings")
+        .select("customer_id")
+        .eq("business_id", businessId)
+        .in("customer_id", customerIds)
+    : { data: [], error: null };
+  const customersWithBookings = new Set(
+    (bookingRows ?? []).map((booking) => booking.customer_id),
+  );
   const total = count ?? 0;
   return {
-    customers: data ?? [],
+    customers: rows.map((customer) => ({
+      ...customer,
+      hasBookings: bookingLookupError !== null || customersWithBookings.has(customer.id),
+    })),
     total,
     page: params.page,
     limit: params.limit,
     totalPages: Math.max(1, Math.ceil(total / params.limit)),
+  };
+}
+
+export async function getCustomerBookingState(businessId: string, customerId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("bookings")
+    .select("status")
+    .eq("business_id", businessId)
+    .eq("customer_id", customerId);
+
+  if (error) {
+    return { hasBookings: true, hasActiveBookings: true };
+  }
+
+  const bookingRows = data ?? [];
+  const terminalStatuses = new Set(["COMPLETED", "CANCELLED"]);
+  return {
+    hasBookings: bookingRows.length > 0,
+    hasActiveBookings: bookingRows.some(
+      (booking) => !terminalStatuses.has(booking.status),
+    ),
   };
 }
 
