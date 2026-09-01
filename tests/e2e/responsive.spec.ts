@@ -36,6 +36,9 @@ test("public and authentication routes avoid horizontal page overflow", async ({
 
     for (const route of publicRoutes) {
       await page.goto(route);
+      if (route === "/reset-password") {
+        await expect(page).toHaveURL(/\/forgot-password\?message=invalid-reset-link$/);
+      }
       await expect(page.locator("body")).toBeVisible();
       await expectNoPageOverflow(page, route, width);
     }

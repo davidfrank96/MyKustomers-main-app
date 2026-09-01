@@ -82,6 +82,19 @@ switched businesses, persisted after refresh, and logged out cleanly. The merged
 production deployment completed the same Google callback, two-business
 resolution, switching, persistence, logout, and protected-route checks.
 Email/password authentication remains fully supported.
+Google sign-in now deliberately requests Google's account chooser on every
+start with `prompt=select_account`; it does not force renewed consent. Password
+recovery is accepted only after the canonical Supabase PKCE callback establishes
+both an authenticated session and a short-lived HTTP-only recovery intent. A
+successful password change consumes that intent, signs the session out, and
+requires login with the new password.
+
+Bookings and Customers now return 25 tenant-scoped records initially and append
+another bounded 25 through an explicit Load more control. Search and filters
+remain URL-addressable, while appended state is local to the current
+business/query. Deterministic `(created_at, id)` cursors prevent duplicates or
+skips when records are inserted between requests; every appended request derives
+the user and current business on the server.
 Customer-confirmed material booking terms are now database-locked against
 ordinary edits. Explicit rescheduling remains the current reconfirmation
 workflow, internal notes remain editable before terminal states, and confirmed

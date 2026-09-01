@@ -88,7 +88,7 @@ describe("customer validation", () => {
     ).toEqual({
       q: "Ada",
       status: "archived",
-      page: 3,
+      page: 1,
       limit: 25,
     });
 
@@ -103,7 +103,7 @@ describe("customer validation", () => {
       q: "x".repeat(80),
       status: "active",
       page: 1,
-      limit: 10,
+      limit: 25,
     });
   });
 });

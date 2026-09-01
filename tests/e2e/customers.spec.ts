@@ -274,6 +274,7 @@ test.describe("customer management", () => {
       testInfo.project.name !== "chromium",
       "The explicit viewport matrix runs once.",
     );
+    test.setTimeout(120_000);
 
     const email = testEmail(testInfo.project.name);
     const password = `Phase4-Search-${randomUUID()}-A1`;
@@ -284,7 +285,7 @@ test.describe("customer management", () => {
     const archivedName = `${searchQuery} Archived`;
     createdBusinessSlugs.add(slug);
     const businessId = await createConfirmedBusinessOwner({ email, password, slug });
-    const listCustomers = Array.from({ length: 12 }, (_, index) => ({
+    const listCustomers = Array.from({ length: 52 }, (_, index) => ({
       business_id: businessId,
       name: `Customer List Fixture ${String(index + 1).padStart(2, "0")} ${suffix}`,
       email: `list-${index + 1}-${suffix}@example.com`,
@@ -368,7 +369,18 @@ test.describe("customer management", () => {
     await page.getByRole("button", { name: "Clear customer search" }).click();
     await expect.poll(() => new URL(page.url()).searchParams.has("q")).toBe(false);
     expect(new URL(page.url()).searchParams.get("status")).toBe("all");
-    await expect(page.getByText("Showing 10 of 15 customers.")).toBeVisible();
+    await expect(page.getByText("Showing 25 of 55 customers.")).toBeVisible();
+    const loadMoreCustomers = page.getByRole("button", { name: "Load more" });
+    await loadMoreCustomers.click();
+    await expect(page.getByText("Showing 50 of 55 customers.")).toBeVisible();
+    await loadMoreCustomers.click();
+    await expect(page.getByText("Showing 55 of 55 customers.")).toBeVisible();
+    await expect(loadMoreCustomers).toHaveCount(0);
+    const customerHrefs = await page
+      .locator('a[href^="/customers/"]:not([href="/customers/new"])')
+      .evaluateAll((links) => links.map((link) => link.getAttribute("href")));
+    expect(customerHrefs).toHaveLength(55);
+    expect(new Set(customerHrefs).size).toBe(55);
 
     await page.goto("/customers?status=active");
     const mobileActions = page.locator("[data-customers-mobile-actions]");
@@ -453,16 +465,23 @@ test.describe("customer management", () => {
     const lastCustomerRow = page
       .locator('a[href^="/customers/"]:not([href="/customers/new"])')
       .last();
+    await expect(lastCustomerRow).toBeVisible();
+    await lastCustomerRow.scrollIntoViewIfNeeded();
     const lastCustomerBox = await lastCustomerRow.boundingBox();
-    const nextPageBox = await page.getByRole("link", { name: "Next" }).boundingBox();
+    const loadMoreButton = page.getByRole("button", {
+      name: "Load more",
+      exact: true,
+    });
+    await expect(loadMoreButton).toBeVisible();
+    const loadMoreBox = await loadMoreButton.boundingBox();
     const actionsBox = await mobileActions.boundingBox();
     expect(lastCustomerBox).not.toBeNull();
-    expect(nextPageBox).not.toBeNull();
+    expect(loadMoreBox).not.toBeNull();
     expect(actionsBox).not.toBeNull();
     expect(lastCustomerBox!.y + lastCustomerBox!.height).toBeLessThanOrEqual(
       actionsBox!.y,
     );
-    expect(nextPageBox!.y + nextPageBox!.height).toBeLessThanOrEqual(actionsBox!.y);
+    expect(loadMoreBox!.y + loadMoreBox!.height).toBeLessThanOrEqual(actionsBox!.y);
 
     if (scrolled320.maxScroll >= 480) {
       await backToTop.click();

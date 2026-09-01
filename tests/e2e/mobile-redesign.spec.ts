@@ -345,17 +345,17 @@ async function expectBookingsMobileActions(page: Page, width: number) {
   ).toBeGreaterThanOrEqual(width - 80);
 
   await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
-  const nextPage = page.getByRole("link", { name: "Next", exact: true });
-  await nextPage.scrollIntoViewIfNeeded();
-  const [nextPageBox, scrolledActionsBox] = await Promise.all([
-    nextPage.boundingBox(),
+  const listFooter = page.getByText(/^Showing \d+ of \d+ bookings\.$/);
+  await listFooter.scrollIntoViewIfNeeded();
+  const [listFooterBox, scrolledActionsBox] = await Promise.all([
+    listFooter.boundingBox(),
     page.locator("[data-bookings-mobile-actions]").boundingBox(),
   ]);
-  expect(nextPageBox).not.toBeNull();
+  expect(listFooterBox).not.toBeNull();
   expect(scrolledActionsBox).not.toBeNull();
   expect(
-    nextPageBox!.y + nextPageBox!.height,
-    `pagination remained underneath the floating actions at ${width}px`,
+    listFooterBox!.y + listFooterBox!.height,
+    `list footer remained underneath the floating actions at ${width}px`,
   ).toBeLessThanOrEqual(scrolledActionsBox!.y);
 
   await backToTop.click();

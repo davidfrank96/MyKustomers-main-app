@@ -37,6 +37,14 @@ auth providers share the same destination rule, and Platform Admin retains its
 separate active-role gate. No data-model, migration, environment, dependency,
 provider, or approved onboarding presentation change is included.
 
+The 2026-09-01 Auth lifecycle and large-list normalization is cross-phase
+maintenance. It keeps Supabase Auth and the existing membership gate
+authoritative, adds intentional Google account selection, binds password update
+to a short-lived recovery callback intent, and replaces Bookings/Customers
+numbered pagination with bounded 25-row cursor-stable Load more requests. It
+changes no database schema, migration, RLS policy, environment, dependency, or
+infrastructure.
+
 The 2026-08-24 business-switcher discoverability and Google Auth pass is
 IMPLEMENTED with full Google verification blocked by Supabase redirect
 configuration. The Business page now exposes

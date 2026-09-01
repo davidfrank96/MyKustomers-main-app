@@ -14,10 +14,12 @@ future privacy/account-deletion design.
 The Customers list remains a server-rendered, tenant-scoped search over name,
 email, and phone. Its text input updates the `q` URL parameter from the first
 character after a shared 300 ms debounce. Replace-style navigation preserves the
-active/archived/all filter and list limit without adding one browser-history
-entry per character, while each query change removes `page` so results restart
-at page 1. Clearing removes `q` automatically, and archive-filter and pagination
-links preserve compatible search state.
+active/archived/all filter without adding one browser-history entry per
+character, while each query change restarts the server-rendered 25-row list.
+Clearing removes `q` automatically, and archive-filter links preserve compatible
+search state. Load more appends an authenticated, current-business-derived
+25-row batch using deterministic `(created_at, id)` ordering; concurrent clicks,
+duplicates, stale query state, and cross-business accumulation are blocked.
 
 A vendor may create a real customer inline from New Booking with required name
 and optional email/phone. Creation is part of the same authenticated database

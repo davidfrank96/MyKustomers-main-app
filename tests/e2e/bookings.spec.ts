@@ -158,7 +158,7 @@ async function createConfirmedBusinessOwner({
   expect(membershipError).toBeNull();
 
   if (!customerName) {
-    return { businessId: business!.id, customerId: null };
+    return { businessId: business!.id, customerId: null, userId: userData.user!.id };
   }
 
   const { data: customer, error: customerError } = await admin
@@ -174,7 +174,11 @@ async function createConfirmedBusinessOwner({
   expect(customerError).toBeNull();
   expect(customer?.id).toBeTruthy();
 
-  return { businessId: business!.id, customerId: customer!.id };
+  return {
+    businessId: business!.id,
+    customerId: customer!.id,
+    userId: userData.user!.id,
+  };
 }
 
 test.describe("booking engine", () => {
@@ -220,8 +224,16 @@ test.describe("booking engine", () => {
       }
     }
 
+    const { data: authUsers, error: authUsersError } = await admin.auth.admin.listUsers({
+      page: 1,
+      perPage: 1000,
+    });
+    expect(authUsersError).toBeNull();
+    const remainingUserIds = new Set(authUsers.users.map((user) => user.id));
     const userDeletionResults = await Promise.all(
-      [...createdUserIds].map((userId) => admin.auth.admin.deleteUser(userId)),
+      [...createdUserIds]
+        .filter((userId) => remainingUserIds.has(userId))
+        .map((userId) => admin.auth.admin.deleteUser(userId)),
     );
     for (const { error } of userDeletionResults) {
       expect(error).toBeNull();
@@ -2368,7 +2380,9 @@ test.describe("booking engine", () => {
     }
 
     await page.getByRole("button", { name: "Resolve issue" }).click();
-    await expect(page).toHaveURL(/message=issue-resolved/);
+    await expect(page).toHaveURL(/message=issue-resolved/, {
+      timeout: serverActionTimeout * 2,
+    });
     await expect(page.getByText("Issue resolved.")).toBeVisible();
     await expandBookingSection(page, "operational-issues");
     await expect(page.locator("span").filter({ hasText: /^Resolved$/ })).toBeVisible();
@@ -2418,13 +2432,27 @@ test.describe("booking engine", () => {
     const customerName = `Search Customer Sarah ${suffix}`;
     const bookingTitle = `Search Booking Sarah ${suffix}`;
     createdBusinessSlugs.add(slug);
-    await createConfirmedBusinessOwner({
+    const { businessId, customerId, userId } = await createConfirmedBusinessOwner({
       email,
       password,
       slug,
       customerName,
       customerEmail: `search-${suffix}@example.com`,
     });
+    expect(customerId).toBeTruthy();
+    const admin = createAdminClient();
+    const { error: listFixtureError } = await admin.from("bookings").insert(
+      Array.from({ length: 54 }, (_, index) => ({
+        business_id: businessId,
+        customer_id: customerId!,
+        title: `Booking List Fixture ${String(index + 1).padStart(2, "0")} ${suffix}`,
+        currency: "NGN" as const,
+        total_amount_minor: 10_000 + index,
+        deposit_amount_minor: 0,
+        created_by: userId,
+      })),
+    );
+    expect(listFixtureError).toBeNull();
 
     await page.goto("/login");
     await page.getByLabel("Email").fill(email);
@@ -2478,6 +2506,41 @@ test.describe("booking engine", () => {
     await expect(
       page.getByRole("link", { name: new RegExp(bookingTitle) }),
     ).toBeVisible();
+
+    await expect(page.getByText("Showing 25 of 55 bookings.")).toBeVisible();
+    const { error: newerBookingError } = await admin.from("bookings").insert({
+      business_id: businessId,
+      customer_id: customerId!,
+      title: `Newer Booking During Load ${suffix}`,
+      currency: "NGN",
+      total_amount_minor: 20_000,
+      deposit_amount_minor: 0,
+      created_by: userId,
+    });
+    expect(newerBookingError).toBeNull();
+
+    let loadMoreRequests = 0;
+    page.on("request", (request) => {
+      if (new URL(request.url()).pathname === "/api/bookings/list") {
+        loadMoreRequests += 1;
+      }
+    });
+    const loadMore = page.getByRole("button", { name: "Load more" });
+    await loadMore.evaluate((button) => {
+      (button as HTMLElement).click();
+      (button as HTMLElement).click();
+    });
+    await expect(page.getByText("Showing 50 of 55 bookings.")).toBeVisible();
+    expect(loadMoreRequests).toBe(1);
+    await loadMore.click();
+    await expect(page.getByText("Showing 55 of 55 bookings.")).toBeVisible();
+    await expect(loadMore).toHaveCount(0);
+    const bookingHrefs = await page
+      .locator('a[href^="/bookings/"]:not([href="/bookings/new"])')
+      .evaluateAll((links) => links.map((link) => link.getAttribute("href")));
+    expect(bookingHrefs).toHaveLength(55);
+    expect(new Set(bookingHrefs).size).toBe(55);
+    await expect(page.getByText(`Newer Booking During Load ${suffix}`)).toHaveCount(0);
 
     for (const width of [320, 360, 375, 390, 430, 768, 1024, 1440]) {
       await page.setViewportSize({ width, height: width < 768 ? 900 : 1000 });

@@ -9,6 +9,35 @@ both a local production build and the deployed Vercel application. Samples are
 three-run medians unless stated otherwise. They are diagnostic evidence, not a
 latency service-level objective.
 
+## 2026-09-01 Bounded Load-More Measurement
+
+A clean `4f32a4c` production build (10 rows) and the branch production build (25
+rows) were measured against the same disposable tenant containing 125 customers
+and 125 bookings. Seven-run authenticated direct-query medians stayed within
+remote variance: Customers 95.1 ms at 10 versus 98.8 ms at 25; Bookings 106.3
+ms versus 104.3 ms. JSON data grew proportionally from 2.4 to 6.1 KB for
+Customers and 5.4 to 13.5 KB for Bookings, supporting 25 but not an unmeasured
+50-row default.
+
+Final 390x844 single-run route diagnostics were 485/488 ms for the preceding
+10-row Bookings/Customers under the 140 ms, 7.5 Mbps Nigeria-typical profile and
+504/510 ms for 25 rows. Under the 240 ms, 2.25 Mbps constrained profile, the
+same comparison was 607/608 ms versus 601/667 ms. Initial DOM elements rose
+from 374 to 582 for Bookings and 316 to 464 for Customers. Subresource transfer
+rose from about 5.5 KB to 8.1 KB and 7.2 KB respectively in the final cold-list
+samples. A captured Customer list RSC payload was 8.4 KB on the prior render
+and 3.8 KB on the client-controller render; Bookings streamed-response body
+capture was not stable, so its cold resource total is reported instead of a
+fabricated RSC number.
+
+After four 25-row appends, 125 rows produced 1,981 Bookings elements and 1,463
+Customers elements with `scrollWidth === clientWidth === 390`. Append completion
+was normally about 0.2-0.84 seconds, with one 4.38-second remote outlier; the
+existing rows remained visible throughout. This supports bounded Load more
+without virtualization at the measured size, but rejects load-all and 50-row
+initial requests. The harness deleted the tenant and Auth user and independently
+confirmed zero residue. Values are diagnostics, not an SLO.
+
 ## 2026-08-31 Release-Candidate Measurement
 
 The `ui/mobile-redesign` release candidate was measured from a local production
@@ -17,15 +46,15 @@ Supabase user/tenant/customer/booking fixture was created and removed by the
 harness. The measurements below are single-run diagnostics in the local
 environment, not production medians or an SLO.
 
-| Route                 | Client JS gzip | Cold local LCP | Cold local CLS |
-| --------------------- | -------------: | -------------: | -------------: |
-| Homepage              |       70.7 KiB |  not observable |         0.0000 |
-| Dashboard             |       70.9 KiB |         880 ms |         0.0000 |
-| Bookings              |       75.3 KiB |         372 ms |         0.0000 |
-| Booking detail        |      108.9 KiB |         684 ms |         0.0000 |
-| Customers             |       75.3 KiB |         348 ms |         0.0000 |
-| Insights              |       74.1 KiB |         356 ms |         0.0000 |
-| Business              |       87.9 KiB |         344 ms |         0.0000 |
+| Route          | Client JS gzip | Cold local LCP | Cold local CLS |
+| -------------- | -------------: | -------------: | -------------: |
+| Homepage       |       70.7 KiB | not observable |         0.0000 |
+| Dashboard      |       70.9 KiB |         880 ms |         0.0000 |
+| Bookings       |       75.3 KiB |         372 ms |         0.0000 |
+| Booking detail |      108.9 KiB |         684 ms |         0.0000 |
+| Customers      |       75.3 KiB |         348 ms |         0.0000 |
+| Insights       |       74.1 KiB |         356 ms |         0.0000 |
+| Business       |       87.9 KiB |         344 ms |         0.0000 |
 
 The global stylesheet is 12.5 KiB gzip and is reported separately from route
 JavaScript. Cold local route transfer ranged from 357.2 to 473.8 KiB, including

@@ -62,6 +62,14 @@ Accepted decisions are recorded in `docs/DECISIONS.md`.
 
 ## Current Project Status
 
+The 2026-09-01 Auth lifecycle and large-list normalization is IMPLEMENTED with
+local release verification in progress. Google OAuth deliberately requests the
+account chooser without forcing consent; password recovery requires a canonical
+PKCE callback plus a one-use, short-lived server cookie before password update;
+and Bookings/Customers use authenticated, tenant-derived, cursor-stable 25-row
+Load more batches. It adds no migration, environment variable, dependency,
+provider, cache, service worker, or infrastructure change.
+
 - Phase 0 - Product Definition: VERIFIED.
 - Phase 1 - Repository Foundation: VERIFIED.
 - Phase 1.5 - Project Governance and Planning: VERIFIED.

@@ -77,6 +77,11 @@ export type BookingListResult = {
   totalPages: number;
 };
 
+export type BookingListCursor = {
+  createdAt: string;
+  id: string;
+};
+
 export type BookingDashboardStats = {
   activeBookings: number;
   upcomingBookings: number;
@@ -140,9 +145,10 @@ function todayRange(now = new Date()) {
 export async function listBookingsForBusiness(
   businessId: string,
   params: BookingListParams,
+  cursor?: BookingListCursor,
 ): Promise<BookingListResult> {
   const supabase = await createClient();
-  const from = (params.page - 1) * params.limit;
+  const from = cursor ? 0 : (params.page - 1) * params.limit;
   const to = from + params.limit - 1;
   const now = new Date().toISOString();
 
@@ -150,7 +156,15 @@ export async function listBookingsForBusiness(
     .from("bookings")
     .select(bookingListWithCustomerColumns, { count: "exact" })
     .eq("business_id", businessId)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .order("id", { ascending: false });
+
+  if (cursor) {
+    const createdAt = quotePostgrestFilterValue(cursor.createdAt);
+    query = query.or(
+      `created_at.lt.${createdAt},and(created_at.eq.${createdAt},id.lt.${cursor.id})`,
+    );
+  }
 
   if (params.filter === "active") {
     query = query.not("status", "in", "(COMPLETED,CANCELLED)");

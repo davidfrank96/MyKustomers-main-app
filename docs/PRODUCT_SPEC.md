@@ -6,6 +6,17 @@ STATUS: PLANNED
 
 This document describes product intent and domain concepts. It is not implementation evidence.
 
+Authentication lifecycle rule: starting Google authentication should let the
+user choose an account intentionally, while password recovery must remain a
+Supabase-owned one-time recovery flow and must not reveal whether an email is
+registered. Ordinary authenticated sessions are not password-recovery authority.
+
+Large vendor directories use bounded server-side retrieval with progressive
+Load more behavior rather than frequent numbered-page navigation. Bookings and
+Customers start with 25 records and append 25 without loading the full tenant
+directory. Search, filters, deterministic ordering, and current-business scope
+apply independently to every batch.
+
 ## Product Summary
 
 My Kustomers helps small businesses turn informal customer conversations into organised business records.

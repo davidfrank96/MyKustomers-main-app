@@ -220,6 +220,78 @@ test.describe("Supabase authentication journeys", () => {
     await expect(page).toHaveURL(/\/login\?next=%2Fdashboard/);
   });
 
+  test("password recovery intent signs out and replaces the old password", async ({
+    page,
+    context,
+  }, testInfo) => {
+    const email = testEmail("password-recovery", testInfo.project.name);
+    const oldPassword = "Phase2v-Recovery-Old-" + randomUUID() + "-A1";
+    const newPassword = "Phase2v-Recovery-New-" + randomUUID() + "-A1";
+    await createConfirmedUser(email, oldPassword);
+
+    await page.goto("/login");
+    await page.getByLabel("Email").fill(email);
+    await page.getByLabel("Password", { exact: true }).fill(oldPassword);
+    await page.getByRole("button", { name: "Log in" }).click();
+    await expect(page).toHaveURL(/\/onboarding$/);
+    await context.addCookies([
+      {
+        name: "mc_password_recovery",
+        value: "1",
+        domain: "127.0.0.1",
+        path: "/reset-password",
+        httpOnly: true,
+        sameSite: "Lax",
+      },
+    ]);
+    await page.goto("/reset-password");
+    await expect(page).toHaveURL(/\/reset-password$/);
+    await expect(
+      page.getByRole("heading", { name: "Choose a new password" }),
+    ).toBeVisible();
+
+    await page.getByLabel("New password", { exact: true }).fill(newPassword);
+    await page.getByLabel("Confirm new password").fill(newPassword);
+    await page.getByRole("button", { name: "Update password" }).click();
+    await expect(page).toHaveURL(/\/login\?message=password-updated$/);
+    await expect(
+      page.getByText("Your password has been updated. Log in with your new password."),
+    ).toBeVisible();
+
+    await page.getByLabel("Email").fill(email);
+    await page.getByLabel("Password", { exact: true }).fill(oldPassword);
+    await page.getByRole("button", { name: "Log in" }).click();
+    await expect(page.getByText("We could not verify those credentials.")).toBeVisible();
+
+    await page.getByLabel("Email").fill(email);
+    await page.getByLabel("Password", { exact: true }).fill(newPassword);
+    await page.getByRole("button", { name: "Log in" }).click();
+    await expect(page).toHaveURL(/\/onboarding$/);
+
+    await page.goto("/reset-password");
+    await expect(page).toHaveURL(/\/forgot-password\?message=invalid-reset-link$/);
+
+    await page.goto("/logout");
+    await page.getByRole("button", { name: "Log out" }).click();
+    await context.addCookies([
+      {
+        name: "mc_oauth_next",
+        value: "/dashboard",
+        domain: "127.0.0.1",
+        path: "/auth/callback",
+        httpOnly: true,
+        sameSite: "Lax",
+      },
+    ]);
+    await page.goto("/auth/callback?error=access_denied&next=/reset-password");
+    await expect(page).toHaveURL(/\/forgot-password\?message=invalid-reset-link$/);
+    await expect(
+      page.getByText(
+        "That password reset link is invalid or expired. Request a new one.",
+      ),
+    ).toBeVisible();
+  });
+
   test("zero-business login and direct vendor routes stay behind onboarding", async ({
     page,
   }, testInfo) => {
@@ -388,6 +460,44 @@ test.describe("Supabase authentication journeys", () => {
         expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth + 1);
       }
     }
+  });
+
+  test("Google OAuth requests account selection and reports pending state", async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "Provider-start coverage runs once.");
+    const settingsResponse = await fetch(
+      process.env.NEXT_PUBLIC_SUPABASE_URL + "/auth/v1/settings",
+      {
+        headers: {
+          apikey: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? "",
+        },
+      },
+    );
+    const settings = (await settingsResponse.json()) as {
+      external?: { google?: boolean };
+    };
+    test.skip(settings.external?.google !== true, "Google provider is not enabled.");
+
+    let authorizationUrl = "";
+    const authorizePattern =
+      new URL(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").origin + "/auth/v1/authorize**";
+    await page.route(authorizePattern, async (route) => {
+      authorizationUrl = route.request().url();
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      await route.fulfill({
+        status: 200,
+        contentType: "text/html",
+        body: "<!doctype html><title>Controlled OAuth boundary</title>",
+      });
+    });
+
+    await page.goto("/login");
+    await page.getByRole("button", { name: "Continue with Google" }).click();
+    await expect(page.getByRole("button", { name: "Signing you in..." })).toBeDisabled();
+    await expect.poll(() => authorizationUrl).not.toBe("");
+    expect(decodeURIComponent(authorizationUrl)).toContain("prompt=select_account");
+    expect(decodeURIComponent(authorizationUrl)).not.toContain("prompt=consent");
   });
 
   test("invalid login and forgot password responses are safe", async ({

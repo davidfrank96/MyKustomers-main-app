@@ -201,10 +201,10 @@ export const bookingListParamsSchema = z.object({
     .catch(1),
   limit: z
     .preprocess(
-      (value) => Number.parseInt(String(value ?? "10"), 10),
+      (value) => Number.parseInt(String(value ?? "25"), 10),
       z.number().int().min(1).max(25),
     )
-    .catch(10),
+    .catch(25),
 });
 
 export type BookingCreateInput = z.infer<typeof bookingCreateSchema>;
@@ -219,8 +219,8 @@ export function parseBookingListParams(
   return bookingListParamsSchema.parse({
     q: typeof input.q === "string" ? input.q : "",
     filter: typeof input.filter === "string" ? input.filter : "all",
-    page: typeof input.page === "string" ? input.page : "1",
-    limit: typeof input.limit === "string" ? input.limit : "10",
+    page: "1",
+    limit: "25",
   });
 }
 

@@ -114,6 +114,21 @@ Google OAuth repeated the callback, multi-business resolution, switching,
 persistence, logout, and protected-route checks. Same-email identity behavior
 remains a separate lifecycle check.
 
+An intentional Google start passes the supported `prompt=select_account`
+provider query parameter. This gives the user an account choice while allowing
+Google to reuse prior consent; `prompt=consent` is not forced. Provider
+authentication and the PKCE code exchange complete before the shared
+profile/membership resolver may present onboarding or a workspace.
+
+Password recovery continues to use Supabase Auth email through the configured
+Brevo SMTP transport. The exact `/auth/callback?next=/reset-password` callback
+takes precedence over stale OAuth destination state, sets a ten-minute
+HTTP-only intent scoped to `/reset-password`, and requires both that intent and
+an authenticated recovery session before updating a password. Success consumes
+the intent, signs the application session out, clears workspace preferences,
+and returns to Login. No recovery code or token belongs in UI, analytics,
+Sentry, or application logs.
+
 ## Email State
 
 Supabase Auth continues to own signup-confirmation and password-recovery email.

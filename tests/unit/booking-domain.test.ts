@@ -42,9 +42,10 @@ describe("booking domain", () => {
   it("validates positive payment amounts and idempotent operation identifiers", () => {
     const operationId = "00000000-0000-4000-8000-000000000001";
 
-    expect(
-      bookingPaymentSchema.parse({ amount: "1,250.50", operationId }),
-    ).toEqual({ amount: 125_050, operationId });
+    expect(bookingPaymentSchema.parse({ amount: "1,250.50", operationId })).toEqual({
+      amount: 125_050,
+      operationId,
+    });
     expect(bookingPaymentSchema.safeParse({ amount: "0", operationId }).success).toBe(
       false,
     );
@@ -323,7 +324,7 @@ describe("booking domain", () => {
         page: "2",
         limit: "25",
       }),
-    ).toEqual({ q: "MC", filter: "today", page: 2, limit: 25 });
+    ).toEqual({ q: "MC", filter: "today", page: 1, limit: 25 });
     expect(isBookingReference("MC-260818-7A3F2B")).toBe(true);
     expect(isBookingReference("booking-1")).toBe(false);
   });
