@@ -76,7 +76,14 @@ and composite-FK protected. Both enforcement functions remain postgres-owned
 SECURITY DEFINER with empty search paths and no execution grant to `PUBLIC`,
 `anon`, `authenticated`, or `service_role`. Rollback-only Production probes
 verified legacy/new success, forged-v1 and cross-tenant rejection, and zero
-residue. Tightening is a separate approval after application convergence; the
+residue. The converged Production application then produced two controlled
+delivery events with exact version 1 associations and no null association;
+provider CTA resolution matched manual recovery without printing a capability.
+The exact fixture and Auth user were removed with zero database/audit residue.
+Tightening migration
+`20260901230527_delivery_feedback_require_v1_association.sql` is prepared with a
+post-convergence fail-closed precondition and the same owner/search-path/grant
+hardening, but is deliberately unapplied pending separate approval. The
 compatibility migration does not weaken RLS or expose token derivation.
 
 ## Security Principles

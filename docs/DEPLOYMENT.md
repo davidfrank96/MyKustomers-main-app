@@ -84,6 +84,17 @@ deployment convergence timestamp and post-convergence event/null-association
 counts. Only then may the separately reviewed tightening migration be approved;
 it must never be applied as part of the compatibility or application rollout.
 
+That application verification completed on PR #56 merge `1dd7aed` and Vercel
+Production deployment `dpl_9mykhqy4erja6aiDLzybk2jjAK5U`. Canonical health and
+runtime logs were clean. Two controlled Brevo-backed deliveries passed exact
+CTA/manual link identity and both completion orderings, then cleanup returned
+zero tenant/Auth/audit residue. From the `2026-09-01 22:21:08+00` convergence
+cutoff, the pre-cleanup sample contained two delivery events, zero null
+associations, and two version 1 associations. Migration
+`20260901230527_delivery_feedback_require_v1_association.sql` is prepared with
+SHA-256 `397dbaaa6fab4fb78902e13ef3273054d629df2316bfd0dd593d210d7cb9e6c4` and
+remains unapplied until separately approved.
+
 ## Production Environment
 
 Vercel Production contains these required runtime variables:

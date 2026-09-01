@@ -22,13 +22,16 @@ production-readiness work.
 - [x] Playwright canonical delivery journey passes on desktop and mobile; the
       complete matrix passes 51 with 16 intentional project skips and zero
       failures.
-- [ ] Required PR checks pass and the reviewed commit merges conflict-free.
-- [ ] Vercel Production is Ready on the merged commit.
-- [ ] Controlled real-provider delivery and both completion orderings pass.
-- [ ] Manual recovery returns the same link and cleanup/residue checks return
+- [x] Required PR checks pass and the reviewed commit merges conflict-free.
+- [x] Vercel Production is Ready on the merged commit.
+- [x] Controlled real-provider delivery and both completion orderings pass.
+- [x] Manual recovery returns the same link and cleanup/residue checks return
       zero before the release status becomes VERIFIED - PRODUCTION.
-- [ ] Post-convergence delivery/null-association counts support approval of the
-      prepared tightening migration. The tightening migration remains unapplied.
+- [x] Post-convergence delivery/null-association counts support review of the
+      prepared tightening migration.
+- [ ] Explicit approval is granted before applying
+      `20260901230527_delivery_feedback_require_v1_association.sql`; it remains
+      unapplied.
 
 ## Auth Lifecycle, Password Recovery, and Progressive Lists
 

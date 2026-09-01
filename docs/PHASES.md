@@ -12,10 +12,14 @@ The 2026-09-01 delivery-to-feedback automation is cross-phase maintenance for
 Phases 7 and 8. Its exact migration is VERIFIED in the configured Production-
 backed database. A temporary two-function forward compatibility migration is
 also applied and rollback-verified after diagnosis identified a deployment-order
-break with the legacy delivery RPC. Repository application integration and the
-complete local desktop/mobile/PWA matrix are verified; CI, deployment, provider
-delivery, lifecycle completion smoke, rollout observation, and final cleanup
-remain pending.
+break with the legacy delivery RPC. Repository application integration, the
+complete local desktop/mobile/PWA matrix, PR #56 required CI, merge `1dd7aed`,
+and the matching Vercel Production deployment are verified. Two controlled
+provider deliveries passed exact same-link CTA/manual recovery and both
+lifecycle completion orderings. Cleanup returned zero tenant/Auth/audit residue,
+and post-convergence observation found two delivery events with zero null
+associations and two version 1 links. The separate tightening migration is
+prepared and unapplied pending explicit approval.
 It adds versioned Vault-backed feedback capabilities, atomic delivery/event/link
 association, a 48-hour dispatch horizon, same-link manual recovery, and
 paid-plus-feedback completion in either arrival order. Historical v0 links and

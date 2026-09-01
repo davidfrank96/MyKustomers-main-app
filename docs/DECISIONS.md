@@ -1392,3 +1392,12 @@ After all Production instances use `deliver_booking_with_feedback`, measure new
 delivery events and null associations, prepare a separate forward tightening
 migration that grandfathers historical null rows, and require explicit approval
 before applying it.
+
+Outcome: PR #56 merged as `1dd7aed` and the matching Production deployment
+passed two controlled provider-backed delivery flows. The observed convergence
+sample contained two delivery events, zero null associations, and two exact
+version 1 associations. Forward migration
+`20260901230527_delivery_feedback_require_v1_association.sql` restores the strict
+future-write functions behind a cutoff precondition while leaving historical
+rows untouched. It is prepared and hash-locked, not applied; ADR-058 remains in
+force until separate approval authorizes that final database step.
