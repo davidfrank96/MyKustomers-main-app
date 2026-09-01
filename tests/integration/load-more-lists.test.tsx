@@ -110,4 +110,30 @@ describe("bounded Load more lists", () => {
     expect(screen.getByText("Showing 25 of 50 customers.")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Load more" })).toBeEnabled();
   });
+
+  it("replaces client rows when an authoritative refresh supplies newer customers", () => {
+    const initialCustomer = customer(1);
+    const { rerender } = render(
+      <CustomerLoadMoreList
+        initialCustomers={[initialCustomer]}
+        total={1}
+        q=""
+        status="active"
+      />,
+    );
+
+    expect(screen.getByText("Customer 1")).toBeInTheDocument();
+
+    rerender(
+      <CustomerLoadMoreList
+        initialCustomers={[{ ...initialCustomer, name: "Customer 1 refreshed" }]}
+        total={1}
+        q=""
+        status="active"
+      />,
+    );
+
+    expect(screen.getByText("Customer 1 refreshed")).toBeInTheDocument();
+    expect(screen.queryByText("Customer 1")).not.toBeInTheDocument();
+  });
 });

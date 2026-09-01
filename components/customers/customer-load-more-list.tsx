@@ -12,25 +12,38 @@ type CustomerLoadMoreResponse = {
   hasMore: boolean;
 };
 
+type CustomerLoadMoreListProps = {
+  initialCustomers: CustomerListItem[];
+  total: number;
+  q: string;
+  status: CustomerArchiveFilter;
+  canDelete?: boolean;
+};
+
 function isLoadMoreResponse(value: unknown): value is CustomerLoadMoreResponse {
   if (!value || typeof value !== "object") return false;
   const candidate = value as Partial<CustomerLoadMoreResponse>;
   return Array.isArray(candidate.customers) && typeof candidate.hasMore === "boolean";
 }
 
-export function CustomerLoadMoreList({
+export function CustomerLoadMoreList(props: CustomerLoadMoreListProps) {
+  const authoritativeRevision = JSON.stringify([
+    props.total,
+    props.q,
+    props.status,
+    props.initialCustomers,
+  ]);
+
+  return <CustomerLoadMoreListState key={authoritativeRevision} {...props} />;
+}
+
+function CustomerLoadMoreListState({
   initialCustomers,
   total,
   q,
   status,
   canDelete,
-}: {
-  initialCustomers: CustomerListItem[];
-  total: number;
-  q: string;
-  status: CustomerArchiveFilter;
-  canDelete?: boolean;
-}) {
+}: CustomerLoadMoreListProps) {
   const [customers, setCustomers] = useState(initialCustomers);
   const [visibleTotal, setVisibleTotal] = useState(total);
   const [hasMore, setHasMore] = useState(initialCustomers.length < total);
