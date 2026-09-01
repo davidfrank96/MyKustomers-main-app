@@ -89,12 +89,12 @@ function SubmitButton({
     <Button
       type="submit"
       variant={variant}
-      size="sm"
+      size="md"
       disabled={pending}
-      className={className}
+      className={cn("min-w-0 whitespace-nowrap", className)}
     >
-      <Icon className="size-4" aria-hidden="true" />
-      {pending ? pendingLabel : label}
+      <Icon className="size-4 shrink-0" aria-hidden="true" />
+      <span>{pending ? pendingLabel : label}</span>
     </Button>
   );
 }
@@ -246,7 +246,7 @@ export function FeedbackLinkPanel({
             linkLabel="Feedback link"
             messageHelp="You can edit this message before sharing. The secure feedback link will be included automatically."
             idPrefix="feedback"
-            triggerClassName="h-11 w-full gap-1.5 whitespace-nowrap px-2 text-[0.8125rem] min-[360px]:text-sm sm:w-full"
+            triggerClassName="h-11 w-full min-w-0 gap-2 whitespace-nowrap px-3 text-sm sm:w-full"
           />
         </div>
       ) : null}
@@ -306,12 +306,12 @@ export function FeedbackLinkPanel({
           ) : null}
 
           {active || canGenerateFresh ? (
-            <div className="grid gap-2 min-[430px]:grid-cols-2 sm:flex sm:flex-wrap">
+            <div className="grid gap-2 sm:flex sm:flex-wrap">
               <form
                 action={generateFormAction}
                 className={cn(
                   "min-w-0",
-                  canGenerateFresh && "w-full min-[430px]:col-span-2",
+                  canGenerateFresh && "w-full sm:w-auto",
                 )}
               >
                 <SubmitButton
@@ -327,7 +327,6 @@ export function FeedbackLinkPanel({
                   icon={active ? "regenerate" : "generate"}
                   className={cn(
                     "w-full sm:w-auto",
-                    canGenerateFresh && "sm:w-full",
                     active &&
                       "border-primary text-primary hover:bg-primary/[0.05] hover:text-primary",
                   )}

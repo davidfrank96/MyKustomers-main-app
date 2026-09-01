@@ -168,7 +168,13 @@ describe("confirmation contact evidence", () => {
     expect(document.body).not.toHaveTextContent("controlled-token");
     expect(screen.getAllByText("Confirmation link generated.")).toHaveLength(1);
     expect(screen.queryByText("An active confirmation link exists.")).toBeNull();
-    expect(screen.getByRole("button", { name: "Share with customer" })).toBeVisible();
+    const share = screen.getByRole("button", { name: "Share with customer" });
+    const customEmail = screen.getByRole("button", { name: /Custom email/ });
+    expect(share).toBeVisible();
+    expect(share).toHaveClass("w-full", "whitespace-nowrap");
+    expect(screen.getByText("OR")).toBeVisible();
+    expect(customEmail).toHaveAttribute("aria-expanded", "false");
+    expect(screen.getByLabelText("Email address")).not.toBeVisible();
   });
 
   it("shows only generation before any confirmation link exists", () => {
@@ -188,9 +194,11 @@ describe("confirmation contact evidence", () => {
     });
 
     expect(screen.getByText("No confirmation link generated yet.")).toBeVisible();
-    expect(
-      screen.getByRole("button", { name: "Generate confirmation link" }),
-    ).toBeVisible();
+    const generate = screen.getByRole("button", {
+      name: "Generate confirmation link",
+    });
+    expect(generate).toBeVisible();
+    expect(generate).toHaveClass("w-full", "whitespace-nowrap");
     expect(
       screen.queryByRole("button", { name: "Share with customer" }),
     ).not.toBeInTheDocument();
@@ -198,9 +206,10 @@ describe("confirmation contact evidence", () => {
       screen.queryByRole("button", { name: "Regenerate link" }),
     ).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Revoke link" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Custom email" })).not.toBeInTheDocument();
   });
 
-  it("reviews and submits an editable confirmation email recipient", async () => {
+  it("keeps the editable confirmation recipient in a reversible Custom email disclosure", async () => {
     const sendAction = vi.fn<LinkAction>(async () => ({
       status: "success",
       message: "Email accepted for delivery to Updated.Person@hotmail.com.",
@@ -210,10 +219,7 @@ describe("confirmation contact evidence", () => {
     renderPanel("Original.Person@EXAMPLE.COM", {
       panelSummary: {
         ...summary,
-        status: "none",
-        id: "",
-        createdAt: null,
-        expiresAt: null,
+        status: "active",
         usedAt: null,
         confirmedAt: null,
         contactEmail: null,
@@ -225,13 +231,28 @@ describe("confirmation contact evidence", () => {
       sendAction,
     });
 
-    const recipient = screen.getByLabelText("Confirmation email recipient");
+    const disclosure = screen.getByRole("button", { name: /Custom email/ });
+    expect(disclosure).toHaveAttribute("aria-expanded", "false");
+    expect(screen.getByLabelText("Email address")).not.toBeVisible();
+
+    fireEvent.click(disclosure);
+    expect(disclosure).toHaveAttribute("aria-expanded", "true");
+    const recipient = screen.getByLabelText("Email address");
+    expect(recipient).toBeVisible();
     expect(recipient).toHaveValue("Original.Person@example.com");
     fireEvent.change(recipient, {
       target: { value: "Updated.Person@HOTMAIL.COM" },
     });
     fireEvent.blur(recipient);
     expect(recipient).toHaveValue("Updated.Person@hotmail.com");
+
+    fireEvent.click(disclosure);
+    expect(disclosure).toHaveAttribute("aria-expanded", "false");
+    expect(recipient).not.toBeVisible();
+    fireEvent.click(disclosure);
+    expect(recipient).toBeVisible();
+    expect(recipient).toHaveValue("Updated.Person@hotmail.com");
+
     fireEvent.click(screen.getByRole("button", { name: "Send confirmation email" }));
 
     await waitFor(() => expect(sendAction).toHaveBeenCalledTimes(1));
@@ -243,6 +264,34 @@ describe("confirmation contact evidence", () => {
         "Email accepted for delivery to Updated.Person@hotmail.com.",
       ),
     ).toBeVisible();
+  });
+
+  it("keeps Custom email open and focuses its field after a safe validation error", async () => {
+    const sendAction = vi.fn<LinkAction>(async () => ({
+      status: "error",
+      message: "Check the recipient email before sending.",
+      fieldErrors: { recipientEmail: ["Enter a valid email address."] },
+    }));
+    renderPanel("customer@example.com", {
+      panelSummary: {
+        ...summary,
+        status: "active",
+        usedAt: null,
+        confirmedAt: null,
+      },
+      canManage: true,
+      sendAction,
+    });
+
+    const disclosure = screen.getByRole("button", { name: /Custom email/ });
+    fireEvent.click(disclosure);
+    const recipient = screen.getByLabelText("Email address");
+    fireEvent.change(recipient, { target: { value: "not-an-email" } });
+    fireEvent.click(screen.getByRole("button", { name: "Send confirmation email" }));
+
+    expect(await screen.findByText("Enter a valid email address.")).toBeVisible();
+    await waitFor(() => expect(disclosure).toHaveAttribute("aria-expanded", "true"));
+    await waitFor(() => expect(recipient).toHaveFocus());
   });
 
   it.each(["revoked", "expired"] as const)(

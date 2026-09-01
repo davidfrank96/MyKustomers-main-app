@@ -90,7 +90,9 @@ describe("private feedback link panel", () => {
       expect(screen.getByText(label)).toBeVisible();
     }
     expect(screen.getByText("Not shared from My Kustomers")).toBeVisible();
-    expect(screen.getByRole("button", { name: "Request feedback" })).toBeVisible();
+    const request = screen.getByRole("button", { name: "Request feedback" });
+    expect(request).toBeVisible();
+    expect(request).toHaveClass("w-full", "whitespace-nowrap");
     expect(
       screen.queryByRole("button", { name: "Share feedback request" }),
     ).not.toBeInTheDocument();
@@ -143,6 +145,17 @@ describe("private feedback link panel", () => {
     expect(screen.getByLabelText("Generated feedback link")).toHaveClass("sr-only");
     expect(document.body).not.toHaveTextContent("controlled-feedback-token");
     expect(screen.getAllByText("Feedback link generated.")).toHaveLength(1);
+
+    expect(
+      screen.getByRole("button", { name: "Share feedback request" }),
+    ).toHaveClass("w-full", "whitespace-nowrap");
+    expect(
+      screen.getByRole("button", { name: "Regenerate feedback link" }),
+    ).toHaveClass("w-full", "whitespace-nowrap");
+    expect(screen.getByRole("button", { name: "Revoke link" })).toHaveClass(
+      "w-full",
+      "whitespace-nowrap",
+    );
 
     fireEvent.click(screen.getByRole("button", { name: "Share feedback request" }));
     expect(
