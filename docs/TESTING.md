@@ -20,10 +20,11 @@ after Dashboard route arrival, matching the component's 15-second fallback.
 
 Post-fix focused evidence:
 
-- 17 navigation integration/policy assertions pass. They cover immediate
+- 21 navigation integration/policy assertions pass. They cover immediate
   destination acknowledgement, route-arrival clearing, latest-intent behavior,
-  modifier and middle clicks, default prefetch policy, and the exact stale-Home
-  lifecycle on desktop and mobile.
+  navigation failure, redirected final routes, modifier and middle clicks,
+  default prefetch policy, and the exact stale-Home lifecycle on desktop and
+  mobile.
 - Controlled Chromium journeys pass at 1440x1000 and 390x844. They cover
   Dashboard to Bookings/booking detail, Customers/customer detail, Insights,
   and Business, returning Home after each destination, plus browser Back.
@@ -35,7 +36,7 @@ Post-fix focused evidence:
   visible, no residual busy state, and no horizontal document overflow.
 
 The complete local gate passes lint, route type generation, strict TypeScript,
-117 Vitest files / 611 tests, 48 executable Playwright journeys, the production
+117 Vitest files / 615 tests, 48 executable Playwright journeys, the production
 build, dependency audit, and diff hygiene. Twenty protected runtime files/tests
 and 15 documented project/target browser cases retain explicit skips. Cleanup
 removed five fixtures from interrupted pre-fix runs; a post-suite query returned
