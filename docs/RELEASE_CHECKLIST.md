@@ -121,6 +121,10 @@ production-readiness work.
 - [x] Required CI and production Google OAuth are verified after merge and Vercel
       deployment.
 - [ ] Same-email identity behavior is verified as a separate lifecycle check.
+- [x] Password and Google post-auth destinations share one sanitized,
+      provider-independent membership resolver.
+- [x] Zero-business users reach shell-free onboarding from every vendor route,
+      including forged-cookie and vendor `next` attempts.
 
 ## Authorization
 
@@ -156,6 +160,13 @@ production-readiness work.
       covered by static and runtime tests.
 - [x] Business-logo object listing/writes require active owner role; anonymous,
       member, and cross-tenant mutation paths are runtime-covered.
+- [x] The vendor route-group layout verifies a completed active membership before
+      rendering `DashboardShell`; leaf pages/actions and RLS remain in force.
+- [x] Empty membership results are distinct from query failures, and
+      last-membership revocation blocks both the next vendor request and a stale
+      representative Server Action.
+- [x] Active zero-business platform admins retain separate `/admin` access;
+      ordinary zero-business users and disabled admins remain denied.
 
 ## Abuse Protection
 

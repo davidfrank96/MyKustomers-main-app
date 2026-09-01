@@ -43,6 +43,12 @@ authenticated routes provide neutral structural loading states, tenant switches
 hide the prior workspace while navigation is pending, and authenticated context
 reads are deduplicated only within one server request. Public capability routes
 remain explicitly non-cacheable.
+Authentication and workspace authorization now converge through a shared server
+boundary: active `business_members` is resolved before any vendor shell renders,
+and zero-business users receive a shell-free `/onboarding` route regardless of
+password/Google provider, vendor `next`, forged cookie, or previous membership.
+Query failures fail closed; page/action checks and RLS remain defence in depth,
+and active Platform Admin access keeps its independent role gate.
 Authenticated Navigation Performance V2 adds immediate accessible pending state
 to desktop/mobile product navigation and names each destination in its loading
 shell. Bookings and Customers stream authorized controls before paginated rows;

@@ -73,6 +73,14 @@ function testEmail(projectName: string) {
   return email;
 }
 
+function currentMonthTimestamp(hour: number) {
+  const now = new Date();
+
+  return new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), hour),
+  ).toISOString();
+}
+
 async function seedInsightsBusiness({
   email,
   password,
@@ -141,13 +149,13 @@ async function seedInsightsBusiness({
       total_amount_minor: 120_000,
       deposit_amount_minor: 20_000,
       status: "COMPLETED",
-      scheduled_for: "2026-08-10T10:00:00.000Z",
-      started_at: "2026-08-10T08:00:00.000Z",
-      ready_at: "2026-08-10T08:30:00.000Z",
-      delivered_at: "2026-08-10T09:00:00.000Z",
-      completed_at: "2026-08-10T10:00:00.000Z",
+      scheduled_for: currentMonthTimestamp(10),
+      started_at: currentMonthTimestamp(8),
+      ready_at: currentMonthTimestamp(9),
+      delivered_at: currentMonthTimestamp(9),
+      completed_at: currentMonthTimestamp(10),
       created_by: userData.user!.id,
-      created_at: "2026-08-01T09:00:00.000Z",
+      created_at: currentMonthTimestamp(7),
     })
     .select("id")
     .single();
@@ -164,13 +172,13 @@ async function seedInsightsBusiness({
       total_amount_minor: 85_000,
       deposit_amount_minor: 0,
       status: "COMPLETED",
-      scheduled_for: "2026-08-11T10:00:00.000Z",
-      started_at: "2026-08-11T08:00:00.000Z",
-      ready_at: "2026-08-11T08:30:00.000Z",
-      delivered_at: "2026-08-11T09:00:00.000Z",
-      completed_at: "2026-08-11T10:00:00.000Z",
+      scheduled_for: currentMonthTimestamp(14),
+      started_at: currentMonthTimestamp(11),
+      ready_at: currentMonthTimestamp(12),
+      delivered_at: currentMonthTimestamp(13),
+      completed_at: currentMonthTimestamp(14),
       created_by: userData.user!.id,
-      created_at: "2026-08-02T09:00:00.000Z",
+      created_at: currentMonthTimestamp(7),
     })
     .select("id")
     .single();

@@ -57,6 +57,24 @@ The same-browser pending-setup marker is cleared by the existing logout action
 alongside the current-business preference; durable pending status remains on the
 business until its owner completes the logo step.
 
+## Authentication To Workspace Resolution
+
+Supabase Auth establishes platform identity only. After password login, Google
+OAuth callback, signup with an immediate session, password reset, or an already
+authenticated visit to an Auth page, a shared server resolver sanitizes `next`
+and resolves active `business_members` before entering a vendor destination.
+An ordinary authenticated user without a completed active workspace is sent to
+`/onboarding`; a vendor `next` value, selected-business cookie, profile row,
+provider metadata, or client state cannot bypass that decision.
+
+The `(dashboard)` layout repeats the authoritative current-business check before
+rendering `DashboardShell`, and feature pages/actions retain their narrower
+authorization checks. Onboarding is outside that route group, so a zero-business
+account never receives vendor navigation or a misleading empty workspace shell.
+Successful empty membership results and membership-query failures are distinct:
+empty means onboarding, while query/data-integrity failures fail closed. Platform
+Admin keeps its separate active-role gate and does not weaken the vendor rule.
+
 Admin Phase 6A uses the same Supabase session for native TOTP assurance. Password
 and Google OAuth establish AAL1 unless Supabase reports otherwise; neither is
 treated as an application-owned second factor. Challenge/verify elevates the

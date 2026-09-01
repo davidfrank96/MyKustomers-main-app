@@ -121,6 +121,7 @@ test.describe("customer management", () => {
       if (businessIds.length > 0) {
         await admin.from("customers").delete().in("business_id", businessIds);
         await admin.from("audit_logs").delete().in("business_id", businessIds);
+        await admin.from("business_members").delete().in("business_id", businessIds);
         await admin.from("businesses").delete().in("id", businessIds);
       }
     }

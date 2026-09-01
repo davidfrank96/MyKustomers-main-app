@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import type { Route } from "next";
 import { publicEnv, isSupabasePublicEnvConfigured } from "@/lib/config/public-env";
-import { getAuthenticatedUser } from "@/lib/auth/server";
+import { getAuthenticatedUser, toAuthenticatedUser } from "@/lib/auth/server";
 import { clearSelectedBusinessId } from "@/lib/auth/current-business";
 import { recordAuditEvent } from "@/lib/security/audit";
 import { getSafeRedirectPath } from "@/lib/security/redirects";
@@ -24,6 +24,7 @@ import {
 import { setOAuthNextPath } from "@/features/auth/oauth-next";
 import { isGoogleAuthEnabled } from "@/features/auth/provider-status";
 import { clearPendingBusinessOnboardingId } from "@/features/businesses/pending-onboarding";
+import { resolvePostAuthDestination } from "@/lib/auth/post-auth";
 
 function formValue(formData: FormData, key: string) {
   return formData.get(key);
@@ -92,8 +93,13 @@ export async function signupAction(
     });
   }
 
-  if (data.session) {
-    redirect("/dashboard");
+  if (data.session && data.user) {
+    redirect(
+      (await resolvePostAuthDestination(
+        "/dashboard",
+        toAuthenticatedUser(data.user),
+      )) as Route,
+    );
   }
 
   return {
@@ -139,7 +145,12 @@ export async function loginAction(
     metadata: { source: "server_action" },
   });
 
-  redirect(getSafeRedirectPath(parsed.data.next) as Route);
+  redirect(
+    (await resolvePostAuthDestination(
+      parsed.data.next,
+      toAuthenticatedUser(data.user),
+    )) as Route,
+  );
 }
 
 export async function googleOAuthAction(
@@ -279,5 +290,5 @@ export async function resetPasswordAction(
     metadata: { source: "server_action" },
   });
 
-  redirect("/dashboard");
+  redirect((await resolvePostAuthDestination("/dashboard", user)) as Route);
 }
