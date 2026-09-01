@@ -2,7 +2,7 @@
 
 ## 2026-09-01 - Auth Lifecycle And Bounded Load-More Normalization
 
-Status: IMPLEMENTED - LOCAL RELEASE VERIFICATION IN PROGRESS
+Status: VERIFIED - PRODUCTION
 
 - Google OAuth starts now request `prompt=select_account` without forcing
   consent; the button exposes a truthful disabled pending state.
@@ -20,6 +20,18 @@ Status: IMPLEMENTED - LOCAL RELEASE VERIFICATION IN PROGRESS
   width-safe. The fixture and Auth user were removed with zero residue.
 - No database, migration, RLS, environment, dependency, provider, cache,
   service-worker, or infrastructure change is included.
+- PR #51 passed the required executable CI checks with the protected Runtime
+  Security skip retained, merged as `49dbd51`, and deployed to Production as
+  `A9YGEEK3nBXnPW1M3vS81s5mHmXf` with Vercel reporting `Ready`.
+- Canonical Production smoke reached Google's live account-selection boundary
+  without forced consent and verified safe cancellation. A controlled inbox then
+  proved real signup confirmation and recovery-email delivery, successful
+  one-time reset, old-password rejection, new-password login, and reused-link
+  safety. Provider-independent new/existing-user and onboarding journeys passed.
+- Controlled Bookings and Customers fixtures proved duplicate-free
+  25 -> 50 -> 55 loading, rapid-click suppression, concurrent-insert stability,
+  search/filter preservation, and 320-1440 responsive safety. Independent
+  cleanup queries returned zero generated Auth or tenant residue.
 
 ## 2026-09-01 - Dashboard Home Navigation Pending-State Hotfix
 

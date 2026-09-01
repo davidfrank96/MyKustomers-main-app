@@ -132,6 +132,17 @@ the vendor route group, and makes membership-query failures fail closed. It
 changes no schema, migration, provider, environment, product phase, or approved
 onboarding UI. The complete local release gate and independent zero-residue
 fixture audit pass; remote PR/CI/deployment verification remains pending.
+
+The 2026-09-01 auth lifecycle, password recovery, and bounded-list normalization
+is VERIFIED in Production. PR #51 merged as `49dbd51`; Vercel deployment
+`A9YGEEK3nBXnPW1M3vS81s5mHmXf` reported `Ready`. Controlled canonical-domain
+checks covered the live Google chooser/cancel boundary, real signup and recovery
+email delivery, onboarding, old/new password behavior, one-time recovery links,
+and duplicate-free Bookings/Customers 25 -> 50 -> 55 loading from 320 through
+1440 pixels. The post-smoke Auth and tenant residue audit returned zero. This
+maintenance added no phase, schema, migration, provider, environment,
+dependency, or infrastructure change.
+
 Mobile Settings/logout uses the authenticated shell and existing auth action;
 owners can store a normalized website and one bounded WebP logo; public
 confirmation shows only safe public identity; and existing dashboard metrics
