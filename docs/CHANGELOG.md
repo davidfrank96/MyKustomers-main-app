@@ -34,7 +34,7 @@ Status: VERIFIED - PRODUCTION
   the protected Runtime Security job retained its expected explicit skip. It
   merged as `37cf872`, and Vercel deployment
   `dpl_FUmoNCREPDP3nTi9jjFCYyFCnabM` deployed that exact `main` commit to the
-  current Production domain.
+  Production domain.
 - Controlled Production journeys passed at 1440x1000 and 390x844 across every
   covered Dashboard-card/list/detail return-to-Home path. Vercel reported zero
   warning, error, or fatal entries for the deployment in the checked window,
