@@ -19,6 +19,7 @@ import { bookingDeliveredEmail } from "@/lib/email/templates/booking-delivered";
 import { bookingRescheduledEmail } from "@/lib/email/templates/booking-rescheduled";
 import { bookingConfirmationRequestedEmail } from "@/lib/email/templates/booking-confirmation-requested";
 import { applyBookingEmailThreading } from "@/lib/email/threading";
+import { publicEnv } from "@/lib/config/public-env";
 import { getTransactionalEmailProvider } from "@/lib/email/provider";
 import { sendWithProviderBoundary } from "@/lib/email/send";
 import { buildEmailAttemptIdempotencyKey } from "@/lib/email/retry-policy";
@@ -52,8 +53,19 @@ const cancelledBookingSchema = z.object({
 });
 
 const deliveredBookingSchema = z.object({
-  status: z.literal("DELIVERED"),
+  status: z.enum(["DELIVERED", "COMPLETED"]),
   delivered_at: z.string().datetime({ offset: true }),
+});
+
+const deliveryDispatchContextSchema = z.object({
+  email_event_id: z.string().uuid(),
+  business_id: z.string().uuid(),
+  booking_id: z.string().uuid(),
+  recipient_email: z.string().email(),
+  feedback_link_id: z.string().uuid(),
+  feedback_token: z.string().min(1),
+  expires_at: z.string().datetime({ offset: true }),
+  booking_status: z.enum(["DELIVERED", "COMPLETED"]),
 });
 
 const rescheduleChangeSchema = z.object({
@@ -180,6 +192,23 @@ function persistedProviderName(provider: TransactionalEmailProvider) {
     provider.name === "resend"
     ? provider.name
     : "unknown";
+}
+
+function deliveryDispatchFailureCode(message: string | undefined) {
+  const knownCodes = [
+    "delivery_event_retry_horizon_elapsed",
+    "delivery_feedback_capability_expired",
+    "delivery_feedback_capability_revoked",
+    "delivery_feedback_capability_integrity_failure",
+    "delivery_feedback_capability_unavailable",
+    "delivery_feedback_association_unavailable",
+    "delivery_booking_state_unavailable",
+  ] as const;
+
+  return (
+    knownCodes.find((code) => message?.includes(code)) ??
+    "invalid_delivery_feedback_context"
+  );
 }
 
 export async function deliverEmailEvent(
@@ -721,24 +750,31 @@ export async function deliverClaimedEmailEvent({
         cancelledAt: cancelledBooking.data.cancelled_at,
       });
     } else {
-      const [{ data: latestAmendment }, { data: booking, error: bookingError }] =
-        await Promise.all([
-          supabase
-            .from("booking_amendments")
-            .select("effective_terms")
-            .eq("business_id", event.business_id)
-            .eq("booking_id", event.booking_id)
-            .eq("status", "CONFIRMED")
-            .order("confirmed_at", { ascending: false })
-            .limit(1)
-            .maybeSingle(),
-          supabase
-            .from("bookings")
-            .select("status, delivered_at")
-            .eq("id", event.booking_id)
-            .eq("business_id", event.business_id)
-            .maybeSingle(),
-        ]);
+      const [
+        { data: dispatchRows, error: dispatchError },
+        { data: latestAmendment },
+        { data: booking, error: bookingError },
+      ] = await Promise.all([
+        supabase.rpc("get_delivery_feedback_dispatch_context", {
+          p_email_event_id: event.id,
+        }),
+        supabase
+          .from("booking_amendments")
+          .select("effective_terms")
+          .eq("business_id", event.business_id)
+          .eq("booking_id", event.booking_id)
+          .eq("status", "CONFIRMED")
+          .order("confirmed_at", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+        supabase
+          .from("bookings")
+          .select("status, delivered_at")
+          .eq("id", event.booking_id)
+          .eq("business_id", event.business_id)
+          .maybeSingle(),
+      ]);
+      const dispatchContext = deliveryDispatchContextSchema.safeParse(dispatchRows?.[0]);
       const effectiveSnapshot = bookingSnapshotSchema.safeParse(
         latestAmendment?.effective_terms,
       );
@@ -752,15 +788,45 @@ export async function deliverClaimedEmailEvent({
       });
 
       if (
+        dispatchError ||
+        !dispatchContext.success ||
         bookingError ||
         !deliveredBooking.success ||
-        authoritativeRecipient !== event.recipient_email
+        authoritativeRecipient !== event.recipient_email ||
+        dispatchContext.data.email_event_id !== event.id ||
+        dispatchContext.data.business_id !== event.business_id ||
+        dispatchContext.data.booking_id !== event.booking_id ||
+        dispatchContext.data.recipient_email !== event.recipient_email ||
+        dispatchContext.data.booking_status !== deliveredBooking.data.status
       ) {
         return failClaimedEmailEvent({
-          code: "invalid_delivery_event",
+          code: dispatchError
+            ? deliveryDispatchFailureCode(dispatchError.message)
+            : "invalid_delivery_event",
           message: "The booking delivery email data is unavailable.",
         });
       }
+
+      const { data: submittedFeedback, error: feedbackError } = await supabase
+        .from("feedback")
+        .select("id")
+        .eq("business_id", event.business_id)
+        .eq("booking_id", event.booking_id)
+        .eq("feedback_link_id", dispatchContext.data.feedback_link_id)
+        .maybeSingle();
+
+      if (feedbackError) {
+        return failClaimedEmailEvent({
+          code: "invalid_delivery_feedback_context",
+          message: "The booking delivery feedback state is unavailable.",
+        });
+      }
+
+      const feedbackAlreadySubmitted = Boolean(submittedFeedback);
+      const baseUrl = publicEnv.NEXT_PUBLIC_APP_URL.replace(/\/$/, "");
+      const feedbackUrl = feedbackAlreadySubmitted
+        ? null
+        : `${baseUrl}/f/${dispatchContext.data.feedback_token}`;
 
       threadContext = {
         businessName: deliverySnapshot.business_name,
@@ -774,6 +840,8 @@ export async function deliverClaimedEmailEvent({
         bookingReference: deliverySnapshot.booking_reference,
         scheduledFor: deliverySnapshot.scheduled_for ?? null,
         deliveredAt: deliveredBooking.data.delivered_at,
+        feedbackUrl,
+        feedbackAlreadySubmitted,
       });
     }
   } else {

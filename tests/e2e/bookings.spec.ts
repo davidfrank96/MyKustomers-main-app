@@ -1814,15 +1814,20 @@ test.describe("booking engine", () => {
     await expandBookingSection(page, "operational-timeline");
     await expect(page.getByText("Ready for delivery to Delivered")).toBeVisible();
     await expect(
-      page.getByRole("heading", { name: "Delivered", exact: true }),
+      page.getByRole("heading", { name: "Awaiting feedback", exact: true }),
     ).toBeVisible();
     const { data: deliveryEvents } = await admin
       .from("email_events")
-      .select("event_type, status, attempt_count")
+      .select("event_type, status, attempt_count, feedback_link_id")
       .eq("business_id", fixture.businessId)
       .eq("event_type", "BOOKING_DELIVERED");
     expect(deliveryEvents).toEqual([
-      { event_type: "BOOKING_DELIVERED", status: "SENT", attempt_count: 1 },
+      {
+        event_type: "BOOKING_DELIVERED",
+        status: "SENT",
+        attempt_count: 1,
+        feedback_link_id: expect.any(String),
+      },
     ]);
 
     await expect(page.getByRole("button", { name: "Complete booking" })).toHaveCount(0);
@@ -1983,8 +1988,10 @@ test.describe("booking engine", () => {
       if (timelineViewport) await page.setViewportSize(timelineViewport);
     }
     await expect(page.getByRole("heading", { name: "Booking completed" })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Request feedback" })).toBeVisible();
-    await page.getByRole("link", { name: "Request feedback" }).click();
+    await expect(
+      page.getByRole("link", { name: "Share feedback request" }),
+    ).toBeVisible();
+    await page.getByRole("link", { name: "Share feedback request" }).click();
     await expect(page.locator("#private-feedback > h2 > button")).toHaveAttribute(
       "aria-expanded",
       "true",
@@ -2039,11 +2046,22 @@ test.describe("booking engine", () => {
       page.getByText("Completed and cancelled bookings are locked."),
     ).toBeVisible();
 
-    await page.getByRole("button", { name: "Request feedback" }).click();
+    await page.getByRole("button", { name: "Share feedback" }).click();
     const feedbackLinkInput = page.getByLabel("Generated feedback link");
     await expect(feedbackLinkInput).toBeVisible();
     const feedbackUrl = await feedbackLinkInput.inputValue();
     expect(feedbackUrl).toContain("/f/");
+    const recoveredFeedbackToken = new URL(feedbackUrl).pathname.split("/").at(-1) ?? "";
+    const { data: recoveredFeedbackLink } = await admin
+      .from("feedback_links")
+      .select("id, token_hash, token_version")
+      .eq("id", deliveryEvents![0]!.feedback_link_id!)
+      .single();
+    expect(recoveredFeedbackLink).toMatchObject({
+      id: deliveryEvents![0]!.feedback_link_id,
+      token_hash: hashFeedbackToken(recoveredFeedbackToken),
+      token_version: 1,
+    });
 
     if (testInfo.project.name === "chromium") {
       const feedbackScreenshotChrome = await page.addStyleTag({

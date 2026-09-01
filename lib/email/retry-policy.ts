@@ -204,6 +204,10 @@ export function getEmailRetryEligibility({
 
   if (
     failureCode?.startsWith("invalid_") ||
+    failureCode === "delivery_event_retry_horizon_elapsed" ||
+    failureCode?.startsWith("delivery_feedback_capability_") ||
+    failureCode === "delivery_feedback_association_unavailable" ||
+    failureCode === "delivery_booking_state_unavailable" ||
     failureCode?.endsWith("_url_unavailable") ||
     failureCode?.endsWith("_url_invalid")
   ) {

@@ -1339,3 +1339,56 @@ historical recipients are not speculatively backfilled. Delete never cascades
 bookings, members never receive permanent-delete authority, and no dependency,
 environment, webhook, provider-failover, or Supabase Auth semantic changes are
 introduced.
+
+## ADR-057 - Delivery Owns One Recoverable Feedback Capability
+
+Status: Accepted
+
+Date: 2026-09-01
+
+Context: A delivery email must carry the same private feedback request shown to
+the vendor, but random hash-only capabilities cannot be reconstructed after the
+initial response. Generating another link for email or manual sharing would
+create competing requests and ambiguous audit evidence.
+
+Decision: Preserve historical random version 0 links. Create new version 1
+feedback capabilities by HMAC-SHA-256 derivation inside PostgreSQL from a named
+Supabase Vault secret and booking/link identity. Atomically associate the exact
+link with `BOOKING_DELIVERED`; allow service-role reconstruction for that event
+for 48 hours; and make the manual path recover the same link. Permit feedback in
+`DELIVERED` or `COMPLETED`, completing only when feedback and authoritative zero
+outstanding payment both exist. Retain manual zero-balance completion.
+
+Consequences: Raw capabilities are not persisted and the application never
+receives the HMAC key. Secret loss or rotation requires an explicit forward
+capability design. Delivery retry is idempotent, feedback-before-payment and
+payment-before-feedback converge, and an application rollback can retain the
+additive schema and secret. There is no new Vercel variable, standalone feedback
+email event, historical link rewrite, public review, or destructive down
+migration.
+
+## ADR-058 - Temporary Legacy Delivery Compatibility Window
+
+Status: Accepted
+
+Date: 2026-09-01
+
+Context: The additive delivery-feedback schema reached Production before every
+application instance used the new atomic delivery RPC. The existing deployed RPC
+still created one historical `BOOKING_DELIVERED` event without a feedback-link
+association, so the new deferred non-null invariant rejected an otherwise valid
+delivery transaction.
+
+Decision: Use a narrow forward migration that changes only the two deferred
+association-enforcement functions. Temporarily permit the legacy null event
+shape while continuing to require exactly one delivery event. Preserve strict
+tenant, booking, version 1, purpose, immutability, ownership, search-path, and
+grant checks whenever an association exists. Do not backfill historical events
+or relax RLS.
+
+Consequences: Database-first and application-first deployment orders are both
+safe during convergence. The compatibility window is explicit technical debt.
+After all Production instances use `deliver_booking_with_feedback`, measure new
+delivery events and null associations, prepare a separate forward tightening
+migration that grandfathers historical null rows, and require explicit approval
+before applying it.

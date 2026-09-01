@@ -8,7 +8,7 @@ import {
 } from "@/features/confirmation-links/token";
 import { generateAddonToken, hashAddonToken } from "@/features/addons/token";
 import { generateAmendmentToken, hashAmendmentToken } from "@/features/amendments/token";
-import { generateFeedbackToken, hashFeedbackToken } from "@/features/feedback/token";
+import { hashFeedbackToken } from "@/features/feedback/token";
 import {
   createRuntimeSecurityContext,
   expectNoRows,
@@ -199,11 +199,16 @@ if (runtime.enabled) {
       to: Database["public"]["Enums"]["booking_status"],
       reason?: string,
     ) {
-      const { error } = await owner.client.rpc("transition_booking_status", {
-        p_booking_id: bookingId,
-        p_to_status: to,
-        p_cancellation_reason: reason ?? null,
-      });
+      const { error } =
+        to === "DELIVERED"
+          ? await owner.client.rpc("deliver_booking_with_feedback", {
+              p_booking_id: bookingId,
+            })
+          : await owner.client.rpc("transition_booking_status", {
+              p_booking_id: bookingId,
+              p_to_status: to,
+              p_cancellation_reason: reason ?? null,
+            });
       expect(error, error?.message).toBeNull();
     }
 
@@ -821,17 +826,12 @@ if (runtime.enabled) {
       await transition(ownerA, feedbackBooking.bookingId, "READY");
       await transition(ownerA, feedbackBooking.bookingId, "DELIVERED");
       await transition(ownerA, feedbackBooking.bookingId, "COMPLETED");
-      const feedbackToken = generateFeedbackToken();
-      const feedbackHash = hashFeedbackToken(feedbackToken);
-      expect(
-        (
-          await ownerA.client.rpc("create_booking_feedback_link", {
-            p_booking_id: feedbackBooking.bookingId,
-            p_token_hash: feedbackHash,
-            p_expires_at: new Date(Date.now() + 86_400_000).toISOString(),
-          })
-        ).error,
-      ).toBeNull();
+      const { data: feedbackLink, error: feedbackLinkError } = await ownerA.client.rpc(
+        "create_or_recover_booking_feedback_link",
+        { p_booking_id: feedbackBooking.bookingId },
+      );
+      expect(feedbackLinkError).toBeNull();
+      const feedbackHash = hashFeedbackToken(feedbackLink![0].feedback_token);
       expect(
         statusOf(
           (

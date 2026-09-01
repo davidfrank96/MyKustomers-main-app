@@ -4,6 +4,42 @@ STATUS: PLANNED AND PARTIALLY IMPLEMENTED
 
 This document describes the planned conceptual data model and current migration evidence. Documentation is not implementation evidence.
 
+## 2026-09-01 Delivery-To-Feedback Automation
+
+Migration `20260901194500_delivery_feedback_automation.sql` adds
+`feedback_links.token_version smallint NOT NULL DEFAULT 0` and nullable
+`email_events.feedback_link_id`. Existing rows remain version 0. New version 1
+links store only the HMAC-derived token hash and are deterministically
+recoverable inside SECURITY DEFINER functions using the named Supabase Vault
+secret `mykustomers_feedback_capability_hmac_v1`; the secret value is not an
+application column, migration literal, function result, log field, or document.
+
+`deliver_booking_with_feedback` locks the tenant booking, performs the normal
+`READY -> DELIVERED` mutation, creates or recovers one open feedback link, and
+creates the exact `BOOKING_DELIVERED` event with `feedback_link_id` atomically.
+An idempotent retry for the same delivered/completed booking returns the same
+link/event relationship. `create_or_recover_booking_feedback_link` is the manual
+same-link path. The outbox dispatcher obtains short-lived delivery context
+through the service-role-only `get_delivery_feedback_dispatch_context`; it
+cannot select an unrelated link and cannot reconstruct one after 48 hours.
+
+Feedback submission is now valid for the associated booking in `DELIVERED` or
+`COMPLETED`. If authoritative outstanding payment is already zero, submission
+also performs `DELIVERED -> COMPLETED`; otherwise the feedback is stored and the
+booking remains delivered. A later final payment completes it. Manual completion
+remains available after payment reconciliation. Historical v0 capabilities,
+feedback, bookings, and email events are not rewritten.
+
+Forward migration `20260901205018_delivery_feedback_legacy_compatibility.sql`
+changes only the two deferred delivery-association enforcement functions. During
+the application rollout window, a `BOOKING_DELIVERED` event may retain the
+historical null `feedback_link_id` shape, but delivery must still produce exactly
+one event. Any non-null association remains tenant/booking exact, version 1,
+`booking_feedback` purpose, immutable, and protected by the composite foreign
+key. Historical null events are not backfilled or reinterpreted. A separate
+unapplied tightening migration restores the new-delivery non-null invariant only
+after Production convergence is demonstrated.
+
 ## 2026-09-01 Customer Lifecycle And Confirmation Request Evidence
 
 `20260901090000_customer_safe_delete.sql` adds no customer column and no booking

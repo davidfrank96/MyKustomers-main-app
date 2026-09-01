@@ -23,14 +23,21 @@ export const issueCategoryLabels: Record<(typeof issueCategories)[number], strin
 };
 
 function optionalComment(maxLength: number) {
-  return z.preprocess((value) => {
-    if (typeof value !== "string") {
-      return undefined;
-    }
+  return z
+    .preprocess(
+      (value) => {
+        if (typeof value !== "string") {
+          return undefined;
+        }
 
-    const trimmed = value.trim();
-    return trimmed.length === 0 ? undefined : trimmed;
-  }, z.string().max(maxLength, `Comment must be ${maxLength} characters or fewer.`).optional())
+        const trimmed = value.trim();
+        return trimmed.length === 0 ? undefined : trimmed;
+      },
+      z
+        .string()
+        .max(maxLength, `Comment must be ${maxLength} characters or fewer.`)
+        .optional(),
+    )
     .superRefine((value, ctx) => {
       if (value && /<[^>]*>/.test(value)) {
         ctx.addIssue({
@@ -42,9 +49,11 @@ function optionalComment(maxLength: number) {
 }
 
 function yesNoBoolean(label: string) {
-  return z.enum(["yes", "no"], {
-    errorMap: () => ({ message: `${label} is required.` }),
-  }).transform((value) => value === "yes");
+  return z
+    .enum(["yes", "no"], {
+      errorMap: () => ({ message: `${label} is required.` }),
+    })
+    .transform((value) => value === "yes");
 }
 
 export const publicFeedbackSchema = z.object({
@@ -69,7 +78,7 @@ export const bookingIssueCreateSchema = z.object({
 });
 
 export function isFeedbackEligibleStatus(status: string) {
-  return status === "COMPLETED";
+  return status === "DELIVERED" || status === "COMPLETED";
 }
 
 export function isResolvableIssueStatus(status: string) {

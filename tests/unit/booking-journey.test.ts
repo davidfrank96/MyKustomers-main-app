@@ -40,14 +40,18 @@ function journeyFor(
 describe("booking journey", () => {
   it.each([
     ["DRAFT", "Booking created", "Generate confirmation link"],
-    ["AWAITING_CUSTOMER", "Waiting for customer confirmation", "Generate confirmation link"],
+    [
+      "AWAITING_CUSTOMER",
+      "Waiting for customer confirmation",
+      "Generate confirmation link",
+    ],
     ["CONFIRMED", "Customer confirmed", "Review fulfilment status"],
     ["IN_PROGRESS", "Customer confirmed - work in progress", "Mark as ready"],
     ["READY", "Ready for delivery", "Mark as delivered"],
-    ["DELIVERED", "Delivered", "Complete booking"],
+    ["DELIVERED", "Awaiting feedback", "Complete booking"],
     ["COMPLETED", "Booking completed", "Request feedback"],
     ["CANCELLED", "Booking cancelled", null],
-  ] satisfies Array<[BookingStatus, string, string | null]>) (
+  ] satisfies Array<[BookingStatus, string, string | null]>)(
     "maps %s to clear current guidance and its next action",
     (status, title, actionLabel) => {
       const journey = journeyFor(status);
@@ -119,6 +123,25 @@ describe("booking journey", () => {
     expect(received.complete).toBe(true);
     expect(received.stages.at(-1)).toEqual({
       key: "feedback",
+      label: "Feedback received",
+      state: "completed",
+    });
+  });
+
+  it("shows delivered feedback without hiding an outstanding payment", () => {
+    const journey = journeyFor("DELIVERED", {
+      feedbackLinkStatus: "submitted",
+      feedbackReceived: true,
+      outstandingAmountMinor: 2_500,
+    });
+
+    expect(journey.title).toBe("Feedback received");
+    expect(journey.description).toContain("Payment is still outstanding");
+    expect(journey.primaryAction).toMatchObject({
+      kind: "anchor",
+      href: "#booking-payments",
+    });
+    expect(journey.stages.at(-1)).toMatchObject({
       label: "Feedback received",
       state: "completed",
     });

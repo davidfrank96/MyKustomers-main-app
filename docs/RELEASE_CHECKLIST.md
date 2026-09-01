@@ -3,6 +3,33 @@
 This checklist separates verified development evidence from remaining
 production-readiness work.
 
+## Delivery-To-Feedback Automation
+
+- [x] Exact approved migration hash and repository bytes match.
+- [x] Production Vault secret exists once with shape-only verification and was
+      never printed, returned to application code, or added to Vercel.
+- [x] Migration applied transactionally; catalog, ownership, grants, empty
+      search paths, constraints, indexes, triggers, historical counts, v0
+      preservation, and deterministic v1 derivation passed.
+- [x] Delivery, manual same-link recovery, feedback eligibility, exact outbox
+      association, 48-hour dispatch, CTA suppression, and paid-plus-feedback
+      completion are implemented with focused automated coverage.
+- [x] Lint, typecheck, Vitest, guarded-runtime skip evidence, production build,
+      audit, migration hash, secret-name scan, and diff hygiene pass.
+- [x] Temporary forward compatibility migration is applied and rollback-verified
+      for legacy and new delivery, forged-v1 and cross-tenant denial, immediate
+      deferred constraints, and zero fixture residue.
+- [x] Playwright canonical delivery journey passes on desktop and mobile; the
+      complete matrix passes 51 with 16 intentional project skips and zero
+      failures.
+- [ ] Required PR checks pass and the reviewed commit merges conflict-free.
+- [ ] Vercel Production is Ready on the merged commit.
+- [ ] Controlled real-provider delivery and both completion orderings pass.
+- [ ] Manual recovery returns the same link and cleanup/residue checks return
+      zero before the release status becomes VERIFIED - PRODUCTION.
+- [ ] Post-convergence delivery/null-association counts support approval of the
+      prepared tightening migration. The tightening migration remains unapplied.
+
 ## Auth Lifecycle, Password Recovery, and Progressive Lists
 
 - [x] Google login and signup share one provider action and request the supported

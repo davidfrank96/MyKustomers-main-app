@@ -212,14 +212,22 @@ if (runtimeVerificationEnabled) {
       );
       await confirmBooking(user.client, bookingId);
 
-      for (const status of ["READY", "DELIVERED"] as const) {
-        const { error } = await user.client.rpc("transition_booking_status", {
-          p_booking_id: bookingId,
-          p_to_status: status,
-          p_cancellation_reason: null,
-        });
-        expect(error).toBeNull();
-      }
+      expect(
+        (
+          await user.client.rpc("transition_booking_status", {
+            p_booking_id: bookingId,
+            p_to_status: "READY",
+            p_cancellation_reason: null,
+          })
+        ).error,
+      ).toBeNull();
+      expect(
+        (
+          await user.client.rpc("deliver_booking_with_feedback", {
+            p_booking_id: bookingId,
+          })
+        ).error,
+      ).toBeNull();
       expect(
         (
           await user.client.rpc("record_booking_payment", {
@@ -243,16 +251,16 @@ if (runtimeVerificationEnabled) {
     }
 
     async function generateFeedbackLink(client: AppClient, bookingId: string) {
-      const token = generateFeedbackToken();
-      const { data, error } = await client.rpc("create_booking_feedback_link", {
-        p_booking_id: bookingId,
-        p_token_hash: hashFeedbackToken(token),
-        p_expires_at: new Date(Date.now() + 14 * 86_400_000).toISOString(),
-      });
+      const { data, error } = await client.rpc(
+        "create_or_recover_booking_feedback_link",
+        {
+          p_booking_id: bookingId,
+        },
+      );
       expect(error).toBeNull();
       expect(data?.[0]?.feedback_link_id).toBeTruthy();
       createdFeedbackLinkIds.push(data![0].feedback_link_id);
-      return { token, linkId: data![0].feedback_link_id };
+      return { token: data![0].feedback_token, linkId: data![0].feedback_link_id };
     }
 
     async function submitFeedback(token: string, rating = 5) {
@@ -367,10 +375,8 @@ if (runtimeVerificationEnabled) {
 
       expect(
         (
-          await userA.client.rpc("create_booking_feedback_link", {
+          await userA.client.rpc("create_or_recover_booking_feedback_link", {
             p_booking_id: completedA,
-            p_token_hash: hashFeedbackToken(generateFeedbackToken()),
-            p_expires_at: new Date(Date.now() + 86_400_000).toISOString(),
           })
         ).error,
       ).not.toBeNull();
@@ -464,7 +470,6 @@ if (runtimeVerificationEnabled) {
         "CONFIRMED",
         "IN_PROGRESS",
         "READY",
-        "DELIVERED",
         "CANCELLED",
       ] as const) {
         const bookingId = await createBooking(
@@ -477,8 +482,8 @@ if (runtimeVerificationEnabled) {
         if (status !== "DRAFT") {
           await confirmBooking(userA.client, bookingId);
         }
-        if (status === "IN_PROGRESS" || status === "READY" || status === "DELIVERED") {
-          for (const nextStatus of ["IN_PROGRESS", "READY", "DELIVERED"] as const) {
+        if (status === "IN_PROGRESS" || status === "READY") {
+          for (const nextStatus of ["IN_PROGRESS", "READY"] as const) {
             const { data: current } = await service
               .from("bookings")
               .select("status")
@@ -511,10 +516,8 @@ if (runtimeVerificationEnabled) {
         }
         expect(
           (
-            await userA.client.rpc("create_booking_feedback_link", {
+            await userA.client.rpc("create_or_recover_booking_feedback_link", {
               p_booking_id: bookingId,
-              p_token_hash: hashFeedbackToken(generateFeedbackToken()),
-              p_expires_at: new Date(Date.now() + 86_400_000).toISOString(),
             })
           ).error,
         ).not.toBeNull();
@@ -522,10 +525,8 @@ if (runtimeVerificationEnabled) {
 
       expect(
         (
-          await userB.client.rpc("create_booking_feedback_link", {
+          await userB.client.rpc("create_or_recover_booking_feedback_link", {
             p_booking_id: completedA,
-            p_token_hash: hashFeedbackToken(generateFeedbackToken()),
-            p_expires_at: new Date(Date.now() + 86_400_000).toISOString(),
           })
         ).error,
       ).not.toBeNull();

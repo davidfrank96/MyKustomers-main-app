@@ -101,7 +101,11 @@ export async function getPublicFeedbackMetadata(
       .maybeSingle(),
   ]);
 
-  if (!booking || !business || booking.status !== "COMPLETED") {
+  if (
+    !booking ||
+    !business ||
+    (booking.status !== "DELIVERED" && booking.status !== "COMPLETED")
+  ) {
     return null;
   }
 

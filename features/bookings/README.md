@@ -118,8 +118,11 @@ server/database operation. New confirmations persist the legitimate
 `CONFIRMED` evidence/history step and then advance to `IN_PROGRESS` in the same
 transaction. Existing `CONFIRMED` rows are not rewritten.
 
-Vendor operational transitions use `public.transition_booking_status` through
-server actions. Direct authenticated status writes are blocked by the booking
+Vendor operational transitions use controlled database RPCs through server
+actions. Delivery specifically uses `public.deliver_booking_with_feedback` so
+the status transition, one recoverable feedback capability, and exact linked
+outbox event commit atomically. Other transitions continue through
+`public.transition_booking_status`. Direct authenticated status writes are blocked by the booking
 integrity trigger. The database owns operational timestamps for start, ready,
 delivery, completion, and cancellation.
 
@@ -153,8 +156,9 @@ value/deposit/balance. One add-on may await confirmation, never alongside a
 pending amendment. Reschedule, cancellation, and advancement to `READY` cancel
 pending add-ons; confirmed evidence is preserved.
 
-After a booking reaches `COMPLETED`, vendors can create a private feedback link
-through the feedback feature. Submitted feedback is immutable and private to the
+When a booking reaches `DELIVERED`, the delivery transaction creates or recovers
+its private feedback link. Manual sharing recovers that same capability from
+`DELIVERED` or `COMPLETED`; it does not create a duplicate request. Submitted feedback is immutable and private to the
 owning business. Vendors can also record internal operational issues on booking
 detail pages and resolve open issues once.
 
@@ -187,7 +191,9 @@ payment totals. An outstanding balance removes the normal completion action and
 direct RPC attempts fail. Payments may be recorded only in `IN_PROGRESS`,
 `READY`, or `DELIVERED`; cancelled/completed records remain readable but cannot
 receive new ordinary payments. Corrections, refunds, credits, waivers,
-force-complete, and payment processing are deferred.
+force-complete, and payment processing are deferred. Feedback and final payment
+may arrive in either order: whichever arrives second completes the booking when
+both conditions are satisfied. Manual completion remains a zero-balance fallback.
 
 ## Live Customer-Originated Updates
 

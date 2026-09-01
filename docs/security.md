@@ -34,6 +34,51 @@ hit email/default inbox constraints.
 Documentation is not implementation evidence. For example, this document saying
 RLS is required does not mean RLS policies exist.
 
+## Delivery-To-Feedback Capability Boundary
+
+SEC-058 - Versioned Feedback Capabilities
+
+Historical version 0 feedback links remain random, hash-only capabilities. New
+version 1 links are derived with HMAC-SHA-256 from a 256-bit secret stored in
+Supabase Vault under `mykustomers_feedback_capability_hmac_v1`. Only privileged
+database functions may read the decrypted secret; `anon`, `authenticated`, and
+ordinary application queries have no Vault read grant. The migration contains
+the secret name only and fails closed when the secret is missing, duplicated, or
+malformed.
+
+SEC-059 - Exact Event-To-Link Association
+
+Every new `BOOKING_DELIVERED` event is linked to the exact feedback capability
+created or recovered in the same locked transaction. Dispatch accepts only that
+event, tenant, booking, recipient, and link association. It never searches for
+the newest open link and never places a token in durable event or audit data.
+The reconstructable delivery context is service-role-only and expires 48 hours
+after event creation.
+
+SEC-060 - Idempotent Delivery And Completion
+
+Authenticated members may execute `deliver_booking_with_feedback` and
+`create_or_recover_booking_feedback_link`; public roles may not. Public
+lookup/open/submit functions remain service-role-only application boundaries.
+Delivery retries and manual sharing recover the same live capability. Feedback
+submission and final payment each lock and re-evaluate authoritative state so
+paid-plus-feedback completes exactly once, regardless of arrival order. Manual
+completion remains guarded by zero outstanding balance. All privileged functions
+are postgres-owned SECURITY DEFINER functions with an empty search path.
+
+SEC-061 - Bounded Legacy Delivery Compatibility
+
+The temporary Production rollout boundary permits a null `feedback_link_id`
+only for the historical `BOOKING_DELIVERED` event shape created by the legacy
+delivery RPC. It still requires exactly one delivery event. Any present
+association remains immutable, tenant/booking exact, version 1, purpose-scoped,
+and composite-FK protected. Both enforcement functions remain postgres-owned
+SECURITY DEFINER with empty search paths and no execution grant to `PUBLIC`,
+`anon`, `authenticated`, or `service_role`. Rollback-only Production probes
+verified legacy/new success, forged-v1 and cross-tenant rejection, and zero
+residue. Tightening is a separate approval after application convergence; the
+compatibility migration does not weaken RLS or expose token derivation.
+
 ## Security Principles
 
 Security principles for all future phases:

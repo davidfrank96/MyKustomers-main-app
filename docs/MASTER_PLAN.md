@@ -62,6 +62,19 @@ Accepted decisions are recorded in `docs/DECISIONS.md`.
 
 ## Current Project Status
 
+The delivery-to-feedback automation is IMPLEMENTED with Production application
+verification pending. Production database diagnosis proved a deployment-order
+compatibility break between the legacy deployed delivery RPC and the new
+deferred event/link invariant. The exact temporary forward compatibility
+migration is applied and rollback-verified for legacy delivery, new atomic
+delivery, forged-v1 denial, cross-tenant denial, version 0 preservation, and zero
+residue. Repository delivery now creates/reuses one versioned feedback
+capability and exact linked outbox event atomically; manual sharing recovers the
+same link; dispatch has a 48-hour horizon; and paid plus feedback completes once
+in either order. The full local browser matrix is green. Required CI, Vercel
+Production deployment, controlled provider smoke, rollout observation, and
+approval of the prepared-but-unapplied tightening migration remain.
+
 The 2026-09-01 Auth lifecycle and large-list normalization is IMPLEMENTED with
 local release verification in progress. Google OAuth deliberately requests the
 account chooser without forcing consent; password recovery requires a canonical

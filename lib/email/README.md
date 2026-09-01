@@ -29,6 +29,15 @@ enrichment, link consumption, and audit linkage. `deliverEmailEvent` claims the
 event atomically and sends only after commit. Provider failure records `FAILED`
 without changing the confirmed booking.
 
+Delivery uses `deliver_booking_with_feedback`, which writes the status,
+recoverable versioned feedback capability, and `BOOKING_DELIVERED` event with
+its exact `feedback_link_id` atomically. Dispatch calls the service-role-only
+delivery-context function and may reconstruct only that capability within 48
+hours. The email includes the canonical `/f/{token}` CTA only while feedback is
+outstanding. If feedback was already submitted, it sends an acknowledgement and
+no capability. No raw token is persisted in the outbox, audit metadata, logs, or
+provider evidence.
+
 An intentional Send confirmation action creates
 `BOOKING_CONFIRMATION_REQUESTED` in the same transaction as the exact fresh
 confirmation capability. The event stores its exact `confirmation_link_id`;
@@ -85,8 +94,9 @@ ready/progress/completion/feedback emails are deferred.
 There is no standalone payment-recorded or feedback-request email event. The
 existing add-on-confirmed message is the only implemented payment-related
 customer update and describes amounts as recorded information, not verified
-transactions. Private feedback continues to use trusted manual sharing; no email
-template or outbox path is manufactured solely for presentation parity.
+transactions. Private feedback continues to support trusted manual sharing of
+the same delivery-created link; no second email event is manufactured solely
+for presentation parity.
 
 Confirmed reschedules atomically create a replacement confirmation link and a
 `BOOKING_RESCHEDULED` event tied to the exact change/link evidence. Delivery

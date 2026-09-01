@@ -10,6 +10,47 @@ Production verification now includes real signup-confirmation and
 password-recovery delivery through Supabase Auth and the configured SMTP path,
 without weakening the existing tenant/RLS evidence.
 
+## 2026-09-01 Delivery-To-Feedback Automation
+
+The exact repository migration SHA is locked by static security coverage.
+Assertions cover the Vault precondition without embedding or generating a
+secret, v0/v1 token-version behavior, HMAC derivation, exact event/link foreign
+key association, 48-hour dispatch horizon, grants, ownership, empty search
+paths, idempotent delivery/manual recovery, both paid/feedback completion
+orderings, and historical-row preservation.
+
+Production database evidence already passed: the named Vault secret exists once
+with the required 64-hex shape; the exact approved migration committed; all
+target columns, constraints, indexes, triggers, functions, grants, and search
+paths match; historical feedback-link, feedback, outbox, and booking counts are
+unchanged; all historical links remain version 0; and a synthetic read-only
+derivation check returned a stable 43-character booking-scoped token without
+printing it. No application/Auth/domain fixture was inserted for that check.
+
+Focused unit/integration coverage exercises delivered/completed eligibility,
+same-link vendor UX, journey guidance, delivery-email CTA inclusion and
+post-feedback suppression, and non-retryable expired/horizon failures. The
+guarded Supabase runtime suites use the new atomic delivery RPC. Lint, route
+types, strict TypeScript, 128 Vitest files / 682 tests, production build, and an
+audit with zero vulnerabilities pass. The direct protected-runtime command
+retained 21 explicit skips because Production mutation opt-in was absent.
+
+The initial browser failure was diagnosed as a deployment-order compatibility
+break: the legacy deployed delivery RPC produced its historical null event
+association while the new deferred functions required a non-null version 1
+association. The exact two-function compatibility migration was applied. Three
+independent Production rollback-only transactions then passed legacy delivery,
+new atomic delivery, exact event/link binding, forged-v1 rejection, version 0
+validity, cross-tenant denial, and immediate deferred constraints; all synthetic
+row counts returned zero after rollback and no dispatcher/provider was called.
+
+After restarting the stale local dev server, the focused canonical desktop and
+mobile journeys passed together. The complete browser matrix then passed `51`
+and skipped `16`, with no failures across desktop, mobile, and PWA projects.
+The generated screenshot artifacts were restored after verification. Required
+CI, Production application/provider smoke, and post-rollout evidence remain
+separate gates and are not claimed here.
+
 ## 2026-09-01 Customer Contact, Validation, And Customer Lifecycle
 
 Focused unit/static coverage verifies arbitrary syntactically valid email

@@ -55,9 +55,7 @@ function renderPanel(
   const revokeAction = vi.fn(
     options.revokeAction ?? (async () => initialFeedbackLinkActionState),
   );
-  const recordShareAction = vi.fn(
-    options.recordShareAction ?? (async () => undefined),
-  );
+  const recordShareAction = vi.fn(options.recordShareAction ?? (async () => undefined));
 
   const view = render(
     <FeedbackLinkPanel
@@ -97,7 +95,7 @@ describe("private feedback link panel", () => {
       screen.queryByRole("button", { name: "Share feedback request" }),
     ).not.toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: "Regenerate feedback link" }),
+      screen.queryByRole("button", { name: "Share feedback" }),
     ).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Revoke link" })).toBeNull();
   });
@@ -109,16 +107,12 @@ describe("private feedback link panel", () => {
     expect(screen.getByText("An active feedback request exists.")).toBeVisible();
     expect(
       screen.getByText(
-        "The exact secure link is no longer available here. Regenerate it to create a fresh shareable link.",
+        "Prepare the secure request to recover the same link when available, without creating a duplicate request.",
       ),
     ).toBeVisible();
-    expect(
-      screen.queryByRole("button", { name: "Share feedback request" }),
-    ).toBeNull();
+    expect(screen.queryByRole("button", { name: "Share feedback request" })).toBeNull();
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "Regenerate feedback link" }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: "Share feedback" }));
     await waitFor(() => expect(generateAction).toHaveBeenCalledTimes(1));
 
     fireEvent.click(screen.getByRole("button", { name: "Revoke link" }));
@@ -135,9 +129,7 @@ describe("private feedback link panel", () => {
     }));
     renderPanel({ summary: activeSummary, generateAction });
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "Regenerate feedback link" }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: "Share feedback" }));
 
     expect(
       await screen.findByText("Your private feedback request is ready."),
@@ -146,21 +138,21 @@ describe("private feedback link panel", () => {
     expect(document.body).not.toHaveTextContent("controlled-feedback-token");
     expect(screen.getAllByText("Feedback link generated.")).toHaveLength(1);
 
-    expect(
-      screen.getByRole("button", { name: "Share feedback request" }),
-    ).toHaveClass("w-full", "whitespace-nowrap");
-    expect(
-      screen.getByRole("button", { name: "Regenerate feedback link" }),
-    ).toHaveClass("w-full", "whitespace-nowrap");
+    expect(screen.getByRole("button", { name: "Share feedback request" })).toHaveClass(
+      "w-full",
+      "whitespace-nowrap",
+    );
+    expect(screen.getByRole("button", { name: "Share feedback" })).toHaveClass(
+      "w-full",
+      "whitespace-nowrap",
+    );
     expect(screen.getByRole("button", { name: "Revoke link" })).toHaveClass(
       "w-full",
       "whitespace-nowrap",
     );
 
     fireEvent.click(screen.getByRole("button", { name: "Share feedback request" }));
-    expect(
-      screen.getByRole("heading", { name: "Share feedback request" }),
-    ).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Share feedback request" })).toBeVisible();
     expect(screen.getByRole("button", { name: "WhatsApp" })).toBeVisible();
     expect(screen.getByRole("button", { name: "Telegram" })).toBeVisible();
     expect(screen.getByRole("button", { name: "Copy message" })).toBeVisible();
@@ -175,12 +167,8 @@ describe("private feedback link panel", () => {
       expect(
         screen.getByRole("button", { name: "Request feedback again" }),
       ).toBeVisible();
-      expect(
-        screen.queryByRole("button", { name: "Share feedback request" }),
-      ).toBeNull();
-      expect(
-        screen.queryByRole("button", { name: "Regenerate feedback link" }),
-      ).toBeNull();
+      expect(screen.queryByRole("button", { name: "Share feedback request" })).toBeNull();
+      expect(screen.queryByRole("button", { name: "Share feedback" })).toBeNull();
       expect(screen.queryByRole("button", { name: "Revoke link" })).toBeNull();
     },
   );
@@ -222,9 +210,7 @@ describe("private feedback link panel", () => {
       <FeedbackLinkPanel summary={activeSummary} {...commonProps} />,
     );
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "Regenerate feedback link" }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: "Share feedback" }));
     expect(
       await screen.findByRole("button", { name: "Share feedback request" }),
     ).toBeVisible();
@@ -236,12 +222,8 @@ describe("private feedback link panel", () => {
       />,
     );
 
-    expect(
-      screen.queryByRole("button", { name: "Share feedback request" }),
-    ).toBeNull();
+    expect(screen.queryByRole("button", { name: "Share feedback request" })).toBeNull();
     expect(screen.queryByRole("button", { name: "Revoke link" })).toBeNull();
-    expect(
-      screen.getByRole("button", { name: "Request feedback again" }),
-    ).toBeVisible();
+    expect(screen.getByRole("button", { name: "Request feedback again" })).toBeVisible();
   });
 });

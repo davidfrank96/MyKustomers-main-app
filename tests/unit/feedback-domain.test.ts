@@ -71,7 +71,8 @@ describe("Phase 8 feedback domain", () => {
     ).toBe(false);
   });
 
-  it("only allows feedback requests for completed bookings", () => {
+  it("allows feedback requests once a booking is delivered or completed", () => {
+    expect(isFeedbackEligibleStatus("DELIVERED")).toBe(true);
     expect(isFeedbackEligibleStatus("COMPLETED")).toBe(true);
     for (const status of [
       "DRAFT",
@@ -79,7 +80,6 @@ describe("Phase 8 feedback domain", () => {
       "CONFIRMED",
       "IN_PROGRESS",
       "READY",
-      "DELIVERED",
       "CANCELLED",
     ]) {
       expect(isFeedbackEligibleStatus(status)).toBe(false);
