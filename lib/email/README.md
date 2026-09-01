@@ -4,7 +4,8 @@ Supabase Auth email and My Kustomers transactional email are separate systems.
 Supabase Auth owns signup confirmation and password-recovery delivery. The
 application never stores or sends Auth passwords or recovery tokens.
 
-Booking-confirmed, confirmed-booking-cancelled, amendment-requested,
+Initial-confirmation-requested, booking-confirmed,
+confirmed-booking-cancelled, amendment-requested,
 amendment-confirmed, add-on-requested, and add-on-confirmed transactional email
 are implemented through one server-only, provider-neutral boundary.
 
@@ -27,6 +28,21 @@ the same database transaction as booking state, contact evidence, customer
 enrichment, link consumption, and audit linkage. `deliverEmailEvent` claims the
 event atomically and sends only after commit. Provider failure records `FAILED`
 without changing the confirmed booking.
+
+An intentional Send confirmation action creates
+`BOOKING_CONFIRMATION_REQUESTED` in the same transaction as the exact fresh
+confirmation capability. The event stores its exact `confirmation_link_id`;
+the raw token exists only in the action's memory while constructing `/c/{token}`.
+Manual Generate/share remains capability-only. Correcting a recipient revokes
+the prior open link and creates a new linked event, while the 30-second
+same-recipient duplicate result creates and sends nothing. Provider failure
+does not roll back or duplicate the booking. The UI reports provider acceptance,
+never inbox delivery.
+
+Customer-contact recipients are trimmed, keep the local part exactly as entered,
+and lowercase only the domain. There is no Gmail or provider-domain allowlist.
+Historical values whose local-part case was already lost are preserved; the
+application does not guess or backfill unavailable capitalization.
 
 Confirmed cancellation creates one `BOOKING_CANCELLED` event in the same
 transaction as status, reason, history, link revocation, and audit state. The
@@ -58,7 +74,8 @@ synthetic message ID. Brevo delivery requires
 `TRANSACTIONAL_EMAIL_FROM`; Resend remains supported with its existing key. All
 external configuration is server-only.
 
-`BOOKING_CONFIRMED`, `BOOKING_CANCELLED`, `BOOKING_AMENDMENT_REQUESTED`,
+`BOOKING_CONFIRMATION_REQUESTED`, `BOOKING_CONFIRMED`, `BOOKING_CANCELLED`,
+`BOOKING_AMENDMENT_REQUESTED`,
 `BOOKING_AMENDMENT_CONFIRMED`, `BOOKING_ADDON_REQUESTED`,
 `BOOKING_ADDON_CONFIRMED`, `BOOKING_RESCHEDULED`, and `BOOKING_DELIVERED`
 exist now. PDF attachments,

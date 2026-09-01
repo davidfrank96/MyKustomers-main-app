@@ -1,4 +1,5 @@
 import type { TransactionalEmailMessage } from "@/lib/email/types";
+import { normalizeCustomerContactEmail } from "@/features/customers/email";
 import {
   formatEmailDateTime,
   renderTransactionalEmailHtml,
@@ -23,12 +24,14 @@ export function selectCancellationRecipient({
   confirmationContactEmail: string | null;
   customerEmail: string | null;
 }) {
-  const authoritativeContact = confirmationContactEmail?.trim().toLowerCase();
+  const authoritativeContact = confirmationContactEmail
+    ? normalizeCustomerContactEmail(confirmationContactEmail)
+    : "";
   if (authoritativeContact) {
     return authoritativeContact;
   }
 
-  return customerEmail?.trim().toLowerCase() || null;
+  return customerEmail ? normalizeCustomerContactEmail(customerEmail) || null : null;
 }
 
 export function bookingCancelledEmail(

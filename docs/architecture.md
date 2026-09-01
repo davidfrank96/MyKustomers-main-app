@@ -572,3 +572,24 @@ component timer or inferred from unrelated Suspense boundaries. Ordinary
 authenticated route streaming must not unnecessarily disable unrelated primary
 navigation destinations. Business switching remains a separate tenant-safety
 transition and continues to use its opaque reauthorization boundary.
+
+## Customer Contact Request And Lifecycle Boundaries
+
+```text
+reviewed recipient + authorized member
+  -> locked create_booking_confirmation_request
+  -> revoke open capability + create hash-only link + exact linked outbox event
+  -> commit
+  -> provider adapter acceptance or bounded failure
+```
+
+Manual confirmation link generation remains a separate capability-only path.
+Recipient normalization is shared in policy: trim, preserve local part, lowercase
+domain. The outbox dispatcher resolves the event's exact link rather than a
+booking's latest link. Provider failure cannot undo booking/request state, and
+the UI does not equate acceptance with destination delivery.
+
+Customer list/detail actions share Archive/Restore. Permanent deletion routes
+through a narrow owner-only database function that locks, reauthorizes, and
+rejects any booking or protected dependency. Client-side booking counts only
+shape the presentation and fail closed; they do not grant deletion authority.

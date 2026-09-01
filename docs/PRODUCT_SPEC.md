@@ -428,3 +428,25 @@ remain product responses rather than Sentry exceptions.
 Replay, technical feedback widgets, profiling, logs, metrics, and automatic
 remediation are not product capabilities. Sentry does not grant authority,
 change domain state, or replace the read-only Admin Security & Health surface.
+
+## Customer Contact Review And Customer Record Lifecycle
+
+Send confirmation shows the normalized customer email before submission and
+allows correction. The email field accepts supported syntax across arbitrary
+domains; it is not Gmail-specific. Sending creates a durable request tied to one
+fresh confirmation capability. Correcting and resending makes the old open link
+unusable. Rapid repeated clicks do not create duplicate links or emails, and a
+provider failure leaves the booking usable. Generate/share link remains a
+separate manual channel.
+
+No required-field failure may silently block submission. Returned field errors
+are visible and actionable, and the first invalid control is brought into focus;
+server validation remains authoritative.
+
+Archive is the everyday reversible Customer removal action. Restore returns the
+record to Active and archived customers remain connected to all bookings. An
+owner may permanently delete only a customer with zero booking history, after a
+destructive confirmation and a database-authoritative race-safe check. Members
+cannot permanently delete, and no Customer action cascades to a booking. Mobile
+swipe only reveals actions; the visible action menu remains available to desktop,
+keyboard, and assistive-technology users.

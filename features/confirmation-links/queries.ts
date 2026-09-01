@@ -16,6 +16,9 @@ export type ConfirmationLinkSummary = {
   contactEmail: string | null;
   contactPhone: string | null;
   emailStatus: "PENDING" | "SENDING" | "SENT" | "FAILED" | null;
+  requestRecipientEmail: string | null;
+  requestEmailStatus: "PENDING" | "SENDING" | "SENT" | "FAILED" | null;
+  requestCreatedAt: string | null;
   firstOpenedAt: string | null;
   sharedAt: string | null;
   shareMethod: ConfirmationShareMethod | null;
@@ -37,6 +40,9 @@ export async function getConfirmationLinkSummaryForBooking(
       contactEmail: null,
       contactPhone: null,
       emailStatus: null,
+      requestRecipientEmail: null,
+      requestEmailStatus: null,
+      requestCreatedAt: null,
       firstOpenedAt: null,
       sharedAt: null,
       shareMethod: null,
@@ -44,7 +50,12 @@ export async function getConfirmationLinkSummaryForBooking(
   }
 
   const supabase = createServiceRoleClient();
-  const [{ data: link }, { data: confirmation }, { data: emailEvent }] = await Promise.all([
+  const [
+    { data: link },
+    { data: confirmation },
+    { data: emailEvent },
+    { data: requestEvent },
+  ] = await Promise.all([
     supabase
       .from("confirmation_links")
       .select("id, created_at, expires_at, used_at, revoked_at, first_opened_at")
@@ -70,6 +81,15 @@ export async function getConfirmationLinkSummaryForBooking(
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle(),
+    supabase
+      .from("email_events")
+      .select("recipient_email, status, created_at")
+      .eq("business_id", businessId)
+      .eq("booking_id", bookingId)
+      .eq("event_type", "BOOKING_CONFIRMATION_REQUESTED")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
   ]);
 
   if (!link) {
@@ -84,6 +104,9 @@ export async function getConfirmationLinkSummaryForBooking(
       contactEmail: confirmation?.contact_email ?? null,
       contactPhone: confirmation?.contact_phone ?? null,
       emailStatus: emailEvent?.status ?? null,
+      requestRecipientEmail: requestEvent?.recipient_email ?? null,
+      requestEmailStatus: requestEvent?.status ?? null,
+      requestCreatedAt: requestEvent?.created_at ?? null,
       firstOpenedAt: null,
       sharedAt: null,
       shareMethod: null,
@@ -128,6 +151,9 @@ export async function getConfirmationLinkSummaryForBooking(
     contactEmail: confirmation?.contact_email ?? null,
     contactPhone: confirmation?.contact_phone ?? null,
     emailStatus: emailEvent?.status ?? null,
+    requestRecipientEmail: requestEvent?.recipient_email ?? null,
+    requestEmailStatus: requestEvent?.status ?? null,
+    requestCreatedAt: requestEvent?.created_at ?? null,
     firstOpenedAt: link.first_opened_at,
     sharedAt: shareEvent?.created_at ?? null,
     shareMethod: isConfirmationShareMethod(shareMethod) ? shareMethod : null,

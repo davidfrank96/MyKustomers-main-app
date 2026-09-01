@@ -1,6 +1,12 @@
 "use client";
 
-import { useActionState, type ComponentType, type ReactNode } from "react";
+import {
+  useActionState,
+  useEffect,
+  useState,
+  type ComponentType,
+  type ReactNode,
+} from "react";
 import { useFormStatus } from "react-dom";
 import {
   CalendarDays,
@@ -22,6 +28,10 @@ import {
   type ConfirmationLinkActionState,
 } from "@/features/confirmation-links/action-state";
 import type { ConfirmationShareMethod } from "@/features/confirmation-links/share";
+import {
+  customerContactEmailsMatch,
+  normalizeCustomerContactEmail,
+} from "@/features/customers/email";
 import { cn } from "@/lib/utils/cn";
 
 type ConfirmationLinkPanelProps = {
@@ -31,6 +41,10 @@ type ConfirmationLinkPanelProps = {
   customerName: string | null;
   customerProfileEmail: string | null;
   generateAction: (
+    previousState: ConfirmationLinkActionState,
+    formData: FormData,
+  ) => Promise<ConfirmationLinkActionState>;
+  sendAction: (
     previousState: ConfirmationLinkActionState,
     formData: FormData,
   ) => Promise<ConfirmationLinkActionState>;
@@ -77,12 +91,18 @@ function SubmitButton({
   label: string;
   pendingLabel: string;
   variant?: "primary" | "secondary" | "destructive";
-  icon: "generate" | "regenerate" | "revoke";
+  icon: "generate" | "regenerate" | "revoke" | "send";
   className?: string;
 }) {
   const { pending } = useFormStatus();
   const Icon =
-    icon === "generate" ? Link2 : icon === "regenerate" ? RefreshCw : XCircle;
+    icon === "generate"
+      ? Link2
+      : icon === "regenerate"
+        ? RefreshCw
+        : icon === "send"
+          ? Send
+          : XCircle;
 
   return (
     <Button
@@ -155,6 +175,7 @@ export function ConfirmationLinkPanel({
   customerName,
   customerProfileEmail,
   generateAction,
+  sendAction,
   revokeAction,
   recordShareAction,
 }: ConfirmationLinkPanelProps) {
@@ -166,6 +187,22 @@ export function ConfirmationLinkPanel({
     revokeAction,
     initialConfirmationLinkActionState,
   );
+  const [sendState, sendFormAction] = useActionState(
+    sendAction,
+    initialConfirmationLinkActionState,
+  );
+  const [editedSendState, setEditedSendState] =
+    useState<ConfirmationLinkActionState | null>(null);
+  useEffect(() => {
+    if (!sendState.fieldErrors?.recipientEmail?.length) return;
+
+    const frame = window.requestAnimationFrame(() => {
+      const recipient = document.getElementById("confirmation-recipient-email");
+      recipient?.scrollIntoView?.({ behavior: "smooth", block: "center" });
+      recipient?.focus({ preventScroll: true });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [sendState]);
   const active = summary.status === "active";
   const confirmed = summary.status === "used" || Boolean(summary.confirmedAt);
   const canGenerateFresh =
@@ -183,9 +220,18 @@ export function ConfirmationLinkPanel({
   const profileEmailDiffers = Boolean(
     summary.contactEmail &&
     customerProfileEmail &&
-    summary.contactEmail.trim().toLowerCase() !==
-      customerProfileEmail.trim().toLowerCase(),
+    !customerContactEmailsMatch(summary.contactEmail, customerProfileEmail),
   );
+  const suggestedRecipient =
+    sendState.recipientEmail ??
+    summary.requestRecipientEmail ??
+    customerProfileEmail ??
+    summary.contactEmail ??
+    "";
+  const recipientError =
+    editedSendState === sendState
+      ? undefined
+      : sendState.fieldErrors?.recipientEmail?.[0];
 
   return (
     <div className="space-y-4">
@@ -250,6 +296,17 @@ export function ConfirmationLinkPanel({
         </div>
       ) : null}
 
+      {summary.requestRecipientEmail ? (
+        <div className="rounded-lg border border-border bg-muted/50 p-3 text-sm">
+          <p className="font-medium">Last confirmation request</p>
+          <p className="mt-1 break-all text-muted-foreground">
+            {summary.requestRecipientEmail} ·{" "}
+            {summary.requestEmailStatus?.toLowerCase() ?? "queued"} ·{" "}
+            {formatDateTime(summary.requestCreatedAt)}
+          </p>
+        </div>
+      ) : null}
+
       {active && generatedUrl && generatedLinkId ? (
         <div className="space-y-4 rounded-lg border border-primary/20 bg-primary/[0.03] p-4">
           <div className="flex items-start gap-3">
@@ -290,6 +347,75 @@ export function ConfirmationLinkPanel({
 
       {canManage ? (
         <div className="space-y-3">
+          <form
+            action={sendFormAction}
+            className="space-y-3 rounded-lg border border-primary/15 bg-primary/[0.025] p-4"
+            noValidate
+          >
+            <div>
+              <p className="text-sm font-semibold">Review the recipient before sending</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Sending creates a fresh secure link. Changing this address revokes the
+                previous link.
+              </p>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
+              <div>
+                <label htmlFor="confirmation-recipient-email" className="sr-only">
+                  Confirmation email recipient
+                </label>
+                <input
+                  key={suggestedRecipient}
+                  id="confirmation-recipient-email"
+                  name="recipientEmail"
+                  type="email"
+                  autoComplete="email"
+                  defaultValue={suggestedRecipient}
+                  onChange={() => setEditedSendState(sendState)}
+                  onBlur={(event) => {
+                    event.currentTarget.value = normalizeCustomerContactEmail(
+                      event.currentTarget.value,
+                    );
+                  }}
+                  aria-invalid={Boolean(recipientError)}
+                  aria-describedby={
+                    recipientError ? "confirmation-recipient-error" : undefined
+                  }
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
+                  placeholder="customer@example.com"
+                />
+                {recipientError ? (
+                  <p
+                    id="confirmation-recipient-error"
+                    className="mt-1.5 text-sm text-destructive"
+                  >
+                    {recipientError}
+                  </p>
+                ) : null}
+              </div>
+              <SubmitButton
+                label="Send confirmation email"
+                pendingLabel="Sending..."
+                variant="primary"
+                icon="send"
+                className="w-full sm:w-auto"
+              />
+            </div>
+            {sendState.message ? (
+              <p
+                role="status"
+                className={cn(
+                  "text-sm",
+                  sendState.status === "error"
+                    ? "text-destructive"
+                    : "text-muted-foreground",
+                )}
+              >
+                {sendState.message}
+              </p>
+            ) : null}
+          </form>
+
           {active ? (
             <div className="flex items-start gap-3">
               <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary/[0.07] text-primary">

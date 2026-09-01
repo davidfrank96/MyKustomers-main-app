@@ -2,18 +2,19 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import type { Route } from "next";
 import { Suspense } from "react";
-import { Archive, ArrowLeft, CalendarDays, ChevronRight } from "lucide-react";
+import { ArrowLeft, CalendarDays } from "lucide-react";
+import { CustomerLifecyclePanel } from "@/components/customers/customer-lifecycle-panel";
 import { CustomerForm } from "@/components/forms/customer-form";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
+import { updateCustomerAction } from "@/features/customers/actions";
 import {
-  archiveCustomerAction,
-  updateCustomerAction,
-} from "@/features/customers/actions";
-import { getCustomerForBusiness } from "@/features/customers/queries";
+  getCustomerBookingState,
+  getCustomerForBusiness,
+} from "@/features/customers/queries";
 import { listFeedbackForCustomer } from "@/features/feedback/queries";
 import { getCurrentBusinessContext } from "@/lib/auth/server";
 
@@ -31,12 +32,8 @@ function formatDateTime(value: string) {
 
 function formatCreatedDateTime(value: string) {
   const createdAt = new Date(value);
-  const date = new Intl.DateTimeFormat("en", { dateStyle: "medium" }).format(
-    createdAt,
-  );
-  const time = new Intl.DateTimeFormat("en", { timeStyle: "short" }).format(
-    createdAt,
-  );
+  const date = new Intl.DateTimeFormat("en", { dateStyle: "medium" }).format(createdAt);
+  const time = new Intl.DateTimeFormat("en", { timeStyle: "short" }).format(createdAt);
 
   return `${date} • ${time}`;
 }
@@ -121,7 +118,11 @@ export default async function CustomerDetailPage({
   const query = (await searchParams) ?? {};
   const customerPromise = getCustomerForBusiness(currentBusiness.id, customerId);
   const feedbackPromise = listFeedbackForCustomer(currentBusiness.id, customerId);
-  const customer = await customerPromise;
+  const bookingStatePromise = getCustomerBookingState(currentBusiness.id, customerId);
+  const [customer, bookingState] = await Promise.all([
+    customerPromise,
+    bookingStatePromise,
+  ]);
 
   if (!customer) {
     notFound();
@@ -157,34 +158,14 @@ export default async function CustomerDetailPage({
         </p>
       </div>
 
-      {!isArchived ? (
-        <form action={archiveCustomerAction.bind(null, customer.id)}>
-          <button
-            type="submit"
-            className="group flex min-h-20 w-full items-center gap-3 rounded-lg border border-border bg-card p-3 text-left transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:p-4"
-            aria-label="Archive customer"
-          >
-            <span
-              className="grid size-12 shrink-0 place-items-center rounded-lg bg-primary/5 text-primary"
-              aria-hidden="true"
-            >
-              <Archive className="size-5" aria-hidden="true" />
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block font-semibold text-foreground">
-                Archive customer
-              </span>
-              <span className="mt-1 block text-sm leading-5 text-muted-foreground">
-                Move this customer to archive
-              </span>
-            </span>
-            <ChevronRight
-              className="size-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5"
-              aria-hidden="true"
-            />
-          </button>
-        </form>
-      ) : null}
+      <CustomerLifecyclePanel
+        customerId={customer.id}
+        customerName={customer.name}
+        isArchived={isArchived}
+        hasBookings={bookingState.hasBookings}
+        hasActiveBookings={bookingState.hasActiveBookings}
+        canDelete={currentBusiness.role === "owner"}
+      />
 
       {created ? (
         <p className="rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground">

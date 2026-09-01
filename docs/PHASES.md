@@ -1323,3 +1323,15 @@ admin writes, Replay, feedback widget, profiling, logs, metrics, service-worker
 work, Docker, automatic remediation, SIEM, vulnerability scanning, or Admin
 Phase 8. Completion requires normal PR/CI/deployment plus controlled Sentry
 event and source-map verification; implementation alone is insufficient.
+
+## Customer Contact, Validation, And Customer Lifecycle Maintenance
+
+Status: IMPLEMENTED - VERIFICATION PENDING
+
+The application now has domain-only customer-contact normalization, an
+editable recipient review and durable exact-link initial confirmation request,
+visible first-invalid form feedback, reversible customer Archive/Restore, and
+owner-only atomic zero-booking deletion. Approved migrations are applied with
+catalog/count verification. Mutation fixtures remain prohibited on the current
+production-backed target; complete local gates, CI, deployment, and read-only
+production smoke are pending.

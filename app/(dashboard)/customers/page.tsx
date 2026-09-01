@@ -54,10 +54,12 @@ async function CustomerResults({
   resultPromise,
   params,
   businessId,
+  canDelete,
 }: {
   resultPromise: ReturnType<typeof listCustomersForBusiness>;
   params: ReturnType<typeof parseCustomerListParams>;
   businessId: string;
+  canDelete: boolean;
 }) {
   const result = await resultPromise;
 
@@ -85,6 +87,7 @@ async function CustomerResults({
           total={result.total}
           q={params.q}
           status={params.status}
+          canDelete={canDelete}
         />
       )}
     </>
@@ -151,6 +154,7 @@ export default async function CustomersPage({ searchParams }: CustomersPageProps
           resultPromise={resultPromise}
           params={params}
           businessId={currentBusiness.id}
+          canDelete={currentBusiness.role === "owner"}
         />
       </Suspense>
       <CustomersMobileActions />

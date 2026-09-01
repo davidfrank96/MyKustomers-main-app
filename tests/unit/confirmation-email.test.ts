@@ -84,7 +84,7 @@ describe("confirmation contact and email", () => {
         confirmationContactEmail: " New@Example.com ",
         customerEmail: "old@example.com",
       }),
-    ).toBe("new@example.com");
+    ).toBe("New@example.com");
     expect(
       selectCancellationRecipient({
         confirmationContactEmail: null,

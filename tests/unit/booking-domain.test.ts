@@ -166,7 +166,7 @@ describe("booking domain", () => {
 
     expect(normalized.success).toBe(true);
     if (normalized.success && normalized.data.customerMode === "new") {
-      expect(normalized.data.newCustomerEmail).toBe("sarah@example.com");
+      expect(normalized.data.newCustomerEmail).toBe("SARAH@example.com");
       expect(normalized.data.newCustomerPhone).toBe("+353 01 555 0101");
     }
     expect(malformed.success).toBe(false);

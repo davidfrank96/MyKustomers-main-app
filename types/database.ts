@@ -778,6 +778,13 @@ export type Database = {
     };
     Views: Record<string, never>;
     Functions: {
+      delete_customer_if_eligible: {
+        Args: { p_customer_id: string };
+        Returns: {
+          deleted: boolean;
+          reason: string;
+        }[];
+      };
       get_my_platform_admin: {
         Args: Record<string, never>;
         Returns: {
@@ -917,6 +924,22 @@ export type Database = {
           confirmation_link_id: string;
           expires_at: string;
           replaced_link_count: number;
+        }[];
+      };
+      create_booking_confirmation_request: {
+        Args: {
+          p_booking_id: string;
+          p_contact_email: string;
+          p_token_hash: string;
+          p_expires_at?: string;
+        };
+        Returns: {
+          confirmation_link_id: string;
+          email_event_id: string;
+          recipient_email: string;
+          expires_at: string;
+          replaced_link_count: number;
+          request_status: string;
         }[];
       };
       revoke_booking_confirmation_link: {
@@ -1208,6 +1231,7 @@ export type Database = {
       booking_amendment_status: "PENDING_CUSTOMER" | "CONFIRMED" | "REVOKED";
       booking_addon_status: "DRAFT" | "AWAITING_CUSTOMER" | "CONFIRMED" | "CANCELLED";
       email_event_type:
+        | "BOOKING_CONFIRMATION_REQUESTED"
         | "BOOKING_CONFIRMED"
         | "BOOKING_CANCELLED"
         | "BOOKING_AMENDMENT_REQUESTED"
@@ -1231,6 +1255,7 @@ export type Database = {
         | "CUSTOMER_CREATED"
         | "CUSTOMER_UPDATED"
         | "CUSTOMER_ARCHIVED"
+        | "CUSTOMER_DELETED"
         | "BOOKING_CREATED"
         | "BOOKING_UPDATED"
         | "BOOKING_STATUS_CHANGED"

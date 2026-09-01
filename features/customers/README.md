@@ -7,9 +7,23 @@ Supabase Auth users, do not have passwords, and are not members of
 `business_members`.
 
 Customer access is controlled by the `customers.business_id` relationship,
-server-side membership checks, and PostgreSQL RLS. Ordinary UI deletion is
-implemented as archiving through `archived_at`; hard deletion is deferred to a
-future privacy/account-deletion design.
+server-side membership checks, and PostgreSQL RLS. Archive remains the ordinary
+removal action and is reversible through Restore. Archive never changes a
+booking, including an active booking.
+
+Permanent deletion is an exceptional owner-only action. It is shown only for a
+customer with no known booking history and is rechecked atomically by
+`public.delete_customer_if_eligible`. The function locks the customer, verifies
+current owner authority and tenant scope, and refuses deletion when any booking
+or protected dependency exists. It never cascades to bookings. Members can
+archive and restore but cannot permanently delete. Booking-query failures fail
+closed in the UI, and database eligibility remains authoritative against races.
+
+Customer rows expose Archive/Restore and eligible Delete through a visible
+desktop/keyboard action menu. A lightweight mobile horizontal swipe may reveal
+the same actions but never executes one; vertical movement and the left-edge
+browser navigation gesture retain priority. Permanent deletion always requires
+an explicit destructive confirmation.
 
 The Customers list remains a server-rendered, tenant-scoped search over name,
 email, and phone. Its text input updates the `q` URL parameter from the first
@@ -38,3 +52,8 @@ Repeat bookings may therefore retain different booking contacts for the same
 customer without changing or duplicating the customer directory record. No
 preferred contact, customer email history, ownership verification, or automatic
 deduplication model exists in this detour.
+
+Customer-contact email normalization trims surrounding whitespace, preserves
+the mailbox/local part exactly, and lowercases only the domain. It does not use
+a provider allowlist; syntactically supported Gmail, Outlook/Hotmail, Yahoo,
+iCloud, country-code, and custom domains follow the same validation policy.

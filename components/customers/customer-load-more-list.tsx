@@ -1,12 +1,9 @@
 "use client";
 
-import Link from "next/link";
-import type { Route } from "next";
-import { useEffect, useRef, useState } from "react";
-import { ChevronRight } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { CustomerRow } from "@/components/customers/customer-row";
 import type { CustomerListItem } from "@/features/customers/queries";
 import type { CustomerArchiveFilter } from "@/features/customers/validation";
 
@@ -14,14 +11,6 @@ type CustomerLoadMoreResponse = {
   customers: CustomerListItem[];
   hasMore: boolean;
 };
-
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("en", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(new Date(value));
-}
 
 function isLoadMoreResponse(value: unknown): value is CustomerLoadMoreResponse {
   if (!value || typeof value !== "object") return false;
@@ -34,13 +23,16 @@ export function CustomerLoadMoreList({
   total,
   q,
   status,
+  canDelete,
 }: {
   initialCustomers: CustomerListItem[];
   total: number;
   q: string;
   status: CustomerArchiveFilter;
+  canDelete?: boolean;
 }) {
   const [customers, setCustomers] = useState(initialCustomers);
+  const [visibleTotal, setVisibleTotal] = useState(total);
   const [hasMore, setHasMore] = useState(initialCustomers.length < total);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -49,6 +41,38 @@ export function CustomerLoadMoreList({
   const activeRequest = useRef<AbortController | null>(null);
 
   useEffect(() => () => activeRequest.current?.abort(), []);
+
+  const handleLifecycle = useCallback(
+    (customerId: string, operation: "archive" | "restore" | "delete") => {
+      if (operation === "delete") {
+        setCustomers((current) =>
+          current.filter((customer) => customer.id !== customerId),
+        );
+        setVisibleTotal((current) => Math.max(0, current - 1));
+        return;
+      }
+
+      const remainsInFilter = status === "all";
+      if (remainsInFilter) {
+        setCustomers((current) =>
+          current.map((customer) =>
+            customer.id === customerId
+              ? {
+                  ...customer,
+                  archived_at: operation === "archive" ? new Date().toISOString() : null,
+                }
+              : customer,
+          ),
+        );
+      } else {
+        setCustomers((current) =>
+          current.filter((customer) => customer.id !== customerId),
+        );
+        setVisibleTotal((current) => Math.max(0, current - 1));
+      }
+    },
+    [status],
+  );
 
   async function loadMore() {
     const cursor = customers.at(-1);
@@ -79,7 +103,9 @@ export function CustomerLoadMoreList({
       }
 
       const existingIds = new Set(customers.map((customer) => customer.id));
-      const appended = payload.customers.filter((customer) => !existingIds.has(customer.id));
+      const appended = payload.customers.filter(
+        (customer) => !existingIds.has(customer.id),
+      );
       setCustomers((current) => [...current, ...appended]);
       setHasMore(payload.hasMore);
       setAnnouncement(
@@ -101,47 +127,19 @@ export function CustomerLoadMoreList({
   return (
     <>
       <Card className="divide-y divide-border overflow-hidden">
-        {customers.map((customer) => {
-          const contact = customer.phone || customer.email || "No contact saved";
-          const initial = customer.name.trim().charAt(0).toUpperCase() || "C";
-
-          return (
-            <Link
-              key={customer.id}
-              href={`/customers/${customer.id}` as Route}
-              className="group flex min-w-0 items-center gap-3 p-4 transition-colors hover:bg-muted/60 sm:px-5"
-            >
-              <span className="grid size-10 shrink-0 place-items-center rounded-full bg-muted text-sm font-semibold text-primary">
-                {initial}
-              </span>
-              <div className="min-w-0 flex-1 sm:flex sm:items-center sm:justify-between sm:gap-4">
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h2 className="truncate text-sm font-semibold leading-5 sm:text-base">
-                      {customer.name}
-                    </h2>
-                    {customer.archived_at ? <Badge variant="outline">Archived</Badge> : null}
-                  </div>
-                  <p className="mt-1 truncate text-xs leading-5 text-muted-foreground sm:text-sm">
-                    {contact}
-                  </p>
-                </div>
-                <p className="mt-1 shrink-0 text-xs text-muted-foreground sm:mt-0 sm:text-sm">
-                  Customer since {formatDate(customer.created_at)}
-                </p>
-              </div>
-              <ChevronRight
-                className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5"
-                aria-hidden="true"
-              />
-            </Link>
-          );
-        })}
+        {customers.map((customer) => (
+          <CustomerRow
+            key={customer.id}
+            customer={customer}
+            canDelete={Boolean(canDelete)}
+            onLifecycle={handleLifecycle}
+          />
+        ))}
       </Card>
 
       <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-muted-foreground">
-          Showing {customers.length} of {total} customers.
+          Showing {customers.length} of {visibleTotal} customers.
         </p>
         {hasMore ? (
           <Button type="button" variant="secondary" onClick={loadMore} disabled={loading}>

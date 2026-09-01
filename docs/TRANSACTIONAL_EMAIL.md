@@ -57,6 +57,22 @@ Reply-To remains unset because the product has no reviewed tenant-safe model.
 
 ## Data And Semantics
 
+Customer-contact validation is provider-neutral. The application trims the
+address, preserves the mailbox/local part, lowercases only the domain, and then
+applies supported email syntax validation. Gmail, Outlook/Hotmail, Yahoo,
+iCloud, `.ie`, `.co.uk`, and custom domains are not allowlisted or treated
+differently. Syntax acceptance is not provider acceptance, inbox delivery, or
+mailbox ownership verification.
+
+`BOOKING_CONFIRMATION_REQUESTED` is created only by the explicit Send
+confirmation transaction. It references the exact fresh `confirmation_link_id`;
+the plaintext token is used only in memory for the outbound `/c/` URL. Manual
+Generate/share creates no email event. Recipient correction atomically revokes
+the prior open capability and creates a new link/event. A same-recipient request
+within 30 seconds creates and sends nothing. Provider failure leaves the booking
+and committed request intact; because the token is unreconstructable, a fresh
+vendor request—not generic admin retry—is the safe recovery path.
+
 Brevo receives one direct recipient plus the existing subject, HTML, and
 plain-text content. It does not receive a customer-directory synchronization,
 contact creation, lists, campaigns, newsletters, or marketing automation.

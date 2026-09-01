@@ -40,8 +40,24 @@ import {
   type BookingActionState,
 } from "@/features/bookings/action-state";
 import { bookingCurrencies } from "@/features/bookings/money";
+import { normalizeCustomerContactEmail } from "@/features/customers/email";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import { useFormErrorNavigation } from "@/hooks/use-form-error-navigation";
 import { cn } from "@/lib/utils/cn";
+
+const bookingFieldOrder = [
+  "customerId",
+  "newCustomerName",
+  "newCustomerEmail",
+  "newCustomerPhone",
+  "title",
+  "description",
+  "currency",
+  "scheduledFor",
+  "totalAmount",
+  "depositAmount",
+  "internalNotes",
+] as const;
 
 type CustomerOption = {
   id: string;
@@ -226,7 +242,15 @@ export function BookingForm({
   materialDisabled = false,
 }: BookingFormProps) {
   const editing = mode === "edit";
-  const [state, formAction] = useActionState(action, initialBookingActionState);
+  const [actionState, formAction] = useActionState(action, initialBookingActionState);
+  const {
+    formRef,
+    visibleFieldErrors,
+    clearFieldError,
+    onInputCapture,
+    onChangeCapture,
+  } = useFormErrorNavigation(actionState.fieldErrors, bookingFieldOrder);
+  const state = { ...actionState, fieldErrors: visibleFieldErrors };
   const [customerMode, setCustomerMode] = useState<"existing" | "new">(
     defaultCustomerMode,
   );
@@ -287,7 +311,8 @@ export function BookingForm({
     state.duplicateCandidates?.length &&
     state.duplicateInput &&
     state.duplicateInput.name === newCustomerName.trim() &&
-    state.duplicateInput.email === (newCustomerEmail.trim().toLowerCase() || null) &&
+    state.duplicateInput.email ===
+      (normalizeCustomerContactEmail(newCustomerEmail) || null) &&
     state.duplicateInput.phone === (newCustomerPhone.trim() || null),
   );
 
@@ -450,7 +475,10 @@ export function BookingForm({
             <Select
               name="customerId"
               value={selectedCustomerId}
-              onValueChange={setSelectedCustomerId}
+              onValueChange={(value) => {
+                setSelectedCustomerId(value);
+                clearFieldError("customerId");
+              }}
               disabled={disabled}
             >
               <SelectTrigger
@@ -669,7 +697,10 @@ export function BookingForm({
       <Select
         name="currency"
         value={currency}
-        onValueChange={setCurrency}
+        onValueChange={(value) => {
+          setCurrency(value);
+          clearFieldError("currency");
+        }}
         disabled={disabled || materialDisabled}
       >
         {editing ? (
@@ -708,11 +739,11 @@ export function BookingForm({
 
   const scheduleField = (
     <div className={editing ? "space-y-2.5" : "space-y-2"}>
-      <Label htmlFor="scheduledForLocal">Scheduled delivery date</Label>
+      <Label htmlFor="scheduledFor">Scheduled delivery date</Label>
       {editing ? (
         <EditFieldControl icon={CalendarDays}>
           <Input
-            id="scheduledForLocal"
+            id="scheduledFor"
             type="datetime-local"
             value={scheduledLocal}
             onChange={(event) => setScheduledLocal(event.target.value)}
@@ -726,7 +757,7 @@ export function BookingForm({
         </EditFieldControl>
       ) : (
         <Input
-          id="scheduledForLocal"
+          id="scheduledFor"
           type="datetime-local"
           value={scheduledLocal}
           onChange={(event) => setScheduledLocal(event.target.value)}
@@ -886,7 +917,10 @@ export function BookingForm({
 
   return (
     <form
+      ref={formRef}
       action={formAction}
+      onInputCapture={onInputCapture}
+      onChangeCapture={onChangeCapture}
       className={cn("min-w-0 space-y-5", editing && "space-y-6")}
       noValidate
     >

@@ -7,6 +7,7 @@ import { hashRateLimitIdentity } from "../../features/confirmation-links/rate-li
 import { hashConfirmationToken } from "../../features/confirmation-links/token";
 import { hashAddonToken } from "../../features/addons/token";
 import { hashFeedbackToken } from "../../features/feedback/token";
+import { normalizeCustomerContactEmail } from "../../features/customers/email";
 
 function loadLocalEnv() {
   if (!fs.existsSync(".env")) {
@@ -2625,7 +2626,11 @@ test.describe("booking engine", () => {
       .eq("name", inlineCustomerName);
     expect(inlineCustomersError).toBeNull();
     expect(inlineCustomers).toEqual([
-      { id: expect.any(String), email: duplicateEmail, phone: null },
+      {
+        id: expect.any(String),
+        email: normalizeCustomerContactEmail(duplicateEmail.toUpperCase()),
+        phone: null,
+      },
     ]);
     const inlineCustomerId = inlineCustomers![0].id;
 
@@ -2658,7 +2663,7 @@ test.describe("booking engine", () => {
       .eq("id", inlineCustomerId)
       .single();
     expect(confirmedInlineCustomer).toEqual({
-      email: duplicateEmail,
+      email: normalizeCustomerContactEmail(duplicateEmail.toUpperCase()),
       phone: "+353 01 555 0188",
     });
   });

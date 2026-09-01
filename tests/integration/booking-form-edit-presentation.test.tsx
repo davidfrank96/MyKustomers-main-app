@@ -181,6 +181,13 @@ describe("BookingForm edit presentation", () => {
       "aria-describedby",
       "total-error",
     );
+    await waitFor(() => expect(screen.getByLabelText("Booking title")).toHaveFocus());
+
+    fireEvent.change(screen.getByLabelText("Booking title"), {
+      target: { value: "Corrected title" },
+    });
+    expect(screen.queryByText("Enter a booking title.")).toBeNull();
+    expect(screen.getByText("Enter a valid agreed total.")).toBeVisible();
   });
 
   it("keeps a pending save stable and prevents duplicate submission", async () => {
