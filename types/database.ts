@@ -521,6 +521,7 @@ export type Database = {
           booking_addon_confirmation_link_id: string | null;
           booking_change_id: string | null;
           confirmation_link_id: string | null;
+          feedback_link_id: string | null;
           event_type: Database["public"]["Enums"]["email_event_type"];
           recipient_email: string;
           status: Database["public"]["Enums"]["email_event_status"];
@@ -543,6 +544,7 @@ export type Database = {
           booking_addon_confirmation_link_id?: string | null;
           booking_change_id?: string | null;
           confirmation_link_id?: string | null;
+          feedback_link_id?: string | null;
           event_type: Database["public"]["Enums"]["email_event_type"];
           recipient_email: string;
           status?: Database["public"]["Enums"]["email_event_status"];
@@ -644,6 +646,7 @@ export type Database = {
           revoked_at: string | null;
           revoked_reason: string | null;
           first_opened_at: string | null;
+          token_version: number;
           created_by: string;
           created_at: string;
         };
@@ -658,6 +661,7 @@ export type Database = {
           revoked_at?: string | null;
           revoked_reason?: string | null;
           first_opened_at?: string | null;
+          token_version?: number;
           created_by: string;
           created_at?: string;
         };
@@ -1165,6 +1169,42 @@ export type Database = {
           feedback_link_id: string;
           expires_at: string;
           replaced_link_count: number;
+        }[];
+      };
+      create_or_recover_booking_feedback_link: {
+        Args: { p_booking_id: string };
+        Returns: {
+          feedback_link_id: string;
+          feedback_token: string;
+          expires_at: string;
+          token_version: number;
+          replaced_link_count: number;
+          reused: boolean;
+        }[];
+      };
+      deliver_booking_with_feedback: {
+        Args: { p_booking_id: string };
+        Returns: {
+          booking_id: string;
+          booking_status: Database["public"]["Enums"]["booking_status"];
+          email_event_id: string;
+          feedback_link_id: string;
+          feedback_token: string;
+          expires_at: string;
+          reused: boolean;
+        }[];
+      };
+      get_delivery_feedback_dispatch_context: {
+        Args: { p_email_event_id: string };
+        Returns: {
+          email_event_id: string;
+          business_id: string;
+          booking_id: string;
+          recipient_email: string;
+          feedback_link_id: string;
+          feedback_token: string;
+          expires_at: string;
+          booking_status: Database["public"]["Enums"]["booking_status"];
         }[];
       };
       revoke_booking_feedback_link: {

@@ -17,11 +17,6 @@ import {
   isResolvableIssueStatus,
 } from "@/features/feedback/validation";
 import {
-  feedbackLinkExpiresAt,
-  generateFeedbackToken,
-  hashFeedbackToken,
-} from "@/features/feedback/token";
-import {
   isFeedbackShareMethod,
   type FeedbackShareMethod,
 } from "@/features/feedback/share";
@@ -48,13 +43,9 @@ export async function generateFeedbackLinkAction(
   void previousState;
   void formData;
   await requireCurrentBusiness(`/bookings/${bookingId}`);
-  const token = generateFeedbackToken();
-  const expiresAt = feedbackLinkExpiresAt();
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc("create_booking_feedback_link", {
+  const { data, error } = await supabase.rpc("create_or_recover_booking_feedback_link", {
     p_booking_id: bookingId,
-    p_token_hash: hashFeedbackToken(token),
-    p_expires_at: expiresAt.toISOString(),
   });
 
   if (error || !data?.[0]) {
@@ -68,12 +59,13 @@ export async function generateFeedbackLinkAction(
   revalidatePath(`/bookings/${bookingId}`);
 
   const baseUrl = publicEnv.NEXT_PUBLIC_APP_URL.replace(/\/$/, "");
-  const feedbackUrl = `${baseUrl}/f/${token}`;
+  const feedbackUrl = `${baseUrl}/f/${data[0].feedback_token}`;
 
   return {
     status: "success",
-    message:
-      data[0].replaced_link_count > 0
+    message: data[0].reused
+      ? "Feedback link ready to share."
+      : data[0].replaced_link_count > 0
         ? "Previous feedback link revoked. New feedback link generated."
         : "Feedback link generated.",
     feedbackUrl,
@@ -107,7 +99,7 @@ export async function recordFeedbackShareAction(
       .select("id")
       .eq("id", bookingId)
       .eq("business_id", business.id)
-      .eq("status", "COMPLETED")
+      .in("status", ["DELIVERED", "COMPLETED"])
       .maybeSingle(),
   ]);
 

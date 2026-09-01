@@ -348,8 +348,8 @@ export default async function BookingDetailPage({
     : "Payment status unavailable";
   const feedbackSectionSummary = feedback
     ? "Feedback received"
-    : booking.status !== "COMPLETED"
-      ? "Available after completion"
+    : !isFeedbackEligibleStatus(booking.status)
+      ? "Available after delivery"
       : feedbackSummary.status === "active"
         ? "Feedback request ready"
         : feedbackSummary.status === "expired"
@@ -632,7 +632,7 @@ export default async function BookingDetailPage({
           summary={feedbackSectionSummary}
           icon="feedback"
           defaultOpen={defaultOpenSection === "private-feedback"}
-          attention={booking.status === "COMPLETED" && !feedback}
+          attention={isFeedbackEligibleStatus(booking.status) && !feedback}
         >
           {feedback ? (
             <div className="space-y-4">

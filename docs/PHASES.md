@@ -8,6 +8,19 @@
 
 Documentation is not implementation evidence.
 
+The 2026-09-01 delivery-to-feedback automation is cross-phase maintenance for
+Phases 7 and 8. Its exact migration is VERIFIED in the configured Production-
+backed database. A temporary two-function forward compatibility migration is
+also applied and rollback-verified after diagnosis identified a deployment-order
+break with the legacy delivery RPC. Repository application integration and the
+complete local desktop/mobile/PWA matrix are verified; CI, deployment, provider
+delivery, lifecycle completion smoke, rollout observation, and final cleanup
+remain pending.
+It adds versioned Vault-backed feedback capabilities, atomic delivery/event/link
+association, a 48-hour dispatch horizon, same-link manual recovery, and
+paid-plus-feedback completion in either arrival order. Historical v0 links and
+manual completion remain supported.
+
 The 2026-08-21 responsive alignment and documentation governance pass is
 cross-phase maintenance for the implemented product surface. It does not start
 Phase 10 billing or mark Phase 11's broader PWA/UX hardening and visual redesign
@@ -415,7 +428,7 @@ Objective: Allow customers to privately provide feedback about completed booking
 
 Dependencies: Phase 7.
 
-Scope: Secure completed-booking feedback links, private feedback submission,
+Scope: Secure delivered/completed-booking feedback links, private feedback submission,
 vendor-visible feedback, internal operational issue records, issue resolution,
 public endpoint hardening, and tenant isolation.
 
@@ -428,7 +441,7 @@ Data-model impact: Phase 8 migration
 RLS policies, grants, and audit event types.
 
 Security impact: Dedicated feedback token purpose, hash-only token storage,
-completed-booking eligibility, public endpoint rate limiting, no-store/noindex
+delivered/completed-booking eligibility, public endpoint rate limiting, no-store/noindex
 headers, immutable feedback, tenant-only vendor visibility, issue RLS, and
 least-privilege service-role RPC boundaries.
 

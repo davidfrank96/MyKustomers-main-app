@@ -49,6 +49,41 @@ This is an explicit early-deployment limitation, not a production database
 promotion. Runtime-security tests and migration administration must continue to
 target an explicitly identified safe environment.
 
+## Delivery-To-Feedback Migration And Rollback
+
+The Production-backed database already contains exact migration
+`20260901194500_delivery_feedback_automation.sql` with SHA-256
+`7ad964608538057bd041b745fa7005e7cb75a7e01264dade2a41ef48b8071ba7`.
+It also contains the exact temporary compatibility migration
+`20260901205018_delivery_feedback_legacy_compatibility.sql` with SHA-256
+`183af91b911c97e77717a60f8f9f9c1f23e6432dffed2a1b88a4d8d6b44009bb`.
+The latter changes only the two deferred delivery-association functions so the
+currently deployed legacy RPC can continue producing exactly one null-associated
+delivery event during rollout. Every non-null association remains strict.
+Before application deployment, the named Vault secret
+`mykustomers_feedback_capability_hmac_v1` must exist exactly once and remain
+database-managed; no Vercel environment variable is added for it. Vercel builds
+must not apply or rotate this migration or secret.
+
+The migration is additive and backward-compatible with historical version 0
+links. For an application regression, promote the last compatible Vercel
+deployment and retain the columns, functions, constraints, and Vault secret.
+Do not delete the secret, reverse the immutable migration, zero token versions,
+unlink delivery events, or attempt a destructive down migration. Any database
+correction requires a separately reviewed forward migration. Rotation or secret
+loss requires an explicit capability migration/rotation design because existing
+version 1 links depend on the current key.
+
+Production application verification must use newly created controlled fixtures
+and a controlled recipient, never replay a historical outbox row. It must prove
+the real delivery CTA, feedback-before-payment and payment-before-feedback
+completion orderings, manual recovery of the same link, retry/horizon behavior,
+and independent zero-residue cleanup before the release is called verified.
+After all Production instances use `deliver_booking_with_feedback`, record the
+deployment convergence timestamp and post-convergence event/null-association
+counts. Only then may the separately reviewed tightening migration be approved;
+it must never be applied as part of the compatibility or application rollout.
+
 ## Production Environment
 
 Vercel Production contains these required runtime variables:

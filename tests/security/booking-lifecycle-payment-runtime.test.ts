@@ -2,7 +2,10 @@ import { randomUUID } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { afterAll, describe, expect, it } from "vitest";
-import { generateConfirmationToken, hashConfirmationToken } from "@/features/confirmation-links/token";
+import {
+  generateConfirmationToken,
+  hashConfirmationToken,
+} from "@/features/confirmation-links/token";
 import type { Database } from "@/types/database";
 import { createRuntimeSecurityContext } from "@/tests/security/runtime-support";
 
@@ -25,8 +28,8 @@ const controlledProductionVerificationEnabled =
   process.env.BOOKING_PAYMENT_RUNTIME_VERIFICATION === "1" &&
   Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL &&
-      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY &&
-      process.env.SUPABASE_SERVICE_ROLE_KEY,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY &&
+    process.env.SUPABASE_SERVICE_ROLE_KEY,
   );
 const runtimeVerificationEnabled =
   runtime.enabled || controlledProductionVerificationEnabled;
@@ -153,7 +156,10 @@ if (runtimeVerificationEnabled) {
         await service.from("booking_payments").delete().in("booking_id", bookingIds);
         await service.from("booking_confirmations").delete().in("booking_id", bookingIds);
         await service.from("confirmation_links").delete().in("booking_id", bookingIds);
-        await service.from("booking_status_history").delete().in("booking_id", bookingIds);
+        await service
+          .from("booking_status_history")
+          .delete()
+          .in("booking_id", bookingIds);
         await service.from("bookings").delete().in("id", bookingIds);
       }
       if (businessIds.length > 0) {
@@ -162,7 +168,9 @@ if (runtimeVerificationEnabled) {
         await service.from("business_members").delete().in("business_id", businessIds);
         await service.from("businesses").delete().in("id", businessIds);
       }
-      await Promise.allSettled(userIds.map((userId) => service.auth.admin.deleteUser(userId)));
+      await Promise.allSettled(
+        userIds.map((userId) => service.auth.admin.deleteUser(userId)),
+      );
 
       const [remainingBusinesses, remainingBookings, remainingPayments] =
         await Promise.all([
@@ -204,7 +212,11 @@ if (runtimeVerificationEnabled) {
 
       await confirmBooking(owner.client, bookingId);
       const [{ data: booking }, { data: history }] = await Promise.all([
-        service.from("bookings").select("status, started_at").eq("id", bookingId).single(),
+        service
+          .from("bookings")
+          .select("status, started_at")
+          .eq("id", bookingId)
+          .single(),
         service
           .from("booking_status_history")
           .select("from_status, to_status")
@@ -230,37 +242,42 @@ if (runtimeVerificationEnabled) {
       });
       const { data: confirmationEvidenceBeforePayment } = await service
         .from("booking_confirmations")
-        .select("id, terms_hash, terms_snapshot, contact_email, contact_phone, confirmed_at")
+        .select(
+          "id, terms_hash, terms_snapshot, contact_email, contact_phone, confirmed_at",
+        )
         .eq("booking_id", bookingId)
         .single();
 
       const anon = runtime.createSupabaseClient(publishableKey);
-      const [outsiderSummary, outsiderPayment, anonSummary, anonPayment] = await Promise.all([
-        outsider.client.rpc("get_booking_payment_summary", { p_booking_id: bookingId }),
-        outsider.client.rpc("record_booking_payment", {
-          p_booking_id: bookingId,
-          p_amount_minor: 100,
-          p_operation_id: randomUUID(),
-        }),
-        anon.rpc("get_booking_payment_summary", { p_booking_id: bookingId }),
-        anon.rpc("record_booking_payment", {
-          p_booking_id: bookingId,
-          p_amount_minor: 100,
-          p_operation_id: randomUUID(),
-        }),
-      ]);
+      const [outsiderSummary, outsiderPayment, anonSummary, anonPayment] =
+        await Promise.all([
+          outsider.client.rpc("get_booking_payment_summary", { p_booking_id: bookingId }),
+          outsider.client.rpc("record_booking_payment", {
+            p_booking_id: bookingId,
+            p_amount_minor: 100,
+            p_operation_id: randomUUID(),
+          }),
+          anon.rpc("get_booking_payment_summary", { p_booking_id: bookingId }),
+          anon.rpc("record_booking_payment", {
+            p_booking_id: bookingId,
+            p_amount_minor: 100,
+            p_operation_id: randomUUID(),
+          }),
+        ]);
       expect(outsiderSummary.error).not.toBeNull();
       expect(outsiderPayment.error).not.toBeNull();
       expect(anonSummary.error).not.toBeNull();
       expect(anonPayment.error).not.toBeNull();
 
-      const { error: directInsertError } = await owner.client.from("booking_payments").insert({
-        business_id: owner.businessId,
-        booking_id: bookingId,
-        operation_id: randomUUID(),
-        amount_minor: 100,
-        recorded_by: owner.userId,
-      });
+      const { error: directInsertError } = await owner.client
+        .from("booking_payments")
+        .insert({
+          business_id: owner.businessId,
+          booking_id: bookingId,
+          operation_id: randomUUID(),
+          amount_minor: 100,
+          recorded_by: owner.userId,
+        });
       expect(directInsertError).not.toBeNull();
 
       const operationId = randomUUID();
@@ -277,7 +294,9 @@ if (runtimeVerificationEnabled) {
         }),
       ]);
       expect(concurrent.every((result) => result.error === null)).toBe(true);
-      expect(new Set(concurrent.map((result) => result.data?.[0]?.payment_id)).size).toBe(1);
+      expect(new Set(concurrent.map((result) => result.data?.[0]?.payment_id)).size).toBe(
+        1,
+      );
 
       const { count: operationCount } = await service
         .from("booking_payments")
@@ -293,7 +312,10 @@ if (runtimeVerificationEnabled) {
             .from("booking_payments")
             .update({ amount_minor: 1 } as never)
             .eq("id", paymentId ?? ""),
-          owner.client.from("booking_payments").delete().eq("id", paymentId ?? ""),
+          owner.client
+            .from("booking_payments")
+            .delete()
+            .eq("id", paymentId ?? ""),
         ]);
       expect(directUpdateError).not.toBeNull();
       expect(directDeleteError).not.toBeNull();
@@ -318,14 +340,22 @@ if (runtimeVerificationEnabled) {
       );
       expect(overpaymentError?.message).toContain("payment_exceeds_outstanding_balance");
 
-      for (const status of ["READY", "DELIVERED"] as const) {
-        const { error } = await owner.client.rpc("transition_booking_status", {
-          p_booking_id: bookingId,
-          p_to_status: status,
-          p_cancellation_reason: null,
-        });
-        expect(error).toBeNull();
-      }
+      expect(
+        (
+          await owner.client.rpc("transition_booking_status", {
+            p_booking_id: bookingId,
+            p_to_status: "READY",
+            p_cancellation_reason: null,
+          })
+        ).error,
+      ).toBeNull();
+      expect(
+        (
+          await owner.client.rpc("deliver_booking_with_feedback", {
+            p_booking_id: bookingId,
+          })
+        ).error,
+      ).toBeNull();
 
       const { error: blockedCompletion } = await owner.client.rpc(
         "transition_booking_status",
@@ -366,27 +396,26 @@ if (runtimeVerificationEnabled) {
         { data: auditRows },
         { data: completed },
         { data: confirmationEvidenceAfterPayment },
-      ] =
-        await Promise.all([
-          service
-            .from("booking_payments")
-            .select("amount_minor, recorded_by")
-            .eq("booking_id", bookingId)
-            .order("recorded_at", { ascending: true }),
-          service
-            .from("audit_logs")
-            .select("actor_user_id, event_type, metadata")
-            .eq("business_id", owner.businessId)
-            .eq("event_type", "BOOKING_PAYMENT_RECORDED"),
-          service.from("bookings").select("status").eq("id", bookingId).single(),
-          service
-            .from("booking_confirmations")
-            .select(
-              "id, terms_hash, terms_snapshot, contact_email, contact_phone, confirmed_at",
-            )
-            .eq("booking_id", bookingId)
-            .single(),
-        ]);
+      ] = await Promise.all([
+        service
+          .from("booking_payments")
+          .select("amount_minor, recorded_by")
+          .eq("booking_id", bookingId)
+          .order("recorded_at", { ascending: true }),
+        service
+          .from("audit_logs")
+          .select("actor_user_id, event_type, metadata")
+          .eq("business_id", owner.businessId)
+          .eq("event_type", "BOOKING_PAYMENT_RECORDED"),
+        service.from("bookings").select("status").eq("id", bookingId).single(),
+        service
+          .from("booking_confirmations")
+          .select(
+            "id, terms_hash, terms_snapshot, contact_email, contact_phone, confirmed_at",
+          )
+          .eq("booking_id", bookingId)
+          .single(),
+      ]);
       expect(paymentRows).toEqual([
         { amount_minor: 3_000, recorded_by: owner.userId },
         { amount_minor: 5_000, recorded_by: owner.userId },
@@ -397,14 +426,9 @@ if (runtimeVerificationEnabled) {
         true,
       );
       expect(completed?.status).toBe("COMPLETED");
-      expect(confirmationEvidenceAfterPayment).toEqual(
-        confirmationEvidenceBeforePayment,
-      );
+      expect(confirmationEvidenceAfterPayment).toEqual(confirmationEvidenceBeforePayment);
 
-      const concurrencyBookingId = await createBooking(
-        owner,
-        "Concurrent final payment",
-      );
+      const concurrencyBookingId = await createBooking(owner, "Concurrent final payment");
       await confirmBooking(owner.client, concurrencyBookingId);
       const concurrentFinalPayments = await Promise.all([
         owner.client.rpc("record_booking_payment", {
@@ -418,9 +442,9 @@ if (runtimeVerificationEnabled) {
           p_operation_id: randomUUID(),
         }),
       ]);
-      expect(concurrentFinalPayments.filter((result) => result.error === null)).toHaveLength(
-        1,
-      );
+      expect(
+        concurrentFinalPayments.filter((result) => result.error === null),
+      ).toHaveLength(1);
       const { data: concurrentSummary } = await owner.client.rpc(
         "get_booking_payment_summary",
         { p_booking_id: concurrencyBookingId },

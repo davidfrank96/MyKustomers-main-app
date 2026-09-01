@@ -34,11 +34,33 @@ describe("booking customer communication email", () => {
       bookingReference: "MC-260826-ABC123",
       scheduledFor: "2026-08-27T10:00:00.000Z",
       deliveredAt: "2026-08-27T10:05:00.000Z",
+      feedbackUrl: "https://mykustomers.com/f/controlled-token",
     });
 
     expect(email.text).toContain("marked as delivered");
     expect(email.text).not.toContain("received your booking");
     expect(email.text).not.toContain("payment received");
+    expect(email.text).toContain("https://mykustomers.com/f/controlled-token");
+    expect(email.html).toContain("Leave feedback");
+  });
+
+  it("omits the feedback call to action after feedback was already submitted", () => {
+    const email = bookingDeliveredEmail({
+      emailEventId: "delivery-event",
+      recipientEmail: "customer@example.com",
+      businessName: "Example & Co",
+      bookingTitle: "Birthday Cake",
+      bookingReference: "MC-260826-ABC123",
+      scheduledFor: "2026-08-27T10:00:00.000Z",
+      deliveredAt: "2026-08-27T10:05:00.000Z",
+      feedbackUrl: "https://mykustomers.com/f/controlled-token",
+      feedbackAlreadySubmitted: true,
+    });
+
+    expect(email.text).toContain("private feedback has already been received");
+    expect(email.html).toContain("private feedback has already been received");
+    expect(email.text).not.toContain("controlled-token");
+    expect(email.html).not.toContain("Leave feedback");
   });
 
   it("uses one stable subject family and opaque non-PII correlation headers", () => {

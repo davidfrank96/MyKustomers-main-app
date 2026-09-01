@@ -9,7 +9,6 @@ import {
   Clock3,
   Eye,
   Link2,
-  RefreshCw,
   Send,
   ShieldCheck,
   XCircle,
@@ -78,12 +77,11 @@ function SubmitButton({
   label: string;
   pendingLabel: string;
   variant?: "primary" | "secondary" | "destructive";
-  icon: "generate" | "regenerate" | "revoke";
+  icon: "generate" | "revoke";
   className?: string;
 }) {
   const { pending } = useFormStatus();
-  const Icon =
-    icon === "generate" ? Link2 : icon === "regenerate" ? RefreshCw : XCircle;
+  const Icon = icon === "generate" ? Link2 : XCircle;
 
   return (
     <Button
@@ -278,7 +276,7 @@ export function FeedbackLinkPanel({
                 <p className="mt-0.5 text-sm leading-5 text-muted-foreground">
                   {rawShareUrlAvailable
                     ? "Manage your link options below."
-                    : "The exact secure link is no longer available here. Regenerate it to create a fresh shareable link."}
+                    : "Prepare the secure request to recover the same link when available, without creating a duplicate request."}
                 </p>
               </div>
             </div>
@@ -309,22 +307,19 @@ export function FeedbackLinkPanel({
             <div className="grid gap-2 sm:flex sm:flex-wrap">
               <form
                 action={generateFormAction}
-                className={cn(
-                  "min-w-0",
-                  canGenerateFresh && "w-full sm:w-auto",
-                )}
+                className={cn("min-w-0", canGenerateFresh && "w-full sm:w-auto")}
               >
                 <SubmitButton
                   label={
                     active
-                      ? "Regenerate feedback link"
+                      ? "Share feedback"
                       : summary.status === "none"
                         ? "Request feedback"
                         : "Request feedback again"
                   }
-                  pendingLabel={active ? "Regenerating..." : "Generating..."}
+                  pendingLabel={active ? "Preparing..." : "Generating..."}
                   variant={active ? "secondary" : "primary"}
-                  icon={active ? "regenerate" : "generate"}
+                  icon="generate"
                   className={cn(
                     "w-full sm:w-auto",
                     active &&

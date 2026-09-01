@@ -6,6 +6,15 @@ STATUS: PLANNED
 
 This document describes product intent and domain concepts. It is not implementation evidence.
 
+Delivery-to-feedback rule: marking a ready booking delivered must create or
+recover exactly one private feedback request in the same transaction as the
+delivery event. The delivery email may include that exact request for up to 48
+hours. Manual sharing recovers the same request; it does not create a parallel
+customer obligation. Feedback and final recorded payment may arrive in either
+order. The booking completes automatically only when both exist, while the
+existing zero-balance manual completion remains available as an operational
+fallback. Feedback stays private and is never a public review.
+
 Authentication lifecycle rule: starting Google authentication should let the
 user choose an account intentionally, while password recovery must remain a
 Supabase-owned one-time recovery flow and must not reveal whether an email is
@@ -210,7 +219,8 @@ a reason. Vendors can reschedule before fulfilment begins; rescheduling a
 confirmed booking requires customer reconfirmation.
 
 Phase 8 implements the first private feedback and operational issue workflow.
-After a booking is completed, the vendor can generate a secure feedback link.
+At delivery, the system creates or recovers a secure feedback link; legacy and
+manual fallback flows may also prepare the same request after completion.
 The customer can submit private feedback without an account, and that feedback
 is visible only to the owning business. Vendors can also record and resolve
 internal operational issues on bookings. Feedback is not public review content,

@@ -74,6 +74,8 @@ describe("failed transactional email retry policy", () => {
     ["invalid_sender", "invalid sender"],
     ["provider_not_configured", "provider configuration"],
     ["invalid_confirmation_snapshot", "invalid message data"],
+    ["delivery_event_retry_horizon_elapsed", "delivery horizon elapsed"],
+    ["delivery_feedback_capability_expired", "feedback capability expired"],
   ])("blocks %s as non-retryable (%s)", (failureCode) => {
     expect(evaluate({ failureCode })).toMatchObject({
       eligible: false,

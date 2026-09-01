@@ -130,7 +130,7 @@ function deriveStandardStages(
       state = "attention";
     }
 
-    if (status === "COMPLETED" && key === "feedback" && feedbackReceived) {
+    if (key === "feedback" && feedbackReceived) {
       state = "completed";
     }
 
@@ -221,8 +221,7 @@ function derivePrimaryAction(
           kind: "anchor",
           href: "#booking-payments",
           label: "Record payment",
-          description:
-            "Record the outstanding amount before completing this booking.",
+          description: "Record the outstanding amount before completing this booking.",
         };
       }
       return {
@@ -230,7 +229,8 @@ function derivePrimaryAction(
         toStatus: "COMPLETED",
         label: "Complete booking",
         pendingLabel: "Completing booking…",
-        description: "Payment is fully recorded. Complete the booking to close fulfilment.",
+        description:
+          "Payment is fully recorded. Complete the booking to close fulfilment.",
       };
     case "COMPLETED":
       if (input.feedbackReceived || input.feedbackLinkStatus === "submitted") return null;
@@ -283,9 +283,21 @@ function deriveSummary(input: DeriveBookingJourneyInput) {
         description: "The order is prepared for delivery or collection.",
       };
     case "DELIVERED":
+      if (input.feedbackReceived || input.feedbackLinkStatus === "submitted") {
+        return {
+          title: "Feedback received",
+          description:
+            input.outstandingAmountMinor && input.outstandingAmountMinor > 0
+              ? "Private feedback is recorded. Payment is still outstanding."
+              : "Private feedback is recorded while completion is reconciled.",
+        };
+      }
       return {
-        title: "Delivered",
-        description: "The customer has received the order.",
+        title: "Awaiting feedback",
+        description:
+          input.outstandingAmountMinor && input.outstandingAmountMinor > 0
+            ? "The booking is delivered. Private feedback and payment reconciliation remain open."
+            : "The booking is delivered. The customer can now leave private feedback.",
       };
     case "COMPLETED":
       return input.feedbackReceived || input.feedbackLinkStatus === "submitted"

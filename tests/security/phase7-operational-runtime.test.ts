@@ -224,14 +224,22 @@ if (runtimeVerificationEnabled) {
         .eq("id", lifecycleBookingId);
       expect(directStatusError).not.toBeNull();
 
-      for (const status of ["READY", "DELIVERED"] as const) {
-        const { error } = await userA.client.rpc("transition_booking_status", {
-          p_booking_id: lifecycleBookingId,
-          p_to_status: status,
-          p_cancellation_reason: null,
-        });
-        expect(error).toBeNull();
-      }
+      expect(
+        (
+          await userA.client.rpc("transition_booking_status", {
+            p_booking_id: lifecycleBookingId,
+            p_to_status: "READY",
+            p_cancellation_reason: null,
+          })
+        ).error,
+      ).toBeNull();
+      expect(
+        (
+          await userA.client.rpc("deliver_booking_with_feedback", {
+            p_booking_id: lifecycleBookingId,
+          })
+        ).error,
+      ).toBeNull();
       expect(
         (
           await userA.client.rpc("record_booking_payment", {
@@ -279,8 +287,7 @@ if (runtimeVerificationEnabled) {
         "COMPLETED",
       ]);
       expect(
-        lifecycleHistory?.filter((row) => row.to_status === "IN_PROGRESS")[0]
-          ?.changed_by,
+        lifecycleHistory?.filter((row) => row.to_status === "IN_PROGRESS")[0]?.changed_by,
       ).toBeNull();
 
       const { data: staleResult, error: staleError } = await userA.client.rpc(
@@ -438,8 +445,11 @@ if (runtimeVerificationEnabled) {
         ).error,
       ).not.toBeNull();
       expect(
-        (await unsafeHistory.update({ to_status: "COMPLETED" }).eq("booking_id", invalidConfirmed.bookingId))
-          .error,
+        (
+          await unsafeHistory
+            .update({ to_status: "COMPLETED" })
+            .eq("booking_id", invalidConfirmed.bookingId)
+        ).error,
       ).not.toBeNull();
       expect(
         (await unsafeHistory.delete().eq("booking_id", invalidConfirmed.bookingId)).error,
@@ -542,7 +552,9 @@ if (runtimeVerificationEnabled) {
         .eq("id", notesBooking.bookingId)
         .single();
       expect(afterNotes?.status).toBe("IN_PROGRESS");
-      expect(afterNotes?.confirmation_terms_hash).toBe(beforeNotes?.confirmation_terms_hash);
+      expect(afterNotes?.confirmation_terms_hash).toBe(
+        beforeNotes?.confirmation_terms_hash,
+      );
 
       const cancelLinkBooking = await createBooking(
         userA.client,
@@ -570,10 +582,13 @@ if (runtimeVerificationEnabled) {
           })
         ).error,
       ).toBeNull();
-      const { data: cancelledLinkResult } = await service.rpc("confirm_booking_by_token_hash", {
-        p_token_hash: hashConfirmationToken(cancelToken),
-        p_contact_email: "phase7-cancelled@example.com",
-      });
+      const { data: cancelledLinkResult } = await service.rpc(
+        "confirm_booking_by_token_hash",
+        {
+          p_token_hash: hashConfirmationToken(cancelToken),
+          p_contact_email: "phase7-cancelled@example.com",
+        },
+      );
       expect(statusFrom(cancelledLinkResult)).toBe("booking_unavailable");
 
       expect(
@@ -617,10 +632,22 @@ if (runtimeVerificationEnabled) {
 
     afterAll(async () => {
       if (createdBookingIds.length > 0) {
-        await service.from("booking_confirmations").delete().in("booking_id", createdBookingIds);
-        await service.from("confirmation_links").delete().in("booking_id", createdBookingIds);
-        await service.from("booking_status_history").delete().in("booking_id", createdBookingIds);
-        await service.from("booking_changes").delete().in("booking_id", createdBookingIds);
+        await service
+          .from("booking_confirmations")
+          .delete()
+          .in("booking_id", createdBookingIds);
+        await service
+          .from("confirmation_links")
+          .delete()
+          .in("booking_id", createdBookingIds);
+        await service
+          .from("booking_status_history")
+          .delete()
+          .in("booking_id", createdBookingIds);
+        await service
+          .from("booking_changes")
+          .delete()
+          .in("booking_id", createdBookingIds);
         await service.from("bookings").delete().in("id", createdBookingIds);
       }
 

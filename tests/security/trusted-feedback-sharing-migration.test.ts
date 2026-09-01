@@ -35,7 +35,7 @@ describe("trusted feedback sharing security", () => {
     expect(actions).toContain('.eq("business_id", business.id)');
     expect(actions).toContain('.eq("booking_id", bookingId)');
     expect(actions).toContain('.eq("purpose", "booking_feedback")');
-    expect(actions).toContain('.eq("status", "COMPLETED")');
+    expect(actions).toContain('.in("status", ["DELIVERED", "COMPLETED"])');
     expect(actions).toContain('eventType: "FEEDBACK_SHARE_INITIATED"');
     expect(actions).not.toMatch(/metadata:\s*\{[^}]*token/s);
     expect(actions).not.toMatch(/metadata:\s*\{[^}]*feedbackUrl/s);

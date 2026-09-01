@@ -1,5 +1,50 @@
 # Changelog
 
+## 2026-09-01 - Delivery-To-Feedback Automation
+
+Status: IMPLEMENTED - PRODUCTION APPLICATION VERIFICATION PENDING
+
+- Delivery now atomically transitions the booking, creates or recovers one
+  booking-scoped feedback capability, and associates that exact link with the
+  durable `BOOKING_DELIVERED` event. Manual sharing recovers the same capability
+  instead of creating a second request.
+- New links use versioned HMAC-SHA-256 derivation from a Production Supabase
+  Vault secret. Historical random SHA-256 links remain valid as version 0; raw
+  capabilities are never stored, returned by catalog checks, or written to
+  outbox/audit metadata.
+- Delivery dispatch resolves the event-linked capability only within a 48-hour
+  horizon. It includes the canonical feedback CTA only while feedback is
+  outstanding and omits the token after submission.
+- Paid plus feedback now completes a delivered booking atomically. Feedback may
+  arrive before final payment; the booking remains delivered until the balance
+  reaches zero. The existing manual completion path remains a controlled
+  fallback.
+- Exact migration
+  `20260901194500_delivery_feedback_automation.sql` (SHA-256
+  `7ad964608538057bd041b745fa7005e7cb75a7e01264dade2a41ef48b8071ba7`)
+  was applied transactionally to the configured Production-backed database.
+  Catalog, grants, ownership, search paths, constraints, historical row counts,
+  v0 preservation, and deterministic v1 derivation passed read-only postchecks.
+- The first application-backed delivery attempt exposed a deployment-order
+  compatibility break: the old deployed `transition_booking_status` RPC still
+  created a null-associated delivery event while the new deferred constraints
+  required a version 1 association. Exact forward migration
+  `20260901205018_delivery_feedback_legacy_compatibility.sql` (SHA-256
+  `183af91b911c97e77717a60f8f9f9c1f23e6432dffed2a1b88a4d8d6b44009bb`)
+  temporarily accepts only that legacy null shape and retains exact-one-event,
+  tenant, purpose, version, immutability, owner, grant, and empty-search-path
+  protections for the new path.
+- Production rollback-only transactions verified the legacy RPC, new atomic RPC,
+  forged version 1 rejection, cross-tenant denial, historical version 0 validity,
+  immediate deferred constraints, and zero fixture residue. No provider call or
+  external email occurred during database diagnosis.
+- Local lint, typecheck, 682 Vitest checks, production build, zero-vulnerability
+  dependency audit, and diff hygiene pass. The complete Playwright matrix now
+  passes `51` with `16` intentional project skips, including canonical desktop
+  and mobile delivery-to-feedback journeys. PR, required CI, Vercel Production,
+  controlled real-provider smoke, rollout observation, and the unapplied
+  post-convergence tightening migration remain release gates.
+
 ## 2026-09-01 - Customer Contact, Validation, And Customer Lifecycle
 
 Status: IMPLEMENTED - VERIFICATION PENDING

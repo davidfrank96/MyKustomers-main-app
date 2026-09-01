@@ -331,13 +331,16 @@ async function transitionBookingStatus(
     };
   }
 
+  const isDeliveryRetry =
+    toStatus === "DELIVERED" &&
+    (booking.status === "DELIVERED" || booking.status === "COMPLETED");
   const parsed = bookingTransitionSchema.safeParse({
     fromStatus: booking.status,
     toStatus,
     cancellationReason: formData ? formValue(formData, "cancellationReason") : undefined,
   });
 
-  if (!parsed.success) {
+  if (!parsed.success && !isDeliveryRetry) {
     return {
       status: "error",
       code: "invalid-status",
@@ -346,11 +349,18 @@ async function transitionBookingStatus(
   }
 
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc("transition_booking_status", {
-    p_booking_id: bookingId,
-    p_to_status: parsed.data.toStatus,
-    p_cancellation_reason: parsed.data.cancellationReason ?? null,
-  });
+  const { data, error } =
+    toStatus === "DELIVERED"
+      ? await supabase.rpc("deliver_booking_with_feedback", {
+          p_booking_id: bookingId,
+        })
+      : await supabase.rpc("transition_booking_status", {
+          p_booking_id: bookingId,
+          p_to_status: parsed.success ? parsed.data.toStatus : "DELIVERED",
+          p_cancellation_reason: parsed.success
+            ? (parsed.data.cancellationReason ?? null)
+            : null,
+        });
 
   if (error) {
     const outstandingBalance = error.message.includes("outstanding_balance");
@@ -421,7 +431,8 @@ export async function recordBookingPaymentAction(
     if (error?.message.includes("booking_not_eligible_for_payment_recording")) {
       return {
         status: "error",
-        message: "Payments can only be recorded while work is in progress, ready, or delivered.",
+        message:
+          "Payments can only be recorded while work is in progress, ready, or delivered.",
       };
     }
 
@@ -513,7 +524,7 @@ export async function rescheduleBookingAction(
           ? "Booking rescheduled. The new confirmation request was accepted for delivery."
           : result.email_event_id
             ? "Booking rescheduled. Email delivery was not accepted; generate a new link to share manually."
-          : "Booking rescheduled. Customer confirmation is required again."
+            : "Booking rescheduled. Customer confirmation is required again."
         : "Booking rescheduled.",
   };
 }

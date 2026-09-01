@@ -4,6 +4,18 @@ My Kustomers is a mobile-first SaaS application for small businesses that manage
 customers, bookings, orders, confirmations, feedback, and customer history through
 informal channels today.
 
+Delivery-to-feedback automation is implemented in the repository and its exact
+additive migration is verified on the configured Production-backed database.
+Delivery atomically creates or recovers one private feedback request linked to
+the durable delivery event; manual sharing returns the same request, and paid
+plus feedback completes a delivered booking in either arrival order. A temporary
+forward compatibility migration keeps the legacy deployed delivery RPC working
+while preserving strict validation for every non-null version 1 event/link
+association. Legacy and new rollback-only Production database paths, forged-v1
+denial, tenant isolation, and zero residue are verified. The complete local
+desktop/mobile/PWA browser matrix is green; PR, CI, application deployment, and
+controlled Production provider verification remain release gates.
+
 Production observability is now implemented with the current Sentry Next.js SDK
 for error capture, conservative 5% tracing, release identification, and private
 source-map upload. A centralized fail-closed sanitizer removes capability
