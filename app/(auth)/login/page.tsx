@@ -19,6 +19,7 @@ const messages: Record<string, string> = {
   "signed-out": "You have been signed out.",
   "auth-error": "We could not complete authentication. Please try again.",
   "oauth-error": "Google sign-in was not completed. Try again or use email.",
+  "password-updated": "Your password has been updated. Log in with your new password.",
 };
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {

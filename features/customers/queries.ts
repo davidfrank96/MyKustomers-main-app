@@ -21,6 +21,11 @@ export type CustomerListResult = {
   totalPages: number;
 };
 
+export type CustomerListCursor = {
+  createdAt: string;
+  id: string;
+};
+
 export type PotentialDuplicateCustomer = Pick<
   Customer,
   "id" | "name" | "email" | "phone"
@@ -29,16 +34,25 @@ export type PotentialDuplicateCustomer = Pick<
 export async function listCustomersForBusiness(
   businessId: string,
   params: CustomerListParams,
+  cursor?: CustomerListCursor,
 ): Promise<CustomerListResult> {
   const supabase = await createClient();
-  const from = (params.page - 1) * params.limit;
+  const from = cursor ? 0 : (params.page - 1) * params.limit;
   const to = from + params.limit - 1;
 
   let query = supabase
     .from("customers")
     .select("id, name, email, phone, archived_at, created_at", { count: "exact" })
     .eq("business_id", businessId)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .order("id", { ascending: false });
+
+  if (cursor) {
+    const createdAt = quotePostgrestFilterValue(cursor.createdAt);
+    query = query.or(
+      `created_at.lt.${createdAt},and(created_at.eq.${createdAt},id.lt.${cursor.id})`,
+    );
+  }
 
   if (params.status === "active") {
     query = query.is("archived_at", null);
@@ -50,7 +64,9 @@ export async function listCustomersForBusiness(
     const escapedSearch = escapePostgrestLikePattern(params.q);
     if (escapedSearch) {
       const pattern = quotePostgrestFilterValue(`%${escapedSearch}%`);
-      query = query.or(`name.ilike.${pattern},email.ilike.${pattern},phone.ilike.${pattern}`);
+      query = query.or(
+        `name.ilike.${pattern},email.ilike.${pattern},phone.ilike.${pattern}`,
+      );
     }
   }
 

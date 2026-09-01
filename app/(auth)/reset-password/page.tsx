@@ -2,8 +2,19 @@ import Link from "next/link";
 import type { Route } from "next";
 import { AuthForm } from "@/components/forms/auth-form";
 import { resetPasswordAction } from "@/features/auth/actions";
+import { hasPasswordRecoveryIntent } from "@/features/auth/password-recovery";
+import { getAuthenticatedUser } from "@/lib/auth/server";
+import { redirect } from "next/navigation";
 
-export default function ResetPasswordPage() {
+export default async function ResetPasswordPage() {
+  const [user, hasRecoveryIntent] = await Promise.all([
+    getAuthenticatedUser(),
+    hasPasswordRecoveryIntent(),
+  ]);
+  if (!user || !hasRecoveryIntent) {
+    redirect("/forgot-password?message=invalid-reset-link" as Route);
+  }
+
   return (
     <AuthForm
       title="Choose a new password"

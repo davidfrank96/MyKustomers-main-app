@@ -99,6 +99,22 @@ role check: an active zero-business platform admin may enter `/admin`, while an
 ordinary zero-business user and a disabled admin are denied. Admin status does
 not grant access to the vendor workspace without an active completed business.
 
+## Recovery And Progressive List Boundaries
+
+Password recovery uses Supabase Auth's secure recovery lifecycle and must not
+expose recovery credentials or reveal account existence unnecessarily. The
+canonical callback must exchange the PKCE code before setting a short-lived,
+HTTP-only, SameSite recovery-intent cookie scoped to `/reset-password`.
+Authenticated sessions without that intent cannot enter the reset form. A
+successful update consumes the intent and signs out; callback errors use a
+recovery-specific neutral message and never render provider details.
+
+Bookings/Customers append endpoints are private, `no-store`, authenticated
+routes. Cursor, filter, and search input are schema-validated, but tenant
+authority is never accepted from the browser: the current business is resolved
+server-side for every batch and remains protected by RLS. Ordering is
+deterministic on `created_at DESC, id DESC` and response rows are bounded to 25.
+
 ## Security Invariants
 
 SEC-001 - Tenant Isolation

@@ -3,24 +3,24 @@ import {
   buildOAuthCallbackUrl,
   getSafeOAuthNextPath,
   GOOGLE_AUTH_PROVIDER,
+  GOOGLE_OAUTH_QUERY_PARAMS,
   isTrustedSupabaseOAuthUrl,
 } from "@/features/auth/oauth";
 
 describe("Google OAuth helpers", () => {
   it("uses the Google provider and configured application origin", () => {
     expect(GOOGLE_AUTH_PROVIDER).toBe("google");
-    expect(
-      buildOAuthCallbackUrl("https://app.example"),
-    ).toBe("https://app.example/auth/callback?next=/dashboard");
+    expect(GOOGLE_OAUTH_QUERY_PARAMS).toEqual({ prompt: "select_account" });
+    expect(buildOAuthCallbackUrl("https://app.example")).toBe(
+      "https://app.example/auth/callback?next=/dashboard",
+    );
     expect(getSafeOAuthNextPath("/customers?status=active")).toBe(
       "/customers?status=active",
     );
   });
 
   it("replaces external next destinations with the dashboard", () => {
-    expect(
-      getSafeOAuthNextPath("https://attacker.example"),
-    ).toBe("/dashboard");
+    expect(getSafeOAuthNextPath("https://attacker.example")).toBe("/dashboard");
     expect(getSafeOAuthNextPath("//attacker.example/path")).toBe("/dashboard");
     expect(getSafeOAuthNextPath("not-a-local-path")).toBe("/dashboard");
   });

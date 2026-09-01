@@ -19,12 +19,17 @@ import { mapSupabaseAuthError } from "@/features/auth/errors";
 import {
   buildOAuthCallbackUrl,
   GOOGLE_AUTH_PROVIDER,
+  GOOGLE_OAUTH_QUERY_PARAMS,
   isTrustedSupabaseOAuthUrl,
 } from "@/features/auth/oauth";
 import { setOAuthNextPath } from "@/features/auth/oauth-next";
 import { isGoogleAuthEnabled } from "@/features/auth/provider-status";
 import { clearPendingBusinessOnboardingId } from "@/features/businesses/pending-onboarding";
 import { resolvePostAuthDestination } from "@/lib/auth/post-auth";
+import {
+  clearPasswordRecoveryIntent,
+  hasPasswordRecoveryIntent,
+} from "@/features/auth/password-recovery";
 
 function formValue(formData: FormData, key: string) {
   return formData.get(key);
@@ -174,6 +179,7 @@ export async function googleOAuthAction(
     provider: GOOGLE_AUTH_PROVIDER,
     options: {
       redirectTo: buildOAuthCallbackUrl(publicEnv.NEXT_PUBLIC_APP_URL),
+      queryParams: GOOGLE_OAUTH_QUERY_PARAMS,
     },
   });
 
@@ -265,7 +271,7 @@ export async function resetPasswordAction(
 
   const user = await getAuthenticatedUser();
 
-  if (!user) {
+  if (!user || !(await hasPasswordRecoveryIntent())) {
     return {
       status: "error",
       message: "Your reset link is invalid or expired. Request a new password reset.",
@@ -290,5 +296,10 @@ export async function resetPasswordAction(
     metadata: { source: "server_action" },
   });
 
-  redirect((await resolvePostAuthDestination("/dashboard", user)) as Route);
+  await clearPasswordRecoveryIntent();
+  await supabase.auth.signOut();
+  await clearSelectedBusinessId();
+  await clearPendingBusinessOnboardingId();
+
+  redirect("/login?message=password-updated" as Route);
 }

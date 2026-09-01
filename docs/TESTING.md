@@ -10,6 +10,24 @@ signup confirmation and reset-password completion remain PARTIAL because they
 require a controlled inbox and Supabase default-email delivery; those exceptions
 do not reduce the verified tenant/RLS coverage.
 
+## 2026-09-01 Auth Lifecycle And Load-More Normalization
+
+Focused local evidence covers Google's pending state and exact
+`prompt=select_account` authorize parameter without `prompt=consent`; recovery
+intent gating, successful password replacement, forced sign-out, old-password
+rejection, new-password login, invalid callback handling, and denial of the reset
+page to an ordinary authenticated session. Bookings/Customers coverage proves
+25 -> 50 -> final append, one request under rapid double-click, deterministic
+cursor behavior across a concurrent insert, duplicate-free rows, URL-preserved
+search/filter state, localized retry, and mobile/desktop overflow safety.
+
+A disposable 125-customer/125-booking tenant compared the preceding 10-row
+production build with the 25-row branch build. Seven-run direct RLS query
+medians remained about 80-106 ms while serialized customer/booking data grew
+from 2.4/5.4 KB to 6.1/13.5 KB. Under 390px Nigeria profiles, first-list usable
+timing stayed about 0.49-0.67 seconds in the final controlled pass. Cleanup
+returned zero business/Auth residue. These diagnostics are not an SLO.
+
 ## 2026-09-01 Dashboard Home Navigation Pending-State Hotfix
 
 The regression was proved before implementation at both the component and real

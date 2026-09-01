@@ -35,10 +35,15 @@ audits, while existing mode accepts only an active same-business customer.
 
 The Bookings list remains a server-rendered, tenant-scoped query over booking
 reference, title, and matching current-business customers. Its text input updates
-the `q` URL parameter after a shared 300 ms debounce, uses replace-style history,
-preserves the selected booking filter and list limit, and resets `page` to 1.
-Clearing removes `q` automatically. Status-filter links preserve the current
-query, and pagination links preserve both query and filter.
+the `q` URL parameter after a shared 300 ms debounce and uses replace-style
+history. Clearing removes `q` automatically, and status-filter links preserve
+the current query. The server renders the first 25 rows; a small client
+controller appends authenticated 25-row batches with a deterministic
+`(created_at, id)` cursor. Query/filter changes remount the list, and the
+current-business page key prevents accumulated rows crossing tenants. The
+append route ignores client tenant identity, blocks concurrent requests,
+deduplicates IDs, keeps existing rows on retryable failure, and removes Load
+more when the existing exact total is reached.
 
 New Booking loads at most 100 active same-business customer options on the
 server. The browser applies the same 300 ms debounce locally from the first

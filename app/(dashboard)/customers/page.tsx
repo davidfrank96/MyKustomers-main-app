@@ -2,7 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { Route } from "next";
 import { Suspense } from "react";
-import { ChevronRight, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
+import { CustomerLoadMoreList } from "@/components/customers/customer-load-more-list";
 import { CustomersMobileActions } from "@/components/customers/customers-mobile-actions";
 import { WorkspacePage, WorkspacePageHeader } from "@/components/layout/workspace-page";
 import { DebouncedSearchInput } from "@/components/shared/debounced-search-input";
@@ -22,35 +23,9 @@ type CustomersPageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 };
 
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("en", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(new Date(value));
-}
-
 function filterHref(status: CustomerArchiveFilter, q: string) {
   const params = new URLSearchParams();
   params.set("status", status);
-  if (q) {
-    params.set("q", q);
-  }
-  return `/customers?${params.toString()}` as Route;
-}
-
-function pageHref({
-  status,
-  q,
-  page,
-}: {
-  status: CustomerArchiveFilter;
-  q: string;
-  page: number;
-}) {
-  const params = new URLSearchParams();
-  params.set("status", status);
-  params.set("page", String(page));
   if (q) {
     params.set("q", q);
   }
@@ -78,9 +53,11 @@ function CustomerRowsFallback() {
 async function CustomerResults({
   resultPromise,
   params,
+  businessId,
 }: {
   resultPromise: ReturnType<typeof listCustomersForBusiness>;
   params: ReturnType<typeof parseCustomerListParams>;
+  businessId: string;
 }) {
   const result = await resultPromise;
 
@@ -102,82 +79,14 @@ async function CustomerResults({
           }
         />
       ) : (
-        <Card className="divide-y divide-border overflow-hidden">
-          {result.customers.map((customer) => {
-            const contact = customer.phone || customer.email || "No contact saved";
-            const initial = customer.name.trim().charAt(0).toUpperCase() || "C";
-
-            return (
-              <Link
-                key={customer.id}
-                href={`/customers/${customer.id}` as Route}
-                className="group flex min-w-0 items-center gap-3 p-4 transition-colors hover:bg-muted/60 sm:px-5"
-              >
-                <span className="grid size-10 shrink-0 place-items-center rounded-full bg-muted text-sm font-semibold text-primary">
-                  {initial}
-                </span>
-                <div className="min-w-0 flex-1 sm:flex sm:items-center sm:justify-between sm:gap-4">
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h2 className="truncate text-sm font-semibold leading-5 sm:text-base">
-                        {customer.name}
-                      </h2>
-                      {customer.archived_at ? (
-                        <Badge variant="outline">Archived</Badge>
-                      ) : null}
-                    </div>
-                    <p className="mt-1 truncate text-xs leading-5 text-muted-foreground sm:text-sm">
-                      {contact}
-                    </p>
-                  </div>
-                  <p className="mt-1 shrink-0 text-xs text-muted-foreground sm:mt-0 sm:text-sm">
-                    Customer since {formatDate(customer.created_at)}
-                  </p>
-                </div>
-                <ChevronRight
-                  className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5"
-                  aria-hidden="true"
-                />
-              </Link>
-            );
-          })}
-        </Card>
+        <CustomerLoadMoreList
+          key={`${businessId}:${params.status}:${params.q}`}
+          initialCustomers={result.customers}
+          total={result.total}
+          q={params.q}
+          status={params.status}
+        />
       )}
-
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-sm text-muted-foreground">
-          Showing {result.customers.length} of {result.total} customers.
-        </p>
-        <div className="flex shrink-0 gap-2">
-          <Button asChild variant="secondary" size="sm" disabled={result.page <= 1}>
-            <Link
-              href={pageHref({
-                status: params.status,
-                q: params.q,
-                page: result.page - 1,
-              })}
-            >
-              Previous
-            </Link>
-          </Button>
-          <Button
-            asChild
-            variant="secondary"
-            size="sm"
-            disabled={result.page >= result.totalPages}
-          >
-            <Link
-              href={pageHref({
-                status: params.status,
-                q: params.q,
-                page: result.page + 1,
-              })}
-            >
-              Next
-            </Link>
-          </Button>
-        </div>
-      </div>
     </>
   );
 }
@@ -238,7 +147,11 @@ export default async function CustomersPage({ searchParams }: CustomersPageProps
       </Card>
 
       <Suspense fallback={<CustomerRowsFallback />}>
-        <CustomerResults resultPromise={resultPromise} params={params} />
+        <CustomerResults
+          resultPromise={resultPromise}
+          params={params}
+          businessId={currentBusiness.id}
+        />
       </Suspense>
       <CustomersMobileActions />
     </WorkspacePage>

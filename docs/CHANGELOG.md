@@ -1,5 +1,26 @@
 # Changelog
 
+## 2026-09-01 - Auth Lifecycle And Bounded Load-More Normalization
+
+Status: IMPLEMENTED - LOCAL RELEASE VERIFICATION IN PROGRESS
+
+- Google OAuth starts now request `prompt=select_account` without forcing
+  consent; the button exposes a truthful disabled pending state.
+- Password reset now requires an authenticated canonical recovery callback plus
+  a ten-minute HTTP-only reset-route intent. Successful update consumes the
+  intent, signs out, clears workspace preferences, and requires new-password
+  login; invalid/expired callbacks remain neutral.
+- Bookings and Customers now render 25 tenant-scoped rows initially and append
+  25 through private authenticated endpoints with deterministic cursor ordering,
+  rapid-click protection, ID deduplication, retry-local errors, and live-region
+  announcements. Search/filter/business changes reset accumulated state.
+- A disposable 125+125 record benchmark supports 25 over 10 without selecting
+  50: direct query medians stayed within remote variance, constrained-mobile
+  usable timing remained about 0.60-0.67 seconds, and the 125-row DOM remained
+  width-safe. The fixture and Auth user were removed with zero residue.
+- No database, migration, RLS, environment, dependency, provider, cache,
+  service-worker, or infrastructure change is included.
+
 ## 2026-09-01 - Dashboard Home Navigation Pending-State Hotfix
 
 Status: VERIFIED - PRODUCTION

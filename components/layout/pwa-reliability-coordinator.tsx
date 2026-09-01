@@ -84,6 +84,8 @@ export function PwaReliabilityCoordinator() {
   useEffect(() => {
     let active = true;
     let settleTimer: number | null = null;
+    const coordinatorElement = coordinatorRef.current;
+    coordinatorElement?.setAttribute("data-reconcile-path", pathname);
     const pending = pendingNavigationRef.current;
     if (pending && new URL(pending, window.location.href).pathname === pathname) {
       pendingNavigationRef.current = null;
@@ -258,6 +260,9 @@ export function PwaReliabilityCoordinator() {
 
     return () => {
       active = false;
+      if (coordinatorElement?.getAttribute("data-reconcile-path") === pathname) {
+        coordinatorElement.removeAttribute("data-reconcile-path");
+      }
       if (settleTimer !== null) window.clearTimeout(settleTimer);
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);

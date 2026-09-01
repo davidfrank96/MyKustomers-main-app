@@ -34,6 +34,15 @@ therefore uses the same profile trigger, zero-business onboarding, valid current
 preference/deterministic fallback, and logout behavior as password sessions.
 Email/password signup, login, recovery, and reset remain unchanged.
 
+Every Google start passes `prompt=select_account`, which deliberately shows the
+account chooser without forcing a new consent grant. Password recovery remains
+separate from OAuth destination state: the exact `/reset-password` callback
+takes precedence over any stale OAuth-next cookie, exchanges the PKCE code, and
+sets a ten-minute HTTP-only intent scoped to the reset route. Password update
+requires that intent, consumes it, signs out, and clears workspace/onboarding
+preferences before returning to login. Recovery requests and failures remain
+account-enumeration neutral.
+
 Provider availability comes from Supabase's public Auth settings and fails
 closed. The current development project reports Google enabled. Provider
 credentials belong only in Supabase Auth provider configuration; there is no

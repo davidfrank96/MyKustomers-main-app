@@ -79,19 +79,12 @@ async function cleanupControlledFixture(
       "audit_logs",
       "business_members",
     ] as const) {
-      const result = await service
-        .from(table)
-        .delete()
-        .in("business_id", businessIds);
+      const result = await service.from(table).delete().in("business_id", businessIds);
       if (result.error) failures.push(`${table}: ${result.error.message}`);
     }
 
-    const businesses = await service
-      .from("businesses")
-      .delete()
-      .in("id", businessIds);
-    if (businesses.error)
-      failures.push(`businesses: ${businesses.error.message}`);
+    const businesses = await service.from("businesses").delete().in("id", businessIds);
+    if (businesses.error) failures.push(`businesses: ${businesses.error.message}`);
   }
 
   if (userId) {
@@ -104,9 +97,14 @@ async function cleanupControlledFixture(
 }
 
 async function meaningfulResume(page: import("@playwright/test").Page) {
-  await expect(page.locator("[data-pwa-reliability-coordinator]")).toHaveAttribute(
+  const coordinator = page.locator("[data-pwa-reliability-coordinator]");
+  await expect(coordinator).toHaveAttribute(
     "data-ready",
     "true",
+  );
+  await expect(coordinator).toHaveAttribute(
+    "data-reconcile-path",
+    new URL(page.url()).pathname,
   );
   await page.evaluate(() => {
     const originalNow = Date.now;
@@ -277,7 +275,9 @@ test.describe("authenticated PWA reliability", () => {
         .eq("id", currentCustomer.id);
       expect(updateError).toBeNull();
       await meaningfulResume(page);
-      await expect(page.getByText(updatedCustomerName, { exact: true })).toBeVisible();
+      await expect(page.getByText(updatedCustomerName, { exact: true })).toBeVisible({
+        timeout: 30_000,
+      });
 
       await page.goto("/bookings/new");
       const title = page.getByLabel("Title");

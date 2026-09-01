@@ -51,7 +51,7 @@ function GoogleSubmitButton({
       disabled={!enabled || pending}
     >
       <GoogleMark />
-      {pending ? "Connecting..." : "Continue with Google"}
+      {pending ? "Signing you in..." : "Continue with Google"}
     </Button>
   );
 }
@@ -65,19 +65,13 @@ export function GoogleAuthButton({
   next: string;
   mobilePresentation?: boolean;
 }) {
-  const [state, formAction] = useActionState(
-    googleOAuthAction,
-    initialAuthActionState,
-  );
+  const [state, formAction] = useActionState(googleOAuthAction, initialAuthActionState);
 
   return (
     <div className={mobilePresentation ? "mt-8" : "mt-6"}>
       <form action={formAction}>
         <input type="hidden" name="next" value={next} />
-        <GoogleSubmitButton
-          enabled={enabled}
-          mobilePresentation={mobilePresentation}
-        />
+        <GoogleSubmitButton enabled={enabled} mobilePresentation={mobilePresentation} />
       </form>
       {!enabled ? (
         <p className="mt-2 text-sm leading-5 text-muted-foreground" role="status">

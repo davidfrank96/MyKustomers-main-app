@@ -3,6 +3,38 @@
 This checklist separates verified development evidence from remaining
 production-readiness work.
 
+## Auth Lifecycle, Password Recovery, and Progressive Lists
+
+- [x] Google login and signup share one provider action and request the supported
+      `prompt=select_account` chooser without forcing repeated consent.
+- [x] Provider callback, profile provisioning, current-business resolution, and
+      the server-side zero-business onboarding gate remain provider-independent.
+- [x] Password recovery uses the existing Supabase Auth/Brevo SMTP lifecycle,
+      an exact canonical callback, a short-lived HTTP-only recovery intent, an
+      authoritative password update, and an explicit sign-out-to-login success
+      state.
+- [x] Neutral request responses, invalid/reused-link handling, external redirect
+      rejection, old/new password behavior, logout, and protected-route denial
+      have automated coverage.
+- [x] Bookings and Customers server-render 25 current-business rows and append
+      bounded 25-row batches through authenticated, no-store routes.
+- [x] Deterministic keyset cursors, rapid-click suppression, ID deduplication,
+      query/filter remounting, tenant-derived requests, localized retry, and
+      accessible announcements have automated coverage.
+- [x] Desktop, 390/430 mobile, Nigeria typical/constrained profiles, 55-row
+      completion, and 125-row DOM checks support the 25-row decision without a
+      load-all query or virtualization dependency.
+- [x] Local lint, typecheck, unit/integration, serial full-browser,
+      production-build, dependency-audit, formatting, and diff-hygiene gates
+      pass.
+- [ ] Required CI and the Vercel Production deployment are green.
+- [ ] Controlled Production Google, password-recovery, Bookings, and Customers
+      smoke checks pass with zero fixture residue.
+
+Release evidence is completed in this section after the reviewed merge and
+controlled Production smoke. No database migration, Supabase configuration,
+SMTP change, or Vercel environment change is expected for this release.
+
 ## Dashboard Home Navigation Pending-State Hotfix
 
 - [x] Pre-fix component and real-browser evidence reproduces the stale Home

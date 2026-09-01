@@ -1,6 +1,9 @@
 import { getSafeRedirectPath } from "@/lib/security/redirects";
 
 export const GOOGLE_AUTH_PROVIDER = "google" as const;
+export const GOOGLE_OAUTH_QUERY_PARAMS = {
+  prompt: "select_account",
+} as const;
 
 export function buildOAuthCallbackUrl(appUrl: string) {
   const callbackUrl = new URL("/auth/callback", appUrl);

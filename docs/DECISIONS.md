@@ -1286,3 +1286,28 @@ an authority or product analytics system. Some debugging context is deliberately
 lost. Source-map upload requires one least-privilege secret build token; runtime
 DSNs remain Production-only configuration. Missing/unverified production
 telemetry must not be reported as healthy.
+
+## ADR-055 - Auth Recovery Intent And Bounded Cursor Lists
+
+Status: Accepted
+
+Date: 2026-09-01
+
+Context: Google sign-in could silently reuse a browser account, an ordinary
+authenticated session could reach the reset form without proving recovery
+intent, and 10-row numbered pages fragmented large vendor directories. Offset
+append also risks duplicates or skips when newer rows arrive between requests.
+
+Decision: Request Google's `select_account` prompt without forcing consent.
+Accept password update only after Supabase's canonical PKCE callback sets a
+short-lived HTTP-only recovery-intent cookie, then consume it and sign out.
+Render 25 Bookings/Customers server-side and append bounded 25-row batches using
+`created_at DESC, id DESC` keyset cursors, server-derived tenant identity, and
+no-store private routes.
+
+Consequences: Auth identity and membership resolution remain unchanged; recovery
+cannot be inferred from an ordinary session. Search/filter URL state remains
+server-owned while append position is intentionally ephemeral. Data transfer
+grows proportionally over 10 rows but measured query latency stays within remote
+variance. No migration, index, RLS, environment, dependency, or cache change is
+introduced. Virtualization and a 50-row default require new evidence.
