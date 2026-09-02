@@ -10,6 +10,43 @@ Production verification now includes real signup-confirmation and
 password-recovery delivery through Supabase Auth and the configured SMTP path,
 without weakening the existing tenant/RLS evidence.
 
+## 2026-09-02 Auth Verification And Rate-Limit Hardening
+
+Permanent focused coverage includes:
+
+- Auth Server Action tests for confirmation-required no-session signup, exact
+  normalized email state, no onboarding resolver, fail-open storage behavior,
+  recovery retry metadata, neutral resend, and canonical callback selection.
+- Auth component tests for accessible dialog semantics, exact email, dismiss to
+  persistent state, original-form removal, safe return-to-signup, resend action,
+  and cooldown response.
+- Cryptographic-key tests for deterministic 64-hex HMAC output, action
+  separation, length-prefix collision resistance, IPv4/IPv6 first-forwarded
+  parsing, and rejection of malformed first addresses.
+- Static migration tests for atomic upsert, structured retry evidence, bounded
+  indexed cleanup, legacy wrapper, postgres ownership, empty search paths,
+  service-role-only execution, input bounds, HMAC keying, and absence of
+  `x-real-ip`, user-agent, or process collections.
+- Customer-message and Admin retry action tests prove limiter unavailability
+  fails closed before durable outbox/claim/provider work. Existing public
+  capability suites continue proving safe rate-limited outcomes, tenant/capability
+  boundaries, and one-time domain mutation behavior.
+- Each dedicated fixture-backed Playwright context sends a distinct reserved
+  TEST-NET forwarded source. This preserves the real distributed source limits
+  while preventing unrelated parallel journeys on the same CI loopback proxy
+  from sharing one synthetic source bucket. Limiter-specific journeys may
+  deliberately replace that header with a stable controlled source.
+
+Before Production status, run the guarded runtime and full Playwright matrices
+against an explicitly safe target, including concurrent max-five behavior,
+controlled wrong-password/signup/recovery/resend thresholds, direct Server
+Action/public mutation invocation, header spoofing, cross-tenant denial, cold
+start persistence, canonical verification email, Google, recovery, PWA, and the
+320/360/390/430/768/1024/1440 alignment matrix. Production uses only bounded
+smoke with controlled identities/recipients; it must not generate an attack or
+spam a legitimate customer. Skipped safe-target suites are recorded as skipped,
+never as passed.
+
 ## 2026-09-01 Delivery-To-Feedback Automation
 
 The exact repository migration SHA is locked by static security coverage.

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const emailSchema = z
+export const emailSchema = z
   .string()
   .trim()
   .email("Enter a valid email address.")
@@ -38,6 +38,10 @@ export const signupSchema = z
   });
 
 export const forgotPasswordSchema = z.object({
+  email: emailSchema,
+});
+
+export const resendSignupConfirmationSchema = z.object({
   email: emailSchema,
 });
 

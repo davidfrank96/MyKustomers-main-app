@@ -2,7 +2,10 @@ import Link from "next/link";
 import type { Route } from "next";
 import { redirect } from "next/navigation";
 import { AuthForm } from "@/components/forms/auth-form";
-import { signupAction } from "@/features/auth/actions";
+import {
+  resendSignupConfirmationAction,
+  signupAction,
+} from "@/features/auth/actions";
 import { getAuthenticatedUser } from "@/lib/auth/server";
 import { isGoogleAuthEnabled } from "@/features/auth/provider-status";
 import { resolvePostAuthDestination } from "@/lib/auth/post-auth";
@@ -22,6 +25,7 @@ export default async function SignupPage() {
       title="Create your account"
       description="Create your My Kustomers login. You will set up your business next."
       action={signupAction}
+      resendVerificationAction={resendSignupConfirmationAction}
       submitLabel="Create account"
       presentation="mobile"
       googleAuth={{ enabled: googleAuthEnabled, next: "/dashboard" }}

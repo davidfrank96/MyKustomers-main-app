@@ -5,6 +5,7 @@ const mocks = vi.hoisted(() => ({
   createServiceRoleClient: vi.fn(),
   deliverClaimedEmailEvent: vi.fn(),
   getProviderSelection: vi.fn(),
+  consumeRateLimitLayers: vi.fn(),
 }));
 
 vi.mock("@/lib/admin/server", () => {
@@ -26,6 +27,9 @@ vi.mock("@/lib/email/outbox", () => ({
 }));
 vi.mock("@/lib/email/provider", () => ({
   getTransactionalEmailProviderSelectionForName: mocks.getProviderSelection,
+}));
+vi.mock("@/lib/security/rate-limit", () => ({
+  consumeRateLimitLayers: mocks.consumeRateLimitLayers,
 }));
 
 import {
@@ -102,6 +106,12 @@ describe("retryFailedEmailAction", () => {
       name: "brevo",
       configured: true,
       provider,
+    });
+    mocks.consumeRateLimitLayers.mockResolvedValue({
+      status: "allowed",
+      remainingRequests: 2,
+      retryAfterSeconds: 0,
+      resetAt: null,
     });
   });
 
@@ -192,4 +202,25 @@ describe("retryFailedEmailAction", () => {
       expect(mocks.createServiceRoleClient).not.toHaveBeenCalled();
     },
   );
+
+  it("fails closed before the atomic claim when retry protection is unavailable", async () => {
+    const service = createService();
+    mocks.createServiceRoleClient.mockReturnValue(service);
+    mocks.consumeRateLimitLayers.mockResolvedValue({
+      status: "unavailable",
+      remainingRequests: null,
+      retryAfterSeconds: 0,
+      resetAt: null,
+    });
+
+    await expect(
+      retryFailedEmailAction(eventId, { status: "idle", message: null }, reasonForm()),
+    ).resolves.toEqual({
+      status: "error",
+      message: "Retry protection is temporarily unavailable. No delivery was attempted.",
+      retryAfterSeconds: undefined,
+    });
+    expect(service.rpc).not.toHaveBeenCalled();
+    expect(mocks.deliverClaimedEmailEvent).not.toHaveBeenCalled();
+  });
 });

@@ -84,6 +84,7 @@ not assume repository presence alone proves application.
 | `20260901194500_delivery_feedback_automation.sql`                          | Exact approved SHA-256 `7ad964608538057bd041b745fa7005e7cb75a7e01264dade2a41ef48b8071ba7`; applied transactionally to the configured Production-backed database after Vault shape precheck; v0 preservation, v1 derivation, event/link association, grants, search paths, constraints, triggers, and unchanged historical counts passed                  |
 | `20260901205018_delivery_feedback_legacy_compatibility.sql`                | Exact approved SHA-256 `183af91b911c97e77717a60f8f9f9c1f23e6432dffed2a1b88a4d8d6b44009bb`; applied transactionally as a temporary two-function Production rollout boundary; legacy/new rollback-only delivery, exact-one-event enforcement, strict non-null v1 association, forged-v1 and cross-tenant denial, hardened catalog, and zero residue passed |
 | `20260901230527_delivery_feedback_require_v1_association.sql`              | Exact approved SHA-256 `397dbaaa6fab4fb78902e13ef3273054d629df2316bfd0dd593d210d7cb9e6c4`; applied after PR #57/`59c7e81`; fail-closed cutoff, strict functions/grants, legacy denial, exact-v1 positive path, and rollback-only zero residue passed; historical pre-cutoff rows untouched                                                               |
+| `20260902010040_auth_application_rate_limit_foundation.sql`                | Exact approved SHA-256 `5deefd3071c4537bc65e8f42bfceaacf11c17d81daa70efe74d9f78692aac99e`; applied transactionally to the Production-backed project; updated-at cleanup index, three new postgres-owned service-only RPCs, hardened compatibility wrapper, retry metadata, unchanged 214-row baseline, rollback-only structured/legacy probes, and exact 5-of-20 concurrent behavior passed |
 
 The configured development project's historical CLI migration table remains
 empty because this project predates enforced version tracking. These migrations
@@ -286,3 +287,22 @@ and rollback compile evidence therefore cover mutation behavior until the
 guarded runtime suite can run against an explicitly safe dedicated dev/test
 project. Applied migration files are immutable; any defect requires a separately
 approved forward migration.
+
+## 2026-09-02 Auth And Application Rate-Limit Migration
+
+The user explicitly approved exact migration
+`20260902010040_auth_application_rate_limit_foundation.sql` after an isolated
+PostgreSQL compile and concurrency proof. It was applied as one transaction to
+the configured Production-backed database. Preflight found 214 existing bucket
+rows and no proposed functions/index. Post-apply catalog inspection confirmed
+all four functions postgres-owned with empty search paths, service-role-only
+execution, the cleanup index, and the legacy boolean signature preserved.
+
+Rollback-only Production probes returned `true, true, false` with an accurate
+60-second structured retry, kept the legacy wrapper true for an allowed call,
+and left the baseline at 214 rows. The isolated 20-request concurrency check
+with a max-five policy produced exactly five allowed and fifteen denied. Cleanup
+deleted only bounded stale synthetic rows. No Auth, customer, booking, outbox,
+tenant, audit, provider, or legitimate rate bucket was created, modified, or
+removed for verification. The migration is now immutable; corrections require
+a separately approved forward migration.

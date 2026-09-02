@@ -37,15 +37,16 @@ function parseView(value: unknown): PublicAddonView {
 }
 
 export async function getPublicAddonView(token: string): Promise<PublicAddonView> {
-  if (!(await consumeAddonRateLimit("addon_lookup"))) {
-    return { status: "rate_limited" };
-  }
   if (!canUseServiceRoleClient() || !isPlausibleAddonToken(token)) {
     return { status: "unavailable" };
   }
+  const tokenHash = hashAddonToken(token);
+  if (!(await consumeAddonRateLimit("addon_lookup", tokenHash))) {
+    return { status: "rate_limited" };
+  }
   const { data, error } = await createServiceRoleClient().rpc(
     "get_booking_addon_public_view",
-    { p_token_hash: hashAddonToken(token) },
+    { p_token_hash: tokenHash },
   );
   return error ? { status: "unavailable" } : parseView(data);
 }
@@ -53,16 +54,17 @@ export async function getPublicAddonView(token: string): Promise<PublicAddonView
 export async function getPublicAddonMetadata(token: string) {
   if (
     !canUseServiceRoleClient() ||
-    !isPlausibleAddonToken(token) ||
-    !(await consumeAddonRateLimit("addon_metadata"))
+    !isPlausibleAddonToken(token)
   ) {
     return null;
   }
+  const tokenHash = hashAddonToken(token);
+  if (!(await consumeAddonRateLimit("addon_metadata", tokenHash))) return null;
   const supabase = createServiceRoleClient();
   const { data: link } = await supabase
     .from("booking_addon_confirmation_links")
     .select("business_id, expires_at, used_at, revoked_at")
-    .eq("token_hash", hashAddonToken(token))
+    .eq("token_hash", tokenHash)
     .maybeSingle();
   if (
     !link ||
@@ -82,26 +84,28 @@ export async function getPublicAddonMetadata(token: string) {
 export async function recordPublicAddonOpen(token: string) {
   if (
     !canUseServiceRoleClient() ||
-    !isPlausibleAddonToken(token) ||
-    !(await consumeAddonRateLimit("addon_open"))
+    !isPlausibleAddonToken(token)
   ) {
     return;
   }
+  const tokenHash = hashAddonToken(token);
+  if (!(await consumeAddonRateLimit("addon_open", tokenHash))) return;
   await createServiceRoleClient().rpc("record_booking_addon_open", {
-    p_token_hash: hashAddonToken(token),
+    p_token_hash: tokenHash,
   });
 }
 
 export async function confirmPublicAddon(token: string): Promise<PublicAddonView> {
-  if (!(await consumeAddonRateLimit("addon_confirm"))) {
-    return { status: "rate_limited" };
-  }
   if (!canUseServiceRoleClient() || !isPlausibleAddonToken(token)) {
     return { status: "unavailable" };
   }
+  const tokenHash = hashAddonToken(token);
+  if (!(await consumeAddonRateLimit("addon_confirm", tokenHash))) {
+    return { status: "rate_limited" };
+  }
   const { data, error } = await createServiceRoleClient().rpc(
     "confirm_booking_addon_by_token_hash",
-    { p_token_hash: hashAddonToken(token) },
+    { p_token_hash: tokenHash },
   );
   if (error) return { status: "unavailable" };
   if (

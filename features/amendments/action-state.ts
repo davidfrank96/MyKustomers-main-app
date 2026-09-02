@@ -5,6 +5,7 @@ export type AmendmentActionState = {
   amendmentUrl?: string;
   amendmentId?: string;
   expiresAt?: string;
+  retryAfterSeconds?: number;
 };
 
 export const initialAmendmentActionState: AmendmentActionState = {

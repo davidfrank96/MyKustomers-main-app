@@ -29,6 +29,7 @@ import {
   generateConfirmationToken,
   hashConfirmationToken,
 } from "@/features/confirmation-links/token";
+import { consumeOutboundMessageRateLimit } from "@/lib/security/rate-limit";
 
 function formValue(formData: FormData, key: string) {
   return formData.get(key);
@@ -476,13 +477,31 @@ export async function rescheduleBookingAction(
   _previousState: BookingActionState,
   formData: FormData,
 ): Promise<BookingActionState> {
-  await requireCurrentBusiness(`/bookings/${bookingId}`);
+  const { user, business } = await requireCurrentBusiness(`/bookings/${bookingId}`);
   const parsed = bookingRescheduleSchema.safeParse({
     scheduledFor: formValue(formData, "scheduledFor"),
   });
 
   if (!parsed.success) {
     return validationError(parsed.error);
+  }
+
+  const rateLimit = await consumeOutboundMessageRateLimit({
+    kind: "booking_reschedule",
+    resourceId: bookingId,
+    userId: user.id,
+    businessId: business.id,
+  });
+  if (rateLimit.status !== "allowed") {
+    return {
+      status: "error",
+      message:
+        rateLimit.status === "limited"
+          ? "Please wait before sending another reschedule notice. Nothing was sent."
+          : "Customer message protection is temporarily unavailable. Nothing was sent.",
+      retryAfterSeconds:
+        rateLimit.status === "limited" ? rateLimit.retryAfterSeconds : undefined,
+    };
   }
 
   const token = generateConfirmationToken();

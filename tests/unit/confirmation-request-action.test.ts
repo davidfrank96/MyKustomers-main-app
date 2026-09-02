@@ -5,6 +5,7 @@ const mocks = vi.hoisted(() => ({
   createClient: vi.fn(),
   deliverEmailEvent: vi.fn(),
   revalidatePath: vi.fn(),
+  consumeOutboundMessageRateLimit: vi.fn(),
 }));
 
 vi.mock("next/cache", () => ({ revalidatePath: mocks.revalidatePath }));
@@ -22,6 +23,9 @@ vi.mock("@/lib/email/outbox", () => ({
 }));
 vi.mock("@/lib/config/public-env", () => ({
   publicEnv: { NEXT_PUBLIC_APP_URL: "https://app.example.com" },
+}));
+vi.mock("@/lib/security/rate-limit", () => ({
+  consumeOutboundMessageRateLimit: mocks.consumeOutboundMessageRateLimit,
 }));
 
 import { sendConfirmationEmailAction } from "@/features/confirmation-links/actions";
@@ -53,6 +57,12 @@ describe("sendConfirmationEmailAction", () => {
     mocks.requireCurrentBusiness.mockResolvedValue({
       user: { id: "user-1" },
       business: { id: "business-1" },
+    });
+    mocks.consumeOutboundMessageRateLimit.mockResolvedValue({
+      status: "allowed",
+      remainingRequests: 2,
+      retryAfterSeconds: 0,
+      resetAt: null,
     });
   });
 
@@ -144,5 +154,29 @@ describe("sendConfirmationEmailAction", () => {
       confirmationLinkId: "00000000-0000-4000-8000-000000000002",
     });
     expect(result.message).toContain("was not accepted for delivery");
+  });
+
+  it("fails closed before creating durable delivery work when protection is unavailable", async () => {
+    const rpc = vi.fn();
+    mocks.createClient.mockResolvedValue({ rpc });
+    mocks.consumeOutboundMessageRateLimit.mockResolvedValue({
+      status: "unavailable",
+      remainingRequests: null,
+      retryAfterSeconds: 0,
+      resetAt: null,
+    });
+
+    const result = await sendConfirmationEmailAction(
+      bookingId,
+      initialConfirmationLinkActionState,
+      recipientForm("David.Frank@hotmail.com"),
+    );
+
+    expect(result).toMatchObject({
+      status: "error",
+      message: "Customer message protection is temporarily unavailable. Nothing was sent.",
+    });
+    expect(rpc).not.toHaveBeenCalled();
+    expect(mocks.deliverEmailEvent).not.toHaveBeenCalled();
   });
 });

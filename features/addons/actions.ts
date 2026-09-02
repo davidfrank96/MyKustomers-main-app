@@ -16,6 +16,7 @@ import {
 } from "@/features/addons/token";
 import { bookingAddonSchema } from "@/features/addons/validation";
 import type { AddonActionState } from "@/features/addons/action-state";
+import { consumeOutboundMessageRateLimit } from "@/lib/security/rate-limit";
 
 function value(formData: FormData, name: string) {
   return formData.get(name);
@@ -84,7 +85,24 @@ export async function submitBookingAddonAction(
 ): Promise<AddonActionState> {
   void _previousState;
   void _formData;
-  await requireCurrentBusiness(`/bookings/${bookingId}`);
+  const { user, business } = await requireCurrentBusiness(`/bookings/${bookingId}`);
+  const rateLimit = await consumeOutboundMessageRateLimit({
+    kind: "booking_addon",
+    resourceId: addonId,
+    userId: user.id,
+    businessId: business.id,
+  });
+  if (rateLimit.status !== "allowed") {
+    return {
+      status: "error",
+      message:
+        rateLimit.status === "limited"
+          ? "Please wait before sending this add-on request again. Nothing was sent."
+          : "Customer message protection is temporarily unavailable. Nothing was sent.",
+      retryAfterSeconds:
+        rateLimit.status === "limited" ? rateLimit.retryAfterSeconds : undefined,
+    };
+  }
   const token = generateAddonToken();
   const expiresAt = addonExpiresAt();
   const { data, error } = await (

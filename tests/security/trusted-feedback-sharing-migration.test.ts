@@ -39,6 +39,8 @@ describe("trusted feedback sharing security", () => {
     expect(actions).toContain('eventType: "FEEDBACK_SHARE_INITIATED"');
     expect(actions).not.toMatch(/metadata:\s*\{[^}]*token/s);
     expect(actions).not.toMatch(/metadata:\s*\{[^}]*feedbackUrl/s);
-    expect(publicFeedback).toContain('consumeFeedbackRateLimit("feedback_open")');
+    expect(publicFeedback).toContain(
+      'consumeFeedbackRateLimit("feedback_open", tokenHash)',
+    );
   });
 });

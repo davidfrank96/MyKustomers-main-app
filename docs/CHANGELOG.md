@@ -1,5 +1,35 @@
 # Changelog
 
+## 2026-09-02 - Auth Verification And API Rate-Limit Hardening
+
+Status: IMPLEMENTED - PRODUCTION APPLICATION VERIFICATION PENDING
+
+- Corrected confirmation-required password signup to remain on Signup, open an
+  accessible check-email dialog, display the submitted normalized address, and
+  preserve a verification/resend notice after dismissal. Immediate-session
+  signup and Google OAuth retain the shared membership resolver.
+- Added Supabase Auth verification resend with neutral account-existence copy,
+  a visible countdown, provider-aware 429 handling, and authoritative layered
+  cooldown/hourly limits. Password values never return in action state.
+- Added durable layered limits for password login, signup, recovery, resend,
+  customer confirmation email, amendments, add-ons, reschedule notices,
+  privileged email retry, and public confirmation/amendment/add-on/feedback
+  capability operations. Normal product reads, health, static assets, manual
+  URL sharing, and internal workers remain deliberately un-limited.
+- Replaced user-agent/`x-real-ip` public keying with first-address validated
+  Vercel `x-forwarded-for`, plus HKDF/HMAC-derived account, source, capability,
+  actor, business, and resource buckets. No raw email, IP, token, password,
+  tenant, or customer value is stored or sent to Sentry.
+- Exact approved migration
+  `20260902010040_auth_application_rate_limit_foundation.sql` (SHA-256
+  `5deefd3071c4537bc65e8f42bfceaacf11c17d81daa70efe74d9f78692aac99e`)
+  is applied transactionally to the Production-backed database. Catalog grants,
+  postgres ownership, empty search paths, the cleanup index, legacy wrapper,
+  retry metadata, rollback-only probes, unchanged 214-row baseline, and exact
+  5-allowed/15-denied concurrent boundary behavior passed.
+- No Supabase Auth setting, Cloudflare/Vercel control, environment variable,
+  provider, dependency, Redis service, CAPTCHA, or RLS policy changed.
+
 ## 2026-09-01 - Delivery-To-Feedback Automation
 
 Status: VERIFIED - PRODUCTION; STRICT INVARIANT ACTIVE

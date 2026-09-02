@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import { createHmac, randomUUID } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./support/test";
 import type { Database, Json } from "@/types/database";
 
 function loadLocalEnv() {

@@ -14,6 +14,13 @@ const rateLimitConfig: Record<
   feedback_submit: { maxRequests: 10, windowSeconds: 60, blockSeconds: 120 },
 };
 
-export function consumeFeedbackRateLimit(action: FeedbackRateLimitAction) {
-  return consumePublicCapabilityRateLimit(action, rateLimitConfig[action]);
+export function consumeFeedbackRateLimit(
+  action: FeedbackRateLimitAction,
+  capabilityHash?: string,
+) {
+  return consumePublicCapabilityRateLimit(
+    action,
+    rateLimitConfig[action],
+    capabilityHash,
+  );
 }

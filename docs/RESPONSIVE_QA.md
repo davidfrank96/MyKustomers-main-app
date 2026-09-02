@@ -4,6 +4,15 @@ STATUS: VERIFIED FOR THE DEPLOYED BASELINE; BRANCH RELEASE MATRIX VERIFIED
 
 Audit date: 2026-08-31.
 
+The 2026-09-02 Auth hardening branch adds one compact Radix verification dialog
+and a persistent Signup notice. Component coverage proves dialog semantics,
+dismissal, exact long-address wrapping, form removal, and full-width resend at
+the shared mobile presentation. Release browser verification must repeat Signup,
+Login, Forgot password, Reset password, the dialog, persistent notice, and
+throttling copy at 320, 360, 390, 430, 768, 1024, and 1440 pixels before this
+branch is marked responsive-verified. Physical keyboard/PWA behavior remains a
+separate real-device acceptance boundary.
+
 This maintenance pass stabilizes the existing interface. It does not start the
 planned broad visual redesign or Phase 11 PWA/UX hardening.
 

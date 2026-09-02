@@ -31,19 +31,20 @@ function parsePublicFeedbackView(value: unknown): PublicFeedbackView {
 }
 
 export async function getPublicFeedbackView(token: string): Promise<PublicFeedbackView> {
-  const allowed = await consumeFeedbackRateLimit("feedback_lookup");
+  if (!canUseServiceRoleClient() || !isPlausibleFeedbackToken(token)) {
+    return { status: "unavailable" };
+  }
+
+  const tokenHash = hashFeedbackToken(token);
+  const allowed = await consumeFeedbackRateLimit("feedback_lookup", tokenHash);
 
   if (!allowed) {
     return { status: "rate_limited" };
   }
 
-  if (!canUseServiceRoleClient() || !isPlausibleFeedbackToken(token)) {
-    return { status: "unavailable" };
-  }
-
   const supabase = createServiceRoleClient();
   const { data, error } = await supabase.rpc("get_feedback_public_view", {
-    p_token_hash: hashFeedbackToken(token),
+    p_token_hash: tokenHash,
   });
 
   if (error) {
@@ -65,7 +66,8 @@ export async function getPublicFeedbackMetadata(
     return null;
   }
 
-  const allowed = await consumeFeedbackRateLimit("feedback_metadata");
+  const tokenHash = hashFeedbackToken(token);
+  const allowed = await consumeFeedbackRateLimit("feedback_metadata", tokenHash);
   if (!allowed) {
     return null;
   }
@@ -74,7 +76,7 @@ export async function getPublicFeedbackMetadata(
   const { data: link, error: linkError } = await supabase
     .from("feedback_links")
     .select("business_id, booking_id, expires_at, revoked_at, used_at, purpose")
-    .eq("token_hash", hashFeedbackToken(token))
+    .eq("token_hash", tokenHash)
     .maybeSingle();
 
   if (
@@ -116,27 +118,30 @@ export async function getPublicFeedbackMetadata(
 }
 
 export async function recordPublicFeedbackOpen(token: string) {
-  const allowed = await consumeFeedbackRateLimit("feedback_open");
-
-  if (!allowed || !canUseServiceRoleClient() || !isPlausibleFeedbackToken(token)) {
+  if (!canUseServiceRoleClient() || !isPlausibleFeedbackToken(token)) {
     return;
   }
 
+  const tokenHash = hashFeedbackToken(token);
+  const allowed = await consumeFeedbackRateLimit("feedback_open", tokenHash);
+  if (!allowed) return;
+
   const supabase = createServiceRoleClient();
   await supabase.rpc("record_feedback_link_open", {
-    p_token_hash: hashFeedbackToken(token),
+    p_token_hash: tokenHash,
   });
 }
 
 export async function submitPublicFeedback(token: string, formData: FormData) {
-  const allowed = await consumeFeedbackRateLimit("feedback_submit");
+  if (!canUseServiceRoleClient() || !isPlausibleFeedbackToken(token)) {
+    return { status: "unavailable" as const };
+  }
+
+  const tokenHash = hashFeedbackToken(token);
+  const allowed = await consumeFeedbackRateLimit("feedback_submit", tokenHash);
 
   if (!allowed) {
     return { status: "rate_limited" as const };
-  }
-
-  if (!canUseServiceRoleClient() || !isPlausibleFeedbackToken(token)) {
-    return { status: "unavailable" as const };
   }
 
   const parsed = publicFeedbackSchema.safeParse({
@@ -152,7 +157,7 @@ export async function submitPublicFeedback(token: string, formData: FormData) {
 
   const supabase = createServiceRoleClient();
   const { data, error } = await supabase.rpc("submit_feedback_by_token_hash", {
-    p_token_hash: hashFeedbackToken(token),
+    p_token_hash: tokenHash,
     p_overall_rating: parsed.data.overallRating,
     p_on_time: parsed.data.onTime,
     p_met_expectations: parsed.data.metExpectations,

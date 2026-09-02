@@ -37,19 +37,20 @@ function parsePublicConfirmationView(value: unknown): PublicConfirmationView {
 export async function getPublicConfirmationView(
   token: string,
 ): Promise<PublicConfirmationView> {
-  const allowed = await consumeConfirmationRateLimit("lookup");
+  if (!canUseServiceRoleClient() || !isPlausibleConfirmationToken(token)) {
+    return { status: "unavailable" };
+  }
+
+  const tokenHash = hashConfirmationToken(token);
+  const allowed = await consumeConfirmationRateLimit("lookup", tokenHash);
 
   if (!allowed) {
     return { status: "rate_limited" };
   }
 
-  if (!canUseServiceRoleClient() || !isPlausibleConfirmationToken(token)) {
-    return { status: "unavailable" };
-  }
-
   const supabase = createServiceRoleClient();
   const { data, error } = await supabase.rpc("get_confirmation_public_view", {
-    p_token_hash: hashConfirmationToken(token),
+    p_token_hash: tokenHash,
   });
 
   if (error) {
@@ -71,7 +72,8 @@ export async function getPublicConfirmationMetadata(
     return null;
   }
 
-  const allowed = await consumeConfirmationRateLimit("metadata");
+  const tokenHash = hashConfirmationToken(token);
+  const allowed = await consumeConfirmationRateLimit("metadata", tokenHash);
   if (!allowed) {
     return null;
   }
@@ -80,7 +82,7 @@ export async function getPublicConfirmationMetadata(
   const { data: link, error: linkError } = await supabase
     .from("confirmation_links")
     .select("business_id, booking_id, expires_at, revoked_at, used_at")
-    .eq("token_hash", hashConfirmationToken(token))
+    .eq("token_hash", tokenHash)
     .maybeSingle();
 
   if (
@@ -121,15 +123,17 @@ export async function getPublicConfirmationMetadata(
 }
 
 export async function recordPublicConfirmationOpen(token: string) {
-  const allowed = await consumeConfirmationRateLimit("open");
-
-  if (!allowed || !canUseServiceRoleClient() || !isPlausibleConfirmationToken(token)) {
+  if (!canUseServiceRoleClient() || !isPlausibleConfirmationToken(token)) {
     return;
   }
 
+  const tokenHash = hashConfirmationToken(token);
+  const allowed = await consumeConfirmationRateLimit("open", tokenHash);
+  if (!allowed) return;
+
   const supabase = createServiceRoleClient();
   await supabase.rpc("record_confirmation_link_open", {
-    p_token_hash: hashConfirmationToken(token),
+    p_token_hash: tokenHash,
   });
 }
 
@@ -149,19 +153,20 @@ export async function confirmPublicBooking(
     };
   }
 
-  const allowed = await consumeConfirmationRateLimit("confirm");
+  if (!canUseServiceRoleClient() || !isPlausibleConfirmationToken(token)) {
+    return { status: "unavailable" };
+  }
+
+  const tokenHash = hashConfirmationToken(token);
+  const allowed = await consumeConfirmationRateLimit("confirm", tokenHash);
 
   if (!allowed) {
     return { status: "rate_limited" };
   }
 
-  if (!canUseServiceRoleClient() || !isPlausibleConfirmationToken(token)) {
-    return { status: "unavailable" };
-  }
-
   const supabase = createServiceRoleClient();
   const { data, error } = await supabase.rpc("confirm_booking_by_token_hash", {
-    p_token_hash: hashConfirmationToken(token),
+    p_token_hash: tokenHash,
     p_contact_email: contact.data.contactEmail,
     p_contact_phone: contact.data.contactPhone ?? null,
   });

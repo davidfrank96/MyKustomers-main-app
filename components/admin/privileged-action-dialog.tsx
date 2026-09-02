@@ -20,6 +20,7 @@ import { PRIVILEGED_REASON_MAX_LENGTH } from "@/lib/admin/privileged-access-poli
 export type PrivilegedActionState = {
   status: "idle" | "error" | "mfa_required" | "success";
   message: string | null;
+  retryAfterSeconds?: number;
 };
 
 export const initialPrivilegedActionState: PrivilegedActionState = {

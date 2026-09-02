@@ -18,6 +18,7 @@ import {
   isConfirmationShareMethod,
   type ConfirmationShareMethod,
 } from "@/features/confirmation-links/share";
+import { consumeOutboundMessageRateLimit } from "@/lib/security/rate-limit";
 
 export async function generateConfirmationLinkAction(
   bookingId: string,
@@ -67,7 +68,7 @@ export async function sendConfirmationEmailAction(
   formData: FormData,
 ): Promise<ConfirmationLinkActionState> {
   void previousState;
-  await requireCurrentBusiness(`/bookings/${bookingId}`);
+  const { user, business } = await requireCurrentBusiness(`/bookings/${bookingId}`);
   const parsed = requiredCustomerEmailSchema.safeParse(formData.get("recipientEmail"));
 
   if (!parsed.success) {
@@ -75,6 +76,25 @@ export async function sendConfirmationEmailAction(
       status: "error",
       message: "Check the recipient email before sending.",
       fieldErrors: { recipientEmail: parsed.error.issues.map((issue) => issue.message) },
+    };
+  }
+
+  const rateLimit = await consumeOutboundMessageRateLimit({
+    kind: "confirmation_email",
+    resourceId: bookingId,
+    userId: user.id,
+    businessId: business.id,
+  });
+  if (rateLimit.status !== "allowed") {
+    return {
+      status: "error",
+      message:
+        rateLimit.status === "limited"
+          ? "Please wait before sending another confirmation email. Nothing was sent."
+          : "Customer message protection is temporarily unavailable. Nothing was sent.",
+      recipientEmail: parsed.data,
+      retryAfterSeconds:
+        rateLimit.status === "limited" ? rateLimit.retryAfterSeconds : undefined,
     };
   }
 

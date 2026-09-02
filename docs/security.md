@@ -1025,3 +1025,63 @@ function derives the caller, rechecks owner membership/tenant association under
 lock, rejects every historical booking and protected dependency, and deletes no
 booking. UI eligibility is advisory and fails closed; the database check defeats
 concurrent booking/delete races and cross-tenant attempts.
+
+SEC-054 - Auth And Abuse-Sensitive Actions Use Opaque Persistent Limits
+
+Status: IMPLEMENTED - PRODUCTION APPLICATION VERIFICATION PENDING
+
+Supabase Auth remains the provider authority. At the 2026-09-02 audit the live
+project exposed sign-up/sign-in and verification limits of 30 per five minutes,
+plus 150 token refreshes per five minutes; email confirmation and recovery also
+retain provider per-user cooldowns. No Supabase Auth, CAPTCHA, Cloudflare, or
+Vercel setting changed. The application adds the following fixed-window layers:
+
+| Action | Trusted keys | Threshold / window | Block / response |
+| --- | --- | --- | --- |
+| Password login | normalized Auth email; source | 8 / 15m; 20 / 5m | 5m; Server Action `rate_limited` with retry seconds |
+| Signup | normalized Auth email; source | 3 / 1h; 6 / 15m | matching window; safe throttling state |
+| Password recovery | normalized Auth email; source | 3 / 1h; 10 / 1h | 1h; no account-existence distinction |
+| Verification resend | email 1 / 60s plus 3 / 1h; source 10 / 1h | layered cooldown/hourly | 60s or 1h; UI mirrors retry seconds |
+| Customer email actions | resource; authenticated user + business, per action kind | 3 / 15m; 30 / 1h | matching window; nothing enqueued on denial |
+| Admin email retry | event; authenticated AAL2 admin | 3 / 1h; 20 / 1h | 1h; no claim/provider call on denial |
+| Public capability lookup | source; capability hash | 60 / 1m | 1m; safe rate-limited/unavailable state |
+| Public metadata | source; capability hash | 120 / 1m | 1m; no metadata on denial |
+| Public confirm/submit | source; capability hash | 10 / 1m | 2m; no domain mutation on denial |
+| Best-effort first open | source; capability hash | 60 / 1m | evidence skipped; customer page is not blocked |
+
+Booking delivery/cancellation transitions are deliberately not wrapped in a
+second message limiter: their authoritative database transitions and outbox
+uniqueness make repeated lifecycle calls one-shot/idempotent. Internal outbox
+claim/finalization is trusted operational processing, not an end-user endpoint.
+Manual confirmation/feedback sharing only exposes an existing URL locally and
+creates no provider work. Health, static assets, authenticated navigation, and
+ordinary dashboard/list reads remain un-limited.
+
+Password login counts every application attempt, keeps the source bucket, and
+clears only the email-derived bucket after trusted provider success. This avoids
+trapping a legitimate account after success without erasing evidence that one
+source is attacking many identities. Email trim/case normalization matches the
+Supabase input path; plus-address characters remain part of the identifier.
+
+The server derives length-prefixed bucket material and stores only
+HKDF/HMAC-SHA-256 output. Raw passwords are never input to the limiter. Raw
+email, source IP, capability/token, user, business, resource, recipient, and
+customer values never enter the rate table, Sentry, audit metadata, or ordinary
+logs. IPv4 and IPv6 are validated as complete addresses; no prefix guessing is
+used. The direct Production chain is Vercel to Next.js, so only the first
+validated, Vercel-overwritten `x-forwarded-for` value is used. `x-real-ip`, user
+agent, and client-submitted actor/business identity are ignored.
+
+`consume_application_rate_limit` performs one atomic insert/upsert and returns
+remaining, retry, and reset evidence. Parallel boundary verification allowed
+exactly five of twenty requests for a max-five policy. A sampled bounded cleanup
+uses the `updated_at` index to delete at most 500 inactive buckets older than 48
+hours. There is no process Map, module counter, timer, Redis, or new vendor.
+
+Failure is deliberate: Auth calls fail open to Supabase's independent provider
+limits; customer-message enqueue, public capability work, and privileged retry
+fail closed; best-effort open evidence skips. Normal 429-equivalent states do not
+create Sentry issues. Only limiter-storage unavailability creates a safe
+aggregate warning tagged with an allowlisted action/operation and no identifier.
+RLS, member authorization, capability validation, outbox uniqueness, and domain
+transactions remain authoritative and execute independently of limiter identity.

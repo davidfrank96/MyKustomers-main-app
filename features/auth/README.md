@@ -32,7 +32,21 @@ Login and signup also share an optional `Continue with Google` control backed by
 Supabase `signInWithOAuth`. Google returns through the existing PKCE callback and
 therefore uses the same profile trigger, zero-business onboarding, valid current
 preference/deterministic fallback, and logout behavior as password sessions.
-Email/password signup, login, recovery, and reset remain unchanged.
+Email/password login, recovery, and reset retain their provider-owned lifecycle.
+Confirmation-required password signup is now explicit: `signUp` with no session
+returns a verification action state, opens the accessible check-email dialog,
+and leaves an exact-address notice after dismissal. It does not call the
+membership/onboarding resolver until the canonical callback establishes a
+session. Immediate-session signup still uses the normal resolver. Google OAuth
+never receives the password verification dialog.
+
+Verification resend uses `supabase.auth.resend({ type: "signup" })` with the
+canonical callback. Its UI countdown mirrors the server retry result and the
+response remains account-enumeration neutral. Login, signup, recovery, and
+resend consume HMAC-derived account/source buckets before provider invocation;
+successful password login clears only its account bucket while source attempts
+remain counted. Application limiter unavailability fails open to Supabase Auth's
+own protections so a storage incident does not become a total Auth outage.
 
 Every Google start passes `prompt=select_account`, which deliberately shows the
 account chooser without forcing a new consent grant. Password recovery remains

@@ -20,6 +20,20 @@ user choose an account intentionally, while password recovery must remain a
 Supabase-owned one-time recovery flow and must not reveal whether an email is
 registered. Ordinary authenticated sessions are not password-recovery authority.
 
+Password-signup verification rule: when Supabase accepts signup without issuing
+an authenticated session, Signup must show the submitted normalized email and
+remain outside onboarding/workspace until the canonical confirmation callback
+establishes Auth. Dismissing the dialog leaves a persistent verification state;
+resend uses Supabase Auth and an authoritative cooldown. Google OAuth remains a
+separate provider-authenticated path and never receives this password-signup UI.
+
+Abuse-control rule: provider limits remain active, while application Auth and
+costly message/public mutation actions use persistent layered limits derived
+from server-trusted identity. Stored bucket keys are HMAC-derived and contain no
+raw email, IP, token, password, customer, or tenant value. Rate limiting never
+replaces tenant authorization, RLS, capability validation, outbox uniqueness,
+or idempotency.
+
 Large vendor directories use bounded server-side retrieval with progressive
 Load more behavior rather than frequent numbered-page navigation. Bookings and
 Customers start with 25 records and append 25 without loading the full tenant

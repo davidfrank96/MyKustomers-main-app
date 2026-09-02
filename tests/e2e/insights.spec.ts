@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import { randomUUID } from "node:crypto";
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./support/test";
 import { createClient } from "@supabase/supabase-js";
 import { hashFeedbackToken } from "../../features/feedback/token";
 

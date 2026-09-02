@@ -3,6 +3,43 @@
 This checklist separates verified development evidence from remaining
 production-readiness work.
 
+## Auth Verification And Application Rate Limits
+
+- [x] Password signup interprets a successful no-session result as confirmation
+      required and never invokes onboarding/workspace resolution from that state.
+- [x] Accessible check-email dialog shows the exact normalized submitted email;
+      dismissal leaves a persistent verification/resend state and removes the
+      password form from the current page state.
+- [x] Verification resend uses Supabase Auth, neutral account-existence copy,
+      provider-aware throttling, and a UI countdown sourced from server retry
+      evidence.
+- [x] Login, signup, recovery, and resend use persistent account/source layers;
+      successful login clears only its account bucket.
+- [x] Customer confirmation email, amendment, add-on, reschedule, and privileged
+      email retry fail closed before durable/provider work when protection is
+      unavailable or limited.
+- [x] Public confirmation, amendment, add-on, and feedback operations use
+      capability/source layers; best-effort first-open evidence cannot block the
+      customer page.
+- [x] Exact approved migration SHA, transactional apply, catalog/grant/search-
+      path checks, retry metadata, unchanged baseline, legacy compatibility,
+      bounded cleanup, and 5-of-20 concurrency proof pass.
+- [x] No process-memory limiter, Redis/Upstash, CAPTCHA, dependency, environment,
+      provider configuration, WAF, RLS, or tenant-authority change exists.
+- [ ] Full lint, typecheck, Vitest, guarded runtime, E2E, build, dependency audit,
+      and diff hygiene are green on the final commit.
+- [ ] Required PR CI passes and the reviewed branch merges conflict-free.
+- [ ] Vercel Production is Ready on the exact merge commit.
+- [ ] Controlled canonical password signup proves modal, real email, callback,
+      zero-business onboarding, first-business creation, and protected-route
+      denial before verification.
+- [ ] Controlled resend/login/recovery/customer-message bounded smoke confirms
+      safe retry UX without aggressive Production traffic or legitimate-user spam.
+- [ ] Google OAuth, password recovery, PWA, multi-business, RLS, outbox, and
+      320/360/390/430/768/1024/1440 alignment regressions are green.
+- [ ] Controlled Auth, tenant, customer, booking, outbox, audit, and limiter
+      fixtures are removed and independent residue queries return zero.
+
 ## Delivery-To-Feedback Automation
 
 - [x] Exact approved migration hash and repository bytes match.

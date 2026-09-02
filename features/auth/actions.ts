@@ -12,10 +12,14 @@ import type { AuthActionState } from "@/features/auth/action-state";
 import {
   forgotPasswordSchema,
   loginSchema,
+  resendSignupConfirmationSchema,
   resetPasswordSchema,
   signupSchema,
 } from "@/features/auth/validation";
-import { mapSupabaseAuthError } from "@/features/auth/errors";
+import {
+  isSupabaseAuthRateLimitError,
+  mapSupabaseAuthError,
+} from "@/features/auth/errors";
 import {
   buildOAuthCallbackUrl,
   GOOGLE_AUTH_PROVIDER,
@@ -30,6 +34,10 @@ import {
   clearPasswordRecoveryIntent,
   hasPasswordRecoveryIntent,
 } from "@/features/auth/password-recovery";
+import {
+  clearSuccessfulLoginRateLimit,
+  consumeAuthRateLimit,
+} from "@/features/auth/rate-limit";
 
 function formValue(formData: FormData, key: string) {
   return formData.get(key);
@@ -52,6 +60,15 @@ function supabaseUnavailableState() {
   } satisfies AuthActionState;
 }
 
+function authRateLimitedState(retryAfterSeconds: number): AuthActionState {
+  return {
+    status: "error",
+    code: "rate_limited",
+    message: "Too many attempts. Please wait and try again.",
+    retryAfterSeconds: Math.max(1, retryAfterSeconds),
+  };
+}
+
 export async function signupAction(
   _previousState: AuthActionState,
   formData: FormData,
@@ -71,6 +88,11 @@ export async function signupAction(
     return supabaseUnavailableState();
   }
 
+  const rateLimit = await consumeAuthRateLimit("signup", parsed.data.email);
+  if (rateLimit.status === "limited") {
+    return authRateLimitedState(rateLimit.retryAfterSeconds);
+  }
+
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signUp({
     email: parsed.data.email,
@@ -84,9 +106,10 @@ export async function signupAction(
   });
 
   if (error) {
+    if (isSupabaseAuthRateLimitError(error)) return authRateLimitedState(60);
     return {
       status: "error",
-      message: mapSupabaseAuthError(error.message),
+      message: mapSupabaseAuthError(error),
     };
   }
 
@@ -109,7 +132,12 @@ export async function signupAction(
 
   return {
     status: "success",
+    code: "verification_required",
     message: "Check your email to confirm your account.",
+    verification: {
+      email: parsed.data.email,
+      retryAfterSeconds: 60,
+    },
   };
 }
 
@@ -131,6 +159,11 @@ export async function loginAction(
     return supabaseUnavailableState();
   }
 
+  const rateLimit = await consumeAuthRateLimit("login", parsed.data.email);
+  if (rateLimit.status === "limited") {
+    return authRateLimitedState(rateLimit.retryAfterSeconds);
+  }
+
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithPassword({
     email: parsed.data.email,
@@ -138,11 +171,14 @@ export async function loginAction(
   });
 
   if (error || !data.user) {
+    if (isSupabaseAuthRateLimitError(error)) return authRateLimitedState(60);
     return {
       status: "error",
-      message: mapSupabaseAuthError(error?.message),
+      message: mapSupabaseAuthError(error),
     };
   }
+
+  await clearSuccessfulLoginRateLimit(parsed.data.email);
 
   await recordAuditEvent({
     actorUserId: data.user.id,
@@ -236,10 +272,19 @@ export async function forgotPasswordAction(
     return supabaseUnavailableState();
   }
 
+  const rateLimit = await consumeAuthRateLimit("recovery", parsed.data.email);
+  if (rateLimit.status === "limited") {
+    return authRateLimitedState(rateLimit.retryAfterSeconds);
+  }
+
   const supabase = await createClient();
-  await supabase.auth.resetPasswordForEmail(parsed.data.email, {
+  const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
     redirectTo: `${publicEnv.NEXT_PUBLIC_APP_URL}/auth/callback?next=/reset-password`,
   });
+
+  if (isSupabaseAuthRateLimitError(error)) {
+    return authRateLimitedState(60);
+  }
 
   await recordAuditEvent({
     eventType: "PASSWORD_RESET_REQUESTED",
@@ -249,6 +294,60 @@ export async function forgotPasswordAction(
   return {
     status: "success",
     message: "If an account exists for that email, a reset link will be sent.",
+  };
+}
+
+export async function resendSignupConfirmationAction(
+  _previousState: AuthActionState,
+  formData: FormData,
+): Promise<AuthActionState> {
+  const parsed = resendSignupConfirmationSchema.safeParse({
+    email: formValue(formData, "email"),
+  });
+
+  if (!parsed.success) {
+    return {
+      status: "error",
+      message: "The confirmation email could not be resent. Start signup again.",
+    };
+  }
+
+  if (!isSupabasePublicEnvConfigured()) return supabaseUnavailableState();
+
+  const rateLimit = await consumeAuthRateLimit("resend", parsed.data.email);
+  if (rateLimit.status === "limited") {
+    return {
+      ...authRateLimitedState(rateLimit.retryAfterSeconds),
+      verification: {
+        email: parsed.data.email,
+        retryAfterSeconds: rateLimit.retryAfterSeconds,
+      },
+    };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.resend({
+    type: "signup",
+    email: parsed.data.email,
+    options: {
+      emailRedirectTo: `${publicEnv.NEXT_PUBLIC_APP_URL}/auth/callback?next=/dashboard`,
+    },
+  });
+
+  if (isSupabaseAuthRateLimitError(error)) {
+    return {
+      ...authRateLimitedState(60),
+      verification: { email: parsed.data.email, retryAfterSeconds: 60 },
+    };
+  }
+
+  return {
+    status: "success",
+    code: "verification_resent",
+    message:
+      "If this signup is awaiting confirmation, check your inbox for a new verification email.",
+    retryAfterSeconds: 60,
+    verification: { email: parsed.data.email, retryAfterSeconds: 60 },
   };
 }
 
@@ -286,7 +385,7 @@ export async function resetPasswordAction(
   if (error) {
     return {
       status: "error",
-      message: mapSupabaseAuthError(error.message),
+      message: mapSupabaseAuthError(error),
     };
   }
 

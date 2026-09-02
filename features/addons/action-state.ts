@@ -6,6 +6,7 @@ export type AddonActionState = {
   addonId?: string;
   confirmationLinkId?: string;
   expiresAt?: string;
+  retryAfterSeconds?: number;
 };
 
 export const initialAddonActionState: AddonActionState = { status: "idle" };

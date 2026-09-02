@@ -1011,6 +1011,35 @@ export type Database = {
         };
         Returns: boolean;
       };
+      consume_application_rate_limit: {
+        Args: {
+          p_bucket_key: string;
+          p_action: string;
+          p_max_requests: number;
+          p_window_seconds: number;
+          p_block_seconds?: number;
+        };
+        Returns: {
+          allowed: boolean;
+          remaining_requests: number;
+          retry_after_seconds: number;
+          reset_at: string;
+        }[];
+      };
+      clear_application_rate_limit: {
+        Args: {
+          p_bucket_key: string;
+          p_action: string;
+        };
+        Returns: boolean;
+      };
+      cleanup_application_rate_limits: {
+        Args: {
+          p_retention_seconds?: number;
+          p_batch_size?: number;
+        };
+        Returns: number;
+      };
       transition_booking_status: {
         Args: {
           p_booking_id: string;

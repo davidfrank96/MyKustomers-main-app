@@ -13,6 +13,9 @@ const limits: Record<
   addon_open: { maxRequests: 60, windowSeconds: 60, blockSeconds: 60 },
 };
 
-export async function consumeAddonRateLimit(action: AddonRateAction) {
-  return consumePublicCapabilityRateLimit(action, limits[action]);
+export async function consumeAddonRateLimit(
+  action: AddonRateAction,
+  capabilityHash?: string,
+) {
+  return consumePublicCapabilityRateLimit(action, limits[action], capabilityHash);
 }

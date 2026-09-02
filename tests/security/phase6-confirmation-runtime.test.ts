@@ -6,7 +6,7 @@ import {
   generateConfirmationToken,
   hashConfirmationToken,
 } from "@/features/confirmation-links/token";
-import { hashRateLimitIdentity } from "@/features/confirmation-links/rate-limit-keys";
+import { hashOpaqueToken } from "@/lib/security/tokens";
 import {
   createRuntimeSecurityContext,
   expectNoRows,
@@ -725,7 +725,7 @@ if (runtimeVerificationEnabled) {
       expect(anonEmailEventsError).not.toBeNull();
       expectNoRows(anonEmailEvents);
 
-      const rateBucket = hashRateLimitIdentity(`phase6-rate-${randomUUID()}`);
+      const rateBucket = hashOpaqueToken(`phase6-rate-${randomUUID()}`);
       createdRateBuckets.push(rateBucket);
       const rateCalls = [
         await service.rpc("consume_confirmation_rate_limit", {
