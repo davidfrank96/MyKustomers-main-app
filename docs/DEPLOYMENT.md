@@ -349,10 +349,15 @@ no column, enum, RLS policy, environment value, external service, or provider
 configuration. Do not reapply, edit, or down-migrate it; any database defect
 requires a reviewed forward migration.
 
-Application rollback after deployment is the last known compatible Vercel
-deployment. The additive functions/index remain. Production application status
-stays verification-pending until the exact merged deployment passes canonical
-Signup/email/callback, protected-route, Google/recovery, bounded limiter,
-customer-message, PWA/responsive, runtime-log, and zero-residue checks. Most
-threshold/concurrency testing belongs on the guarded non-production target; do
-not attack Production or send repeated messages to legitimate recipients.
+Application rollback remains the last known compatible Vercel deployment; the
+additive functions/index remain. Production application verification passed on
+merge `0b2f61384736cfece51529aea4f6a2525e77f5a6` and Vercel deployment
+`FsH4ZLDod9FTnrCnqpEwUCLwNcBj`, Ready and Current for `mykustomers.com`.
+Canonical controlled smoke proved Signup/email/callback, protected-route denial,
+zero-business onboarding, first-business Dashboard entry, one cooldown-bounded
+resend with real inbox delivery, runtime-log stability, and zero controlled
+fixture residue. Google, recovery, customer-message, PWA/responsive, limiter,
+tenant, and capability regressions passed permanent CI/safe-target coverage;
+Production was not attacked and no legitimate customer was used. Most threshold
+and concurrency testing remains restricted to guarded non-production or
+rollback-only database verification.

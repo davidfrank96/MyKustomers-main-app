@@ -2,7 +2,7 @@
 
 ## 2026-09-02 - Auth Verification And API Rate-Limit Hardening
 
-Status: IMPLEMENTED - PRODUCTION APPLICATION VERIFICATION PENDING
+Status: VERIFIED - PRODUCTION
 
 - Corrected confirmation-required password signup to remain on Signup, open an
   accessible check-email dialog, display the submitted normalized address, and
@@ -29,6 +29,27 @@ Status: IMPLEMENTED - PRODUCTION APPLICATION VERIFICATION PENDING
   5-allowed/15-denied concurrent boundary behavior passed.
 - No Supabase Auth setting, Cloudflare/Vercel control, environment variable,
   provider, dependency, Redis service, CAPTCHA, or RLS policy changed.
+- Final local gates passed: lint, strict typecheck, 700 Vitest checks, guarded
+  Production runtime skips, build, zero-vulnerability audit, diff hygiene, and
+  the non-mutating local browser subset. Required CI then passed Quality, Tests,
+  Build, Dependency Security, Vercel, and the complete 51-pass/16-intentional-
+  skip Playwright matrix with zero failures.
+- PR #59 merged conflict-free as `0b2f61384736cfece51529aea4f6a2525e77f5a6`.
+  Vercel Production deployment `FsH4ZLDod9FTnrCnqpEwUCLwNcBj` is Ready and
+  Current for `mykustomers.com` on that exact source.
+- A controlled password signup stayed on Signup, exposed the accessible exact-
+  address dialog and persistent countdown, denied pre-verification Dashboard,
+  delivered the real confirmation email, and entered onboarding only after the
+  callback. The verified account completed a first workspace and reached
+  Dashboard. A separate Auth-only fixture waited out the server cooldown, made
+  one resend request, showed neutral success plus a restarted countdown, and
+  produced a newer controlled-inbox confirmation delivery.
+- Cleanup independently returned zero controlled Auth users, profiles,
+  businesses, memberships, audits, logo objects, and identity limiter buckets.
+  The bounded source buckets retain only opaque HMAC keys and expire through the
+  approved cleanup policy. The post-smoke deployment window contained zero new
+  Error/Fatal logs; its sole warning was the earlier controlled stale-refresh-
+  cookie health request, not a release-path failure.
 
 ## 2026-09-01 - Delivery-To-Feedback Automation
 
