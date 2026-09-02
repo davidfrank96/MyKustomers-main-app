@@ -69,13 +69,22 @@ export async function sendConfirmationEmailAction(
 ): Promise<ConfirmationLinkActionState> {
   void previousState;
   const { user, business } = await requireCurrentBusiness(`/bookings/${bookingId}`);
-  const parsed = requiredCustomerEmailSchema.safeParse(formData.get("recipientEmail"));
+  const recipientInput = formData.get("recipientEmail");
+  const parsed = requiredCustomerEmailSchema.safeParse(recipientInput);
 
   if (!parsed.success) {
+    const missingEmail =
+      typeof recipientInput !== "string" || recipientInput.trim().length === 0;
     return {
       status: "error",
-      message: "Check the recipient email before sending.",
-      fieldErrors: { recipientEmail: parsed.error.issues.map((issue) => issue.message) },
+      message: missingEmail
+        ? "Add a customer email to send this confirmation. You can still share the link manually."
+        : "Check the recipient email before sending.",
+      fieldErrors: {
+        recipientEmail: missingEmail
+          ? ["Customer email is required."]
+          : parsed.error.issues.map((issue) => issue.message),
+      },
     };
   }
 

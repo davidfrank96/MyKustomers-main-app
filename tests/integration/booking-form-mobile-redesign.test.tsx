@@ -68,16 +68,16 @@ describe("BookingForm mobile create presentation", () => {
     );
     expect(screen.queryByLabelText("Search existing customers")).toBeNull();
     expect(screen.getByLabelText("Customer name")).toBeVisible();
-    expect(screen.getByLabelText("Email (optional)")).toHaveAttribute(
+    expect(screen.getByLabelText("Saved contact email (optional)")).toHaveAttribute(
       "placeholder",
-      "Enter email if available",
+      "Add a saved contact email",
     );
     expect(
       screen.getByText(
         "You can add this later if the customer does not have an email available now.",
       ),
     ).toBeVisible();
-    expect(screen.getByLabelText("Email (optional)")).not.toBeRequired();
+    expect(screen.getByLabelText("Saved contact email (optional)")).not.toBeRequired();
     expect(screen.getByLabelText("Booking title")).toHaveValue("Website redesign");
     expect(screen.getByLabelText("Agreed total")).toHaveValue("45000");
     expect(action).not.toHaveBeenCalled();

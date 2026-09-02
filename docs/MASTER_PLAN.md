@@ -123,7 +123,8 @@ provider, cache, service worker, or infrastructure change.
 
 The customer contact and booking-confirmation email foundation is VERIFIED.
 Secure confirmation now requires a customer-provided email, preserves immutable
-contact evidence, conservatively enriches empty customer contact fields, and
+booking contact evidence without writing the optional saved customer-profile
+email, and
 creates a durable `BOOKING_CONFIRMED` email event in the confirmation
 transaction. Confirmed-booking cancellation creates one durable
 `BOOKING_CANCELLED` event in the same cancellation transaction, preferring the
@@ -325,9 +326,9 @@ Implemented and verified in Phase A:
 - Confirmed cancellation requires a bounded plain-text reason, preserves the
   immutable confirmation row/snapshot/hash/contact and status history, and
   atomically creates at most one `BOOKING_CANCELLED` outbox event.
-- Cancellation delivery uses confirmation contact first, falls back to current
-  customer email only for legacy confirmation evidence without contact, and a
-  provider failure never rolls back cancellation.
+- Cancellation delivery uses only confirmation contact. Legacy evidence without
+  contact creates no email event, saved profile email is never an implicit
+  fallback, and a provider failure never rolls back cancellation.
 - Phase C add-ons create linked scope records and do not rewrite the original
   confirmed agreement.
 

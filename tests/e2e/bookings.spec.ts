@@ -1073,7 +1073,7 @@ test.describe("booking engine", () => {
         .eq("business_id", fixture.businessId),
     ]);
     expect(capturedCustomer).toEqual({
-      email: "customer-confirmation@example.com",
+      email: null,
       phone: "+353 01 555 0155",
     });
     expect(confirmationRows).toEqual([
@@ -1169,8 +1169,10 @@ test.describe("booking engine", () => {
     ).toHaveCount(0);
 
     await page.goto(`/customers/${fixture.customerId}`);
-    await expect(page.getByLabel("Email")).toHaveValue(
-      "customer-confirmation@example.com",
+    await expect(page.getByLabel("Saved contact email")).toHaveValue("");
+    await expect(page.getByLabel("Saved contact email")).toHaveAttribute(
+      "placeholder",
+      "Not added",
     );
     await expect(page.getByLabel("Phone")).toHaveValue("+353 01 555 0155");
     await page.goto(bookingDetailUrl);
@@ -2587,7 +2589,7 @@ test.describe("booking engine", () => {
     await page.getByRole("button", { name: "Add new customer" }).click();
     await page.getByLabel("Customer name").fill(inlineCustomerName);
     await page
-      .getByLabel("Email (optional)", { exact: true })
+      .getByLabel("Saved contact email (optional)", { exact: true })
       .fill(duplicateEmail.toUpperCase());
     await page.getByLabel("Booking title").fill(bookingTitle);
     await page.getByLabel("Scheduled delivery date").fill(futureLocalDateTime());
@@ -2843,6 +2845,12 @@ test.describe("booking engine", () => {
     const secondConfirmationUrl = await page
       .getByLabel("Generated confirmation link")
       .inputValue();
+    await page.getByRole("button", { name: /Custom email/ }).click();
+    const secondBookingEmailInput = page.getByLabel("Customer email");
+    await expect(secondBookingEmailInput).toHaveValue("");
+    await expect(page.getByText(`Saved contact: ${staleCustomerEmail}`)).toBeVisible();
+    await page.getByRole("button", { name: "Use saved email" }).click();
+    await expect(secondBookingEmailInput).toHaveValue(staleCustomerEmail);
     const secondBookingUserAgent = (await page.evaluate(() => navigator.userAgent)).slice(
       0,
       80,

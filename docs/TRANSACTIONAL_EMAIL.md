@@ -115,8 +115,10 @@ link and one `BOOKING_RESCHEDULED` event in the same transaction as the booking
 change. The event references the exact change and link; the raw token is passed
 to the provider boundary only in memory. Initial scheduling without prior
 immutable confirmation does not send. A `DELIVERED` transition creates one
-`BOOKING_DELIVERED` event from the immutable confirmation recipient. Provider
-failure changes only outbox state.
+`BOOKING_DELIVERED` event from the immutable booking-confirmation recipient.
+When that evidence is absent, delivery still creates the private version 1
+feedback capability but creates no email event. It never resolves a recipient
+from `customers.email`. Provider failure changes only outbox state.
 
 Every booking message gets a stable booking subject and opaque custom thread and
 message correlation headers. This is best-effort grouping only. Brevo's API does

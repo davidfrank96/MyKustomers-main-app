@@ -274,14 +274,14 @@ export function CustomerForm({
             />
             <DetailField
               id="email"
-              label="Email"
+              label="Saved contact email"
               icon={Mail}
               value={initialValues.email ?? ""}
               error={fieldError(state, "email")}
               disabled={disabled}
               type="email"
-              autoComplete="email"
-              placeholder="Enter email address (optional)"
+              autoComplete="off"
+              placeholder="Add a saved contact email"
               optional
             />
             <DetailField
@@ -396,13 +396,15 @@ export function CustomerForm({
             />
             <DetailField
               id="email"
-              label="Email"
+              label="Saved contact email"
               icon={Mail}
               value={initialValues.email ?? ""}
               error={fieldError(state, "email")}
               disabled={disabled}
               type="email"
-              autoComplete="email"
+              autoComplete="off"
+              placeholder="Not added"
+              optional
             />
             <DetailField
               id="phone"
@@ -489,13 +491,13 @@ export function CustomerForm({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">Saved contact email (optional)</Label>
           <Input
             id="email"
             name="email"
             type="email"
             defaultValue={initialValues.email ?? ""}
-            autoComplete="email"
+            autoComplete="off"
             disabled={disabled}
             aria-invalid={Boolean(fieldError(state, "email"))}
             aria-describedby={fieldError(state, "email") ? "email-error" : undefined}

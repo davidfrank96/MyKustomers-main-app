@@ -238,14 +238,25 @@ export function ConfirmationLinkPanel({
   const suggestedRecipient =
     sendState.recipientEmail ??
     summary.requestRecipientEmail ??
-    customerProfileEmail ??
     summary.contactEmail ??
     "";
+  const [recipientEmail, setRecipientEmail] = useState(suggestedRecipient);
+  const savedContactEmail = customerProfileEmail
+    ? normalizeCustomerContactEmail(customerProfileEmail)
+    : null;
   const recipientError =
     editedSendState === sendState
       ? undefined
       : sendState.fieldErrors?.recipientEmail?.[0];
   const customEmailVisible = customEmailOpen || sendState.status === "error";
+
+  function useSavedContactEmail() {
+    if (!savedContactEmail) return;
+
+    setRecipientEmail(savedContactEmail);
+    setCustomEmailOpen(true);
+    document.getElementById("confirmation-recipient-email")?.focus();
+  }
 
   return (
     <div className="space-y-4">
@@ -281,18 +292,20 @@ export function ConfirmationLinkPanel({
         </DetailRow>
       </dl>
 
-      {summary.contactEmail ? (
+      {summary.contactEmail || savedContactEmail ? (
         <div className="grid gap-3 rounded-lg border border-border bg-muted/60 p-3 sm:grid-cols-2 lg:grid-cols-4">
           <div className="min-w-0">
-            <p className="text-xs font-medium text-muted-foreground">Booking contact</p>
-            <p className="mt-1 break-all text-sm">{summary.contactEmail}</p>
+            <p className="text-xs font-medium text-muted-foreground">Customer email</p>
+            <p className="mt-1 break-all text-sm">
+              {summary.contactEmail ?? "No customer email added"}
+            </p>
           </div>
-          {profileEmailDiffers ? (
+          {savedContactEmail && (!summary.contactEmail || profileEmailDiffers) ? (
             <div className="min-w-0">
               <p className="text-xs font-medium text-muted-foreground">
-                Customer profile email
+                Saved contact email <span className="font-normal">(optional)</span>
               </p>
-              <p className="mt-1 break-all text-sm">{customerProfileEmail}</p>
+              <p className="mt-1 break-all text-sm">{savedContactEmail}</p>
             </div>
           ) : null}
           <div>
@@ -393,71 +406,92 @@ export function ConfirmationLinkPanel({
                   hidden={!customEmailVisible}
                   noValidate
                 >
-                    <div className="space-y-1.5">
-                      <label
-                        htmlFor="confirmation-recipient-email"
-                        className="text-sm font-medium"
+                  {savedContactEmail ? (
+                    <div className="flex min-w-0 flex-col gap-2 rounded-md border border-border bg-muted/50 p-3 sm:flex-row sm:items-center sm:justify-between">
+                      <p className="min-w-0 break-all text-sm text-muted-foreground">
+                        Saved contact:{" "}
+                        <span className="font-medium text-foreground">
+                          {savedContactEmail}
+                        </span>
+                      </p>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        className="w-full shrink-0 sm:w-auto"
+                        onClick={useSavedContactEmail}
                       >
-                        Email address
-                      </label>
-                      <input
-                        key={suggestedRecipient}
-                        id="confirmation-recipient-email"
-                        name="recipientEmail"
-                        type="email"
-                        autoComplete="email"
-                        defaultValue={suggestedRecipient}
-                        onChange={() => setEditedSendState(sendState)}
-                        onBlur={(event) => {
-                          event.currentTarget.value = normalizeCustomerContactEmail(
-                            event.currentTarget.value,
-                          );
-                        }}
-                        aria-invalid={Boolean(recipientError)}
-                        aria-describedby={
-                          recipientError
-                            ? "confirmation-recipient-help confirmation-recipient-error"
-                            : "confirmation-recipient-help"
-                        }
-                        className="flex h-11 w-full min-w-0 rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
-                        placeholder="Enter email address"
-                      />
-                      {recipientError ? (
-                        <p
-                          id="confirmation-recipient-error"
-                          className="text-sm text-destructive"
-                        >
-                          {recipientError}
-                        </p>
-                      ) : null}
+                        Use saved email
+                      </Button>
                     </div>
-                    <p
-                      id="confirmation-recipient-help"
-                      className="text-xs leading-5 text-muted-foreground"
+                  ) : null}
+                  <div className="space-y-1.5">
+                    <label
+                      htmlFor="confirmation-recipient-email"
+                      className="text-sm font-medium"
                     >
-                      Sending creates a fresh secure link. Changing this address
-                      revokes the previous link.
-                    </p>
-                    <SubmitButton
-                      label="Send confirmation email"
-                      pendingLabel="Sending..."
-                      variant="primary"
-                      icon="send"
-                      className="w-full sm:w-auto"
+                      Customer email
+                    </label>
+                    <input
+                      id="confirmation-recipient-email"
+                      name="recipientEmail"
+                      type="email"
+                      autoComplete="off"
+                      value={recipientEmail}
+                      onChange={(event) => {
+                        setRecipientEmail(event.target.value);
+                        setEditedSendState(sendState);
+                      }}
+                      onBlur={(event) => {
+                        setRecipientEmail(
+                          normalizeCustomerContactEmail(event.currentTarget.value),
+                        );
+                      }}
+                      aria-invalid={Boolean(recipientError)}
+                      aria-describedby={
+                        recipientError
+                          ? "confirmation-recipient-help confirmation-recipient-error"
+                          : "confirmation-recipient-help"
+                      }
+                      className="flex h-11 w-full min-w-0 rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
+                      placeholder="Enter customer email"
                     />
-                    {sendState.message ? (
+                    {recipientError ? (
                       <p
-                        role="status"
-                        className={cn(
-                          "text-sm",
-                          sendState.status === "error"
-                            ? "text-destructive"
-                            : "text-muted-foreground",
-                        )}
+                        id="confirmation-recipient-error"
+                        className="text-sm text-destructive"
                       >
-                        {sendState.message}
+                        {recipientError}
                       </p>
                     ) : null}
+                  </div>
+                  <p
+                    id="confirmation-recipient-help"
+                    className="text-xs leading-5 text-muted-foreground"
+                  >
+                    Used for updates about this booking. Sending creates a fresh secure
+                    link; changing this address revokes the previous link.
+                  </p>
+                  <SubmitButton
+                    label="Send confirmation email"
+                    pendingLabel="Sending..."
+                    variant="primary"
+                    icon="send"
+                    className="w-full sm:w-auto"
+                  />
+                  {sendState.message ? (
+                    <p
+                      role="status"
+                      className={cn(
+                        "text-sm",
+                        sendState.status === "error"
+                          ? "text-destructive"
+                          : "text-muted-foreground",
+                      )}
+                    >
+                      {sendState.message}
+                    </p>
+                  ) : null}
                 </form>
               </div>
 
@@ -530,8 +564,8 @@ export function ConfirmationLinkPanel({
                         : "Confirmation link expired."}
                   </p>
                   <p className="mt-0.5 text-sm leading-5 text-muted-foreground">
-                    Generate a secure link when you&apos;re ready to ask the customer
-                    to confirm.
+                    Generate a secure link when you&apos;re ready to ask the customer to
+                    confirm.
                   </p>
                 </div>
               </div>

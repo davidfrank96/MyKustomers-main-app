@@ -531,15 +531,15 @@ export function BookingForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="newCustomerEmail">Email (optional)</Label>
+            <Label htmlFor="newCustomerEmail">Saved contact email (optional)</Label>
             <Input
               id="newCustomerEmail"
               name="newCustomerEmail"
               type="email"
-              autoComplete="email"
+              autoComplete="off"
               value={newCustomerEmail}
               onChange={(event) => setNewCustomerEmail(event.target.value)}
-              placeholder="Enter email if available"
+              placeholder="Add a saved contact email"
               disabled={disabled}
               aria-invalid={Boolean(fieldError(state, "newCustomerEmail"))}
             />

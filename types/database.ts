@@ -1216,7 +1216,7 @@ export type Database = {
         Returns: {
           booking_id: string;
           booking_status: Database["public"]["Enums"]["booking_status"];
-          email_event_id: string;
+          email_event_id: string | null;
           feedback_link_id: string;
           feedback_token: string;
           expires_at: string;

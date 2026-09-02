@@ -3,6 +3,29 @@
 This checklist separates verified development evidence from remaining
 production-readiness work.
 
+## Customer Email Source-Of-Truth Hotfix
+
+- [x] No fake/default `amah@tcd.ie` exists in repository history or Production.
+- [x] Empty saved profile and empty booking communication fields remain empty.
+- [x] Saved profile email is optional and is not silently copied to a booking.
+- [x] **Use saved email** is an explicit accessible button.
+- [x] Public confirmation writes booking evidence only; profile stays unchanged.
+- [x] Confirmation, amendment, add-on, reschedule, cancellation, delivery, and
+      feedback delivery use booking-scoped email only.
+- [x] Missing booking email creates no event and manual share remains available.
+- [x] Domain-only normalization and non-provider-specific validation remain.
+- [x] Production provenance/count/provider/capability audit is complete and no
+      data cleanup is required.
+- [x] Exact approved migration hash, rollback compile, transactional apply,
+      catalog/grant/search-path checks, and rollback-only controlled DB smoke pass.
+- [ ] Final lint, typecheck, full tests, guarded runtime, E2E, build, dependency
+      audit, and diff hygiene pass on the final documented tree.
+- [ ] Responsive 320/360/390/430/768/1024/1440 and standalone/PWA UX pass.
+- [ ] Required PR CI passes and the exact reviewed commit merges conflict-free.
+- [ ] Vercel Production is Ready on the exact merge commit.
+- [ ] Controlled Production app/inbox smoke proves booking recipient selection,
+      profile non-mutation, delivery/feedback behavior, and zero fixture residue.
+
 ## Auth Verification And Application Rate Limits
 
 - [x] Password signup interprets a successful no-session result as confirmation
@@ -752,7 +775,10 @@ returned zero matching businesses and Auth users.
       preserved in component coverage.
 - [ ] Guarded mutation runtime suite executed on an explicitly safe dev/test
       target. It must remain skipped on the configured production-backed target.
-- [ ] Complete local lint/typecheck/test/runtime/E2E/build/audit/diff gate passes.
+- [x] Complete local formatting/lint/typecheck/test/runtime/E2E/build/audit/diff
+      gate passes: 707 Vitest checks, 21 guarded Production-safe runtime skips,
+      51 Playwright checks with 16 intentional project skips, and zero audit
+      vulnerabilities.
 - [ ] Required PR checks pass and the exact merge deploys to Production.
 - [ ] Read-only production responsive, validation-presentation, navigation,
       auth, list, and Sentry smoke passes without creating customer/email data.

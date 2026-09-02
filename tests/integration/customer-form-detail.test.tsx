@@ -25,7 +25,13 @@ describe("customer detail form presentation", () => {
     expect(screen.getByText("Update your customer information")).toBeVisible();
 
     expect(screen.getByLabelText("Name")).toHaveValue("Jide Alabi");
-    expect(screen.getByLabelText("Email")).toHaveValue("davidfrank96.df@gmail.com");
+    expect(screen.getByLabelText("Saved contact email")).toHaveValue(
+      "davidfrank96.df@gmail.com",
+    );
+    expect(screen.getByLabelText("Saved contact email")).toHaveAttribute(
+      "autocomplete",
+      "off",
+    );
     expect(screen.getByLabelText("Phone (optional)")).toHaveAttribute(
       "placeholder",
       "Enter phone number",
@@ -64,11 +70,12 @@ describe("customer detail form presentation", () => {
       "placeholder",
       "Enter customer name",
     );
-    expect(screen.getByLabelText("Email")).not.toBeRequired();
-    expect(screen.getByLabelText("Email")).toHaveAttribute(
+    expect(screen.getByLabelText("Saved contact email")).not.toBeRequired();
+    expect(screen.getByLabelText("Saved contact email")).toHaveAttribute(
       "placeholder",
-      "Enter email address (optional)",
+      "Add a saved contact email",
     );
+    expect(screen.getByLabelText("Saved contact email")).toHaveValue("");
     expect(screen.getByLabelText("Phone")).not.toBeRequired();
     expect(screen.getByLabelText("Phone")).toHaveAttribute(
       "placeholder",
