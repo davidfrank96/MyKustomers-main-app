@@ -41,8 +41,9 @@ convergence is now demonstrated by two controlled post-deploy delivery events,
 zero null associations, and two exact version 1 links. Separate forward
 migration `20260901230527_delivery_feedback_require_v1_association.sql` restores
 the new-delivery non-null invariant for future writes and contains a fail-closed
-cutoff precondition. It does not rewrite historical rows and remains unapplied
-pending explicit approval.
+cutoff precondition. It was explicitly approved and applied after rollout
+verification. It does not rewrite historical rows; all future delivery events
+must now carry an exact version 1 `booking_feedback` association.
 
 ## 2026-09-01 Customer Lifecycle And Confirmation Request Evidence
 

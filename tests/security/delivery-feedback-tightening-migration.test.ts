@@ -12,10 +12,12 @@ const migration = fs.readFileSync(
 );
 
 describe("delivery feedback forward tightening migration", () => {
-  it("preserves the prepared but unapplied artifact", () => {
+  it("preserves the immutable originally prepared artifact", () => {
     expect(createHash("sha256").update(migration).digest("hex")).toBe(
       "397dbaaa6fab4fb78902e13ef3273054d629df2316bfd0dd593d210d7cb9e6c4",
     );
+    // The applied artifact remains hash-locked, including its preparation-time
+    // header; operational state is recorded in the migration ledger and release docs.
     expect(migration).toContain("PREPARED, NOT APPLIED");
     expect(migration.trimStart()).toMatch(/^begin;/);
     expect(migration.trimEnd()).toMatch(/commit;$/);

@@ -18,8 +18,9 @@ and the matching Vercel Production deployment are verified. Two controlled
 provider deliveries passed exact same-link CTA/manual recovery and both
 lifecycle completion orderings. Cleanup returned zero tenant/Auth/audit residue,
 and post-convergence observation found two delivery events with zero null
-associations and two version 1 links. The separate tightening migration is
-prepared and unapplied pending explicit approval.
+associations and two version 1 links. The separate tightening migration was
+explicitly approved and applied after PR #57 merged as `59c7e81`; strict
+negative/positive rollback verification and zero-residue checks passed.
 It adds versioned Vault-backed feedback capabilities, atomic delivery/event/link
 association, a 48-hour dispatch horizon, same-link manual recovery, and
 paid-plus-feedback completion in either arrival order. Historical v0 links and

@@ -29,9 +29,10 @@ production-readiness work.
       zero before the release status becomes VERIFIED - PRODUCTION.
 - [x] Post-convergence delivery/null-association counts support review of the
       prepared tightening migration.
-- [ ] Explicit approval is granted before applying
-      `20260901230527_delivery_feedback_require_v1_association.sql`; it remains
-      unapplied.
+- [x] Explicit approval was granted before applying
+      `20260901230527_delivery_feedback_require_v1_association.sql`; the exact
+      hash-locked migration, strict catalog/grant checks, and rollback-only
+      negative/positive verification passed.
 
 ## Auth Lifecycle, Password Recovery, and Progressive Lists
 

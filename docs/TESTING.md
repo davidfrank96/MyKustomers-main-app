@@ -65,7 +65,13 @@ credentials.
 Forward tightening migration
 `20260901230527_delivery_feedback_require_v1_association.sql` is statically
 hash-locked and restores strict future-write enforcement behind the deployment
-cutoff precondition. It was not applied.
+cutoff precondition. After explicit approval it was applied transactionally.
+Live checks confirmed both strict functions, postgres ownership, empty search
+paths, and no private-function execution grant to PUBLIC, anon, authenticated,
+or service_role. A rollback-only authenticated regression rejected the legacy
+null-association path with SQLSTATE `23514` and accepted the current RPC with
+exactly one version 1 association; the booking and event remained unmodified
+after rollback.
 
 ## 2026-09-01 Customer Contact, Validation, And Customer Lifecycle
 

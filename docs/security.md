@@ -81,10 +81,11 @@ delivery events with exact version 1 associations and no null association;
 provider CTA resolution matched manual recovery without printing a capability.
 The exact fixture and Auth user were removed with zero database/audit residue.
 Tightening migration
-`20260901230527_delivery_feedback_require_v1_association.sql` is prepared with a
+`20260901230527_delivery_feedback_require_v1_association.sql` was applied with a
 post-convergence fail-closed precondition and the same owner/search-path/grant
-hardening, but is deliberately unapplied pending separate approval. The
-compatibility migration does not weaken RLS or expose token derivation.
+hardening after explicit approval. New delivery now requires the exact version
+1 association; historical pre-cutoff null rows remain grandfathered as history.
+The migration does not weaken RLS or expose token derivation.
 
 ## Security Principles
 
