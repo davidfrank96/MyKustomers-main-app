@@ -1,5 +1,19 @@
 # Data Model
 
+## Saved Profile Email And Booking Contact
+
+`customers.email` is nullable reusable directory data. It changes only through
+an intentional vendor customer/profile write. `booking_confirmations.contact_email`
+is immutable evidence for one booking and the sole automatic communication
+recipient for that booking. Public confirmation never writes the profile, later
+profile edits never redirect booking communication, and historical email-event
+recipients are never re-resolved.
+
+A vendor may explicitly copy saved profile data into the booking communication
+field with **Use saved email** before creating a confirmation request. Without
+that action, the field remains blank. Missing booking contact creates no email
+event; manual sharing and version 1 feedback-capability creation remain valid.
+
 STATUS: PLANNED AND PARTIALLY IMPLEMENTED
 
 This document describes the planned conceptual data model and current migration evidence. Documentation is not implementation evidence.
@@ -453,9 +467,10 @@ existing transition graph permits cancellation. The transaction preserves
 `booking_confirmations`, confirmed timestamps, terms snapshot/hash, contact
 evidence, and trigger-owned history. It inserts at most one
 `BOOKING_CANCELLED` email event for the latest confirmation. Recipient selection
-prefers `booking_confirmations.contact_email`; only legacy evidence without a
-contact may fall back to `customers.email`. Draft/awaiting cancellations do not
-create customer email events because no current customer agreement exists.
+uses only `booking_confirmations.contact_email`; legacy evidence without a
+contact creates no event and never falls back to `customers.email`.
+Draft/awaiting cancellations do not create customer email events because no
+current customer agreement exists.
 
 Booking add-ons are linked new-scope records rather than edits to original or
 amendment evidence. `public.create_booking_addon` derives parent ownership and

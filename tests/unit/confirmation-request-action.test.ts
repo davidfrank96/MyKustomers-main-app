@@ -84,6 +84,26 @@ describe("sendConfirmationEmailAction", () => {
     expect(mocks.deliverEmailEvent).not.toHaveBeenCalled();
   });
 
+  it("keeps a missing booking email blank and preserves manual sharing", async () => {
+    const rpc = vi.fn();
+    mocks.createClient.mockResolvedValue({ rpc });
+
+    const result = await sendConfirmationEmailAction(
+      bookingId,
+      initialConfirmationLinkActionState,
+      recipientForm(""),
+    );
+
+    expect(result).toMatchObject({
+      status: "error",
+      message:
+        "Add a customer email to send this confirmation. You can still share the link manually.",
+      fieldErrors: { recipientEmail: ["Customer email is required."] },
+    });
+    expect(rpc).not.toHaveBeenCalled();
+    expect(mocks.deliverEmailEvent).not.toHaveBeenCalled();
+  });
+
   it("normalizes only the domain and reports provider acceptance honestly", async () => {
     const rpc = vi.fn(async () => ({ data: [requestResult()], error: null }));
     mocks.createClient.mockResolvedValue({ rpc });
@@ -174,7 +194,8 @@ describe("sendConfirmationEmailAction", () => {
 
     expect(result).toMatchObject({
       status: "error",
-      message: "Customer message protection is temporarily unavailable. Nothing was sent.",
+      message:
+        "Customer message protection is temporarily unavailable. Nothing was sent.",
     });
     expect(rpc).not.toHaveBeenCalled();
     expect(mocks.deliverEmailEvent).not.toHaveBeenCalled();

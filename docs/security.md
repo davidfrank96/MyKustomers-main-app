@@ -1036,18 +1036,18 @@ plus 150 token refreshes per five minutes; email confirmation and recovery also
 retain provider per-user cooldowns. No Supabase Auth, CAPTCHA, Cloudflare, or
 Vercel setting changed. The application adds the following fixed-window layers:
 
-| Action | Trusted keys | Threshold / window | Block / response |
-| --- | --- | --- | --- |
-| Password login | normalized Auth email; source | 8 / 15m; 20 / 5m | 5m; Server Action `rate_limited` with retry seconds |
-| Signup | normalized Auth email; source | 3 / 1h; 6 / 15m | matching window; safe throttling state |
-| Password recovery | normalized Auth email; source | 3 / 1h; 10 / 1h | 1h; no account-existence distinction |
-| Verification resend | email 1 / 60s plus 3 / 1h; source 10 / 1h | layered cooldown/hourly | 60s or 1h; UI mirrors retry seconds |
-| Customer email actions | resource; authenticated user + business, per action kind | 3 / 15m; 30 / 1h | matching window; nothing enqueued on denial |
-| Admin email retry | event; authenticated AAL2 admin | 3 / 1h; 20 / 1h | 1h; no claim/provider call on denial |
-| Public capability lookup | source; capability hash | 60 / 1m | 1m; safe rate-limited/unavailable state |
-| Public metadata | source; capability hash | 120 / 1m | 1m; no metadata on denial |
-| Public confirm/submit | source; capability hash | 10 / 1m | 2m; no domain mutation on denial |
-| Best-effort first open | source; capability hash | 60 / 1m | evidence skipped; customer page is not blocked |
+| Action                   | Trusted keys                                             | Threshold / window      | Block / response                                    |
+| ------------------------ | -------------------------------------------------------- | ----------------------- | --------------------------------------------------- |
+| Password login           | normalized Auth email; source                            | 8 / 15m; 20 / 5m        | 5m; Server Action `rate_limited` with retry seconds |
+| Signup                   | normalized Auth email; source                            | 3 / 1h; 6 / 15m         | matching window; safe throttling state              |
+| Password recovery        | normalized Auth email; source                            | 3 / 1h; 10 / 1h         | 1h; no account-existence distinction                |
+| Verification resend      | email 1 / 60s plus 3 / 1h; source 10 / 1h                | layered cooldown/hourly | 60s or 1h; UI mirrors retry seconds                 |
+| Customer email actions   | resource; authenticated user + business, per action kind | 3 / 15m; 30 / 1h        | matching window; nothing enqueued on denial         |
+| Admin email retry        | event; authenticated AAL2 admin                          | 3 / 1h; 20 / 1h         | 1h; no claim/provider call on denial                |
+| Public capability lookup | source; capability hash                                  | 60 / 1m                 | 1m; safe rate-limited/unavailable state             |
+| Public metadata          | source; capability hash                                  | 120 / 1m                | 1m; no metadata on denial                           |
+| Public confirm/submit    | source; capability hash                                  | 10 / 1m                 | 2m; no domain mutation on denial                    |
+| Best-effort first open   | source; capability hash                                  | 60 / 1m                 | evidence skipped; customer page is not blocked      |
 
 Booking delivery/cancellation transitions are deliberately not wrapped in a
 second message limiter: their authoritative database transitions and outbox
@@ -1085,3 +1085,31 @@ create Sentry issues. Only limiter-storage unavailability creates a safe
 aggregate warning tagged with an allowlisted action/operation and no identifier.
 RLS, member authorization, capability validation, outbox uniqueness, and domain
 transactions remain authoritative and execute independently of limiter identity.
+
+SEC-055 - Saved Profile Email Is Never An Implicit Booking Recipient
+
+Status: IMPLEMENTED - APPLICATION DEPLOYMENT VERIFICATION PENDING
+
+`customers.email` is optional, tenant-scoped directory data. Public confirmation
+cannot write it, and lifecycle RPCs cannot read it to resolve a recipient.
+`booking_confirmations.contact_email` is immutable booking-scoped evidence and
+the only automatic source for confirmation, amendment, add-on, reschedule,
+cancellation, delivery, and feedback-delivery messages. The durable event stores
+that exact normalized recipient at creation; later profile edits cannot redirect
+historical or future booking communication.
+
+When booking contact evidence is absent, no email event is created. Manual
+sharing remains local and no-email delivery still creates a valid unconsumed,
+unrevoked, unexpired version 1 feedback capability. This preserves strict
+capability integrity without inventing a recipient. The UI disables browser
+email autofill for these optional/separate fields and requires an explicit
+**Use saved email** action before copying saved profile data into the booking
+communication field.
+
+The `amah@tcd.ie` provenance audit found zero repository/history occurrences,
+zero Production customer/confirmation/amendment/add-on/business/Auth/audit/event
+occurrences, zero provider attempts, and zero active capabilities. No data
+cleanup or capability revocation was justified. Migration
+`20260902104919_customer_email_source_of_truth.sql` changes functions only;
+ownership, empty search paths, grants, RLS, tenant derivation, rate limiting,
+normalization, and historical rows remain unchanged.

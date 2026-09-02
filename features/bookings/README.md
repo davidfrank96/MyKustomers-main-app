@@ -1,5 +1,12 @@
 # Bookings Feature
 
+Booking communication uses immutable `booking_confirmations.contact_email`, not
+the optional saved `customers.email` profile field. The confirmation-send field
+starts blank; a vendor may type a booking address or explicitly choose **Use
+saved email**. Public confirmation stores its normalized address on the booking
+evidence only. Missing booking email creates no automatic event and does not
+block manual sharing or no-email delivery/feedback capability creation.
+
 Phase 5 implements vendor-side booking management. Phase 6 extends booking
 lifecycle behavior with secure customer confirmation before a booking can move
 to confirmed. Phase 7 adds controlled operational fulfilment transitions,

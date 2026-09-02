@@ -1,5 +1,14 @@
 # Architecture
 
+## Customer Email Source Boundary
+
+Customer profile email is optional saved directory data; booking confirmation
+contact is immutable per-booking communication evidence. Server actions never
+derive a booking recipient from the profile. An explicit UI selection may copy
+the saved value into a new confirmation request, after which the atomic database
+operation persists the exact normalized recipient with the booking event.
+Lifecycle functions use only that evidence and create no event when it is absent.
+
 Detailed accepted decisions are recorded in `docs/DECISIONS.md`. This document
 summarizes the current architecture and must not be used to silently override an
 accepted ADR.

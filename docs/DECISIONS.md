@@ -1438,3 +1438,33 @@ does not expose prior identifiers. Normal reads, static assets, health, manual
 URL sharing, and internal outbox workers add no limiter latency. Provider and
 application policies remain defense in depth rather than substitutes for RLS,
 capabilities, transactional uniqueness, or outbox idempotency.
+
+## ADR-060 - Booking Contact Never Falls Back To Saved Profile Email
+
+Status: Accepted
+
+Date: 2026-09-02
+
+Supersedes: ADR-050's empty-profile enrichment and legacy profile-fallback
+rules. ADR-050 remains historical evidence of the earlier decision.
+
+Context: `customers.email` is optional reusable directory data, while
+`booking_confirmations.contact_email` is immutable communication evidence for
+one booking. Automatically copying confirmation input into the profile, or
+resolving a missing booking recipient from the profile, blurred consent and
+could direct a capability-bearing message to the wrong address. The reported
+`amah@tcd.ie` value was absent from repository history and every audited
+Production store; no contaminated row or provider attempt exists.
+
+Decision: Keep saved profile email optional and never write it from public
+confirmation. Keep booking email blank until typed or explicitly selected with
+**Use saved email**. Confirmation, amendment, add-on, reschedule, cancellation,
+delivery, and feedback-delivery events use only booking-scoped contact evidence.
+Missing evidence creates no email event; manual share and no-email delivery
+remain valid. Preserve historical recipient rows unchanged.
+
+Consequences: The seven affected PostgreSQL functions are replaced by forward
+migration `20260902104919_customer_email_source_of_truth.sql`. No table, column,
+RLS policy, environment value, provider, or dependency changes. Optional phone
+enrichment remains. The delivery result's `email_event_id` is nullable because
+a valid version 1 feedback capability may exist without an email event.

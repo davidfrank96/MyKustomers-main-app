@@ -161,9 +161,9 @@ affect confirmed terms.
 
 Confirmation requires a normalized customer-provided contact email and accepts
 an optional phone number. These values are booking confirmation evidence, not
-proof of email or phone ownership. Empty customer contact fields may be enriched
-from the submission, but an existing different value is never silently
-overwritten. A booking-confirmed email event is committed atomically and
+proof of email or phone ownership. The submitted email never populates or
+overwrites the optional saved `customers.email` profile field. A
+booking-confirmed email event is committed atomically and
 delivered after commit; delivery failure does not change the confirmed booking.
 Customers still do not create accounts or complete OTP verification.
 
@@ -184,8 +184,9 @@ is not an ordinary edit.
 Cancelling a customer-confirmed booking is a lifecycle transaction with a
 required bounded plain-text reason. It preserves the original confirmation
 evidence and atomically queues one `BOOKING_CANCELLED` email to the immutable
-confirmation contact, falling back to current customer email only for legacy
-evidence without contact. Delivery failure changes only outbox state. Email
+confirmation contact. Legacy evidence without a booking contact creates no
+automatic email; the saved profile email is never an implicit fallback.
+Delivery failure changes only outbox state. Email
 wording never claims that My Kustomers issued or controls a refund.
 
 Phase B implements explicit amendments for `CONFIRMED` and `IN_PROGRESS`

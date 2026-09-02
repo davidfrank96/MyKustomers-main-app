@@ -28,6 +28,11 @@ describe("BookingForm entry clarity", () => {
       "Optional",
     );
     expect(screen.getByLabelText("Deposit recorded")).not.toBeRequired();
+    expect(screen.getByLabelText("Saved contact email (optional)")).toHaveValue("");
+    expect(screen.getByLabelText("Saved contact email (optional)")).toHaveAttribute(
+      "autocomplete",
+      "off",
+    );
   });
 
   it("preserves persisted money values when editing", () => {

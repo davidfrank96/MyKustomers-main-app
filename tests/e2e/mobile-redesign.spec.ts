@@ -189,14 +189,15 @@ async function expectNewBookingPresentation(page: Page, width: number) {
 
 async function expectNewCustomerPresentation(page: Page, width: number) {
   const name = page.getByLabel("Name", { exact: true });
-  const email = page.getByLabel("Email", { exact: true });
+  const email = page.getByLabel("Saved contact email", { exact: true });
   const phone = page.getByLabel("Phone", { exact: true });
   const notes = page.getByLabel("Notes", { exact: true });
 
   await expect(name).toHaveAttribute("required", "");
   await expect(name).toHaveAttribute("placeholder", "Enter customer name");
   await expect(email).not.toHaveAttribute("required", "");
-  await expect(email).toHaveAttribute("placeholder", "Enter email address (optional)");
+  await expect(email).toHaveAttribute("placeholder", "Add a saved contact email");
+  await expect(email).toHaveAttribute("autocomplete", "off");
   await expect(phone).not.toHaveAttribute("required", "");
   await expect(phone).toHaveAttribute("placeholder", "Enter phone number (optional)");
   await expect(notes).toHaveAttribute(
@@ -397,7 +398,9 @@ test.describe("approved mobile redesign", () => {
       testInfo.project.name !== "chromium",
       "One controlled visual matrix is sufficient.",
     );
-    test.setTimeout(420_000);
+    // This test intentionally renders and captures the complete 8-viewport route
+    // matrix; the timeout is a suite budget, not a product-performance assertion.
+    test.setTimeout(600_000);
 
     const admin = adminClient();
     const fixture = randomUUID().slice(0, 8);
@@ -768,7 +771,7 @@ test.describe("approved mobile redesign", () => {
 
       await page.getByLabel("Name", { exact: true }).fill("Responsive Customer");
       await page
-        .getByLabel("Email", { exact: true })
+        .getByLabel("Saved contact email", { exact: true })
         .fill("responsive.customer.with.a.long.address@example.com");
       await page.getByLabel("Phone", { exact: true }).fill("+353 1 555 0144");
       await page.getByLabel("Notes", { exact: true }).fill("Helpful note");

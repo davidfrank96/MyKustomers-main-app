@@ -1,5 +1,33 @@
 # Changelog
 
+## 2026-09-02 - Customer Email Source-Of-Truth Hotfix
+
+Status: IMPLEMENTED - APPLICATION DEPLOYMENT VERIFICATION PENDING
+
+- Audited `amah@tcd.ie` across repository source, Git history, Production
+  customer/confirmation/amendment/add-on/business/Auth/audit/outbox data,
+  provider attempts, and active capabilities. Every count is zero; no data
+  cleanup or revocation was justified. The observed value is not an application
+  default or persisted Production value; browser/form input was the only
+  remaining ingress boundary.
+- Separated optional `customers.email` saved contact from booking-scoped
+  `booking_confirmations.contact_email`. Public confirmation no longer enriches
+  the profile, and all affected lifecycle RPCs no longer fall back to it.
+- Booking email starts blank. A real **Use saved email** button performs the
+  only profile-to-booking copy, and missing email keeps manual sharing available
+  while send-by-email returns a focused error without creating an outbox event.
+- Applied exact approved migration
+  `20260902104919_customer_email_source_of_truth.sql` (SHA-256
+  `83f6bb408555fb19cd3c10c6ddc80821b1da6932fba0df18a1d2d9ec8b9059eb`).
+  Rollback compile, catalog/grant/search-path inspection, unchanged counts, and
+  rollback-only confirmation/no-email-delivery proof passed.
+- No table, column, enum, RLS, environment, provider, dependency, historical
+  recipient, or customer-data cleanup change was introduced. Final local gates
+  passed: formatting, lint, strict typecheck, 707-test Vitest suite, guarded
+  Production-safe runtime skip, production build, zero-vulnerability audit,
+  51-test desktop/mobile/PWA Playwright matrix, and diff integrity. PR/CI,
+  Vercel, controlled inbox, and final Production residue checks remain pending.
+
 ## 2026-09-02 - Auth Verification And API Rate-Limit Hardening
 
 Status: VERIFIED - PRODUCTION

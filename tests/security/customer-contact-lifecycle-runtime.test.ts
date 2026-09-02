@@ -294,12 +294,16 @@ if (enabled) {
         p_contact_phone: null,
       });
       expect((confirmed.data as { status?: string })?.status).toBe("confirmed");
-      const confirmation = await service
-        .from("booking_confirmations")
-        .select("contact_email")
-        .eq("booking_id", bookingId)
-        .single();
+      const [confirmation, customerProfile] = await Promise.all([
+        service
+          .from("booking_confirmations")
+          .select("contact_email")
+          .eq("booking_id", bookingId)
+          .single(),
+        service.from("customers").select("email").eq("id", customerId).single(),
+      ]);
       expect(confirmation.data?.contact_email).toBe("Correct.Person@outlook.com");
+      expect(customerProfile.data?.email).toBe("Profile.Person@example.com");
 
       const crossTenant = await outsider.client.rpc(
         "create_booking_confirmation_request",

@@ -77,20 +77,44 @@ function renderPanel(
 }
 
 describe("confirmation contact evidence", () => {
-  it("distinguishes a booking contact from a different customer profile email", () => {
+  it("distinguishes a booking email from a different saved contact email", () => {
     renderPanel("old@example.com");
 
-    expect(screen.getByText("Booking contact")).toBeVisible();
+    expect(screen.getByText("Customer email")).toBeVisible();
     expect(screen.getByText("new@example.com")).toBeVisible();
-    expect(screen.getByText("Customer profile email")).toBeVisible();
+    expect(screen.getByText(/Saved contact email/)).toBeVisible();
     expect(screen.getByText("old@example.com")).toBeVisible();
   });
 
   it("does not duplicate the same normalized profile email", () => {
     renderPanel(" new@EXAMPLE.COM ");
 
-    expect(screen.getByText("Booking contact")).toBeVisible();
-    expect(screen.queryByText("Customer profile email")).toBeNull();
+    expect(screen.getByText("Customer email")).toBeVisible();
+    expect(screen.queryByText(/Saved contact email/)).toBeNull();
+  });
+
+  it("keeps a saved contact separate until Use saved email is selected", () => {
+    renderPanel("Saved.Person@EXAMPLE.COM", {
+      panelSummary: {
+        ...summary,
+        status: "active",
+        usedAt: null,
+        confirmedAt: null,
+        contactEmail: null,
+        requestRecipientEmail: null,
+      },
+      canManage: true,
+    });
+
+    expect(screen.getByText("No customer email added")).toBeVisible();
+    const disclosure = screen.getByRole("button", { name: /Custom email/ });
+    fireEvent.click(disclosure);
+    const recipient = screen.getByLabelText("Customer email");
+    expect(recipient).toHaveValue("");
+
+    fireEvent.click(screen.getByRole("button", { name: "Use saved email" }));
+    expect(recipient).toHaveValue("Saved.Person@example.com");
+    expect(recipient).toHaveFocus();
   });
 
   it("renders status and every existing confirmation metadata field", () => {
@@ -174,7 +198,7 @@ describe("confirmation contact evidence", () => {
     expect(share).toHaveClass("w-full", "whitespace-nowrap");
     expect(screen.getByText("OR")).toBeVisible();
     expect(customEmail).toHaveAttribute("aria-expanded", "false");
-    expect(screen.getByLabelText("Email address")).not.toBeVisible();
+    expect(screen.getByLabelText("Customer email")).not.toBeVisible();
   });
 
   it("shows only generation before any confirmation link exists", () => {
@@ -206,7 +230,9 @@ describe("confirmation contact evidence", () => {
       screen.queryByRole("button", { name: "Regenerate link" }),
     ).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Revoke link" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Custom email" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Custom email" }),
+    ).not.toBeInTheDocument();
   });
 
   it("keeps the editable confirmation recipient in a reversible Custom email disclosure", async () => {
@@ -233,11 +259,11 @@ describe("confirmation contact evidence", () => {
 
     const disclosure = screen.getByRole("button", { name: /Custom email/ });
     expect(disclosure).toHaveAttribute("aria-expanded", "false");
-    expect(screen.getByLabelText("Email address")).not.toBeVisible();
+    expect(screen.getByLabelText("Customer email")).not.toBeVisible();
 
     fireEvent.click(disclosure);
     expect(disclosure).toHaveAttribute("aria-expanded", "true");
-    const recipient = screen.getByLabelText("Email address");
+    const recipient = screen.getByLabelText("Customer email");
     expect(recipient).toBeVisible();
     expect(recipient).toHaveValue("Original.Person@example.com");
     fireEvent.change(recipient, {
@@ -285,7 +311,7 @@ describe("confirmation contact evidence", () => {
 
     const disclosure = screen.getByRole("button", { name: /Custom email/ });
     fireEvent.click(disclosure);
-    const recipient = screen.getByLabelText("Email address");
+    const recipient = screen.getByLabelText("Customer email");
     fireEvent.change(recipient, { target: { value: "not-an-email" } });
     fireEvent.click(screen.getByRole("button", { name: "Send confirmation email" }));
 

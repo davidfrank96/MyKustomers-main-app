@@ -42,14 +42,16 @@ Exact active-customer name, normalized email, or phone matches produce a
 non-blocking warning; they are never silently merged. Archived customers are
 excluded from booking search/selection and cannot be attached to a new booking.
 
-Secure booking confirmation may conservatively enrich a customer's empty email
-or phone from customer-provided contact. Existing non-empty values are
-preserved, even when the submitted booking contact differs. The submitted value
-remains immutable evidence on `booking_confirmations`; it is not described as
+`customers.email` is optional saved contact data entered deliberately by the
+vendor. Secure booking confirmation never writes that field, including when it
+is empty. Optional phone enrichment remains independent. The submitted email is
+immutable booking evidence on `booking_confirmations`; it is not described as
 verified contact ownership.
 
 Repeat bookings may therefore retain different booking contacts for the same
-customer without changing or duplicating the customer directory record. No
+customer without changing or duplicating the customer directory record. The
+booking UI keeps the communication field blank until the vendor types an email
+or explicitly chooses **Use saved email**. No
 preferred contact, customer email history, ownership verification, or automatic
 deduplication model exists in this detour.
 

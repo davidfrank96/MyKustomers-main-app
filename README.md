@@ -1,5 +1,17 @@
 # My Kustomers
 
+Customer email source-of-truth hardening is implemented with application
+deployment verification pending. Optional saved profile email is separate from
+booking communication: booking email starts blank, **Use saved email** is
+explicit, public confirmation never mutates the profile, and automatic lifecycle
+email uses only immutable booking contact evidence. Exact approved migration
+`20260902104919_customer_email_source_of_truth.sql` is applied to the configured
+Production-backed database; rollback compile, catalog hardening, zero
+`amah@tcd.ie` counts, and rollback-only controlled database smoke passed. No
+customer cleanup, historical event rewrite, environment, provider, dependency,
+RLS, or schema-shape change was required. PR/CI, Vercel, responsive/PWA, and
+controlled inbox verification remain pending.
+
 The Auth verification and application rate-limit hardening phase is VERIFIED -
 PRODUCTION. A
 confirmation-required password signup now remains on Signup with an accessible

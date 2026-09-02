@@ -1,5 +1,24 @@
 # Testing
 
+## Customer Email Source-Of-Truth Regression
+
+Static migration coverage proves that public confirmation cannot write customer
+profile email, lifecycle RPCs contain no customer-email recipient fallback,
+no-email delivery retains a strict version 1 feedback capability, and all seven
+functions preserve hardened ownership/search-path/grant contracts. Component
+coverage proves blank-by-default booking email, optional saved-profile labels,
+real **Use saved email** behavior, accessible error focus, malformed/missing
+send rejection, and manual-share copy. The guarded runtime suite additionally
+asserts that a different normalized booking contact leaves the saved profile
+unchanged.
+
+The approved Production-backed verification used only aggregate read checks and
+a synthetic rollback transaction. It proved normalized booking evidence with an
+unchanged saved profile and a no-email delivery with no email event plus one
+valid version 1 feedback capability. No provider call occurred and the
+transaction rolled back. General runtime security remains guarded against
+Production and must not be forced onto that target.
+
 ## Status
 
 STATUS: IMPLEMENTED AND VERIFIED

@@ -1364,3 +1364,27 @@ owner-only atomic zero-booking deletion. Approved migrations are applied with
 catalog/count verification. Mutation fixtures remain prohibited on the current
 production-backed target; complete local gates, CI, deployment, and read-only
 production smoke are pending.
+
+## Customer Email Source-Of-Truth Hotfix
+
+Status: IMPLEMENTED - APPLICATION DEPLOYMENT VERIFICATION PENDING
+
+Scope: optional saved-profile email, blank-by-default booking communication,
+explicit **Use saved email**, no public-confirmation profile mutation, and
+booking-contact-only outbox recipient selection. Manual sharing and no-email
+delivery remain available; the strict version 1 feedback capability invariant
+is retained.
+
+Database evidence: exact approved migration
+`20260902104919_customer_email_source_of_truth.sql` applied transactionally to
+the configured Production-backed project. Rollback compile, postgres ownership,
+empty search paths, grants, no profile fallback/write, unchanged suspect-address
+counts, and a rollback-only controlled confirmation/no-email-delivery journey
+passed. No customer or historical email-event cleanup was required.
+
+Local verification: formatting, lint, strict typecheck, 707-test Vitest suite,
+guarded Production-safe runtime skip, production build, zero-vulnerability
+audit, diff integrity, and 51-test desktop/mobile/PWA Playwright matrix passed.
+
+Deferred: PR/CI, exact Vercel deployment, controlled Production inbox delivery,
+and final Production zero-residue verification.

@@ -37,12 +37,14 @@ Phase 6 implements secure customer confirmation links for bookings.
   authorization credentials.
 - Public GET lookup does not consume a link.
 - Customer confirmation is POST-backed and atomic in the database.
-- Existing different customer email/phone values are never silently replaced;
-  only empty fields are enriched.
-- Customer-provided confirmation contact is booking-specific evidence. A
-  different booking contact must not silently overwrite an existing canonical
-  customer profile email, and it remains authoritative for that booking's later
-  notification recipient selection.
+- Customer-provided confirmation email is booking-specific evidence and never
+  writes `customers.email`, including when the saved profile field is empty.
+  Optional phone enrichment remains separate.
+- `booking_confirmations.contact_email` is the sole automatic recipient for
+  that booking's later notifications. A saved profile email is usable only
+  after the vendor explicitly chooses **Use saved email** for the booking.
+- Missing booking contact creates no email event. Manual link sharing remains
+  available and does not manufacture or persist a recipient.
 - External email delivery happens after commit and cannot revert confirmation.
 - Expired, revoked, consumed, unknown, and invalid tokens return safe public
   statuses.
