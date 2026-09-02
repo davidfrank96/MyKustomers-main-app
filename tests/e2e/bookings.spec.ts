@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import { randomUUID } from "node:crypto";
-import { expect, test, type Page, type Route as PlaywrightRoute } from "@playwright/test";
+import { expect, test, type Page, type Route as PlaywrightRoute } from "./support/test";
 import { createClient } from "@supabase/supabase-js";
 import sharp from "sharp";
 import { deriveRateLimitBucketKey } from "../../lib/security/rate-limit-key";

@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./support/test";
 
 const requiredWidths = [320, 360, 375, 390, 430, 768, 834, 1024, 1280, 1440, 1600];
 const publicRoutes = [

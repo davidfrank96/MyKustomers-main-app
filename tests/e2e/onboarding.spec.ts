@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./support/test";
 import { createClient } from "@supabase/supabase-js";
 import sharp from "sharp";
 import {
