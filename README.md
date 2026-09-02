@@ -1,7 +1,7 @@
 # My Kustomers
 
-The Auth verification and application rate-limit hardening phase is IMPLEMENTED
-on its release branch; Production application verification is pending. A
+The Auth verification and application rate-limit hardening phase is VERIFIED -
+PRODUCTION. A
 confirmation-required password signup now remains on Signup with an accessible
 check-email dialog, a persistent exact-address notice, and a Supabase-owned
 resend cooldown. Login, signup, recovery, resend, public capability mutations,
@@ -12,6 +12,14 @@ server-authoritative persistent limits. Exact migration
 approved, applied, catalog-verified, concurrency-tested, and backward-compatible
 with the deployed legacy public limiter. No Redis, in-memory security counter,
 CAPTCHA, dependency, environment variable, or provider configuration was added.
+PR #59 passed every required check and merged as `0b2f613`; Vercel Production
+deployment `FsH4ZLDod9FTnrCnqpEwUCLwNcBj` is Ready on that exact merge. A
+controlled canonical signup proved the check-email state, protected-route gate,
+real SMTP confirmation, callback, zero-business onboarding, first workspace,
+and Dashboard entry. One cooldown-respecting resend produced the neutral success
+state and a new controlled-inbox delivery. Both fixtures and their business,
+membership, profile, audit, logo, and identity-limiter rows were independently
+verified absent after cleanup.
 
 My Kustomers is a mobile-first SaaS application for small businesses that manage
 customers, bookings, orders, confirmations, feedback, and customer history through

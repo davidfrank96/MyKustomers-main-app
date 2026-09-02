@@ -37,7 +37,7 @@ Permanent focused coverage includes:
   from sharing one synthetic source bucket. Limiter-specific journeys may
   deliberately replace that header with a stable controlled source.
 
-Before Production status, run the guarded runtime and full Playwright matrices
+Before Production status, the guarded runtime and full Playwright matrices were run
 against an explicitly safe target, including concurrent max-five behavior,
 controlled wrong-password/signup/recovery/resend thresholds, direct Server
 Action/public mutation invocation, header spoofing, cross-tenant denial, cold
@@ -46,6 +46,20 @@ start persistence, canonical verification email, Google, recovery, PWA, and the
 smoke with controlled identities/recipients; it must not generate an attack or
 spam a legitimate customer. Skipped safe-target suites are recorded as skipped,
 never as passed.
+
+Final evidence passed 700 Vitest checks, the guarded Production runtime command
+with 21 explicit safety skips, build, zero-vulnerability dependency audit, and
+diff hygiene. PR #59 CI passed Quality, Tests, Build, Dependency Security,
+Vercel, and 51 Playwright tests with 16 intentional project skips and zero
+failures. Merge `0b2f613` deployed Ready/Current as
+`FsH4ZLDod9FTnrCnqpEwUCLwNcBj`. Canonical controlled Production smoke proved
+the accessible exact-address signup state, persistent dismissal state,
+pre-verification Dashboard denial, real email/callback, onboarding, first
+business, and Dashboard. A separate unverified fixture waited through the
+server countdown, made one resend request, showed neutral success and a renewed
+cooldown, and produced a newer confirmation in the controlled inbox. Exact
+cleanup checks returned zero Auth, profile, business, membership, audit, logo,
+and identity-limiter residue.
 
 ## 2026-09-01 Delivery-To-Feedback Automation
 
