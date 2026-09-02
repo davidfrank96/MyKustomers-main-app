@@ -1,7 +1,9 @@
 import "server-only";
-import { headers } from "next/headers";
-import { canUseServiceRoleClient, createServiceRoleClient } from "@/lib/supabase/admin";
-import { hashRateLimitIdentity } from "@/features/confirmation-links/rate-limit-keys";
+import {
+  consumeRateLimitLayers,
+  getTrustedRequestSource,
+  type RateLimitLayer,
+} from "@/lib/security/rate-limit";
 
 type ConfirmationRateLimitAction = "lookup" | "metadata" | "confirm" | "open";
 
@@ -21,41 +23,39 @@ const rateLimitConfig: Record<
   open: { maxRequests: 60, windowSeconds: 60, blockSeconds: 60 },
 };
 
-async function publicCapabilityRateLimitBucket(action: string) {
-  const requestHeaders = await headers();
-  const forwardedFor = requestHeaders.get("x-forwarded-for")?.split(",")[0]?.trim();
-  const realIp = requestHeaders.get("x-real-ip")?.trim();
-  const userAgent = requestHeaders.get("user-agent")?.slice(0, 80) ?? "unknown";
-  const identity = `${action}:${forwardedFor || realIp || "unknown"}:${userAgent}`;
-
-  return hashRateLimitIdentity(identity);
-}
-
 export async function consumePublicCapabilityRateLimit(
   action: string,
   config: PublicCapabilityRateLimit,
+  capabilityHash?: string,
 ) {
-  if (!canUseServiceRoleClient()) {
-    return false;
+  const source = await getTrustedRequestSource();
+  const layers: RateLimitLayer[] = [
+    {
+      action: `${action}_source`,
+      keyParts: ["source", source],
+      policy: config,
+    },
+  ];
+
+  if (capabilityHash) {
+    layers.push({
+      action: `${action}_capability`,
+      keyParts: ["capability", capabilityHash],
+      policy: config,
+    });
   }
 
-  const bucketKey = await publicCapabilityRateLimitBucket(action);
-  const supabase = createServiceRoleClient();
-  const { data, error } = await supabase.rpc("consume_confirmation_rate_limit", {
-    p_bucket_key: bucketKey,
-    p_action: action,
-    p_max_requests: config.maxRequests,
-    p_window_seconds: config.windowSeconds,
-    p_block_seconds: config.blockSeconds,
-  });
-
-  if (error) {
-    return false;
-  }
-
-  return data === true;
+  const result = await consumeRateLimitLayers(layers);
+  return result.status === "allowed";
 }
 
-export function consumeConfirmationRateLimit(action: ConfirmationRateLimitAction) {
-  return consumePublicCapabilityRateLimit(action, rateLimitConfig[action]);
+export function consumeConfirmationRateLimit(
+  action: ConfirmationRateLimitAction,
+  capabilityHash?: string,
+) {
+  return consumePublicCapabilityRateLimit(
+    action,
+    rateLimitConfig[action],
+    capabilityHash,
+  );
 }

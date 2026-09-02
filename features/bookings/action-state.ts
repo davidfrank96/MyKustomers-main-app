@@ -1,6 +1,7 @@
 export type BookingActionState = {
   status: "idle" | "success" | "error";
   message?: string;
+  retryAfterSeconds?: number;
   fieldErrors?: Record<string, string[]>;
   duplicateCandidates?: Array<{
     id: string;

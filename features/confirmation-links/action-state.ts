@@ -6,6 +6,7 @@ export type ConfirmationLinkActionState = {
   expiresAt?: string;
   recipientEmail?: string;
   deliveryStatus?: "accepted" | "failed" | "duplicate";
+  retryAfterSeconds?: number;
   fieldErrors?: Partial<Record<"recipientEmail", string[]>>;
 };
 

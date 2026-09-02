@@ -68,15 +68,16 @@ function parseView(value: unknown): PublicAmendmentView {
 export async function getPublicAmendmentView(
   token: string,
 ): Promise<PublicAmendmentView> {
-  if (!(await consumeAmendmentRateLimit("amendment_lookup"))) {
-    return { status: "rate_limited" } satisfies PublicAmendmentView;
-  }
   if (!canUseServiceRoleClient() || !isPlausibleAmendmentToken(token)) {
     return { status: "unavailable" } satisfies PublicAmendmentView;
   }
+  const tokenHash = hashAmendmentToken(token);
+  if (!(await consumeAmendmentRateLimit("amendment_lookup", tokenHash))) {
+    return { status: "rate_limited" } satisfies PublicAmendmentView;
+  }
   const supabase = createServiceRoleClient();
   const { data, error } = await supabase.rpc("get_booking_amendment_public_view", {
-    p_token_hash: hashAmendmentToken(token),
+    p_token_hash: tokenHash,
   });
   return error ? { status: "unavailable" } : parseView(data);
 }
@@ -84,16 +85,17 @@ export async function getPublicAmendmentView(
 export async function getPublicAmendmentMetadata(token: string) {
   if (
     !canUseServiceRoleClient() ||
-    !isPlausibleAmendmentToken(token) ||
-    !(await consumeAmendmentRateLimit("amendment_metadata"))
+    !isPlausibleAmendmentToken(token)
   ) {
     return null;
   }
+  const tokenHash = hashAmendmentToken(token);
+  if (!(await consumeAmendmentRateLimit("amendment_metadata", tokenHash))) return null;
   const supabase = createServiceRoleClient();
   const { data: amendment } = await supabase
     .from("booking_amendments")
     .select("business_id, status, expires_at")
-    .eq("token_hash", hashAmendmentToken(token))
+    .eq("token_hash", tokenHash)
     .maybeSingle();
   if (
     !amendment ||
@@ -114,28 +116,30 @@ export async function getPublicAmendmentMetadata(token: string) {
 export async function recordPublicAmendmentOpen(token: string) {
   if (
     !canUseServiceRoleClient() ||
-    !isPlausibleAmendmentToken(token) ||
-    !(await consumeAmendmentRateLimit("amendment_open"))
+    !isPlausibleAmendmentToken(token)
   ) {
     return;
   }
+  const tokenHash = hashAmendmentToken(token);
+  if (!(await consumeAmendmentRateLimit("amendment_open", tokenHash))) return;
   await createServiceRoleClient().rpc("record_booking_amendment_open", {
-    p_token_hash: hashAmendmentToken(token),
+    p_token_hash: tokenHash,
   });
 }
 
 export async function confirmPublicAmendment(
   token: string,
 ): Promise<PublicAmendmentView> {
-  if (!(await consumeAmendmentRateLimit("amendment_confirm"))) {
-    return { status: "rate_limited" } satisfies PublicAmendmentView;
-  }
   if (!canUseServiceRoleClient() || !isPlausibleAmendmentToken(token)) {
     return { status: "unavailable" } satisfies PublicAmendmentView;
   }
+  const tokenHash = hashAmendmentToken(token);
+  if (!(await consumeAmendmentRateLimit("amendment_confirm", tokenHash))) {
+    return { status: "rate_limited" } satisfies PublicAmendmentView;
+  }
   const supabase = createServiceRoleClient();
   const { data, error } = await supabase.rpc("confirm_booking_amendment_by_token_hash", {
-    p_token_hash: hashAmendmentToken(token),
+    p_token_hash: tokenHash,
   });
   if (error) return { status: "unavailable" } satisfies PublicAmendmentView;
   if (

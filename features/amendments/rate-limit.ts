@@ -14,6 +14,9 @@ const limits: Record<
   amendment_open: { maxRequests: 60, windowSeconds: 60, blockSeconds: 60 },
 };
 
-export async function consumeAmendmentRateLimit(action: AmendmentRateAction) {
-  return consumePublicCapabilityRateLimit(action, limits[action]);
+export async function consumeAmendmentRateLimit(
+  action: AmendmentRateAction,
+  capabilityHash?: string,
+) {
+  return consumePublicCapabilityRateLimit(action, limits[action], capabilityHash);
 }

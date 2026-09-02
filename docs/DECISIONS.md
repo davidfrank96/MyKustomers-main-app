@@ -1403,3 +1403,38 @@ rows untouched. It was explicitly approved and applied after PR #57 merged as
 `59c7e81`; the cutoff precondition, catalog/grant checks, strict legacy denial,
 exact-v1 positive path, and rollback residue checks passed. ADR-058's temporary
 compatibility allowance is retired for all future delivery writes.
+
+## ADR-059 - Auth And Costly Actions Use Persistent Layered Throttling
+
+Status: Accepted
+
+Date: 2026-09-02
+
+Context: Supabase Auth already limits provider traffic and public capability
+routes already used a persistent PostgreSQL bucket, but password/signup UX did
+not surface confirmation as a durable page state. Application Auth calls,
+vendor-triggered customer messages, and privileged email retry lacked a shared
+distributed policy. The public key also combined a proxy address with
+user-agent text, allowing cheap identity rotation and relying on a fallback
+header outside the verified Vercel chain.
+
+Decision: Treat a successful password signup with no session as verification
+required and keep it outside the membership/onboarding resolver. Resend only
+through Supabase Auth. Generalize the existing table through postgres-owned,
+service-role-only atomic fixed-window RPCs that return retry metadata, clear one
+trusted-success bucket, and delete a bounded stale batch. Derive stored keys with
+HKDF/HMAC-SHA-256 from the existing service secret and length-prefixed action
+parts. Use the first validated Vercel-overwritten `x-forwarded-for` address for
+anonymous source defense, never `x-real-ip` or user agent. Apply account plus
+source, resource plus actor/business, and capability plus source layers according
+to action risk.
+
+Consequences: Limits survive cold starts and concurrent instances without
+Redis, a new secret, dependency, CAPTCHA, or in-memory authority. Auth fails open
+to Supabase's provider limits if application storage fails; customer messaging,
+public mutations, and privileged retry fail closed; best-effort first-open
+evidence simply skips. A service-key rotation resets opaque bucket identity but
+does not expose prior identifiers. Normal reads, static assets, health, manual
+URL sharing, and internal outbox workers add no limiter latency. Provider and
+application policies remain defense in depth rather than substitutes for RLS,
+capabilities, transactional uniqueness, or outbox idempotency.

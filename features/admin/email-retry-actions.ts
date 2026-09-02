@@ -15,6 +15,7 @@ import { deliverClaimedEmailEvent } from "@/lib/email/outbox";
 import { getTransactionalEmailProviderSelectionForName } from "@/lib/email/provider";
 import { getEmailRetryEligibility } from "@/lib/email/retry-policy";
 import { createServiceRoleClient } from "@/lib/supabase/admin";
+import { consumeRateLimitLayers } from "@/lib/security/rate-limit";
 
 const emailEventIdSchema = z.string().uuid();
 const providerSchema = z.enum(["development", "brevo", "resend", "unknown"]);
@@ -111,6 +112,30 @@ export async function retryFailedEmailAction(
 
   if (!eligibility.eligible || !selection || !event.failure_code) {
     return safeError(eligibility.explanation);
+  }
+
+  const rateLimit = await consumeRateLimitLayers([
+    {
+      action: "admin_email_retry_event",
+      keyParts: ["event", event.id],
+      policy: { maxRequests: 3, windowSeconds: 3_600, blockSeconds: 3_600 },
+    },
+    {
+      action: "admin_email_retry_actor",
+      keyParts: ["admin", admin.userId],
+      policy: { maxRequests: 20, windowSeconds: 3_600, blockSeconds: 3_600 },
+    },
+  ]);
+  if (rateLimit.status !== "allowed") {
+    return {
+      status: "error",
+      message:
+        rateLimit.status === "limited"
+          ? "Retry limit reached. Wait before starting another delivery attempt."
+          : "Retry protection is temporarily unavailable. No delivery was attempted.",
+      retryAfterSeconds:
+        rateLimit.status === "limited" ? rateLimit.retryAfterSeconds : undefined,
+    };
   }
 
   const { data: claimData, error: claimError } = await service.rpc(

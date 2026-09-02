@@ -62,6 +62,18 @@ Accepted decisions are recorded in `docs/DECISIONS.md`.
 
 ## Current Project Status
 
+The 2026-09-02 Auth verification and abuse-control hardening is IMPLEMENTED -
+PRODUCTION APPLICATION VERIFICATION PENDING. Password signup distinguishes an
+immediate authenticated session from Supabase's confirmation-required no-session
+result; only the former uses the shared membership resolver. The latter remains
+on Signup with an accessible check-email dialog, persistent exact-address state,
+and provider-owned resend. A database-backed atomic fixed-window limiter now
+adds account/source protection to Auth, resource/actor protection to outbound
+customer actions, and source/capability protection to public mutations. Its
+exact approved migration is live and rollback-probed on the Production-backed
+database; repository, CI, deployment, controlled email, and bounded Production
+application smoke are tracked separately and must pass before VERIFIED status.
+
 The delivery-to-feedback automation is VERIFIED - PRODUCTION. Production
 database diagnosis proved a deployment-order
 compatibility break between the legacy deployed delivery RPC and the new

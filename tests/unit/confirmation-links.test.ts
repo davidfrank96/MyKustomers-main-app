@@ -11,7 +11,7 @@ import {
   isConfirmationEligibleStatus,
 } from "@/features/confirmation-links/terms";
 import { safePublicConfirmationMessage } from "@/features/confirmation-links/messages";
-import { hashRateLimitIdentity } from "@/features/confirmation-links/rate-limit-keys";
+import { deriveRateLimitBucketKey } from "@/lib/security/rate-limit-key";
 
 describe("confirmation links", () => {
   it("generates high-entropy opaque tokens and stores deterministic hashes", () => {
@@ -45,7 +45,12 @@ describe("confirmation links", () => {
   });
 
   it("hashes rate-limit identities without storing raw request values", () => {
-    expect(hashRateLimitIdentity("lookup:127.0.0.1")).toMatch(/^[a-f0-9]{64}$/);
+    const bucket = deriveRateLimitBucketKey("test-secret", "lookup_source", [
+      "source",
+      "127.0.0.1",
+    ]);
+    expect(bucket).toMatch(/^[a-f0-9]{64}$/);
+    expect(bucket).not.toContain("127.0.0.1");
   });
 
   it("maps unsafe public token states to safe customer wording", () => {

@@ -1,5 +1,18 @@
 # My Kustomers
 
+The Auth verification and application rate-limit hardening phase is IMPLEMENTED
+on its release branch; Production application verification is pending. A
+confirmation-required password signup now remains on Signup with an accessible
+check-email dialog, a persistent exact-address notice, and a Supabase-owned
+resend cooldown. Login, signup, recovery, resend, public capability mutations,
+customer-message enqueue actions, and privileged email retry use layered,
+server-authoritative persistent limits. Exact migration
+`20260902010040_auth_application_rate_limit_foundation.sql` (SHA-256
+`5deefd3071c4537bc65e8f42bfceaacf11c17d81daa70efe74d9f78692aac99e`) is
+approved, applied, catalog-verified, concurrency-tested, and backward-compatible
+with the deployed legacy public limiter. No Redis, in-memory security counter,
+CAPTCHA, dependency, environment variable, or provider configuration was added.
+
 My Kustomers is a mobile-first SaaS application for small businesses that manage
 customers, bookings, orders, confirmations, feedback, and customer history through
 informal channels today.

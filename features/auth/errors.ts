@@ -1,6 +1,26 @@
 const genericAuthMessage = "We could not verify those credentials.";
 
-export function mapSupabaseAuthError(message: string | undefined) {
+type SupabaseAuthErrorLike =
+  | string
+  | null
+  | undefined
+  | {
+      message?: string;
+      status?: number;
+      code?: string;
+    };
+
+export function isSupabaseAuthRateLimitError(error: SupabaseAuthErrorLike) {
+  if (!error) return false;
+  if (typeof error !== "string" && error.status === 429) return true;
+
+  const code = typeof error === "string" ? "" : (error.code ?? "");
+  const message = typeof error === "string" ? error : (error.message ?? "");
+  return /rate.?limit|too.?many|over.?request.?rate/i.test(`${code} ${message}`);
+}
+
+export function mapSupabaseAuthError(error: SupabaseAuthErrorLike) {
+  const message = typeof error === "string" ? error : error?.message;
   if (!message) {
     return "Something went wrong. Please try again.";
   }
@@ -23,7 +43,7 @@ export function mapSupabaseAuthError(message: string | undefined) {
     return "The password does not meet the required security rules.";
   }
 
-  if (normalized.includes("rate limit") || normalized.includes("too many")) {
+  if (isSupabaseAuthRateLimitError(error)) {
     return "Too many attempts. Please wait and try again.";
   }
 

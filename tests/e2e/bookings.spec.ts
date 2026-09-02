@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { expect, test, type Page, type Route as PlaywrightRoute } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import sharp from "sharp";
-import { hashRateLimitIdentity } from "../../features/confirmation-links/rate-limit-keys";
+import { deriveRateLimitBucketKey } from "../../lib/security/rate-limit-key";
 import { hashConfirmationToken } from "../../features/confirmation-links/token";
 import { hashAddonToken } from "../../features/addons/token";
 import { hashFeedbackToken } from "../../features/feedback/token";
@@ -60,12 +60,13 @@ function createAdminClient() {
 
 async function resetLocalRateLimitBuckets(
   admin: ReturnType<typeof createAdminClient>,
-  userAgent: string,
+  _userAgent: string,
   actions: string[],
 ) {
+  const secret = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
   const bucketKeys = actions.flatMap((action) =>
-    ["unknown", "127.0.0.1"].map((identity) =>
-      hashRateLimitIdentity(`${action}:${identity}:${userAgent}`),
+    ["unavailable", "127.0.0.1", "::1"].map((identity) =>
+      deriveRateLimitBucketKey(secret, `${action}_source`, ["source", identity]),
     ),
   );
 
@@ -828,33 +829,10 @@ test.describe("booking engine", () => {
       .single();
     expect(linkAfterCrawler?.first_opened_at).toBeNull();
 
-    const userAgent = (await page.evaluate(() => navigator.userAgent)).slice(0, 80);
-    createdRateLimitBuckets.add(hashRateLimitIdentity(`lookup:unknown:${userAgent}`));
-    createdRateLimitBuckets.add(hashRateLimitIdentity(`metadata:unknown:${userAgent}`));
-    createdRateLimitBuckets.add(hashRateLimitIdentity(`confirm:unknown:${userAgent}`));
-    createdRateLimitBuckets.add(hashRateLimitIdentity(`open:unknown:${userAgent}`));
-    createdRateLimitBuckets.add(
-      hashRateLimitIdentity(`feedback_lookup:unknown:${userAgent}`),
+    const rateLimitSecret = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
+    const confirmationTokenHash = hashConfirmationToken(
+      new URL(confirmationUrl).pathname.split("/").at(-1) ?? "",
     );
-    createdRateLimitBuckets.add(
-      hashRateLimitIdentity(`feedback_submit:unknown:${userAgent}`),
-    );
-    createdRateLimitBuckets.add(
-      hashRateLimitIdentity(`feedback_metadata:unknown:${userAgent}`),
-    );
-    createdRateLimitBuckets.add(
-      hashRateLimitIdentity(`feedback_open:unknown:${userAgent}`),
-    );
-    for (const action of [
-      "addon_lookup",
-      "addon_metadata",
-      "addon_confirm",
-      "addon_open",
-    ]) {
-      createdRateLimitBuckets.add(
-        hashRateLimitIdentity(`${action}:unknown:${userAgent}`),
-      );
-    }
     for (const action of [
       "lookup",
       "metadata",
@@ -869,11 +847,21 @@ test.describe("booking engine", () => {
       "addon_confirm",
       "addon_open",
     ]) {
+      for (const source of ["unavailable", "127.0.0.1", "::1", rateLimitIdentity]) {
+        createdRateLimitBuckets.add(
+          deriveRateLimitBucketKey(rateLimitSecret, `${action}_source`, [
+            "source",
+            source,
+          ]),
+        );
+      }
+    }
+    for (const action of ["lookup", "metadata", "confirm", "open"]) {
       createdRateLimitBuckets.add(
-        hashRateLimitIdentity(`${action}:127.0.0.1:${userAgent}`),
-      );
-      createdRateLimitBuckets.add(
-        hashRateLimitIdentity(`${action}:${rateLimitIdentity}:${userAgent}`),
+        deriveRateLimitBucketKey(rateLimitSecret, `${action}_capability`, [
+          "capability",
+          confirmationTokenHash,
+        ]),
       );
     }
     await admin

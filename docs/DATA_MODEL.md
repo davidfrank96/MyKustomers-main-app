@@ -4,6 +4,31 @@ STATUS: PLANNED AND PARTIALLY IMPLEMENTED
 
 This document describes the planned conceptual data model and current migration evidence. Documentation is not implementation evidence.
 
+## 2026-09-02 Application Rate-Limit Foundation
+
+The existing `confirmation_rate_limits` table remains the only persistent
+bucket relation. Additive migration
+`20260902010040_auth_application_rate_limit_foundation.sql` adds an
+`updated_at` cleanup index and three service-role-only functions:
+`consume_application_rate_limit`, `clear_application_rate_limit`, and
+`cleanup_application_rate_limits`. It replaces the legacy boolean function body
+with a compatibility wrapper; existing rows and the table shape are unchanged.
+
+Each `(bucket_key, action)` row stores a 64-hex HKDF/HMAC-derived opaque key,
+fixed-window start/count, optional block expiry, and update time. No email, IP,
+password, token/capability, user, business, booking/resource, customer, or
+recipient column exists. Atomic `INSERT ... ON CONFLICT DO UPDATE` prevents a
+first-request race and returns allowed/remaining/retry/reset evidence in one
+transaction. Clearing is restricted to one server-derived key/action after a
+trusted success. Cleanup locks a maximum of 500 stale rows with `SKIP LOCKED`;
+the application samples it 1-in-128 and retains active/recent buckets for at
+least 48 hours.
+
+All four functions are postgres-owned `SECURITY DEFINER` with empty search
+paths. PUBLIC, `anon`, and `authenticated` have no table or function authority;
+only `service_role` can execute the RPCs. The limiter does not grant tenant or
+domain access and does not replace RLS or application authorization.
+
 ## 2026-09-01 Delivery-To-Feedback Automation
 
 Migration `20260901194500_delivery_feedback_automation.sql` adds

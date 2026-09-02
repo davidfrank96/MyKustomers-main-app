@@ -8,6 +8,17 @@
 
 Documentation is not implementation evidence.
 
+The 2026-09-02 Auth verification and application abuse-control work is
+IMPLEMENTED cross-phase maintenance for Phases 2, 6, 7, and 8. It preserves the
+Supabase provider/callback and zero-business membership gates, adds a
+confirmation-required password-signup dialog and persistent resend state, and
+extends the existing persistent public limiter into layered Auth, outbound
+message, and capability controls. The approved additive migration is applied
+and catalog/concurrency verified on the Production-backed database. Application
+CI, merge, deployment, responsive browser evidence, controlled Auth-email smoke,
+and bounded Production limiter smoke remain required before the maintenance pass
+is called VERIFIED - PRODUCTION.
+
 The 2026-09-01 delivery-to-feedback automation is cross-phase maintenance for
 Phases 7 and 8. Its exact migration is VERIFIED in the configured Production-
 backed database. A temporary two-function forward compatibility migration is

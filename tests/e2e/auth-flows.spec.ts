@@ -141,9 +141,8 @@ test.describe("Supabase authentication journeys", () => {
     await page.getByLabel("Confirm password").fill(password);
     await page.getByRole("button", { name: "Create account" }).click();
 
-    const successState = page
-      .getByText(/check your email|authenticated workspace/i)
-      .or(page.getByRole("heading", { name: "Welcome back" }));
+    const verificationDialog = page.getByRole("dialog");
+    const successState = verificationDialog;
     const providerLimitOrGenericError = page.getByText(
       /Too many attempts\. Please wait and try again\.|Something went wrong\. Please try again\./,
     );
@@ -169,6 +168,33 @@ test.describe("Supabase authentication journeys", () => {
     }
 
     await expect(successState).toBeVisible();
+    await expect(
+      verificationDialog.getByRole("heading", { name: "Check your email" }),
+    ).toBeVisible();
+    await expect(verificationDialog.getByText(email, { exact: true })).toBeVisible();
+    await expect(page).toHaveURL(/\/signup$/);
+
+    for (const width of [320, 360, 390, 430]) {
+      await page.setViewportSize({ width, height: 900 });
+      await expect(verificationDialog).toBeVisible();
+      const dimensions = await page.evaluate(() => ({
+        clientWidth: document.documentElement.clientWidth,
+        scrollWidth: document.documentElement.scrollWidth,
+      }));
+      expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth + 1);
+    }
+
+    await page.getByRole("button", { name: "Got it" }).click();
+    await expect(verificationDialog).not.toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Verification required" }),
+    ).toBeVisible();
+    await expect(page.getByText(email, { exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Resend available in \d+s/ })).toBeDisabled();
+    await expect(page.getByRole("button", { name: "Create account" })).toHaveCount(0);
+
+    await page.goto("/dashboard");
+    await expect(page).toHaveURL(/\/login\?next=%2Fdashboard$/);
 
     const userId = await findUserIdByEmail(email);
     expect(userId).toBeTruthy();

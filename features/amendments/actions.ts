@@ -16,6 +16,7 @@ import {
 } from "@/features/amendments/token";
 import { bookingAmendmentSchema } from "@/features/amendments/validation";
 import type { AmendmentActionState } from "@/features/amendments/action-state";
+import { consumeOutboundMessageRateLimit } from "@/lib/security/rate-limit";
 
 function value(formData: FormData, name: string) {
   return formData.get(name);
@@ -27,7 +28,7 @@ export async function createBookingAmendmentAction(
   formData: FormData,
 ): Promise<AmendmentActionState> {
   void _previousState;
-  await requireCurrentBusiness(`/bookings/${bookingId}`);
+  const { user, business } = await requireCurrentBusiness(`/bookings/${bookingId}`);
   const parsed = bookingAmendmentSchema.safeParse({
     reason: value(formData, "reason"),
     title: value(formData, "title"),
@@ -43,6 +44,24 @@ export async function createBookingAmendmentAction(
       status: "error",
       message: "Check the highlighted fields.",
       fieldErrors: parsed.error.flatten().fieldErrors,
+    };
+  }
+
+  const rateLimit = await consumeOutboundMessageRateLimit({
+    kind: "booking_amendment",
+    resourceId: bookingId,
+    userId: user.id,
+    businessId: business.id,
+  });
+  if (rateLimit.status !== "allowed") {
+    return {
+      status: "error",
+      message:
+        rateLimit.status === "limited"
+          ? "Please wait before sending another booking change request. Nothing was sent."
+          : "Customer message protection is temporarily unavailable. Nothing was sent.",
+      retryAfterSeconds:
+        rateLimit.status === "limited" ? rateLimit.retryAfterSeconds : undefined,
     };
   }
 

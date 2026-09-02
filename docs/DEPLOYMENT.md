@@ -336,3 +336,23 @@ server events show `production`, and privacy inspection finds no capability,
 query, contact, header, cookie, body, user, or credential data. Rollback removes
 or rotates Sentry configuration separately; promoting an older Vercel build does
 not revoke a Sentry token.
+
+## 2026-09-02 Auth Rate-Limit Database-First Boundary
+
+Exact approved migration
+`20260902010040_auth_application_rate_limit_foundation.sql` with SHA-256
+`5deefd3071c4537bc65e8f42bfceaacf11c17d81daa70efe74d9f78692aac99e` is already
+applied to the Production-backed database. It preserves the deployed legacy
+boolean public-limiter RPC, so the current application remains compatible while
+the Auth/message hardening branch proceeds through PR and CI. The migration adds
+no column, enum, RLS policy, environment value, external service, or provider
+configuration. Do not reapply, edit, or down-migrate it; any database defect
+requires a reviewed forward migration.
+
+Application rollback after deployment is the last known compatible Vercel
+deployment. The additive functions/index remain. Production application status
+stays verification-pending until the exact merged deployment passes canonical
+Signup/email/callback, protected-route, Google/recovery, bounded limiter,
+customer-message, PWA/responsive, runtime-log, and zero-residue checks. Most
+threshold/concurrency testing belongs on the guarded non-production target; do
+not attack Production or send repeated messages to legitimate recipients.
