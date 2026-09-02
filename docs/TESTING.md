@@ -31,6 +31,10 @@ Permanent focused coverage includes:
   fails closed before durable outbox/claim/provider work. Existing public
   capability suites continue proving safe rate-limited outcomes, tenant/capability
   boundaries, and one-time domain mutation behavior.
+- The dedicated fixture-backed Playwright projects send distinct reserved
+  TEST-NET forwarded sources. This preserves the real distributed source limits
+  while preventing unrelated desktop, mobile, and PWA projects on the same CI
+  loopback proxy from sharing one synthetic source bucket.
 
 Before Production status, run the guarded runtime and full Playwright matrices
 against an explicitly safe target, including concurrent max-five behavior,
