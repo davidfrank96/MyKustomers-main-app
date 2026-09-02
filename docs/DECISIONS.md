@@ -1399,5 +1399,7 @@ sample contained two delivery events, zero null associations, and two exact
 version 1 associations. Forward migration
 `20260901230527_delivery_feedback_require_v1_association.sql` restores the strict
 future-write functions behind a cutoff precondition while leaving historical
-rows untouched. It is prepared and hash-locked, not applied; ADR-058 remains in
-force until separate approval authorizes that final database step.
+rows untouched. It was explicitly approved and applied after PR #57 merged as
+`59c7e81`; the cutoff precondition, catalog/grant checks, strict legacy denial,
+exact-v1 positive path, and rollback residue checks passed. ADR-058's temporary
+compatibility allowance is retired for all future delivery writes.

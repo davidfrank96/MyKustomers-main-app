@@ -78,8 +78,9 @@ proved exact event/link association, email/manual same-link recovery, and both
 completion orderings, followed by zero database/Auth/audit residue. The
 post-convergence sample contained two delivery events, zero null associations,
 and two version 1 associations. The hash-locked forward tightening migration is
-prepared but unapplied; explicit approval remains the only release action for
-that migration.
+applied after explicit approval and PR #57 merge `59c7e81`. Its precondition,
+strict catalog/grant verification, legacy-path denial, exact-v1 positive path,
+and rollback-only residue check passed.
 
 The 2026-09-01 Auth lifecycle and large-list normalization is IMPLEMENTED with
 local release verification in progress. Google OAuth deliberately requests the

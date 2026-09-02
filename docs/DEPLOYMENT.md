@@ -91,9 +91,15 @@ CTA/manual link identity and both completion orderings, then cleanup returned
 zero tenant/Auth/audit residue. From the `2026-09-01 22:21:08+00` convergence
 cutoff, the pre-cleanup sample contained two delivery events, zero null
 associations, and two version 1 associations. Migration
-`20260901230527_delivery_feedback_require_v1_association.sql` is prepared with
-SHA-256 `397dbaaa6fab4fb78902e13ef3273054d629df2316bfd0dd593d210d7cb9e6c4` and
-remains unapplied until separately approved.
+`20260901230527_delivery_feedback_require_v1_association.sql` has SHA-256
+`397dbaaa6fab4fb78902e13ef3273054d629df2316bfd0dd593d210d7cb9e6c4` and was
+explicitly approved and applied transactionally after PR #57 merged as
+`59c7e81`. The immediate precondition found zero invalid post-cutoff
+associations. Post-apply catalog checks confirmed both strict functions,
+postgres ownership, empty search paths, and revoked execution for PUBLIC,
+anon, authenticated, and service_role. Rollback-only verification rejected the
+legacy null path and accepted the current exact-v1 RPC path with no persisted
+fixture data.
 
 ## Production Environment
 

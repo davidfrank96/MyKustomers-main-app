@@ -21,7 +21,10 @@ and both paid/feedback completion orderings; cleanup returned zero tenant, audit
 or Auth residue. Post-convergence observation found two delivery events, zero
 null associations, and two associated version 1 links. Forward tightening
 migration `20260901230527_delivery_feedback_require_v1_association.sql` is
-prepared and hash-locked but remains unapplied pending explicit approval.
+hash-locked and applied to Production after explicit approval. Its fail-closed
+cutoff precondition passed, the strict functions and least-privilege grants are
+live, and rollback-only regression proved the legacy null path is denied while
+the current v1 RPC remains valid.
 
 Production observability is now implemented with the current Sentry Next.js SDK
 for error capture, conservative 5% tracing, release identification, and private

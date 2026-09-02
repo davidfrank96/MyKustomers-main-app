@@ -2,7 +2,7 @@
 
 ## 2026-09-01 - Delivery-To-Feedback Automation
 
-Status: VERIFIED - PRODUCTION; TIGHTENING APPROVAL REQUIRED
+Status: VERIFIED - PRODUCTION; STRICT INVARIANT ACTIVE
 
 - Delivery now atomically transitions the booking, creates or recovers one
   booking-scoped feedback capability, and associates that exact link with the
@@ -53,8 +53,14 @@ Status: VERIFIED - PRODUCTION; TIGHTENING APPROVAL REQUIRED
 - The post-convergence pre-cleanup sample contained two delivery events, zero
   null associations, and two version 1 links. Forward migration
   `20260901230527_delivery_feedback_require_v1_association.sql` (SHA-256
-  `397dbaaa6fab4fb78902e13ef3273054d629df2316bfd0dd593d210d7cb9e6c4`) is
-  prepared and hash-locked but remains unapplied pending explicit approval.
+  `397dbaaa6fab4fb78902e13ef3273054d629df2316bfd0dd593d210d7cb9e6c4`) was
+  explicitly approved and applied transactionally after PR #57 passed all
+  required checks and merged as `59c7e81`. The cutoff precondition passed with
+  zero invalid post-cutoff associations. Live catalog checks confirmed the two
+  strict functions, postgres ownership, empty search paths, and no execution
+  grant to PUBLIC, anon, authenticated, or service_role. Rollback-only
+  regression rejected the legacy null path and accepted the exact v1 RPC path
+  without persisting an event or booking change.
 
 ## 2026-09-01 - Customer Contact, Validation, And Customer Lifecycle
 
