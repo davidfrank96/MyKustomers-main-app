@@ -35,6 +35,28 @@ zero-vulnerability moderate audit, and diff integrity. A post-suite read-only
 aggregate check returned zero `phase3-e2e`, `phase5-e2e-bookings`,
 `mobile-account`, and `pwa` business prefixes plus zero matching Auth fixtures.
 
+PR #62 CI then passed Build, Quality, Dependency Security, Tests, and the
+fixture-backed E2E matrix; Runtime Security retained its intentional
+Production-target guard, and Vercel preview verification passed. The exact
+merge `99f7f3834b9ec30ba0ba57fe13d536c41fbb644c` deployed as
+`dpl_DN2GnoSvhJ8E6w1zMUBSrV58XT9L`.
+
+The controlled canonical Production smoke ran once in isolated Chromium with a
+uniquely prefixed Auth user and tenant. At 390px it observed a real
+`filechooser`, cancelled without losing usability, selected the same PNG twice,
+completed onboarding, and verified the persisted object was WebP and no larger
+than 200 KiB. It then created a zero-balance controlled booking, confirmed it
+with a reserved non-customer address, advanced through ready and delivered, and
+observed exactly one authoritative completion-success dialog at 320px. Done
+dismissed the dialog; reload did not repeat it. The journey passed in 32.3s.
+
+Cleanup removed the exact Storage object, business graph, profile, and Auth
+identity. A separate read-only prefix audit returned zero businesses,
+customers, bookings, email events, profiles, and Auth users. The exact
+deployment's 30-minute Vercel runtime view reported Warning 0, Error 0, and
+Fatal 0 while the controlled canonical requests returned 200. Physical-device
+iOS/Android photo-picker behavior remains manual acceptance evidence.
+
 ## Customer Email Source-Of-Truth Regression
 
 Static migration coverage proves that public confirmation cannot write customer

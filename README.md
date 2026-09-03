@@ -1,15 +1,24 @@
 # My Kustomers
 
-Image-picker reliability and booking-completion success UX are implemented and
-locally verified, with CI/deployment verification pending. The shared business-logo flow now opens the
-platform picker through a unique native label/input association instead of
+Image-picker reliability and booking-completion success UX are VERIFIED -
+PRODUCTION. The shared business-logo flow now opens the platform picker through
+a unique native label/input association instead of
 styling the browser-owned file-selector button, resets after every selection,
 and retains the existing 5 MiB client-preparation plus authoritative Sharp/
 Storage boundary. Booking detail shows one compact accessible success dialog
 only when its existing reconciliation client observes an authoritative
 non-completed to `COMPLETED` transition; historical completed loads remain
 silent. No database, Storage policy, environment, dependency, polling, email,
-or lifecycle-rule change was introduced.
+or lifecycle-rule change was introduced. PR #62 passed every required check and
+merged as `99f7f3834b9ec30ba0ba57fe13d536c41fbb644c`; Vercel deployment
+`dpl_DN2GnoSvhJ8E6w1zMUBSrV58XT9L` is Ready, Latest, Production, and Current on
+that exact merge. A self-cleaning canonical smoke passed native picker cancel
+and same-file recovery at 390px, bounded WebP persistence, a zero-balance
+booking's authoritative completion transition, the 320px success dialog, Done
+dismissal, and silent refresh. Exact-deployment logs reported zero Warning,
+Error, or Fatal events, and the independent residue audit returned zero
+matching businesses, customers, bookings, email events, profiles, or Auth
+users.
 
 Customer email source-of-truth hardening is implemented with application
 deployment verification pending. Optional saved profile email is separate from
