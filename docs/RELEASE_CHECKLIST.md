@@ -25,8 +25,9 @@ production-readiness work.
 - [x] No database, Storage policy, environment, dependency, email, audit event,
       lifecycle rule, or additional poller was added.
 - [x] Full local release gate passes with zero controlled fixture residue.
-- [ ] Required PR checks pass and exact merge deploys to Production.
-- [ ] Controlled Production image and completion smoke passes with zero residue.
+- [x] Required PR checks pass and exact merge deploys to Production (PR #62,
+      merge `99f7f383`, deployment `dpl_DN2GnoSvhJ8E6w1zMUBSrV58XT9L`).
+- [x] Controlled Production image and completion smoke passes with zero residue.
 
 ## Customer Email Source-Of-Truth Hotfix
 

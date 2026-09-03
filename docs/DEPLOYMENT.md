@@ -23,6 +23,10 @@ STATUS: VERIFIED
 - Auth lifecycle/load-more merge commit:
   `49dbd51075f3a3dd837e39cfa919f42ac9c29a80`
 - Auth lifecycle/load-more deployment: `A9YGEEK3nBXnPW1M3vS81s5mHmXf`
+- Image-picker/completion UX merge commit:
+  `99f7f3834b9ec30ba0ba57fe13d536c41fbb644c`
+- Image-picker/completion UX deployment:
+  `dpl_DN2GnoSvhJ8E6w1zMUBSrV58XT9L`
 
 The V2 deployment completed in 49 seconds, reported `Ready`, `Latest`,
 `Production`, and `Current`, and served `mykustomers.com` before controlled
@@ -37,6 +41,18 @@ provider-independent onboarding, old/new password behavior, reused-link safety,
 and bounded Bookings/Customers loading across desktop and mobile. All controlled
 Auth and tenant fixtures were removed, and an independent production query
 returned zero residue.
+
+The image-picker/completion deployment completed in 1m43s and reported Ready,
+Latest, Production, and Current for `main` and `mykustomers.com`. PR #62 had
+seven successful checks and one intentional protected Runtime Security skip
+before merge. Canonical apex and redirected `www` health returned 200. A
+self-cleaning Production journey passed native chooser cancel and same-file
+reselection, bounded WebP persistence, and one transition-only booking success
+dialog at 320px followed by silent refresh. The exact deployment's 30-minute
+runtime window reported zero Warning, Error, or Fatal events; an independent
+audit found zero matching controlled businesses, customers, bookings, email
+events, profiles, or Auth users. No environment, migration, domain, provider,
+dependency, region, or infrastructure setting changed.
 
 Vercel Git integration creates Production deployments from `main`. Pull requests
 and feature branches may create Preview deployments, but the current project
