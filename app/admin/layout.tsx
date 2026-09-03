@@ -5,7 +5,6 @@ import {
   CalendarDays,
   KeyRound,
   Mail,
-  ShieldCheck,
   Users,
 } from "lucide-react";
 import Link from "next/link";
@@ -19,6 +18,7 @@ import {
   requirePlatformAdminRole,
 } from "@/lib/admin/server";
 import { requireUser } from "@/lib/auth/server";
+import { BrandLogo } from "@/components/shared/brand-logo";
 
 export const dynamic = "force-dynamic";
 
@@ -66,11 +66,9 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
       <header className="border-b border-border bg-card">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-5 py-5 sm:px-8 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex min-w-0 items-center gap-3">
-            <span className="flex size-10 shrink-0 items-center justify-center bg-primary text-primary-foreground">
-              <ShieldCheck className="size-5" aria-hidden="true" />
-            </span>
+            <BrandLogo variant="horizontal" className="h-10 w-32" />
             <div className="min-w-0">
-              <p className="truncate text-lg font-semibold">My Kustomers Admin</p>
+              <p className="truncate text-sm font-semibold">Admin</p>
               <p className="truncate text-sm text-muted-foreground">
                 Signed in as {user.email ?? "authenticated account"}
               </p>

@@ -14,6 +14,7 @@ import {
   Truck,
   type LucideIcon,
 } from "lucide-react";
+import { BrandLogo } from "@/components/shared/brand-logo";
 
 // Marketing demo only — never connect to production customer or booking data.
 type DemoStep =
@@ -104,11 +105,16 @@ const stepRank: Record<DemoStep, number> = {
   resetting: 10,
 };
 
-const finalStepIndex = demoSequence.findIndex(
-  ({ step }) => step === "insights-updated",
-);
+const finalStepIndex = demoSequence.findIndex(({ step }) => step === "insights-updated");
 
-const sidebarIcons = [Home, CalendarDays, Mail, MessageCircle, BarChart3, Settings] as const;
+const sidebarIcons = [
+  Home,
+  CalendarDays,
+  Mail,
+  MessageCircle,
+  BarChart3,
+  Settings,
+] as const;
 
 const statusStyles = {
   created: "bg-muted text-muted-foreground",
@@ -146,7 +152,9 @@ function DemoActivityRow({
       data-testid={testId}
       aria-hidden={!visible}
       className={`flex min-w-0 items-center gap-2.5 rounded-lg border border-border bg-card p-2 shadow-[0_1px_3px_rgba(23,33,29,0.04)] transition-[opacity,transform] duration-300 motion-reduce:transform-none motion-reduce:transition-none sm:gap-3 sm:p-3 ${
-        visible ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-1.5 opacity-0"
+        visible
+          ? "translate-y-0 opacity-100"
+          : "pointer-events-none translate-y-1.5 opacity-0"
       }`}
     >
       <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary/5 text-primary sm:size-10">
@@ -295,9 +303,7 @@ export function HomepageProductDemo() {
       >
         <div className="flex min-h-[22rem] sm:min-h-[25rem] lg:min-h-[27rem]">
           <div className="flex w-11 shrink-0 flex-col items-center gap-3 border-r border-border bg-[#fbfcfa] py-3 sm:w-14 sm:gap-4 sm:py-4">
-            <span className="grid size-7 place-items-center rounded-md bg-primary text-[0.625rem] font-semibold text-white">
-              MK
-            </span>
+            <BrandLogo variant="icon" className="size-7" decorative />
             {sidebarIcons.map((Icon, index) => (
               <span
                 key={index}
@@ -379,7 +385,9 @@ export function HomepageProductDemo() {
                 icon={BarChart3}
                 title="Weekly insights"
                 description={
-                  insightsUpdated ? "Bookings up 18% vs last week" : "Waiting for activity…"
+                  insightsUpdated
+                    ? "Bookings up 18% vs last week"
+                    : "Waiting for activity…"
                 }
                 trailing={
                   <svg
@@ -450,7 +458,11 @@ export function HomepageProductDemo() {
           className={`inline-flex h-9 items-center gap-1.5 rounded-md px-2.5 font-medium hover:bg-primary/5 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
             prefersReducedMotion ? "invisible pointer-events-none" : ""
           }`}
-          aria-label={isUserPaused ? "Resume My Kustomers product demo" : "Pause My Kustomers product demo"}
+          aria-label={
+            isUserPaused
+              ? "Resume My Kustomers product demo"
+              : "Pause My Kustomers product demo"
+          }
           tabIndex={prefersReducedMotion ? -1 : 0}
         >
           {isUserPaused ? (

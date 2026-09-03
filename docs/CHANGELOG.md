@@ -1,5 +1,47 @@
 # Changelog
 
+## 2026-09-03 - MyKustomers.com Master Brand Asset Rollout
+
+Status: VERIFIED - LOCAL; COMMIT, PUSH, AND DEPLOYMENT AUTHORIZED
+
+- Replaced platform-owned placeholder `MK` tiles and the earlier hand-built
+  favicon/touch icon with the approved MyKustomers.com package assets. The
+  package remains the sole geometry, colour, wordmark, favicon, PWA, email, and
+  social-image source; copied runtime files are byte-identical.
+- Added one small server-compatible brand-logo component with icon, horizontal,
+  wordmark, stacked, dark, and inverse variants, intrinsic dimensions,
+  containment, and decorative/standalone accessible-name behavior.
+- Visible light-surface placements use the package's exact 120px icon and 512px
+  web lockup rather than downloading the raster-embedded 1.4 MB/459 KB SVG
+  masters. This preserves approved pixels while keeping the normal combined
+  logo transfer near 50 KB; SVG masters remain available for contexts that
+  require those supplied variants.
+- Updated the homepage, authenticated vendor shell, Admin header, authentication
+  forms, homepage product-demo mark, public confirmation attribution, and raw
+  private-feedback platform attribution without changing their structure,
+  behavior, navigation, animation, validation, or secure capability handling.
+- Merged standard, maskable, and monochrome supplied icons into the existing
+  manifest without changing name, short name, start URL, scope, display, theme,
+  or background behavior. Root metadata now declares the supplied ICO/PNG
+  favicons, Apple touch icon, 1200x630 Open Graph image, and Twitter large image.
+- Replaced the generated fallback social-card route with the supplied Open Graph
+  file and replaced the shared transactional-email text mark with the supplied
+  512px PNG at a stable canonical HTTPS URL. No subject, copy, provider, outbox,
+  recipient, or delivery behavior changed.
+- Vendor business logos, business-profile images, customer/user avatars,
+  initials fallbacks, upload processing, Storage paths, and booking references
+  remain independent and unchanged. No database, migration, environment,
+  dependency, service worker, product workflow, or deployment change is part of
+  this rollout.
+- Final local verification passed lint, route type generation/strict TypeScript,
+  135 Vitest files with 722 tests (21 files/21 guarded tests skipped), the
+  production build, 14 selected Chromium/mobile Chromium E2E checks with four
+  project-owner skips, byte-integrity comparison for all 22 runtime assets, the
+  320-1440 public/auth overflow gate, the 1600px homepage gate, HTTP/content-type
+  inspection, and screenshot review. Authenticated fixture journeys and a fresh
+  OS-level PWA install remain explicitly skipped because the available backend
+  configuration is Production-backed; this rollout performed no live mutation.
+
 ## 2026-09-03 - Image Picker Reliability And Booking Completion Success UX
 
 Status: VERIFIED - PRODUCTION

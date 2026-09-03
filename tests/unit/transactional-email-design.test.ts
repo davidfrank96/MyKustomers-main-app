@@ -36,6 +36,10 @@ function expectMyKustomersAttribution(email: { html: string; text: string }) {
     expect(content).not.toMatch(/localhost|127\.0\.0\.1|vercel\.app/i);
   }
   expect(email.html).toContain('href="https://mykustomers.com"');
+  expect(email.html).toContain(
+    'src="https://mykustomers.com/brand/mykustomers/v1/email/mykustomers-email-logo-512w.png"',
+  );
+  expect(email.html).toContain('alt="MyKustomers.com"');
   expect(email.html).toContain("Visit My Kustomers");
 }
 

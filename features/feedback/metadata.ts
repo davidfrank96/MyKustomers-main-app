@@ -1,5 +1,6 @@
 import { getBusinessLogoPublicUrl } from "@/features/businesses/logo-public";
 import { publicEnv } from "@/lib/config/public-env";
+import { MYKUSTOMERS_BRAND_ASSETS } from "@/lib/brand/assets";
 
 export type FeedbackMetadata = {
   title: string;
@@ -34,6 +35,7 @@ export function buildFeedbackMetadata({
     description: `${name} has requested private feedback about your experience.`,
     canonicalUrl: `${baseUrl}/f/${encodeURIComponent(token)}`,
     imageUrl:
-      getBusinessLogoPublicUrl(businessLogoPath) ?? `${baseUrl}/confirmation-preview.png`,
+      getBusinessLogoPublicUrl(businessLogoPath) ??
+      `${baseUrl}${MYKUSTOMERS_BRAND_ASSETS.openGraph}`,
   };
 }

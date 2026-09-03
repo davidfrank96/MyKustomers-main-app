@@ -82,6 +82,15 @@ describe("trusted confirmation sharing", () => {
       type: "website",
     });
     expect(metadata.twitter).toMatchObject({ card: "summary_large_image" });
+    expect(metadata.openGraph).toMatchObject({
+      images: [
+        expect.objectContaining({
+          url: expect.stringContaining(
+            "/brand/mykustomers/v1/social/mykustomers-open-graph-1200x630.png",
+          ),
+        }),
+      ],
+    });
     expect(serialized).not.toContain("David Okafor");
     expect(serialized).not.toContain("Private address");
     expect(serialized).not.toContain("EUR 500");

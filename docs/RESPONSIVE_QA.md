@@ -4,6 +4,24 @@ STATUS: VERIFIED FOR THE DEPLOYED BASELINE; BRANCH RELEASE MATRIX VERIFIED
 
 Audit date: 2026-08-31.
 
+The 2026-09-03 local MyKustomers.com brand rollout replaces only existing
+platform marks. Its acceptance matrix is 320x568, 360x800, 375x812, 390x844,
+414x896, 430x932, 768x1024, 1024x768, 1280x800, 1440x900, plus 1600x900 for the
+homepage. Each relevant route must retain zero document overflow, intrinsic logo
+proportions, clear `.com` visibility, stable header height, and separation from
+vendor logos, business initials, and user avatars. Horizontal lockups are
+reserved for widths where they fit; compact authenticated headers use the
+supplied icon. Screenshot and browser evidence is local review evidence only
+until normal PR/CI/deployment authorization occurs.
+
+Local brand gate result: 320 PASS, 360 PASS, 375 PASS, 390 PASS, 414 PASS,
+430 PASS, 768 PASS, 1024 PASS, 1280 PASS, 1440 PASS, and 1600 homepage PASS for
+the non-mutating homepage/auth matrix. Public confirmation and feedback review
+screens at 390 PASS; the feedback platform/security header also has an explicit
+non-overlap assertion. Authenticated-shell layout remains covered by component
+and static regression tests, while live authenticated screenshots are SKIPPED
+to avoid fixtures against the Production-backed environment.
+
 The 2026-09-02 Auth hardening branch adds one compact Radix verification dialog
 and a persistent Signup notice. Component coverage proves dialog semantics,
 dismissal, exact long-address wrapping, form removal, and full-width resend at

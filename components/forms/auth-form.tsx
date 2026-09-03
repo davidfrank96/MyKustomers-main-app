@@ -16,6 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { GoogleAuthButton } from "@/components/forms/google-auth-button";
+import { BrandLogo } from "@/components/shared/brand-logo";
 import {
   initialAuthActionState,
   type AuthActionState,
@@ -138,8 +139,8 @@ function VerificationRequired({
             <DialogTitle>Check your email</DialogTitle>
             <DialogDescription>
               We sent a confirmation link to{" "}
-              <strong className="break-all font-semibold text-foreground">{email}</strong>.
-              Open it to verify your account before continuing to your workspace.
+              <strong className="break-all font-semibold text-foreground">{email}</strong>
+              . Open it to verify your account before continuing to your workspace.
             </DialogDescription>
           </DialogHeader>
           <DialogClose asChild>
@@ -150,9 +151,7 @@ function VerificationRequired({
         </DialogContent>
       </Dialog>
 
-      <div
-        className="mt-8 rounded-lg border border-primary/25 bg-primary/5 p-5"
-      >
+      <div className="mt-8 rounded-lg border border-primary/25 bg-primary/5 p-5">
         <div className="flex items-start gap-3">
           <span className="grid size-11 shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
             <MailCheck className="size-5" aria-hidden="true" />
@@ -164,9 +163,10 @@ function VerificationRequired({
               role="status"
               aria-live="polite"
             >
-              Check <strong className="break-all font-medium text-foreground">{email}</strong>
-              {" "}and confirm your account. You cannot continue to onboarding until the
-              email is verified.
+              Check{" "}
+              <strong className="break-all font-medium text-foreground">{email}</strong>{" "}
+              and confirm your account. You cannot continue to onboarding until the email
+              is verified.
             </p>
           </div>
         </div>
@@ -229,7 +229,10 @@ function AuthFieldControl({
 
   return (
     <div className={mobilePresentation ? "space-y-2.5" : "space-y-2"}>
-      <Label htmlFor={field.name} className={mobilePresentation ? "text-base" : undefined}>
+      <Label
+        htmlFor={field.name}
+        className={mobilePresentation ? "text-base" : undefined}
+      >
         {field.label}
       </Label>
       <div className="relative">
@@ -291,9 +294,7 @@ export function AuthForm({
   const mobilePresentation = presentation === "mobile";
   const verification = state.verification;
   const verificationModalOpen = Boolean(
-    state.code === "verification_required" &&
-      verification &&
-      !verificationModalDismissed,
+    state.code === "verification_required" && verification && !verificationModalDismissed,
   );
 
   return (
@@ -312,26 +313,14 @@ export function AuthForm({
               ? "mx-auto flex w-fit items-center justify-center gap-3"
               : "flex w-fit items-center gap-3"
           }
-          aria-label="My Kustomers home"
+          aria-label="MyKustomers.com home"
         >
-          <span
-            className={
-              mobilePresentation
-                ? "grid size-12 place-items-center rounded-lg bg-primary text-base font-semibold text-primary-foreground"
-                : "grid size-10 place-items-center rounded-lg bg-primary text-sm font-semibold text-primary-foreground"
-            }
-          >
-            MK
-          </span>
-          <span
-            className={
-              mobilePresentation
-                ? "text-xl font-semibold text-primary"
-                : "text-base font-semibold"
-            }
-          >
-            My Kustomers
-          </span>
+          <BrandLogo
+            variant="horizontal"
+            className={mobilePresentation ? "h-12 w-40" : "h-10 w-36"}
+            decorative
+            priority
+          />
         </Link>
         <h1
           className={
@@ -372,9 +361,15 @@ export function AuthForm({
           role={state.status === "error" ? "alert" : "status"}
         >
           {state.status === "error" ? (
-            <AlertCircle className="mt-0.5 size-4 shrink-0 text-destructive" aria-hidden="true" />
+            <AlertCircle
+              className="mt-0.5 size-4 shrink-0 text-destructive"
+              aria-hidden="true"
+            />
           ) : (
-            <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
+            <CheckCircle2
+              className="mt-0.5 size-4 shrink-0 text-primary"
+              aria-hidden="true"
+            />
           )}
           <span className="text-muted-foreground">
             {state.message}
@@ -401,11 +396,21 @@ export function AuthForm({
             mobilePresentation={mobilePresentation}
           />
           <div
-            className={mobilePresentation ? "my-7 flex items-center gap-4" : "my-6 flex items-center gap-3"}
+            className={
+              mobilePresentation
+                ? "my-7 flex items-center gap-4"
+                : "my-6 flex items-center gap-3"
+            }
             aria-hidden="true"
           >
             <span className="h-px flex-1 bg-border" />
-            <span className={mobilePresentation ? "text-sm text-muted-foreground" : "text-xs text-muted-foreground"}>
+            <span
+              className={
+                mobilePresentation
+                  ? "text-sm text-muted-foreground"
+                  : "text-xs text-muted-foreground"
+              }
+            >
               or continue with email
             </span>
             <span className="h-px flex-1 bg-border" />
@@ -417,11 +422,7 @@ export function AuthForm({
         <form
           action={formAction}
           className={
-            mobilePresentation
-              ? "space-y-5"
-              : googleAuth
-                ? "space-y-4"
-                : "mt-6 space-y-4"
+            mobilePresentation ? "space-y-5" : googleAuth ? "space-y-4" : "mt-6 space-y-4"
           }
           noValidate
         >

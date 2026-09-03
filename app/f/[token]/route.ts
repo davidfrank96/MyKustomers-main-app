@@ -13,6 +13,7 @@ import {
   submitPublicFeedback,
 } from "@/features/feedback/public";
 import type { PublicFeedbackBooking } from "@/features/feedback/public-types";
+import { MYKUSTOMERS_BRAND_ASSETS } from "@/lib/brand/assets";
 
 export const dynamic = "force-dynamic";
 
@@ -151,14 +152,9 @@ function pageShell({ metadata, body }: { metadata: FeedbackMetadata; body: strin
     }
     .platform-brand > span:last-child { white-space: nowrap; }
     .platform-mark, .promo-mark {
-      display: grid;
-      place-items: center;
+      display: block;
       flex: 0 0 auto;
-      border: 1px solid #dce8e1;
-      border-radius: .5rem;
-      background: var(--primary-soft);
-      color: var(--primary-dark);
-      font-weight: 800;
+      object-fit: contain;
     }
     .platform-mark { width: 2.5rem; height: 2.5rem; }
     .platform-security {
@@ -471,6 +467,9 @@ function pageShell({ metadata, body }: { metadata: FeedbackMetadata; body: strin
       .platform-security { max-width: 7rem; gap: .375rem; font-size: .6875rem; }
       .choice { min-height: 3rem; padding-inline: .25rem; }
     }
+    @media (max-width: 30rem) {
+      .platform-security .icon-small { display: none; }
+    }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
     }
@@ -480,7 +479,7 @@ function pageShell({ metadata, body }: { metadata: FeedbackMetadata; body: strin
   <main>
     <header class="platform-bar">
       <a class="platform-brand" href="${MY_KUSTOMERS_URL}" rel="noopener noreferrer">
-        <span class="platform-mark" aria-hidden="true">MK</span>
+        <img class="platform-mark" src="${MYKUSTOMERS_BRAND_ASSETS.logo.icon}" width="40" height="40" alt="">
         <span>MyKustomers.com</span>
       </a>
       <p class="platform-security">${icon("lock", "icon-small")}<span>Secure · Private · No account required</span></p>
@@ -488,7 +487,7 @@ function pageShell({ metadata, body }: { metadata: FeedbackMetadata; body: strin
     ${body}
     <section class="promo" aria-labelledby="my-kustomers-promo-title">
       <div class="promo-intro">
-        <span class="promo-mark" aria-hidden="true">MK</span>
+        <img class="promo-mark" src="${MYKUSTOMERS_BRAND_ASSETS.logo.icon}" width="48" height="48" alt="">
         <div>
           <h2 id="my-kustomers-promo-title">Built for businesses. Loved by customers.</h2>
           <p>MyKustomers.com helps businesses deliver better experiences, stay organized, and build lasting customer trust.</p>
@@ -680,11 +679,15 @@ export async function GET(request: NextRequest, context: FeedbackRouteContext) {
         ${bookingContext(booking, businessLogoUrl)}
         ${
           view.status === "valid"
-            ? feedbackForm(token, request.nextUrl.searchParams.get("attempt") === "failed")
+            ? feedbackForm(
+                token,
+                request.nextUrl.searchParams.get("attempt") === "failed",
+              )
             : `<p class="notice">${escapeHtml(safePublicFeedbackMessage(view.status))}</p>`
         }`;
 
-    const trackedBody = view.status === "valid" ? `${body}${feedbackOpenTracker(token)}` : body;
+    const trackedBody =
+      view.status === "valid" ? `${body}${feedbackOpenTracker(token)}` : body;
 
     return new Response(pageShell({ metadata, body: trackedBody }), {
       headers: securityHeaders,

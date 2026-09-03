@@ -1,5 +1,45 @@
 # Testing
 
+## 2026-09-03 MyKustomers.com Brand Asset Rollout
+
+Focused component coverage verifies the supplied icon, horizontal, and inverse
+variants, their intrinsic dimensions and containment, the `MyKustomers.com`
+standalone accessible name, and decorative behavior when a parent link or
+adjacent copy already names the platform. Runtime-asset coverage verifies that
+every declared path exists beneath `/brand/mykustomers/v1/`.
+
+Network coverage also locks the byte-identical 120px icon and 512px horizontal
+web PNGs used by visible light surfaces. This prevents the package's much larger
+raster-embedded SVG masters from becoming routine page downloads while retaining
+the exact supplied artwork and master variants.
+
+Manifest regression coverage preserves the existing application name, short
+name, start URL, scope, standalone display, theme, and background while locking
+the supplied 192/512 standard icons, 512 maskable icon, and 192/512 monochrome
+icons to their correct purposes. Metadata coverage locks the supplied Open
+Graph fallback path; transactional-email coverage locks its canonical HTTPS PNG
+URL and alt text. Existing auth, public confirmation, raw feedback, and homepage
+tests assert the updated accessible brand link and exact supplied icon paths.
+
+The release gate for this local-only task is lint, strict typecheck, complete
+Vitest, production build, relevant Playwright homepage/auth/public/PWA and
+authenticated-shell coverage, the required 320-1600 width overflow matrix,
+asset HTTP/content-type inspection, byte-for-byte hash comparison, screenshot
+review, and `git diff --check`. Guarded live-backend tests remain skips unless a
+safe configured target exists; no Production mutation or deployment is part of
+brand verification.
+
+Final local results: lint PASS; strict typecheck PASS; 135 Vitest files PASS
+with 722 tests PASS and 21 files/21 guarded tests SKIPPED; production build PASS;
+selected non-mutating Playwright matrix 14 PASS, 0 FAIL, 4 project-owner SKIPPED.
+The final brand-only Chromium rerun was 3 PASS. All 22 copied runtime assets
+matched their package SHA-256 values, all requested public/auth widths through
+1440 plus the 1600 homepage had no page-level overflow, and every referenced
+asset returned HTTP 200 with the expected content type. Authenticated fixture
+journeys and fresh OS-level PWA installation remain SKIPPED because the
+configured backend is Production-backed and this task does not authorize live
+data mutation.
+
 ## 2026-09-03 Image Picker And Booking Completion UX
 
 Permanent image-picker coverage asserts that every rendered shared uploader has

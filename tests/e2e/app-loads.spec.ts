@@ -2,7 +2,7 @@ import { expect, test } from "./support/test";
 
 test("home page loads", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("link", { name: "My Kustomers home" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "MyKustomers.com home" })).toBeVisible();
   await expect(
     page.getByRole("heading", {
       name: "From customer request to confirmation, delivery, and feedback — one clear journey.",

@@ -17,6 +17,7 @@ import {
   MobileNavigation,
 } from "@/components/layout/dashboard-navigation";
 import { PwaReliabilityCoordinator } from "@/components/layout/pwa-reliability-coordinator";
+import { BrandLogo } from "@/components/shared/brand-logo";
 import type { BusinessContext, AuthenticatedUser } from "@/lib/auth/server";
 
 type DashboardShellProps = {
@@ -50,10 +51,7 @@ export function DashboardShell({ children, user, businessContext }: DashboardShe
     <div className="min-h-dvh bg-background pb-[calc(4.5rem+env(safe-area-inset-bottom))] lg:pb-0">
       <aside className="fixed inset-y-0 left-0 hidden w-64 border-r border-border bg-card lg:flex lg:flex-col">
         <div className="flex h-16 items-center gap-3 border-b border-border px-5">
-          <span className="grid size-9 place-items-center rounded-lg bg-primary text-sm font-semibold text-primary-foreground">
-            MK
-          </span>
-          <span className="font-semibold">My Kustomers</span>
+          <BrandLogo variant="horizontal" className="h-9 w-[8.5rem]" />
         </div>
         <DesktopNavigation />
       </aside>
@@ -64,12 +62,9 @@ export function DashboardShell({ children, user, businessContext }: DashboardShe
             <Link
               href="/"
               className="flex items-center gap-3"
-              aria-label="My Kustomers home"
+              aria-label="MyKustomers.com home"
             >
-              <span className="grid size-8 place-items-center rounded-md bg-primary text-xs font-semibold text-primary-foreground sm:size-9 sm:text-sm">
-                MK
-              </span>
-              <span className="hidden font-semibold sm:inline">My Kustomers</span>
+              <BrandLogo variant="icon" className="size-8 sm:size-9" decorative />
             </Link>
             <BusinessSwitcher
               businesses={businessContext.businesses}
