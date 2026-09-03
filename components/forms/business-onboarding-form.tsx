@@ -3,6 +3,7 @@
 import {
   useCallback,
   useEffect,
+  useId,
   useState,
   useTransition,
   type ComponentType,
@@ -217,6 +218,8 @@ export function BusinessOnboardingForm({
   const [slug, setSlug] = useState(initialValues.slug ?? "");
   const [slugTouched, setSlugTouched] = useState(Boolean(initialValues.slug));
   const [logoSelected, setLogoSelected] = useState(false);
+  const generatedLogoInputId = useId();
+  const logoInputId = `business-logo-${generatedLogoInputId}`;
   const [logoError, setLogoError] = useState<string | null>(null);
   const [completionError, setCompletionError] = useState<string | null>(null);
   const visibleSlug = slugTouched ? slug : slugifyBusinessSlug(name);
@@ -486,7 +489,7 @@ export function BusinessOnboardingForm({
         if (mode === "create" && !pendingBusiness && !logoSelected) {
           event.preventDefault();
           setLogoError("Choose a business logo before creating your business.");
-          document.getElementById("business-logo")?.focus();
+          document.getElementById(logoInputId)?.focus();
         }
       }}
     >
@@ -535,6 +538,7 @@ export function BusinessOnboardingForm({
             currentLogoUrl={pendingBusiness?.logoUrl ?? null}
             isOwner={isOwner}
             mode="onboarding"
+            inputId={logoInputId}
             onSelectionChange={(selected) => {
               setLogoSelected(selected);
               if (selected) setLogoError(null);

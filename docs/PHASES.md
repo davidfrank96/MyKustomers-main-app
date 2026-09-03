@@ -1388,3 +1388,26 @@ audit, diff integrity, and 51-test desktop/mobile/PWA Playwright matrix passed.
 
 Deferred: PR/CI, exact Vercel deployment, controlled Production inbox delivery,
 and final Production zero-residue verification.
+
+## Image Picker And Booking Completion UX Maintenance
+
+Status: IMPLEMENTED - CI/PRODUCTION VERIFICATION PENDING
+
+Scope: browser-native business-logo picker activation with unique IDs, cancel
+and same-file recovery across onboarding/settings; plus one accessible booking
+success dialog driven only by an observed authoritative transition into
+`COMPLETED` through the existing server-action/poll/PWA reconciliation client.
+
+Preserved boundaries: Auth/OAuth, zero-business and multi-business resolution,
+5 MiB client preprocessing, authoritative Sharp/Storage/RLS/owner enforcement,
+staged no-duplicate onboarding, strict delivery/feedback association, payment
+gate, customer confirmation/email source, Performance V2, PWA reconciliation,
+and Sentry minimization. No database, migration, Storage policy, environment,
+dependency, provider, email, audit event, or new poller is included.
+
+Local verification: 716 Vitest checks, guarded runtime safety skips, 51 passing
+Playwright cases with 16 intentional project skips, desktop/mobile Chromium and
+WebKit native `filechooser` evidence, three-project PWA coverage, production
+build, zero-vulnerability audit, diff integrity, and zero controlled fixture
+prefixes/Auth users. Physical devices, CI, deployment, and Production smoke are
+deferred.

@@ -192,7 +192,13 @@ test.describe("mobile account and dashboard navigation", () => {
       })
         .png()
         .toBuffer();
-      await page.getByLabel("Logo image").setInputFiles({
+      const logoSettings = page.getByRole("region", {
+        name: "Business logo settings",
+      });
+      const initialLogoChooserPromise = page.waitForEvent("filechooser");
+      await logoSettings.getByText("Choose image", { exact: true }).click();
+      const initialLogoChooser = await initialLogoChooserPromise;
+      await initialLogoChooser.setFiles({
         name: "mobile-logo.png",
         mimeType: "image/png",
         buffer: pngLogo,
@@ -220,7 +226,10 @@ test.describe("mobile account and dashboard navigation", () => {
       const oversizedLogo = await createCameraLogoJpeg(
         MAX_BUSINESS_LOGO_SOURCE_BYTES + 1,
       );
-      await page.getByLabel("Logo image").setInputFiles({
+      const oversizedChooserPromise = page.waitForEvent("filechooser");
+      await logoSettings.getByText("Choose another image", { exact: true }).click();
+      const oversizedChooser = await oversizedChooserPromise;
+      await oversizedChooser.setFiles({
         name: "oversized-phone-logo.jpg",
         mimeType: "image/jpeg",
         buffer: oversizedLogo,
@@ -235,7 +244,10 @@ test.describe("mobile account and dashboard navigation", () => {
           request.method() === "POST" &&
           request.url().includes(`/api/businesses/${business!.id}/logo`),
       );
-      await page.getByLabel("Logo image").setInputFiles({
+      const replacementChooserPromise = page.waitForEvent("filechooser");
+      await logoSettings.getByText("Choose another image", { exact: true }).click();
+      const replacementChooser = await replacementChooserPromise;
+      await replacementChooser.setFiles({
         name: "replacement-phone-logo.jpg",
         mimeType: "image/jpeg",
         buffer: jpegLogo,

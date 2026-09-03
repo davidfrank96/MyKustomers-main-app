@@ -1878,6 +1878,21 @@ test.describe("booking engine", () => {
     await expect(completionDialog).toBeVisible();
     await expectNoPageOverflow(page);
     await completionDialog.getByRole("button", { name: "Complete booking" }).click();
+    const completionSuccessDialog = page.getByRole("dialog", {
+      name: "Booking complete",
+    });
+    await expect(completionSuccessDialog).toBeVisible({ timeout: serverActionTimeout });
+    await expect(
+      completionSuccessDialog.getByText("Everything for this booking is finished."),
+    ).toBeVisible();
+    if (testInfo.project.name === "chromium") {
+      await completionSuccessDialog.screenshot({
+        path: "test-results/booking-complete-modal-320.png",
+        animations: "disabled",
+      });
+    }
+    await completionSuccessDialog.getByRole("button", { name: "Done" }).click();
+    await expect(completionSuccessDialog).toBeHidden();
     await expect(
       page.locator("span.inline-flex.w-fit").filter({ hasText: /^Completed$/ }),
     ).toBeVisible({ timeout: serverActionTimeout });
@@ -1890,6 +1905,10 @@ test.describe("booking engine", () => {
     await expect(
       page.locator('#operational-progress [data-stage="cancelled"]'),
     ).toHaveAttribute("data-state", "pending");
+    await page.reload();
+    await expect(
+      page.getByRole("dialog", { name: "Booking complete" }),
+    ).toHaveCount(0);
     if (testInfo.project.name === "chromium") {
       const progressedViewport = page.viewportSize();
       const progressedScreenshotChrome = await page.addStyleTag({
@@ -2323,6 +2342,9 @@ test.describe("booking engine", () => {
     await expect(
       page.getByRole("heading", { name: "Feedback received", exact: true }),
     ).toBeVisible();
+    await expect(
+      page.getByRole("dialog", { name: "Booking complete" }),
+    ).toHaveCount(0);
     await expect(page.getByText("The booking journey is complete.")).toBeVisible();
     if (testInfo.project.name === "chromium") {
       await page.setViewportSize({ width: 390, height: 844 });

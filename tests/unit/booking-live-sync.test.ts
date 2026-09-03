@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   createBookingLiveState,
+  didBookingBecomeCompleted,
   getBookingLiveNotification,
 } from "@/features/bookings/live-sync";
 
@@ -44,5 +45,26 @@ describe("booking live synchronization", () => {
         ),
       ).title,
     ).toBe("New customer feedback");
+  });
+
+  it("identifies only an authoritative transition into completed", () => {
+    expect(
+      didBookingBecomeCompleted(
+        state("AWAITING_CUSTOMER", null, null),
+        state("COMPLETED", null, null),
+      ),
+    ).toBe(true);
+    expect(
+      didBookingBecomeCompleted(
+        state("COMPLETED", null, null),
+        state("COMPLETED", null, "2026-08-26T10:02:00.000Z"),
+      ),
+    ).toBe(false);
+    expect(
+      didBookingBecomeCompleted(
+        state("AWAITING_CUSTOMER", null, null),
+        state("AWAITING_CUSTOMER", null, "2026-08-26T10:02:00.000Z"),
+      ),
+    ).toBe(false);
   });
 });

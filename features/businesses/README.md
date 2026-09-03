@@ -54,6 +54,15 @@ Permanent pending-state invariant: "Image upload UI must terminate into success
 or a recoverable error state. It must never remain indefinitely pending after
 request failure or timeout."
 
+Permanent picker invariant: "User file selection must remain directly tied to
+a unique native browser file-input interaction and must not depend on
+asynchronous navigation, network, tenant resolution, or programmatic clicking
+before the picker opens." The shared control uses a visible semantic label and
+a visually hidden, focusable input. It resets after every accepted selection so
+the same file can be chosen again; cancellation preserves the current usable
+state. HEIC/HEIF is not advertised or accepted by the current PNG/JPEG/WebP
+pipeline.
+
 Customers, bookings, confirmations, feedback, and insights remain in their own
 feature modules. Staff invitations, galleries, additional social networks,
 subscription billing, customer payment processing, and external messaging

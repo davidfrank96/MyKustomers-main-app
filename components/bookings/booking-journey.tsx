@@ -121,6 +121,7 @@ export function BookingJourney({
             </p>
             <h2
               id="booking-journey-title"
+              tabIndex={-1}
               className="mt-1 break-words text-xl font-semibold leading-7 sm:text-2xl sm:leading-8"
             >
               {journey.title}

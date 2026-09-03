@@ -3,9 +3,11 @@
 import { startTransition, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
+  didBookingBecomeCompleted,
   getBookingLiveNotification,
   type BookingLiveState,
 } from "@/features/bookings/live-sync";
+import { BookingCompleteModal } from "@/components/bookings/booking-complete-modal";
 import { PWA_BOOKING_RECONCILE_EVENT } from "@/features/pwa/reconciliation";
 import {
   ToastDescription,
@@ -29,11 +31,15 @@ export function BookingLiveSync({ bookingId, initialState }: BookingLiveSyncProp
   const requestRef = useRef<AbortController | null>(null);
   const pollingRef = useRef(false);
   const [toastOpen, setToastOpen] = useState(false);
+  const [completionOpen, setCompletionOpen] = useState(false);
   const [notification, setNotification] = useState<ReturnType<
     typeof getBookingLiveNotification
   > | null>(null);
 
   useEffect(() => {
+    if (didBookingBecomeCompleted(currentRef.current, initialState)) {
+      setCompletionOpen(true);
+    }
     currentRef.current = initialState;
   }, [initialState]);
 
@@ -73,8 +79,13 @@ export function BookingLiveSync({ bookingId, initialState }: BookingLiveSyncProp
         }
 
         currentRef.current = nextState;
-        setNotification(getBookingLiveNotification(previousState, nextState));
-        setToastOpen(true);
+        const becameCompleted = didBookingBecomeCompleted(previousState, nextState);
+        if (becameCompleted) {
+          setCompletionOpen(true);
+        } else {
+          setNotification(getBookingLiveNotification(previousState, nextState));
+          setToastOpen(true);
+        }
         startTransition(() => router.refresh());
       } catch (error) {
         if (!(error instanceof DOMException && error.name === "AbortError")) {
@@ -104,6 +115,7 @@ export function BookingLiveSync({ bookingId, initialState }: BookingLiveSyncProp
   return (
     <>
       <span ref={syncRef} data-pwa-booking-sync hidden />
+      <BookingCompleteModal open={completionOpen} onOpenChange={setCompletionOpen} />
       <ToastProvider swipeDirection="right">
         <ToastRoot
           className="rounded-md border border-border bg-background p-4 shadow-lg"

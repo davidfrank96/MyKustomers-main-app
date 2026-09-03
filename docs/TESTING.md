@@ -1,5 +1,40 @@
 # Testing
 
+## 2026-09-03 Image Picker And Booking Completion UX
+
+Permanent image-picker coverage asserts that every rendered shared uploader has
+a unique stable ID, a native label/input association, no `display:none` or
+programmatic click activation, supported MIME filtering, cancel recovery, and
+same-file reselection after the input value is reset. Controlled browser
+journeys open an actual Playwright `filechooser` before supplying files; they
+cover first-business onboarding, Business settings upload/replacement/removal,
+invalid content, >5 MiB rejection, bounded 4.8-5 MiB preprocessing, stored WebP
+shape/size, no duplicate staged business, and cleanup.
+
+The focused matrix has passed desktop Chromium, mobile Chromium, desktop
+WebKit, mobile WebKit, and the existing desktop/Pixel/iPhone-class PWA projects.
+This is WebKit simulation evidence, not physical iOS evidence. HEIC remains
+deliberately unsupported and produces the existing field-local PNG/JPEG/WebP
+message without a request.
+
+Completion coverage treats status as the only trigger authority. Unit and
+integration tests assert non-completed -> `COMPLETED`, initial completed load,
+repeated completed revisions, feedback with outstanding balance, cancellation,
+fresh server-action props, polling/PWA reconciliation, one-shot dismissal, and
+accessible dialog copy. The canonical authenticated browser journey verifies
+manual completion after server success, one dialog, Done dismissal, a silent
+refresh, a completed journey behind the dialog, and no second celebration when
+feedback later arrives for that already-completed booking. Existing guarded
+delivery/payment runtime suites remain the backend evidence for both paid/
+feedback arrival orders; no completion rule changed in this UI pass.
+
+The complete local gate passes: lint, strict typecheck, 133 passing/21 skipped
+Vitest files with 716 passing checks, 21 explicit guarded runtime skips, 51
+passing/16 intentionally skipped Playwright cases, production build,
+zero-vulnerability moderate audit, and diff integrity. A post-suite read-only
+aggregate check returned zero `phase3-e2e`, `phase5-e2e-bookings`,
+`mobile-account`, and `pwa` business prefixes plus zero matching Auth fixtures.
+
 ## Customer Email Source-Of-Truth Regression
 
 Static migration coverage proves that public confirmation cannot write customer

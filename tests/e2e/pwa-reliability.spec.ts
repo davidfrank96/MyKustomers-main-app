@@ -346,9 +346,20 @@ test.describe("authenticated PWA reliability", () => {
         await businessInformation.click();
       }
       await expect(businessInformation).toHaveAttribute("aria-expanded", "true");
-      const logoInput = page.getByLabel("Logo image");
       await page.waitForTimeout(500);
-      await logoInput.setInputFiles({
+      const logoSettings = page.getByRole("region", {
+        name: "Business logo settings",
+      });
+      const cancelChooserPromise = page.waitForEvent("filechooser");
+      await logoSettings.getByText("Choose image", { exact: true }).click();
+      const cancelChooser = await cancelChooserPromise;
+      await cancelChooser.setFiles([]);
+      await expect(logoSettings.getByText("Choose image", { exact: true })).toBeVisible();
+
+      const unsupportedChooserPromise = page.waitForEvent("filechooser");
+      await logoSettings.getByText("Choose image", { exact: true }).click();
+      const unsupportedChooser = await unsupportedChooserPromise;
+      await unsupportedChooser.setFiles({
         name: "iphone-photo.heic",
         mimeType: "image/heic",
         buffer: Buffer.from("unsupported-heic"),

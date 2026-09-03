@@ -53,3 +53,10 @@ export function getBookingLiveNotification(
     description: "The latest booking details are now shown.",
   };
 }
+
+export function didBookingBecomeCompleted(
+  previous: Pick<BookingLiveState, "status">,
+  current: Pick<BookingLiveState, "status">,
+) {
+  return previous.status !== "COMPLETED" && current.status === "COMPLETED";
+}

@@ -1,5 +1,41 @@
 # Changelog
 
+## 2026-09-03 - Image Picker Reliability And Booking Completion Success UX
+
+Status: IMPLEMENTED - CI/PRODUCTION VERIFICATION PENDING
+
+- Replaced the redesign-era styled browser file-selector surface with a unique
+  React-generated native label/input association shared by first-business,
+  additional-business, and Business settings. Activation has no programmatic
+  `.click()`, Promise, timer, navigation, tenant read, or network dependency.
+- The visually hidden native input remains keyboard/screen-reader reachable,
+  accepts only PNG/JPEG/WebP, resets after every valid selection so the same
+  file can be reselected, ignores picker cancellation without losing the
+  current preview, and restores immediately after validation/processing errors.
+- Preserved the deployed 5 MiB source limit, <=3 MiB client transport
+  preprocessing, 6000px/25-megapixel guard, server-side authentication/owner
+  authorization, Sharp content decoding/orientation/metadata stripping,
+  512px/200 KiB WebP output, deterministic Storage path, replacement cleanup,
+  and resumable no-duplicate-business onboarding contract.
+- Added one compact Radix `BookingCompleteModal` hosted by the existing booking
+  live-sync client. It opens only for an observed authoritative transition from
+  any non-`COMPLETED` status into `COMPLETED`, whether received through the
+  existing poll/PWA reconciliation path or a server-action RSC refresh. Initial
+  completed loads, repeated completed revisions, refresh, delivered,
+  outstanding-balance, and cancelled states remain silent.
+- The dialog uses existing focus trapping/Escape/focus-return primitives, a
+  visible title and description, one full-width Done action, bounded mobile
+  geometry, and no motion-only meaning. No database acknowledgement, audit
+  event, email, poller, dependency, environment, Storage policy, or backend
+  completion-rule change was added.
+- Focused native `filechooser` journeys pass desktop/mobile Chromium,
+  desktop/mobile WebKit, and the desktop/Pixel/iPhone-class PWA matrix. Full
+  local gates pass: lint, strict typecheck, 716 Vitest checks, guarded 21-test
+  Production-safe runtime skip, 51-pass/16-intentional-skip Playwright matrix,
+  production build, zero-vulnerability audit, diff integrity, and zero
+  controlled fixture prefixes/Auth users. Physical iOS/Android, CI, deployment,
+  and controlled Production smoke remain pending.
+
 ## 2026-09-02 - Customer Email Source-Of-Truth Hotfix
 
 Status: IMPLEMENTED - APPLICATION DEPLOYMENT VERIFICATION PENDING
