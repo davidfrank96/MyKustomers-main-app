@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getBusinessLogoPublicUrl } from "@/features/businesses/logo-public";
 import { publicEnv } from "@/lib/config/public-env";
+import { MYKUSTOMERS_BRAND_ASSETS } from "@/lib/brand/assets";
 
 type PublicCapabilityMetadataInput = {
   token: string;
@@ -28,7 +29,7 @@ export function buildPublicCapabilityMetadata({
   const baseUrl = publicEnv.NEXT_PUBLIC_APP_URL.replace(/\/$/, "");
   const canonicalUrl = `${baseUrl}${routePrefix}/${encodeURIComponent(token)}`;
   const businessLogoUrl = getBusinessLogoPublicUrl(businessLogoPath);
-  const imageUrl = businessLogoUrl ?? `${baseUrl}/confirmation-preview.png`;
+  const imageUrl = businessLogoUrl ?? `${baseUrl}${MYKUSTOMERS_BRAND_ASSETS.openGraph}`;
 
   return {
     title,

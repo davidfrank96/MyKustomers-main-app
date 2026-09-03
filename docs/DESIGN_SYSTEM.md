@@ -37,8 +37,18 @@ Avoid:
 - The product name rendered to users is `My Kustomers`.
 - The public domain attribution is `MyKustomers.com`; `MyCustomers.com` must not
   appear in product UI, public pages, email copy, metadata, or screenshots.
-- Compact application marks use `MK`. Business-logo fallbacks continue to use
-  the business name's own initials.
+- Platform marks and wordmarks must reference exact supplied files under the
+  versioned `/brand/mykustomers/v1/` runtime boundary. Do not recreate the mark
+  with HTML text, CSS, filters, a font, traced paths, or generated artwork.
+- Compact application areas use the supplied icon asset; wider light surfaces
+  use the supplied horizontal-colour lockup; dark surfaces use a supplied
+  inverse variant. All placements preserve intrinsic aspect ratio, explicit
+  dimensions, containment, clear space, and an accessible standalone name of
+  `MyKustomers.com` where surrounding copy does not already name it.
+- Platform identity is permanently separate from tenant and person identity.
+  Business-logo fallbacks continue to use the business name's own initials;
+  vendor business logos, customer/user avatars, and booking references must
+  never be replaced by the platform mark.
 - Internal package names, database identifiers, migration history, and protocol
   header names are implementation details and must not leak into user-facing copy.
 

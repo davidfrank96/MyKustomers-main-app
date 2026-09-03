@@ -7,6 +7,7 @@ const homepageViewports = [
   { width: 360, height: 800 },
   { width: 375, height: 812 },
   { width: 390, height: 844 },
+  { width: 414, height: 896 },
   { width: 430, height: 932 },
   { width: 768, height: 1024 },
   { width: 1024, height: 768 },
@@ -50,7 +51,7 @@ test.describe("public homepage", () => {
     await expect(page.getByRole("banner")).toBeVisible();
     await expect(page.getByRole("main")).toBeVisible();
     await expect(page.getByRole("contentinfo")).toBeVisible();
-    await expect(page.getByRole("link", { name: "My Kustomers home" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "MyKustomers.com home" })).toBeVisible();
     await expect(page.getByText("My Customers", { exact: true })).toHaveCount(0);
 
     await expect(page.getByRole("link", { name: "Log in" })).toHaveAttribute(
@@ -113,7 +114,9 @@ test.describe("public homepage", () => {
     for (const viewport of homepageViewports) {
       await page.setViewportSize(viewport);
       await page.goto("/");
-      await expect(page.getByRole("link", { name: "My Kustomers home" })).toBeVisible();
+      await expect(
+        page.getByRole("link", { name: "MyKustomers.com home" }),
+      ).toBeVisible();
       await expect(
         page.getByRole("heading", {
           name: "From customer request to confirmation, delivery, and feedback — one clear journey.",
@@ -127,10 +130,7 @@ test.describe("public homepage", () => {
       for (const [title, description] of [
         ["Customers", "Keep customer details organized and easy to access."],
         ["Bookings", "Create, manage, and track every booking with ease."],
-        [
-          "Digital receipts",
-          "Send digital receipts and customer updates automatically.",
-        ],
+        ["Digital receipts", "Send digital receipts and customer updates automatically."],
         ["Feedback", "Collect private feedback and respond quickly."],
         ["Insights", "See what's working and grow with confidence."],
       ] as const) {

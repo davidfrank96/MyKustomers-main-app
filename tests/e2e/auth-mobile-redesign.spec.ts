@@ -7,6 +7,7 @@ const requiredViewports = [
   { width: 360, height: 800 },
   { width: 375, height: 812 },
   { width: 390, height: 844 },
+  { width: 414, height: 896 },
   { width: 430, height: 932 },
   { width: 768, height: 1024 },
   { width: 1024, height: 768 },
@@ -49,7 +50,10 @@ async function expectPasswordToggle(
 test("login and signup match the approved mobile auth hierarchy", async ({
   page,
 }, testInfo) => {
-  test.skip(testInfo.project.name !== "chromium", "One browser covers the visual matrix.");
+  test.skip(
+    testInfo.project.name !== "chromium",
+    "One browser covers the visual matrix.",
+  );
   test.setTimeout(90_000);
 
   for (const viewport of requiredViewports) {
@@ -57,11 +61,13 @@ test("login and signup match the approved mobile auth hierarchy", async ({
     await page.setViewportSize(viewport);
 
     await page.goto("/login?message=signed-out");
-    await expect(page.getByRole("link", { name: "My Kustomers home" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "MyKustomers.com home" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Log in" })).toBeVisible();
     await expect(page.getByText("Access your My Kustomers workspace.")).toBeVisible();
     await expect(page.getByText("You have been signed out.")).toBeVisible();
-    await expect(page.getByRole("button", { name: "Continue with Google" })).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Continue with Google" }),
+    ).toBeVisible();
     await expect(page.getByText("or continue with email")).toBeVisible();
     await expectPasswordToggle(page, "Password", "Show password", "Hide password");
     await expectWhitePrimaryControl(page.getByRole("button", { name: "Log in" }));
@@ -70,8 +76,10 @@ test("login and signup match the approved mobile auth hierarchy", async ({
     await expectNoOverflow(page, "/login", width);
 
     await page.goto("/signup");
-    await expect(page.getByRole("link", { name: "My Kustomers home" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Create your account" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "MyKustomers.com home" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Create your account" }),
+    ).toBeVisible();
     await expect(
       page.getByText(
         "Create your My Kustomers login. You will set up your business next.",
@@ -86,9 +94,7 @@ test("login and signup match the approved mobile auth hierarchy", async ({
       "Show confirm password",
       "Hide confirm password",
     );
-    await expectWhitePrimaryControl(
-      page.getByRole("button", { name: "Create account" }),
-    );
+    await expectWhitePrimaryControl(page.getByRole("button", { name: "Create account" }));
     await expect(page.getByRole("link", { name: "Log in" })).toBeVisible();
     await expectNoOverflow(page, "/signup", width);
   }

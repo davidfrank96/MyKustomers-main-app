@@ -13,6 +13,7 @@ import {
   WalletCards,
 } from "lucide-react";
 import { BusinessLogo } from "@/components/shared/business-logo";
+import { BrandLogo } from "@/components/shared/brand-logo";
 import { formatMoneyMinor } from "@/features/bookings/money";
 import {
   getBusinessInstagramUrl,
@@ -67,11 +68,7 @@ export function PublicConfirmationBookingSummary({
   return (
     <dl className="mt-7 rounded-lg border border-border bg-card px-4 shadow-sm sm:px-6">
       <DetailRow icon={UserRound} label="Customer" value={booking.customer_name} />
-      <DetailRow
-        icon={BriefcaseBusiness}
-        label="Booking"
-        value={booking.booking_title}
-      />
+      <DetailRow icon={BriefcaseBusiness} label="Booking" value={booking.booking_title} />
       {booking.booking_description ? (
         <DetailRow
           icon={MessageSquareText}
@@ -172,12 +169,7 @@ export function MyKustomersAttribution() {
   return (
     <aside className="mt-4 rounded-lg border border-[#ccddd5] bg-[#f2f7f4] p-4 sm:flex sm:items-center sm:justify-between sm:gap-4 sm:p-5">
       <div className="flex items-start gap-3">
-        <span
-          className="grid size-10 shrink-0 place-items-center rounded-md bg-primary text-sm font-semibold text-primary-foreground"
-          aria-hidden="true"
-        >
-          MK
-        </span>
+        <BrandLogo variant="icon" className="size-10" decorative />
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold text-foreground">
             Powered by <span className="text-primary">MyKustomers.com</span>

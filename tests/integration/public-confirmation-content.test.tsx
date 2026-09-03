@@ -118,6 +118,10 @@ describe("public confirmation presentation", () => {
     render(<MyKustomersAttribution />);
 
     expect(screen.getByText("MyKustomers.com")).toBeVisible();
+    expect(document.querySelector('img[data-brand-logo="icon"]')).toHaveAttribute(
+      "alt",
+      "",
+    );
     expect(
       screen.getByRole("link", { name: "Learn more about My Kustomers" }),
     ).toHaveAttribute("href", "https://mykustomers.com");

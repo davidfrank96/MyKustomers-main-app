@@ -23,7 +23,8 @@ vi.mock("@/features/feedback/metadata", () => ({
       title: `Share private feedback with ${businessName ?? "your business"}`,
       description: "Private feedback request",
       canonicalUrl: `https://app.example.com/f/${encodeURIComponent(token)}`,
-      imageUrl: "https://app.example.com/confirmation-preview.png",
+      imageUrl:
+        "https://app.example.com/brand/mykustomers/v1/social/mykustomers-open-graph-1200x630.png",
     }),
   ),
 }));
@@ -74,22 +75,24 @@ describe("public private feedback route presentation", () => {
     expect(document.body.textContent).toContain(booking.booking_reference);
     expect(document.body.textContent).toContain("Aug 30, 2026");
     expect(
-      document
-        .querySelector('img[alt="Frankenstein & Co logo"]')
-        ?.getAttribute("src"),
+      document.querySelector('img[alt="Frankenstein & Co logo"]')?.getAttribute("src"),
     ).toBe("https://cdn.example.com/business-logo.webp");
 
     expect(document.querySelectorAll('input[name="overallRating"]')).toHaveLength(5);
     expect(document.querySelectorAll('input[name="onTime"]')).toHaveLength(2);
     expect(document.querySelectorAll('input[name="metExpectations"]')).toHaveLength(2);
-    expect(document.querySelector('input[name="overallRating"]')?.hasAttribute("required")).toBe(
+    expect(
+      document.querySelector('input[name="overallRating"]')?.hasAttribute("required"),
+    ).toBe(true);
+    expect(document.querySelector('input[name="onTime"]')?.hasAttribute("required")).toBe(
       true,
     );
-    expect(document.querySelector('input[name="onTime"]')?.hasAttribute("required")).toBe(true);
     expect(
       document.querySelector('input[name="metExpectations"]')?.hasAttribute("required"),
     ).toBe(true);
-    expect(document.querySelector("textarea#comment")?.getAttribute("maxlength")).toBe("2000");
+    expect(document.querySelector("textarea#comment")?.getAttribute("maxlength")).toBe(
+      "2000",
+    );
     expect(document.querySelector("#comment-count")?.textContent).toBe("0/2000");
     expect(document.querySelector('form[method="post"]')?.getAttribute("action")).toBe(
       "/f/controlled-token",
@@ -99,12 +102,20 @@ describe("public private feedback route presentation", () => {
 
   it("uses only the approved My Kustomers branding and canonical product domain", async () => {
     const { document, html } = await renderRoute();
-    const productLinks = [...document.querySelectorAll('a[href="https://mykustomers.com"]')];
+    const productLinks = [
+      ...document.querySelectorAll('a[href="https://mykustomers.com"]'),
+    ];
 
     expect(productLinks.length).toBeGreaterThanOrEqual(3);
     expect(document.body.textContent).toContain("MyKustomers.com");
-    expect(document.body.textContent).toContain("Built for businesses. Loved by customers.");
+    expect(document.body.textContent).toContain(
+      "Built for businesses. Loved by customers.",
+    );
     expect(document.body.textContent).toContain("Secure · Private · No account required");
+    expect(document.querySelector(".platform-mark")?.getAttribute("src")).toBe(
+      "/brand/mykustomers/v1/logo/mykustomers-icon-120x120.png",
+    );
+    expect(document.querySelector(".promo-mark")?.getAttribute("alt")).toBe("");
     expect(document.body.textContent).toContain(
       "Your feedback is completely private and shared only with the business.",
     );
@@ -125,7 +136,10 @@ describe("public private feedback route presentation", () => {
   });
 
   it("keeps submitted feedback private and removes the submission form", async () => {
-    feedbackMocks.getPublicFeedbackView.mockResolvedValue({ status: "submitted", booking });
+    feedbackMocks.getPublicFeedbackView.mockResolvedValue({
+      status: "submitted",
+      booking,
+    });
 
     const { document } = await renderRoute();
 
@@ -141,7 +155,9 @@ describe("public private feedback route presentation", () => {
     const { document } = await renderRoute();
 
     expect(document.querySelector("h1")?.textContent).toBe("Feedback unavailable");
-    expect(document.body.textContent).toContain("This feedback link is no longer available.");
+    expect(document.body.textContent).toContain(
+      "This feedback link is no longer available.",
+    );
     expect(document.querySelector("form")).toBeNull();
   });
 

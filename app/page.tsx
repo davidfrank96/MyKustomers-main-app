@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { AppFrame } from "@/components/layout/app-frame";
 import { HomepageProductDemo } from "@/components/homepage/homepage-product-demo";
+import { BrandLogo } from "@/components/shared/brand-logo";
 import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
@@ -116,13 +117,15 @@ function Brand() {
   return (
     <Link
       href="/"
-      className="flex min-w-0 items-center gap-3"
-      aria-label="My Kustomers home"
+      className="flex min-w-0 items-center"
+      aria-label="MyKustomers.com home"
     >
-      <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-primary text-sm font-semibold text-primary-foreground shadow-sm">
-        MK
-      </span>
-      <span className="truncate text-lg font-semibold">My Kustomers</span>
+      <BrandLogo
+        variant="horizontal"
+        className="h-10 w-[7.5rem] sm:w-[8.75rem]"
+        decorative
+        priority
+      />
     </Link>
   );
 }

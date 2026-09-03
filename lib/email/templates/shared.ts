@@ -1,4 +1,5 @@
 import { publicEnv } from "@/lib/config/public-env";
+import { MYKUSTOMERS_BRAND_ASSETS } from "@/lib/brand/assets";
 
 const VERIFIED_MY_KUSTOMERS_URL = "https://mykustomers.com";
 
@@ -17,6 +18,10 @@ export function getTransactionalEmailPlatformUrl() {
   }
 
   return VERIFIED_MY_KUSTOMERS_URL;
+}
+
+export function getTransactionalEmailLogoUrl() {
+  return `${getTransactionalEmailPlatformUrl()}${MYKUSTOMERS_BRAND_ASSETS.email}`;
 }
 
 export function withMyKustomersAttribution(text: string) {
@@ -110,6 +115,7 @@ function renderEmailSection(section: TransactionalEmailSection) {
 
 export function renderTransactionalEmailHtml(input: TransactionalEmailHtmlInput) {
   const platformUrl = getTransactionalEmailPlatformUrl();
+  const logoUrl = getTransactionalEmailLogoUrl();
   const tone = input.tone ?? "neutral";
   const heroBackground =
     tone === "success" ? "#f0f8f3" : tone === "warning" ? "#fff8ed" : "#f4f7f5";
@@ -172,7 +178,7 @@ export function renderTransactionalEmailHtml(input: TransactionalEmailHtmlInput)
               <td class="email-content" style="padding:22px 24px 0;">
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                   <tr>
-                    <td style="color:#145c49;font-size:15px;font-weight:800;letter-spacing:.3px;">MK&nbsp;&nbsp;MY KUSTOMERS</td>
+                    <td style="vertical-align:middle;"><img src="${escapeEmailHtml(logoUrl)}" width="176" height="58" alt="MyKustomers.com" style="display:block;width:176px;max-width:100%;height:auto;border:0;object-fit:contain;"></td>
                     <td class="brand-context" align="right" style="color:#69756f;font-size:13px;">${escapeEmailHtml(input.contextLabel)}</td>
                   </tr>
                 </table>

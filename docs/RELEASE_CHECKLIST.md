@@ -3,6 +3,31 @@
 This checklist separates verified development evidence from remaining
 production-readiness work.
 
+## MyKustomers.com Master Brand Asset Rollout
+
+- [x] Approved source ZIP/package checksum, inventory, dimensions, SVG validity,
+      PDF/EPS masters, brand guide, and favicon sheet are recorded and valid.
+- [x] Runtime assets are copied byte-identically into one versioned public path.
+- [x] Platform placeholders are replaced without touching vendor business logos,
+      avatars, initials fallbacks, uploaded media, or booking references.
+- [x] Root metadata uses supplied favicon, Apple touch, Open Graph, and Twitter
+      assets; the old generated card and hand-built icon overrides are removed.
+- [x] Existing manifest behavior is preserved while standard, maskable, and
+      monochrome supplied icons receive exact purposes.
+- [x] Shared email presentation uses the supplied PNG from a stable canonical
+      HTTPS URL with proportional dimensions and accessible fallback text.
+- [x] Focused component, metadata, manifest, public-route, auth, and email tests
+      cover the new paths and accessible behavior.
+- [x] Full lint, typecheck, test, production build, relevant E2E, asset HTTP,
+      byte-integrity, responsive overflow, screenshot, and diff gates pass.
+- [ ] Manual browser review covers favicon, homepage, auth, vendor shell, public
+      confirmation/feedback, manifest/install assets, Open Graph, and email.
+      Local screenshots and runtime previews are reviewed; authenticated-shell
+      and fresh OS-level install review remain for the user because no safe
+      non-Production fixture target is configured.
+- [x] User approves the uncommitted local review result before any commit, push,
+      pull request, merge, or deployment.
+
 ## Image Picker + Booking Completion UX
 
 - [x] Choose image opens through a native file chooser on desktop Chromium.

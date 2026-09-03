@@ -35,7 +35,7 @@ describe("mobile auth presentation", () => {
       />,
     );
 
-    expect(screen.getByRole("link", { name: "My Kustomers home" })).toBeVisible();
+    expect(screen.getByRole("link", { name: "MyKustomers.com home" })).toBeVisible();
     expect(screen.getByRole("heading", { name: "Log in" })).toBeVisible();
 
     const section = screen.getByRole("heading", { name: "Log in" }).closest("section");
@@ -75,8 +75,9 @@ describe("mobile auth presentation", () => {
       />,
     );
 
-    expect(screen.getByRole("link", { name: "My Kustomers home" })).toBeVisible();
-    expect(screen.getByText("My Kustomers", { exact: true })).toBeVisible();
+    const brandLink = screen.getByRole("link", { name: "MyKustomers.com home" });
+    expect(brandLink).toBeVisible();
+    expect(brandLink.querySelector('img[data-brand-logo="horizontal"]')).toBeVisible();
     expect(screen.queryByText("My Customers", { exact: true })).not.toBeInTheDocument();
   });
 
@@ -127,7 +128,9 @@ describe("mobile auth presentation", () => {
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
 
     expect(screen.getByRole("heading", { name: "Verification required" })).toBeVisible();
-    expect(screen.queryByRole("button", { name: "Create account" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Create account" }),
+    ).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Use another email" })).toHaveAttribute(
       "href",
       "/signup",
@@ -135,6 +138,8 @@ describe("mobile auth presentation", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Resend verification email" }));
     await waitFor(() => expect(resend).toHaveBeenCalledOnce());
-    expect(await screen.findByText(/check your inbox for a new verification email/i)).toBeVisible();
+    expect(
+      await screen.findByText(/check your inbox for a new verification email/i),
+    ).toBeVisible();
   });
 });
