@@ -67,6 +67,27 @@ async function expectNoOverflow(page: Page, width: number) {
   );
 }
 
+test("anonymous admin destinations retain the existing login boundary", async ({
+  page,
+}) => {
+  for (const route of [
+    "/admin",
+    "/admin/businesses",
+    "/admin/users",
+    "/admin/bookings",
+    "/admin/issues",
+    "/admin/emails",
+    "/admin/security",
+  ]) {
+    await page.goto(route);
+    await expect(page).toHaveURL(/\/login\?next=%2Fadmin/);
+    await expect(page.getByRole("heading", { name: "Log in" })).toBeVisible();
+    await expect(page.getByRole("navigation", { name: "Admin navigation" })).toHaveCount(
+      0,
+    );
+  }
+});
+
 test.describe("platform admin route authorization", () => {
   test.skip(
     !canRunMutatingAdminE2e,
@@ -179,7 +200,13 @@ test.describe("platform admin route authorization", () => {
         await expect(page.locator(`[data-admin-metric="${label}"]`)).toBeVisible();
       }
       const adminNavigation = page.getByRole("navigation", { name: "Admin navigation" });
-      await expect(adminNavigation.getByRole("link")).toHaveCount(8);
+      await expect(adminNavigation.getByRole("link")).toHaveCount(7);
+      await expect(
+        page.getByRole("link", { name: "Vendor workspace", exact: true }),
+      ).toHaveAttribute("href", "/dashboard");
+      await expect(
+        adminNavigation.getByRole("link", { name: "Overview", exact: true }),
+      ).toHaveAttribute("aria-current", "page");
       await adminNavigation.getByRole("link", { name: "Security & Health" }).click();
       await expect(
         page.getByRole("heading", { name: "Security & Health" }),

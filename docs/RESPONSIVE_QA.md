@@ -184,6 +184,24 @@ in 15.049 seconds under 180ms latency and 1.2 Mbps upload throttling. The
 over-limit control recovered without a request. Physical low-memory device and
 installed-PWA acceptance remain release-hardening work.
 
+## 2026-09-03 Admin Overview Local Review
+
+The isolated visual harness renders actual Admin Overview, shell, loading, and
+error components with synthetic data and production CSS. Attention, healthy,
+loading, long-email/large-count, and unavailable states pass at 320x568,
+360x800, 375x812, 390x844, 414x896, 430x932, 768x1024, 1024x768, 1280x800,
+1440x900, and 1600x900. All 55 state/viewport checks reject document overflow;
+local navigation scrolling is intentional. Metric/count containment, column
+counts, semantic states, and reduced-motion behavior are covered.
+
+All 16 final screenshots were opened for manual visual inspection. Header,
+logo, role badge, gutters, card rhythm, attention counts, lower panels, loading,
+and long content passed the local master alignment review. Exact evidence is
+listed in `ADMIN_OVERVIEW_REVIEW.md`. This is not a claim of physical-device,
+authenticated navigation, hydrated streaming, or measured CLS acceptance.
+Those live checks require an existing authorized admin session; no Production
+fixture creation was performed or authorized.
+
 ## PWA Resume Reliability Matrix
 
 Desktop Chromium, Pixel 5 Chromium emulation, and iPhone 13 WebKit emulation

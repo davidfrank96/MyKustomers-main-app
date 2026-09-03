@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-09-03 - Admin Overview Presentation Review
+
+Status: IMPLEMENTED - VERIFICATION PENDING (authenticated live acceptance)
+
+- Refined only Overview cards, attention/outbox/status presentation, its route
+  skeleton, and the minimum shared admin header/navigation. Canonical brand,
+  server-derived identity, seven admin destinations, and Vendor workspace remain.
+- Added route-aware underline/aria-current and contained mobile navigation,
+  responsive 1/2/4 metric grids, conditional exception emphasis, and safe large
+  count wrapping without changing metric definitions or queries.
+- Preserved server authorization, error handling, route loading boundaries,
+  UTC semantics, data access, APIs/actions, RLS, and caching/revalidation.
+- Local lint/typecheck/build passed; Vitest 735 passed, 22 skipped; visual
+  Chromium 12 passed; read-only real-app smoke 8 passed, 2 guarded skips.
+  All 16 synthetic screenshots were reviewed. Authenticated navigation and
+  live streaming/layout-shift acceptance remain pending an existing admin
+  session. No production data, configuration, schema, or deployment changed.
+- See `ADMIN_OVERVIEW_REVIEW.md` for the scoped evidence and manual review URLs.
+
 ## 2026-09-03 - MyKustomers.com Master Brand Asset Rollout
 
 Status: VERIFIED - LOCAL; COMMIT, PUSH, AND DEPLOYMENT AUTHORIZED

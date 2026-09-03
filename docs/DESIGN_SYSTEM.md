@@ -183,6 +183,28 @@ Not yet implemented:
 - Full component coverage.
 - Billing and staff-management interfaces.
 
+## Admin Overview Presentation
+
+The Admin Overview uses one centered 1600px maximum workspace grid, restrained
+white bordered cards, 44px icon tiles, and existing typography/color tokens.
+Metric grids use one column on mobile, two from 640px, and four from 1280px;
+the lower outbox/status panels stack below 1024px. Counts retain their exact
+server values and can wrap at thousands separators under extreme content stress.
+
+The shared admin header retains the canonical horizontal brand asset, server
+identity/role, and seven existing destinations. Below 1280px, navigation sits
+in a contained horizontal scroller. The active route has an underline and
+`aria-current`; active and keyboard-focused links scroll into view. Vendor
+workspace remains a separate link below the header. Never hide document
+overflow to accommodate the navigation strip.
+
+Overdue, failed-email, and issue attention styling is conditional on positive
+authoritative counts. Zero remains visible and neutral. An unavailable query
+retains the existing error/retry boundary rather than rendering false zero or
+healthy statuses. The existing route skeleton mirrors the grid and respects
+reduced motion. These rules do not extend the Overview card redesign to other
+admin page contents or change authorization, queries, or loading boundaries.
+
 ## Critical Confirmations
 
 Lifecycle-critical confirmations must use accessible application-owned

@@ -3,7 +3,8 @@ import {
   ArrowLeft,
   Building2,
   CalendarDays,
-  KeyRound,
+  Clock3,
+  ShieldCheck,
   Mail,
   Users,
 } from "lucide-react";
@@ -19,6 +20,7 @@ import {
 } from "@/lib/admin/server";
 import { requireUser } from "@/lib/auth/server";
 import { BrandLogo } from "@/components/shared/brand-logo";
+import { AdminNavigationLink } from "@/components/admin/admin-navigation";
 
 export const dynamic = "force-dynamic";
 
@@ -64,78 +66,70 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="border-b border-border bg-card">
-        <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-5 py-5 sm:px-8 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex min-w-0 items-center gap-3">
-            <BrandLogo variant="horizontal" className="h-10 w-32" />
-            <div className="min-w-0">
-              <p className="truncate text-sm font-semibold">Admin</p>
-              <p className="truncate text-sm text-muted-foreground">
+        <div className="mx-auto flex w-full max-w-[1600px] min-w-0 flex-col px-4 sm:px-6 xl:flex-row xl:items-center xl:gap-8 xl:px-8">
+          <div className="flex min-w-0 items-center gap-3 py-3 xl:w-[370px] xl:shrink-0 xl:gap-5">
+            <BrandLogo variant="horizontal" className="h-11 w-28 sm:w-40" />
+            <div className="min-w-0 flex-1 border-l border-border pl-3 xl:pl-5">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                <p className="text-base font-semibold">Admin</p>
+                {admin.role === "SUPER_ADMIN" && (
+                  <span className="rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold leading-4 text-primary">
+                    <span className="sr-only">Role: </span>Super Admin
+                  </span>
+                )}
+              </div>
+              <p
+                className="mt-1 truncate text-xs text-muted-foreground sm:text-sm"
+                title={`Signed in as ${user.email ?? "authenticated account"}`}
+              >
                 Signed in as {user.email ?? "authenticated account"}
               </p>
             </div>
           </div>
           <nav
             aria-label="Admin navigation"
-            className="flex flex-wrap items-center gap-x-5 gap-y-3 text-sm"
+            className="flex min-w-0 items-center gap-2 overflow-x-auto overscroll-x-contain xl:flex-1 xl:justify-between xl:gap-1"
           >
-            <span className="font-medium text-foreground">Role: Super Admin</span>
-            <Link href="/admin" className="font-medium text-primary">
+            <AdminNavigationLink href="/admin" segment={null}>
+              <Clock3 className="size-4 shrink-0" aria-hidden="true" />
               Overview
-            </Link>
-            <Link
-              href="/admin/businesses"
-              className="inline-flex items-center gap-1.5 font-medium text-primary"
-            >
+            </AdminNavigationLink>
+            <AdminNavigationLink href="/admin/businesses" segment="businesses">
               <Building2 className="size-4" aria-hidden="true" />
               Businesses
-            </Link>
-            <Link
-              href="/admin/users"
-              className="inline-flex items-center gap-1.5 font-medium text-primary"
-            >
+            </AdminNavigationLink>
+            <AdminNavigationLink href="/admin/users" segment="users">
               <Users className="size-4" aria-hidden="true" />
               Users
-            </Link>
-            <Link
-              href="/admin/bookings"
-              className="inline-flex items-center gap-1.5 font-medium text-primary"
-            >
+            </AdminNavigationLink>
+            <AdminNavigationLink href="/admin/bookings" segment="bookings">
               <CalendarDays className="size-4" aria-hidden="true" />
               Bookings
-            </Link>
-            <Link
-              href="/admin/issues"
-              className="inline-flex items-center gap-1.5 font-medium text-primary"
-            >
+            </AdminNavigationLink>
+            <AdminNavigationLink href="/admin/issues" segment="issues">
               <AlertTriangle className="size-4" aria-hidden="true" />
               Issues
-            </Link>
-            <Link
-              href="/admin/emails"
-              className="inline-flex items-center gap-1.5 font-medium text-primary"
-            >
+            </AdminNavigationLink>
+            <AdminNavigationLink href="/admin/emails" segment="emails">
               <Mail className="size-4" aria-hidden="true" />
               Email Operations
-            </Link>
-            <Link
-              href="/admin/security"
-              className="inline-flex items-center gap-1.5 font-medium text-primary"
-            >
-              <KeyRound className="size-4" aria-hidden="true" />
+            </AdminNavigationLink>
+            <AdminNavigationLink href="/admin/security" segment="security">
+              <ShieldCheck className="size-4" aria-hidden="true" />
               Security &amp; Health
-            </Link>
-            <Link
-              href="/dashboard"
-              className="inline-flex items-center gap-2 font-medium text-primary"
-            >
-              <ArrowLeft className="size-4" aria-hidden="true" />
-              Vendor workspace
-            </Link>
+            </AdminNavigationLink>
           </nav>
         </div>
       </header>
-      <main className="mx-auto w-full max-w-6xl px-5 py-8 sm:px-8">
+      <main className="mx-auto w-full max-w-[1600px] min-w-0 px-4 pb-8 sm:px-6 xl:px-10">
         <p className="sr-only">Administrator status: {admin.status}</p>
+        <Link
+          href="/dashboard"
+          className="my-3 inline-flex min-h-11 items-center gap-3 rounded text-sm font-medium text-primary hover:underline sm:my-4"
+        >
+          <ArrowLeft className="size-4 shrink-0" aria-hidden="true" />
+          Vendor workspace
+        </Link>
         {children}
       </main>
     </div>

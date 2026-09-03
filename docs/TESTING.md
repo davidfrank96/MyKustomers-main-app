@@ -1,5 +1,39 @@
 # Testing
 
+## 2026-09-03 Admin Overview Local Presentation Review
+
+`tests/integration/admin-overview-presentation.test.tsx` renders the actual
+server page/layout with mocked authoritative query and authorization results.
+It checks every metric, original links, UTC timestamp, role/denial boundaries,
+all seven active navigation segments, keyboard scrolling, positive/zero
+attention states, query-error propagation/retry, and accessible loading.
+Normal runs skip the optional static-preview generator. To generate synthetic
+review pages and run the isolated Chromium visual matrix after a build:
+
+```bash
+ADMIN_OVERVIEW_PREVIEW=1 npx vitest run tests/integration/admin-overview-presentation.test.tsx
+npx playwright test --config tests/visual/playwright.config.ts
+```
+
+The loopback-only preview uses real rendered components and compiled CSS, but
+no backend, app bypass route, or hydrated application navigation. It covers
+five states at eleven widths, plus long-content/reduced-motion stress. See
+`ADMIN_OVERVIEW_REVIEW.md` for screenshot paths and evidence boundaries.
+
+Local results: lint, strict typecheck, build, and diff checks PASS. Vitest:
+136 files passed / 21 files skipped; 735 tests passed / 0 failed / 22 skipped
+(21 guarded backend tests plus one opt-in artifact generator). The focused
+preview-enabled run passed all 14 tests. Visual Chromium: 12 passed / 0 failed.
+The actual production build's non-mutating homepage/admin anonymous-route
+smoke passed 8 tests / 0 failed / 2 guarded fixture tests skipped across
+Chromium and mobile Chromium. No existing safety guard was weakened.
+
+Authenticated navigation, real authorized streaming/CLS, and fixture-backed
+runtime authorization remain pending: the available environment is
+Production-backed and this task does not authorize new live fixtures. Mocked
+authorization and anonymous HTTP/browser boundaries are not substitutes for
+that remaining live acceptance. No production data was mutated.
+
 ## 2026-09-03 MyKustomers.com Brand Asset Rollout
 
 Focused component coverage verifies the supplied icon, horizontal, and inverse
