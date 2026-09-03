@@ -3,6 +3,31 @@
 This checklist separates verified development evidence from remaining
 production-readiness work.
 
+## Image Picker + Booking Completion UX
+
+- [x] Choose image opens through a native file chooser on desktop Chromium.
+- [x] Choose image opens through a native file chooser on mobile Chromium.
+- [x] Desktop and mobile WebKit automated picker journeys pass.
+- [x] Desktop, Pixel-class, and iPhone-class PWA picker journeys pass.
+- [x] Valid, cancel, same-file, invalid-content, HEIC, >5 MiB, exact-5 MiB,
+      upload, replacement, removal, preview, processing, and cleanup paths are
+      covered by focused component/browser tests.
+- [x] First-business onboarding reuses the staged business and completes only
+      after an authorized persisted logo re-read.
+- [ ] Physical iOS Safari/homescreen photo picker verified.
+- [ ] Physical Android Chrome/standalone photo picker verified.
+- [x] One observed transition into `COMPLETED` opens one accessible modal.
+- [x] Historical completed load, refresh, repeated reconciliation, delivered,
+      outstanding-balance, and cancelled states do not open the modal.
+- [x] Feedback-triggered and fresh server-action completion paths use the same
+      transition detector and the existing poll/RSC reconciliation mechanisms.
+- [x] Manual completion shows the modal only after authoritative server success.
+- [x] No database, Storage policy, environment, dependency, email, audit event,
+      lifecycle rule, or additional poller was added.
+- [x] Full local release gate passes with zero controlled fixture residue.
+- [ ] Required PR checks pass and exact merge deploys to Production.
+- [ ] Controlled Production image and completion smoke passes with zero residue.
+
 ## Customer Email Source-Of-Truth Hotfix
 
 - [x] No fake/default `amah@tcd.ie` exists in repository history or Production.

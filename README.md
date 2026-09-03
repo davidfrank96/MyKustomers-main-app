@@ -1,5 +1,16 @@
 # My Kustomers
 
+Image-picker reliability and booking-completion success UX are implemented and
+locally verified, with CI/deployment verification pending. The shared business-logo flow now opens the
+platform picker through a unique native label/input association instead of
+styling the browser-owned file-selector button, resets after every selection,
+and retains the existing 5 MiB client-preparation plus authoritative Sharp/
+Storage boundary. Booking detail shows one compact accessible success dialog
+only when its existing reconciliation client observes an authoritative
+non-completed to `COMPLETED` transition; historical completed loads remain
+silent. No database, Storage policy, environment, dependency, polling, email,
+or lifecycle-rule change was introduced.
+
 Customer email source-of-truth hardening is implemented with application
 deployment verification pending. Optional saved profile email is separate from
 booking communication: booking email starts blank, **Use saved email** is

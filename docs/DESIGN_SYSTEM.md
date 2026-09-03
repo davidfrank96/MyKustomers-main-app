@@ -187,7 +187,10 @@ scroll boundary. File-upload previews and controls must also remain contained at
 320 pixels.
 
 Business-logo controls use the shared bounded preview, native file input, and
-stacked mobile actions. Pending state is announced with `aria-busy`; failures
+stacked mobile actions. The visible Choose image control is a semantic label for
+a unique, visually hidden but focusable native input; browser picker activation
+must never wait for asynchronous work or synthetic `.click()`. Pending state is
+announced with `aria-busy`; failures
 use an in-app alert, restore the controls, and provide an explicit retry. The
 UI distinguishes bounded client preparation from the 120-second network request
 without exposing compression internals. Users may select supported sources up
@@ -196,3 +199,11 @@ upload. This lowers mobile transfer cost and avoids Vercel's request ceiling.
 Image validation, final quality, 512px output, and 200 KiB storage policy remain
 authoritative in the shared server processor, not viewport-specific browser
 code.
+
+Booking-completion success uses one compact application-owned dialog with a
+success icon, concise title/description, and one Done action. It is
+presentational feedback for a newly observed authoritative transition into
+`COMPLETED`; an already-completed initial render or refresh never opens it. The
+existing dialog primitive supplies focus containment, Escape, outside
+dismissal, and focus return. Motion is optional and must have a reduced-motion
+equivalent.

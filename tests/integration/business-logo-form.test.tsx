@@ -79,6 +79,52 @@ describe("BusinessLogoForm request lifecycle", () => {
     vi.useRealTimers();
   });
 
+  it("uses a unique native label association and resets after each selection", () => {
+    const { container } = render(
+      <>
+        <BusinessLogoForm
+          businessId="00000000-0000-4000-8000-000000000001"
+          businessName="First business"
+          currentLogoUrl={null}
+          isOwner
+        />
+        <BusinessLogoForm
+          businessId="00000000-0000-4000-8000-000000000002"
+          businessName="Second business"
+          currentLogoUrl={null}
+          isOwner
+        />
+      </>,
+    );
+    const inputs = [...container.querySelectorAll<HTMLInputElement>('input[type="file"]')];
+
+    expect(inputs).toHaveLength(2);
+    expect(inputs[0]?.id).toBeTruthy();
+    expect(inputs[0]?.id).not.toBe(inputs[1]?.id);
+    expect(container.querySelector(`label[for="${inputs[0]?.id}"]`)).not.toBeNull();
+    expect(inputs[0]).toHaveClass("sr-only");
+    expect(inputs[0]?.style.display).not.toBe("none");
+
+    const sameFile = new File(["image"], "same.png", { type: "image/png" });
+    fireEvent.change(inputs[0]!, { target: { files: [sameFile] } });
+    expect(inputs[0]).toHaveValue("");
+    expect(screen.getAllByText("Choose another image")).toHaveLength(1);
+    fireEvent.change(inputs[0]!, { target: { files: [sameFile] } });
+    expect(inputs[0]).toHaveValue("");
+  });
+
+  it("keeps the native picker selection and control usable after cancel", () => {
+    renderLogoForm();
+    const input = screen.getByLabelText("Logo image");
+    const logo = new File(["image"], "logo.png", { type: "image/png" });
+
+    fireEvent.change(input, { target: { files: [logo] } });
+    fireEvent.change(input, { target: { files: [] } });
+
+    expect(screen.getByText("Choose another image")).toBeVisible();
+    expect(input).toBeEnabled();
+  });
+
   it("terminates a stalled upload and allows the same selected file to retry", async () => {
     vi.useFakeTimers();
     renderLogoForm();

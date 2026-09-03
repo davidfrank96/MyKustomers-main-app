@@ -3,14 +3,14 @@
 import {
   useCallback,
   useEffect,
+  useId,
   useRef,
   useState,
 } from "react";
 import { useRouter } from "next/navigation";
 import { ImageUp, Trash2 } from "lucide-react";
 import { BusinessLogo } from "@/components/shared/business-logo";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
   BusinessLogoPreparationError,
@@ -97,6 +97,7 @@ export function BusinessLogoForm({
   currentLogoUrl,
   isOwner,
   mode = "settings",
+  inputId: inputIdProp,
   onSelectionChange,
   onPersisted,
 }: {
@@ -105,10 +106,15 @@ export function BusinessLogoForm({
   currentLogoUrl: string | null;
   isOwner: boolean;
   mode?: "settings" | "onboarding";
+  inputId?: string;
   onSelectionChange?: (selected: boolean) => void;
   onPersisted?: () => void;
 }) {
   const router = useRouter();
+  const generatedInputId = useId();
+  const inputId = inputIdProp ?? `business-logo-${generatedInputId}`;
+  const helpId = `${inputId}-help`;
+  const messageId = `${inputId}-message`;
   const inputRef = useRef<HTMLInputElement>(null);
   const selectedFileRef = useRef<File | null>(null);
   const activeOperationRef = useRef<AbortController | null>(null);
@@ -357,7 +363,7 @@ export function BusinessLogoForm({
             </p>
           ) : null}
           <div className="space-y-2">
-            <Label htmlFor="business-logo">
+            <Label htmlFor={inputId}>
               Logo image{" "}
               {mode === "onboarding" ? (
                 <span className="text-destructive" aria-hidden="true">
@@ -365,38 +371,44 @@ export function BusinessLogoForm({
                 </span>
               ) : null}
             </Label>
-            <div className="relative">
-              {mode === "onboarding" ? (
-                <ImageUp
-                  className="pointer-events-none absolute left-3 top-1/2 z-10 size-4 -translate-y-1/2 text-foreground"
-                  aria-hidden="true"
-                />
-              ) : null}
-              <Input
+            <div>
+              <input
                 ref={inputRef}
-                id="business-logo"
+                id={inputId}
                 type="file"
                 accept="image/png,image/jpeg,image/webp"
-                onChange={(event) => selectPreview(event.target.files?.[0])}
+                onChange={(event) => {
+                  const file = event.currentTarget.files?.[0];
+                  event.currentTarget.value = "";
+                  if (file) selectPreview(file);
+                }}
                 disabled={
-                  status === "pending" || Boolean(persistedUrl && mode === "onboarding")
+                  isBusy || Boolean(persistedUrl && mode === "onboarding")
                 }
                 required={mode === "onboarding"}
-                className={
-                  mode === "onboarding"
-                    ? "h-12 cursor-pointer px-2 text-sm file:mr-3 file:h-9 file:cursor-pointer file:rounded-md file:border-0 file:bg-muted file:pl-8 file:pr-3 file:text-sm file:font-medium file:text-foreground"
-                    : undefined
-                }
+                className="peer sr-only"
                 aria-invalid={status === "error"}
-                aria-describedby={
-                  message
-                    ? "business-logo-help business-logo-message"
-                    : "business-logo-help"
-                }
+                aria-describedby={message ? `${helpId} ${messageId}` : helpId}
               />
+              <Label
+                htmlFor={inputId}
+                aria-disabled={
+                  isBusy || Boolean(persistedUrl && mode === "onboarding")
+                }
+                className={`${buttonVariants({ variant: "secondary", size: "md" })} w-full cursor-pointer peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 sm:w-fit ${
+                  isBusy || Boolean(persistedUrl && mode === "onboarding")
+                    ? "pointer-events-none opacity-50"
+                    : ""
+                }`}
+              >
+                <ImageUp className="size-4" aria-hidden="true" />
+                {previewUrl || persistedUrl
+                  ? "Choose another image"
+                  : "Choose image"}
+              </Label>
             </div>
             <p
-              id="business-logo-help"
+              id={helpId}
               className="text-xs leading-5 text-muted-foreground"
             >
               {mode === "settings"
@@ -407,7 +419,7 @@ export function BusinessLogoForm({
 
           {message ? (
             <p
-              id="business-logo-message"
+              id={messageId}
               className={
                 status === "error"
                   ? "text-sm text-destructive"

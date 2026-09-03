@@ -261,17 +261,45 @@ test.describe("business onboarding", () => {
     })
       .png()
       .toBuffer();
-    await page.getByLabel("Logo image").setInputFiles({
+    const logoInput = page.getByLabel("Logo image");
+    const cancelChooserPromise = page.waitForEvent("filechooser");
+    await page.getByText("Choose image", { exact: true }).click();
+    const cancelChooser = await cancelChooserPromise;
+    await cancelChooser.setFiles([]);
+    await expect(page.getByText("Choose image", { exact: true })).toBeVisible();
+
+    await logoInput.evaluate((input) => {
+      input.addEventListener("change", () => {
+        const element = input as HTMLInputElement;
+        element.dataset.selectionCount = String(
+          Number(element.dataset.selectionCount ?? "0") + 1,
+        );
+      });
+    });
+    const firstChooserPromise = page.waitForEvent("filechooser");
+    await page.getByText("Choose image", { exact: true }).click();
+    const firstChooser = await firstChooserPromise;
+    await firstChooser.setFiles({
       name: "selected-logo-preview.png",
       mimeType: "image/png",
       buffer: previewLogo,
     });
+    await expect(logoInput).toHaveAttribute("data-selection-count", "1");
+    const sameFileChooserPromise = page.waitForEvent("filechooser");
+    await page.getByText("Choose another image", { exact: true }).click();
+    const sameFileChooser = await sameFileChooserPromise;
+    await sameFileChooser.setFiles({
+      name: "selected-logo-preview.png",
+      mimeType: "image/png",
+      buffer: previewLogo,
+    });
+    await expect(logoInput).toHaveAttribute("data-selection-count", "2");
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.screenshot({
       path: path.join(screenshotDirectory, "selected-logo-390.png"),
       fullPage: true,
     });
-    await page.getByLabel("Logo image").setInputFiles([]);
+    await logoInput.setInputFiles([]);
 
     await page.getByLabel("Logo image").setInputFiles({
       name: "not-an-image.png",

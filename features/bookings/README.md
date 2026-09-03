@@ -237,3 +237,12 @@ confirmation UI rather than browser-native confirm/alert/prompt dialogs.
 button invokes the existing transition RPC. Pending submission is single-shot;
 safe failures remain in the dialog for retry. Cancellation follows the same
 owned-dialog rule and remains a separate transition.
+
+Permanent completion UX invariant: "The Booking Complete success experience is
+triggered by an observed authoritative transition into `COMPLETED`, not merely
+by rendering an already-completed booking." The existing booking sync client
+compares its last observed status with fresh polling/PWA reconciliation and
+server-action RSC props. It opens the same accessible success modal once for
+feedback-, payment-, or manual-completion transitions, adds no poller or stored
+acknowledgement, and stays silent on historical load, refresh, repeated
+`COMPLETED`, `DELIVERED`, and `CANCELLED` observations.

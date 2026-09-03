@@ -784,3 +784,26 @@ No provider failover/webhook, dependency, environment change, Auth semantic,
 booking cascade, speculative historical backfill, or Admin Phase 8 is included.
 Full CI/deployment and read-only production verification remain before closure;
 mutation verification remains guarded to an explicitly safe target.
+
+## 2026-09-03 Image Picker And Booking Completion UX Maintenance
+
+Status: IMPLEMENTED - CI/PRODUCTION VERIFICATION PENDING
+
+The single business-logo uploader now uses a unique native label/input
+association on first-business, additional-business, and Business settings
+surfaces. It adds no asynchronous or programmatic picker activation and retains
+the existing client transport optimization plus server-authoritative Sharp,
+owner authorization, deterministic Storage, replacement, removal, and resumable
+onboarding boundaries.
+
+The existing booking live-sync client now presents one compact accessible
+success dialog only when its last authoritative observation was not
+`COMPLETED` and a polling, PWA reconciliation, or server-action RSC observation
+is `COMPLETED`. Historical completed loads, refresh, repeated polling,
+delivered/outstanding, and cancelled states stay silent. There is no new poller,
+database acknowledgement, audit event, email, lifecycle rule, environment,
+dependency, migration, or Storage-policy change.
+
+Full local quality/browser gates and zero-fixture aggregate cleanup pass.
+Physical iOS/Android picker evidence, required CI, exact Production deployment,
+and controlled Production image/completion smoke remain pending.
