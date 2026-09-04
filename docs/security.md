@@ -1,5 +1,16 @@
 # Security
 
+## Email Reliability Stage 1 Boundary
+
+The public-confirmation schema preserves local-part case through the shared contact
+normalizer; immutable database evidence and profile isolation remain authoritative.
+Send-result copy grants no new retry authority. Unknown outcomes remain conservative.
+The admin legacy-adapter compatibility helper is server-only, repeats active admin
+authorization, accepts at most 20 validated IDs from the existing authorized RPC,
+and selects only matching IDs. Provider identifiers are predicates, never response
+fields. It adds no browser service-role access, table grant, mutation, or persistent
+cache. No historical address repair, email replay, or suppression change is allowed.
+
 ## Status
 
 Security requirements are documented. Phase 2 implements initial authentication,

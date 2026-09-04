@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-09-04 — Email Reliability Stage 1
+
+IMPLEMENTED — VERIFICATION PENDING. Public confirmation now reuses domain-only
+customer-contact normalization. Confirmation-send feedback distinguishes accepted,
+proven rejection, ambiguous, unprocessed, rate-limited, and duplicate outcomes
+without changing retry eligibility or capability state. Admin email rows identify
+legacy development-adapter operations without rewriting data; totals are explicitly
+outbox operations, not external sends or delivery rates. No migration, provider,
+secret, suppression, historical replay, or customer send is part of this release.
+
 ## 2026-09-04 - Email Operations Presentation Review
 
 Status: IMPLEMENTED - VERIFICATION PENDING (authenticated live acceptance)

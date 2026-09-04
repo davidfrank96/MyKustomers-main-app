@@ -1,5 +1,14 @@
 # Master Plan
 
+## Email Reliability Stage 1 — 2026-09-04
+
+IMPLEMENTED — VERIFICATION PENDING. This code-only maintenance corrects public
+contact normalization, ambiguous send wording, and historical development-adapter
+presentation. It preserves the current outbox, provider pinning, tenant/capability
+security, and immutable recipient evidence. Stage 2 delivery visibility is separately
+planned and must stop at an exact forward-migration approval report before any
+schema, endpoint activation, secret, or Brevo configuration change.
+
 ## Governance Status
 
 Documentation uses these status labels strictly:

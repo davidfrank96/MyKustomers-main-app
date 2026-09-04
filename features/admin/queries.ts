@@ -1,6 +1,7 @@
 import "server-only";
 import { cache } from "react";
 import { requirePlatformAdmin } from "@/lib/admin/server";
+import { findDevelopmentAdapterEvents } from "./development-email-evidence";
 import { createClient } from "@/lib/supabase/server";
 import { parseAdminOverview, type AdminOverview } from "@/features/admin/overview";
 import {
@@ -251,7 +252,16 @@ export async function listAdminEmailOperations(
   const result = error ? null : parseAdminEmailOperationsPage(data);
 
   if (!result) throw new AdminEmailOperationsUnavailableError();
-  return result;
+  const development = await findDevelopmentAdapterEvents(
+    result.items.map((item) => item.id),
+  );
+  return {
+    ...result,
+    items: result.items.map((item) => ({
+      ...item,
+      development_adapter: development.has(item.id),
+    })),
+  };
 }
 
 export const getAdminEmailEvent = cache(async function getAdminEmailEvent(
@@ -272,7 +282,13 @@ export const getAdminEmailEvent = cache(async function getAdminEmailEvent(
     (provider) => getTransactionalEmailProviderSelectionForName(provider).configured,
   );
   if (!result) throw new AdminEmailOperationsUnavailableError();
-  return result;
+  const development = await findDevelopmentAdapterEvents([result.id]);
+  return {
+    ...result,
+    development_adapter:
+      development.has(result.id) ||
+      result.delivery_attempts[0]?.provider === "development",
+  };
 });
 
 export function getAdminEmailDeliveryConfiguration(): AdminEmailDeliveryConfiguration {

@@ -66,6 +66,18 @@ async function setup(state: (typeof emailStates)[number] = "healthy") {
   return { ...fixture, element };
 }
 describe("Email Operations presentation", () => {
+  it("labels development adapter records without treating outbox totals as external sends", async () => {
+    const fixture = emailFixture("healthy");
+    fixture.result.items[0]!.development_adapter = true;
+    mocks.list.mockResolvedValue(fixture.result);
+    mocks.config.mockReturnValue(fixture.delivery);
+    render(await Page({ searchParams: Promise.resolve({}) }));
+    expect(
+      screen.getByText("Development adapter — no external email sent"),
+    ).toBeVisible();
+    expect(screen.getByText(/not externally sent or delivered totals/)).toBeVisible();
+    expect(screen.getByText("Outbox: Healthy")).toBeVisible();
+  });
   it.each(["healthy", "attention", "backlog", "active", "empty", "stress"] as const)(
     "preserves authoritative evidence for %s",
     async (state) => {
@@ -181,7 +193,7 @@ describe("Email Operations presentation", () => {
     fireEvent.keyDown(screen.getByRole("combobox", { name: label }), {
       key: "ArrowDown",
     });
-      fireEvent.click(await screen.findByRole("option", { name: option }));
+    fireEvent.click(await screen.findByRole("option", { name: option }));
     const query = new URL(mocks.replace.mock.calls.at(-1)![0], "https://example.test")
       .searchParams;
     expect(query.get(param)).toBe(expected);

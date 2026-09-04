@@ -60,6 +60,11 @@ export default async function AdminEmailEventPage({ params }: PageProps) {
         <h1 id="admin-email-event-title" className="mt-2 text-3xl font-semibold">
           Email event
         </h1>
+        {event.development_adapter ? (
+          <p className="mt-2 text-sm font-medium">
+            Development adapter — no external email sent
+          </p>
+        ) : null}
         <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
           Minimized operational metadata and one narrowly authorized delivery action.
           Message content, provider identifiers, and raw provider responses are not
@@ -131,7 +136,11 @@ export default async function AdminEmailEventPage({ params }: PageProps) {
             <dd className="mt-1 font-medium">{formatDate(event.last_attempt_at)}</dd>
           </div>
           <div className="bg-card p-4">
-            <dt className="text-sm text-muted-foreground">Accepted</dt>
+            <dt className="text-sm text-muted-foreground">
+              {event.development_adapter
+                ? "Development adapter accepted"
+                : "Adapter/provider accepted"}
+            </dt>
             <dd className="mt-1 font-medium">{formatDate(event.sent_at)}</dd>
           </div>
         </dl>
@@ -161,7 +170,9 @@ export default async function AdminEmailEventPage({ params }: PageProps) {
               </h2>
             </div>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-              {event.retry_eligibility.explanation}
+              {event.development_adapter && event.status === "SENT"
+                ? "Retry unavailable: the development adapter completed this operation without sending an external email."
+                : event.retry_eligibility.explanation}
             </p>
             <p className="mt-2 text-xs font-medium uppercase text-muted-foreground">
               Classification:{" "}

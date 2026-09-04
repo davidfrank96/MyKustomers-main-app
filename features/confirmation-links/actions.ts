@@ -19,6 +19,7 @@ import {
   type ConfirmationShareMethod,
 } from "@/features/confirmation-links/share";
 import { consumeOutboundMessageRateLimit } from "@/lib/security/rate-limit";
+import { confirmationDispatchFeedback } from "./dispatch-feedback";
 
 export async function generateConfirmationLinkAction(
   bookingId: string,
@@ -99,9 +100,10 @@ export async function sendConfirmationEmailAction(
       status: "error",
       message:
         rateLimit.status === "limited"
-          ? "Please wait before sending another confirmation email. Nothing was sent."
+          ? "Too many recent attempts. Please wait before trying again."
           : "Customer message protection is temporarily unavailable. Nothing was sent.",
       recipientEmail: parsed.data,
+      deliveryStatus: rateLimit.status === "limited" ? "rate_limited" : undefined,
       retryAfterSeconds:
         rateLimit.status === "limited" ? rateLimit.retryAfterSeconds : undefined,
     };
@@ -146,22 +148,9 @@ export async function sendConfirmationEmailAction(
   revalidatePath("/bookings");
   revalidatePath(`/bookings/${bookingId}`);
 
-  if (delivery.status === "sent") {
-    return {
-      status: "success",
-      message: `Email accepted for delivery to ${request.recipient_email}.`,
-      recipientEmail: request.recipient_email,
-      deliveryStatus: "accepted",
-      confirmationLinkId: request.confirmation_link_id,
-      expiresAt: request.expires_at,
-    };
-  }
-
   return {
-    status: "error",
-    message: `The request was saved, but the email was not accepted for delivery to ${request.recipient_email}. You can try again safely.`,
+    ...confirmationDispatchFeedback(delivery),
     recipientEmail: request.recipient_email,
-    deliveryStatus: "failed",
     confirmationLinkId: request.confirmation_link_id,
     expiresAt: request.expires_at,
   };

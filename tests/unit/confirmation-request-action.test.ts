@@ -132,7 +132,7 @@ describe("sendConfirmationEmailAction", () => {
       status: "success",
       recipientEmail: "David.Frank@hotmail.com",
       deliveryStatus: "accepted",
-      message: "Email accepted for delivery to David.Frank@hotmail.com.",
+      message: "Email accepted for delivery.",
     });
   });
 
@@ -173,7 +173,49 @@ describe("sendConfirmationEmailAction", () => {
       deliveryStatus: "failed",
       confirmationLinkId: "00000000-0000-4000-8000-000000000002",
     });
-    expect(result.message).toContain("was not accepted for delivery");
+    expect(result.message).toContain("The email was not accepted.");
+  });
+
+  it.each([
+    "provider_timeout",
+    "provider_invalid_response",
+    "provider_network_failure",
+    "provider_exception",
+    "delivery_state_update_failed",
+    "unexpected_code",
+  ])("does not encourage repeated sending for %s", async (code) => {
+    const rpc = vi.fn(async () => ({ data: [requestResult()], error: null }));
+    mocks.createClient.mockResolvedValue({ rpc });
+    mocks.deliverEmailEvent.mockResolvedValue({ status: "failed", code });
+    const result = await sendConfirmationEmailAction(
+      bookingId,
+      initialConfirmationLinkActionState,
+      recipientForm("David.Frank@hotmail.com"),
+    );
+    expect(result.deliveryStatus).toBe("ambiguous");
+    expect(result.message).toContain("Avoid sending it repeatedly");
+    expect(result.message).not.toContain("try again safely");
+    expect(rpc).toHaveBeenCalledTimes(1);
+    expect(mocks.deliverEmailEvent).toHaveBeenCalledTimes(1);
+  });
+
+  it("reports rate limiting before creating an event", async () => {
+    mocks.consumeOutboundMessageRateLimit.mockResolvedValue({
+      status: "limited",
+      retryAfterSeconds: 30,
+    });
+    const result = await sendConfirmationEmailAction(
+      bookingId,
+      initialConfirmationLinkActionState,
+      recipientForm("David.Frank@hotmail.com"),
+    );
+    expect(result).toMatchObject({
+      deliveryStatus: "rate_limited",
+      retryAfterSeconds: 30,
+      message: "Too many recent attempts. Please wait before trying again.",
+    });
+    expect(mocks.createClient).not.toHaveBeenCalled();
+    expect(mocks.deliverEmailEvent).not.toHaveBeenCalled();
   });
 
   it("fails closed before creating durable delivery work when protection is unavailable", async () => {

@@ -1,5 +1,22 @@
 # Email Operations
 
+## Email Reliability Stage 1 — Code-Only Compatibility
+
+Admin rows/details display **Development adapter — no external email sent** when
+existing adapter evidence identifies development. Historical rows remain unchanged.
+The legacy RPC does not expose message IDs, so one extra server-only lookup repeats
+active platform-admin authorization and filters only the maximum 20 IDs already
+returned by the authorized RPC. It selects IDs only, using the existing synthetic
+message-ID prefix as a database predicate. No provider ID or recipient is returned.
+There is no browser-accessible batch endpoint, direct table grant, or new write.
+
+Summary counts remain outbox operations (including adapters), not externally sent
+counts, delivery successes, or deliverability rates. Health is explicitly **Outbox**
+health; external delivery health and recipient outcomes remain untracked until the
+separately approved webhook stage. Development operations must never supply an
+external-delivery success metric. This supersedes the one-database-call statement
+for email list/detail only; all other admin reads retain their existing boundaries.
+
 Status: VERIFIED - PRODUCTION
 
 `/admin/emails` is the platform administrator's operational view of the existing

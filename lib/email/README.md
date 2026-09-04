@@ -1,5 +1,16 @@
 # Email
 
+## Email Reliability Stage 1 Presentation Invariants
+
+`SENT` records adapter/provider acceptance. It does not prove destination delivery,
+inbox placement, opening, or customer acknowledgement. Development adapter acceptance
+performs no external send and is not an external-delivery success. Stage 1 changes
+presentation and public contact normalization only: provider selection, atomic
+claims, attempt evidence, retries, and secure delivery-feedback associations remain
+unchanged. Ambiguous/unknown dispatch outcomes must not claim definite non-acceptance
+or encourage repeated sending. Provider callbacks remain unimplemented pending the
+separate Stage 2 migration approval.
+
 Supabase Auth email and My Kustomers transactional email are separate systems.
 Supabase Auth owns signup confirmation and password-recovery delivery. The
 application never stores or sends Auth passwords or recovery tokens.

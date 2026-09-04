@@ -1,5 +1,14 @@
 # Confirmation Links Feature
 
+## Email Reliability Stage 1
+
+Public contact validation reuses `normalizeCustomerContactEmail`: trim whitespace,
+preserve the local part, lowercase the domain. Auth identity normalization and
+historical contact records are unchanged. Send feedback is explicitly typed as
+accepted, failed, ambiguous, queued/unprocessed, rate_limited, or duplicate.
+Unknown outcomes discourage repeated sending rather than promising safe retry.
+Existing manual sharing/reissue and old-open-link revocation remain unchanged.
+
 Phase 6 implements secure customer confirmation links for bookings.
 
 ## Owns

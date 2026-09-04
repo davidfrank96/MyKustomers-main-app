@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { normalizeCustomerContactEmail } from "@/features/customers/email";
 
 const phonePattern = /^[0-9+().\s-]+$/;
 
@@ -9,7 +10,7 @@ export const confirmationContactSchema = z.object({
     .min(1, "Email address is required.")
     .max(254, "Email address must be 254 characters or fewer.")
     .email("Enter a valid email address.")
-    .transform((value) => value.toLowerCase()),
+    .transform(normalizeCustomerContactEmail),
   contactPhone: z.preprocess((value) => {
     if (typeof value !== "string") {
       return undefined;
