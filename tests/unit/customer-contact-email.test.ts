@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { normalizeCustomerContactEmail } from "@/features/customers/email";
 import { customerEmailSchema } from "@/features/customers/validation";
+import { confirmationContactSchema } from "@/features/confirmation-links/validation";
 
 describe("customer contact email normalization", () => {
   it.each([
+    ["David.Frank+Cake@HOTMAIL.COM", "David.Frank+Cake@hotmail.com"],
+    ["  Customer+Order@Example.IE  ", "Customer+Order@example.ie"],
     ["David.Frank@HOTMAIL.COM", "David.Frank@hotmail.com"],
     ["david+Cake@Example.IE", "david+Cake@example.ie"],
     ["Jane.Doe@Company.CO.UK", "Jane.Doe@company.co.uk"],
@@ -11,6 +14,9 @@ describe("customer contact email normalization", () => {
   ])("preserves the local part in %s", (input, expected) => {
     expect(normalizeCustomerContactEmail(input)).toBe(expected);
     expect(customerEmailSchema.parse(input)).toBe(expected);
+    expect(confirmationContactSchema.parse({ contactEmail: input }).contactEmail).toBe(
+      expected,
+    );
   });
 
   it.each([
@@ -26,12 +32,18 @@ describe("customer contact email normalization", () => {
     "customer@company.africa",
   ])("accepts a legitimate arbitrary domain: %s", (email) => {
     expect(customerEmailSchema.parse(email)).toBe(email);
+    expect(confirmationContactSchema.parse({ contactEmail: email }).contactEmail).toBe(
+      email,
+    );
   });
 
   it.each(["missing-at.example.com", "missing-domain@", "space @example.com"])(
     "rejects malformed input: %s",
     (email) => {
       expect(customerEmailSchema.safeParse(email).success).toBe(false);
+      expect(confirmationContactSchema.safeParse({ contactEmail: email }).success).toBe(
+        false,
+      );
     },
   );
 });

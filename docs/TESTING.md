@@ -1,5 +1,24 @@
 # Testing
 
+## Email Reliability Stage 1 Regression Coverage
+
+Synthetic tests cover arbitrary domains, plus addressing, local-part preservation,
+malformed input, exact public-confirmation RPC contact forwarding, and unchanged
+durable-event dispatch. Provider/outbox mocks cover acceptance, rejection, timeout,
+malformed response, network uncertainty, unavailable processing, rate limits, and
+duplicates with no extra send. Admin tests cover development labeling, explicit
+outbox-only totals, admin authorization before the bounded legacy lookup, maximum
+20 authorized event IDs, minimized ID-only output, and fail-closed lookup errors.
+Production smoke must remain read-only; protected runtime/E2E skips are not passes.
+
+Local Stage 1 verification: lint, typecheck, production build, dependency audit
+(zero vulnerabilities), and diff whitespace checks passed. The full Vitest suite
+passed 790 tests across 142 files, with 24 tests/21 files skipped. Isolated local
+Playwright passed 17 tests and skipped 58 credential-dependent tests; database and
+inbox credentials were explicitly withheld to prevent Production fixture writes.
+The dedicated runtime-security command skipped all 21 protected tests. Those
+skips provide no live runtime-security assurance.
+
 ## 2026-09-04 Email Operations Local Presentation Review
 
 `tests/integration/admin-email-presentation.test.tsx` renders the actual page,

@@ -59,7 +59,7 @@ const statusStyles = {
 const metricDescriptions = {
   PENDING: "Waiting to be processed",
   SENDING: "Currently being attempted",
-  SENT: "Accepted by configured provider",
+  SENT: "Outbox acceptance, including development adapters",
   FAILED: "Events in the failed state",
 } as const;
 
@@ -184,7 +184,7 @@ export default async function AdminEmailsPage({ searchParams }: PageProps) {
               ) : (
                 <AlertTriangle className="size-3.5" aria-hidden="true" />
               )}
-              {health.status}
+              Outbox: {health.status}
             </span>
             <p className="mt-1 leading-5 text-muted-foreground">{health.description}</p>
           </div>
@@ -222,6 +222,10 @@ export default async function AdminEmailsPage({ searchParams }: PageProps) {
             );
           })}
         </div>
+        <p className="mt-3 text-xs leading-5 text-muted-foreground">
+          These are outbox operation counts, not externally sent or delivered totals.
+          External delivery health and recipient outcomes are not yet tracked.
+        </p>
       </section>
 
       <section
@@ -343,6 +347,11 @@ export default async function AdminEmailsPage({ searchParams }: PageProps) {
                       <p className="text-sm font-medium">
                         {formatOperationLabel(event.event_type)}
                       </p>
+                      {event.development_adapter ? (
+                        <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                          Development adapter — no external email sent
+                        </p>
+                      ) : null}
                       <h3 className="mt-0.5 text-sm font-semibold">
                         {event.booking.reference} · {event.booking.title}
                       </h3>

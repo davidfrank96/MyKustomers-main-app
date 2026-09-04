@@ -1,5 +1,16 @@
 # Release Checklist
 
+## Email Reliability Stage 1 Release Gate
+
+- [ ] Focused and full local quality, build, and dependency checks recorded.
+- [ ] Protected runtime/E2E outcomes reported accurately, including skips.
+- [ ] Focused PR required checks green before merge.
+- [ ] Exact merged Vercel Production commit verified Ready.
+- [ ] Read-only production development-adapter labeling verified.
+- [ ] Public normalization and ambiguous-copy artifact/synthetic evidence recorded;
+      no real customer submission or email is allowed for smoke.
+- [ ] Stage 2 migration remains unapplied pending explicit approval.
+
 This checklist separates verified development evidence from remaining
 production-readiness work.
 

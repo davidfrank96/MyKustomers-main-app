@@ -136,7 +136,9 @@ export type AdminEmailStatus = (typeof adminEmailStatuses)[number];
 export type AdminEmailEventType = (typeof adminEmailEventTypes)[number];
 export type AdminEmailRange = (typeof adminEmailRanges)[number];
 export type AdminEmailSummary = z.infer<typeof adminEmailSummarySchema>;
-export type AdminEmailEventSummary = z.infer<typeof adminEmailSummaryRowSchema>;
+export type AdminEmailEventSummary = z.infer<typeof adminEmailSummaryRowSchema> & {
+  development_adapter?: boolean;
+};
 type AdminEmailEventDetailSource = z.infer<typeof adminEmailEventDetailSourceSchema>;
 export type AdminEmailDeliveryAttempt = Omit<
   z.infer<typeof deliveryAttemptSchema>,
@@ -146,10 +148,15 @@ export type AdminEmailEventDetail = Omit<
   AdminEmailEventDetailSource,
   "retry_failure_code" | "delivery_attempts"
 > & {
+  development_adapter?: boolean;
   delivery_attempts: AdminEmailDeliveryAttempt[];
   retry_eligibility: EmailRetryEligibility;
 };
-export type AdminEmailOperationsPage = z.infer<typeof adminEmailOperationsPageSchema> & {
+export type AdminEmailOperationsPage = Omit<
+  z.infer<typeof adminEmailOperationsPageSchema>,
+  "items"
+> & {
+  items: AdminEmailEventSummary[];
   totalPages: number;
 };
 export type AdminEmailDeliveryConfiguration = {

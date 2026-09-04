@@ -5,7 +5,8 @@ export type ConfirmationLinkActionState = {
   confirmationLinkId?: string;
   expiresAt?: string;
   recipientEmail?: string;
-  deliveryStatus?: "accepted" | "failed" | "duplicate";
+  deliveryStatus?:
+    "accepted" | "failed" | "ambiguous" | "queued" | "rate_limited" | "duplicate";
   retryAfterSeconds?: number;
   fieldErrors?: Partial<Record<"recipientEmail", string[]>>;
 };

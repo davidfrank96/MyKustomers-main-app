@@ -16,7 +16,7 @@ describe("confirmation contact and email", () => {
         contactPhone: " +353 (01) 555-0111 ",
       }),
     ).toEqual({
-      contactEmail: "customer@example.com",
+      contactEmail: "Customer@example.com",
       contactPhone: "+353 (01) 555-0111",
     });
 

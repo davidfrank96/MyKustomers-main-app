@@ -89,10 +89,12 @@ describe("platform admin read-only email operations boundary", () => {
     );
   });
 
-  it("returns each page and detail in one database call without direct table grants", () => {
+  it("preserves authorized RPCs and adds only bounded server-side adapter evidence", () => {
     expect(queries.match(/rpc\("get_platform_admin_email_operations"/g)).toHaveLength(1);
     expect(queries.match(/rpc\("get_platform_admin_email_event"/g)).toHaveLength(1);
     expect(pages).not.toContain("createClient");
     expect(migration).not.toMatch(/grant select[^;]*email_events/i);
+    expect(queries).toMatch(/findDevelopmentAdapterEvents\(\s*result.items.map/);
+    expect(queries).toContain("findDevelopmentAdapterEvents([result.id])");
   });
 });
