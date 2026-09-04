@@ -1,5 +1,72 @@
 # Testing
 
+## 2026-09-04 Email Operations Local Presentation Review
+
+`tests/integration/admin-email-presentation.test.tsx` renders the actual page,
+shared shell, filters, search, and loading component with isolated server and
+navigation mocks. It uses the real provider and health mappers. Coverage locks
+all row fields/order/detail hrefs, status summary links, server type totals,
+context filters, query preservation/page reset, all three keyboard-operated
+selects, search submit/clear, empty and pending states, singular/plural attempts,
+safe field allowlisting, and unchanged source-failure propagation.
+
+Default focused result: 14 passed, 1 opt-in preview generator skipped. With
+`ADMIN_EMAIL_PREVIEW=1`, all 15 pass and generate eight static fixture pages.
+The preview is not hydrated, does not query a backend, and cannot prove live
+search/filter/detail navigation. `tests/fixtures/admin-email.ts` uses synthetic
+records only. The allowlisted loopback server is
+`tests/visual/admin-email-server.mjs` on port 4176.
+
+Run the visual matrix using
+`npx playwright test --config tests/visual/email.playwright.config.ts`.
+It passes 12 tests (88 state/viewport combinations plus reduced-motion checks),
+captures 22 screenshots, checks native scroll/focus exit and all loaded rows,
+and verifies filter alignment and document containment. Final artifacts are
+under `../output/playwright/admin-email`; all were manually reviewed.
+
+Final full suite: 139 files passed, 21 files skipped; 764 tests passed, 0 failed,
+24 skipped (21 guarded runtime checks and three opt-in preview generators).
+Lint, typecheck, and production build passed. Real-build app-load/platform-admin
+smoke on Chromium and mobile Chromium: 8 passed, 0 failed, 2 authenticated
+fixture checks SKIPPED. Anonymous route protection was exercised; authenticated
+vendor/disabled/active-admin runtime acceptance was not. No production fixture,
+email send, or retry was performed. See `ADMIN_EMAIL_OPERATIONS_REVIEW.md`.
+
+## 2026-09-04 Security & Health Local Presentation Review
+
+The Security & Health presentation suite uses the real health mapper and actual
+page/components with isolated server/navigation mocks. It locks service states,
+finding severity/order/destinations, exact email/integrity fields, all loaded
+activity records, safe technical-context allowlisting, authorization-before-read,
+partial source failure, server timestamp replacement, disabled refresh, and
+loading semantics. The existing health/MFA security tests remain unchanged.
+New MFA component tests cover explicit-only enrollment, incomplete-factor cleanup,
+cancel, pending/error recovery, input validation, incorrect-code recovery, and
+AAL2-before-success. All Auth calls are mocks, never Production requests.
+
+After a build, generate and inspect isolated visual fixtures with:
+
+```bash
+ADMIN_SECURITY_PREVIEW=1 npx vitest run tests/integration/admin-security-presentation.test.tsx
+npx playwright test --config tests/visual/security.playwright.config.ts
+```
+
+The eight states (attention, healthy/AAL2, configured/AAL1, 12-event activity,
+partial unavailable, loading, refresh pending, and long-value stress) run at all
+eleven requested widths. These static fixtures use actual components and compiled
+CSS but do not prove hydrated navigation or live refresh. Refresh-pending tests
+control the transition hook; new authoritative props are supplied explicitly.
+No secret-bearing enrollment screenshot or Auth fixture is generated.
+
+Local results: lint/typecheck/build/diff checks PASS; Vitest 138 files passed,
+21 files skipped, 750 tests passed, 0 failed, 23 skipped (21 guarded backend
+checks and two opt-in visual generators). Security preview-enabled suite:
+11 passed. MFA interaction suite: 5 passed. Visual matrix: 12 passed / 0 failed.
+Real-app read-only Chromium/mobile Chromium smoke: 8 passed / 0 failed /
+2 guarded fixture skips. Live authenticated navigation, refresh transport/error
+timing, physical-device acceptance and CLS remain pending. Exact screenshots
+and evidence boundaries are in `ADMIN_SECURITY_HEALTH_REVIEW.md`.
+
 ## 2026-09-03 Admin Overview Local Presentation Review
 
 `tests/integration/admin-overview-presentation.test.tsx` renders the actual

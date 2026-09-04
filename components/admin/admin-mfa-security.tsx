@@ -160,30 +160,31 @@ export function AdminMfaSecurity({ status }: { status: AdminMfaSecurityStatus })
   }
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 space-y-4">
       <section
-        className="border border-border bg-card p-5 shadow-sm"
+        className="min-w-0 rounded-md border border-border bg-card p-3"
         aria-labelledby="mfa-status"
       >
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex flex-wrap items-start justify-between gap-2">
           <div className="min-w-0">
-            <h2 id="mfa-status" className="text-base font-semibold">
+            <h3 id="mfa-status" className="text-sm font-semibold">
               Multi-factor authentication
-            </h2>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+            </h3>
+            <p className="mt-1 max-w-2xl text-xs leading-5 text-muted-foreground">
               Protect privileged platform actions with a TOTP authenticator app.
             </p>
           </div>
-          <Badge variant={verifiedFactor ? "default" : "outline"}>
+          <Badge
+            className="w-fit shrink-0 rounded"
+            variant={verifiedFactor ? "default" : "outline"}
+          >
             {verifiedFactor ? "Configured" : "Not configured"}
           </Badge>
         </div>
 
-        <dl className="mt-5 grid gap-4 border-t border-border pt-5 sm:grid-cols-3">
+        <dl className="mt-3 grid gap-3 border-t border-border pt-3 sm:grid-cols-3 [&>div]:min-w-0">
           <div>
-            <dt className="text-xs font-medium uppercase text-muted-foreground">
-              Current session
-            </dt>
+            <dt className="text-xs font-medium text-muted-foreground">Current session</dt>
             <dd className="mt-1 text-sm font-semibold">
               {status.currentLevel === "aal2"
                 ? "Additional verification active"
@@ -191,7 +192,7 @@ export function AdminMfaSecurity({ status }: { status: AdminMfaSecurityStatus })
             </dd>
           </div>
           <div>
-            <dt className="text-xs font-medium uppercase text-muted-foreground">
+            <dt className="text-xs font-medium text-muted-foreground">
               Verified authenticators
             </dt>
             <dd className="mt-1 text-sm font-semibold">
@@ -199,7 +200,7 @@ export function AdminMfaSecurity({ status }: { status: AdminMfaSecurityStatus })
             </dd>
           </div>
           <div>
-            <dt className="text-xs font-medium uppercase text-muted-foreground">
+            <dt className="text-xs font-medium text-muted-foreground">
               Technical assurance
             </dt>
             <dd className="mt-1 text-sm font-semibold uppercase">
@@ -209,7 +210,7 @@ export function AdminMfaSecurity({ status }: { status: AdminMfaSecurityStatus })
         </dl>
 
         {verifiedFactor ? (
-          <div className="mt-5 flex items-start gap-3 border-t border-border pt-5">
+          <div className="mt-3 flex items-start gap-3 border-t border-border pt-3">
             <CheckCircle2
               className="mt-0.5 size-5 shrink-0 text-primary"
               aria-hidden="true"
@@ -246,18 +247,18 @@ export function AdminMfaSecurity({ status }: { status: AdminMfaSecurityStatus })
       ) : null}
 
       {!verifiedFactor && !enrollment ? (
-        <section className="border-t border-border pt-6" aria-labelledby="setup-mfa">
+        <section className="border-t border-border pt-3" aria-labelledby="setup-mfa">
           <div className="flex items-start gap-3">
             <KeyRound className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
-            <div>
-              <h2 id="setup-mfa" className="text-base font-semibold">
+            <div className="min-w-0 flex-1">
+              <h3 id="setup-mfa" className="text-sm font-semibold">
                 Set up an authenticator
-              </h2>
+              </h3>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
                 Use an authenticator app to add the required second factor.
               </p>
               <Button
-                className="mt-4"
+                className="mt-3 w-full rounded-md sm:w-auto"
                 type="button"
                 onClick={beginEnrollment}
                 disabled={pending}
@@ -274,12 +275,12 @@ export function AdminMfaSecurity({ status }: { status: AdminMfaSecurityStatus })
 
       {enrollment ? (
         <section
-          className="border border-border bg-card p-5 shadow-sm"
+          className="min-w-0 rounded-md border border-border bg-card p-3"
           aria-labelledby="scan-code"
         >
-          <h2 id="scan-code" className="text-base font-semibold">
+          <h3 id="scan-code" className="text-sm font-semibold">
             Scan the authenticator code
-          </h2>
+          </h3>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
             Scan this QR code, then enter the current 6-digit code. The setup key is shown
             only while this enrollment is open.
@@ -347,7 +348,7 @@ export function AdminMfaSecurity({ status }: { status: AdminMfaSecurityStatus })
 
       {verifiedFactor && !isPrivilegedAccessReady ? (
         <section
-          className="border border-border bg-card p-5 shadow-sm"
+          className="min-w-0 rounded-md border border-border bg-card p-3"
           aria-labelledby="verify-session"
         >
           <div className="flex items-start gap-3">
@@ -356,9 +357,9 @@ export function AdminMfaSecurity({ status }: { status: AdminMfaSecurityStatus })
               aria-hidden="true"
             />
             <div className="min-w-0 flex-1">
-              <h2 id="verify-session" className="text-base font-semibold">
+              <h3 id="verify-session" className="text-sm font-semibold">
                 Additional verification required
-              </h2>
+              </h3>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">
                 Verify your authenticator before a privileged platform action can proceed.
               </p>
@@ -376,7 +377,7 @@ export function AdminMfaSecurity({ status }: { status: AdminMfaSecurityStatus })
                 />
               </div>
               <Button
-                className="mt-4"
+                className="mt-3 w-full rounded-md sm:w-auto"
                 type="button"
                 onClick={() => verify(verifiedFactor.id)}
                 disabled={pending}
@@ -392,10 +393,10 @@ export function AdminMfaSecurity({ status }: { status: AdminMfaSecurityStatus })
       ) : null}
 
       {verifiedFactor && isPrivilegedAccessReady ? (
-        <section className="border-t border-border pt-6" aria-labelledby="session-ready">
-          <h2 id="session-ready" className="text-base font-semibold">
+        <section className="border-t border-border pt-3" aria-labelledby="session-ready">
+          <h3 id="session-ready" className="text-sm font-semibold">
             Privileged verification active
-          </h2>
+          </h3>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
             Additional verification is active. Platform authority is still rechecked for
             every privileged action. Technical assurance: AAL2.

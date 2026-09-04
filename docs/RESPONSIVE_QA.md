@@ -202,6 +202,40 @@ authenticated navigation, hydrated streaming, or measured CLS acceptance.
 Those live checks require an existing authorized admin session; no Production
 fixture creation was performed or authorized.
 
+## 2026-09-04 Security & Health Local Review
+
+The eight-state synthetic matrix passes at 320x568, 360x800, 375x812, 390x844,
+414x896, 430x932, 768x1024, 1024x768, 1280x800, 1440x900, and 1600x900.
+The main dashboard stays single-column through 1024px. Summary cells stack on
+mobile; email metrics use two columns below desktop; service cells use two
+columns from 768px. Technical strings and large counts remain contained.
+
+Navigation scrolling stays local with the Security & Health active destination
+reachable. A labelled, focusable activity region retains all 12 fixture events,
+supports keyboard scrolling at tablet/desktop, and uses normal page scrolling
+below 768px. Reduced-motion loading/refresh, long actor/domain/commit/provider
+values, absent evidence, and configured/not-configured MFA are covered.
+See `ADMIN_SECURITY_HEALTH_REVIEW.md` for the final screenshot inventory and
+manual alignment results. Static-fixture acceptance is not live authenticated,
+physical-device, full screen-reader, or measured CLS acceptance.
+
+## 2026-09-04 Email Operations Local Review
+
+Eight synthetic states pass at 320x568, 360x800, 375x812, 390x844, 414x896,
+430x932, 768x1024, 1024x768, 1280x800, 1440x900, and 1600x900. Healthy,
+attention, backlog, active filters, empty results, loading, search-pending, and
+long-content states preserve document-width containment and all loaded rows.
+Desktop filters share one baseline and every control is 44px high. Native
+keyboard scrolling reaches the final row and Tab leaves the event region.
+Mobile rows remain in normal page flow. Reduced-motion loading is covered.
+
+All 22 final screenshots were opened and visually inspected, including long
+booking references, titles, business/provider names, and large counts. Final
+review corrected desktop metric dividers and ensured captures begin at the
+first event after keyboard-scroll checks. See `ADMIN_EMAIL_OPERATIONS_REVIEW.md`
+for exact paths. These static fixtures are not proof of hydrated authenticated
+navigation, physical-device behavior, screen-reader acceptance, or measured CLS.
+
 ## PWA Resume Reliability Matrix
 
 Desktop Chromium, Pixel 5 Chromium emulation, and iPhone 13 WebKit emulation

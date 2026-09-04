@@ -1,5 +1,49 @@
 # Changelog
 
+## 2026-09-04 - Email Operations Presentation Review
+
+Status: IMPLEMENTED - VERIFICATION PENDING (authenticated live acceptance)
+
+- Matched the approved hierarchy with paired configuration cards, a compact
+  status summary, aligned filters, and a unified event directory. Server-derived
+  provider, health, totals, ordering, query parameters, and detail links remain
+  authoritative. Sent still means adapter/provider acceptance, not delivery.
+- Added native desktop/tablet scrolling for the current result page and normal
+  mobile page scrolling; filters and pagination stay outside the event viewport.
+  Added route-aligned skeletons without changing the loading boundary.
+- Added isolated presentation, privacy, search/filter, responsive, keyboard,
+  reduced-motion, and long-content coverage. All 22 final screenshots were
+  manually reviewed. Full unit/integration run: 764 passed, 0 failed, 24 skipped;
+  responsive suite: 12 passed; real-app smoke: 8 passed, 2 guarded checks skipped.
+- Lint, typecheck, and production build pass. Authenticated live acceptance,
+  physical-device review, full screen-reader review, and measured CLS remain
+  pending. See `ADMIN_EMAIL_OPERATIONS_REVIEW.md` for evidence and limitations.
+- No email behavior, backend, shared shell, detail page, dependency, environment,
+  or production changes. No commit, push, PR, merge, or deployment performed.
+
+## 2026-09-04 - Security & Health Presentation Review
+
+Status: IMPLEMENTED - VERIFICATION PENDING (authenticated live acceptance)
+
+- Reorganized Security & Health into a compact status summary and responsive
+  two-column evidence dashboard using the existing admin shell and brand.
+  All findings, service descriptions, evidence limitations, metrics, activity
+  records, account security, and safe technical rows remain visible.
+- Added native labelled desktop activity scrolling and mobile page scrolling,
+  wrapping technical strings, consistent severity badges, aligned service cells,
+  responsive MFA presentation and stable refresh sizing. Existing inline MFA
+  handlers and refresh/navigation mechanisms remain unchanged.
+- Preserved authorization, partial-result loading, health/evidence definitions,
+  queries, activity limit/order, stale calculation, APIs/actions, RLS, and cache
+  settings. No timer, external probe, full-log route, dialog, remediation action,
+  database/configuration change, or production mutation was introduced.
+- Local tests: 750 passed / 23 explicit skips; visual Chromium 12 passed;
+  read-only actual-app smoke 8 passed / 2 guarded skips. Lint, typecheck,
+  production build, and diff integrity passed. Live authenticated refresh,
+  navigation, streaming/CLS and physical-device acceptance remain pending.
+- See `ADMIN_SECURITY_HEALTH_REVIEW.md` for local review evidence. No commit,
+  push, PR, merge, or deployment was performed for this task.
+
 ## 2026-09-03 - Admin Overview Presentation Review
 
 Status: IMPLEMENTED - VERIFICATION PENDING (authenticated live acceptance)

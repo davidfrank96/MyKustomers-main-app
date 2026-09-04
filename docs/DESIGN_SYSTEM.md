@@ -1,5 +1,25 @@
 # Design System
 
+## Email Operations Presentation
+
+Email Operations reuses the shared admin shell. Configuration cards stack below
+1024px; the four status metrics use two columns below 1280px. Status text remains
+visible alongside semantic color, and zero failed events use a neutral icon.
+Failed counts describe events, not an aggregate number of failed attempts.
+
+Search and all three filters retain shared controls with 44px heights. Search
+spans the tablet row; desktop places all four controls on one baseline. Event
+type totals scroll horizontally on phones and wrap from 640px. The labelled,
+focusable event region uses native vertical scrolling from 768px with
+`max-height: clamp(32rem, 56vh, 48rem)` and stable scrollbar space. Only loaded
+rows scroll; controls and pagination remain outside. Phones use normal page
+scrolling. Every row retains all metadata and its existing detail link.
+
+Provider and health text must come from existing mappers. Sent never means
+confirmed recipient delivery. No unsupported refresh, retry, or mutation control
+may be added to this read-only directory to match a reference image. The route
+skeleton mirrors this hierarchy without adding a client boundary.
+
 STATUS: IMPLEMENTED, WITH APPROVED MOBILE REDESIGN UNDER BRANCH REVIEW
 
 Phase 1 implemented foundational UI primitives and responsive shells. The
@@ -204,6 +224,26 @@ retains the existing error/retry boundary rather than rendering false zero or
 healthy statuses. The existing route skeleton mirrors the grid and respects
 reduced motion. These rules do not extend the Overview card redesign to other
 admin page contents or change authorization, queries, or loading boundaries.
+
+## Admin Security & Health Presentation
+
+Security & Health reuses the approved admin shell without another navigation
+system. Its compact three-cell summary stacks below 768px. The main dashboard
+uses two independent columns from 1280px: findings/services/account security on
+the left, email/integrity/activity/technical context on the right. Below that,
+the columns stack in document order. Evidence notes remain visible rather than
+moving into disclosures. Service badges use one status treatment: green
+Operational, amber Attention, red Degraded, neutral Unknown; findings retain
+their separate authoritative Informational/Attention/Critical classification.
+
+Activity is a labelled, keyboard-reachable native region, capped at 400px from
+768px; on mobile it uses ordinary page scrolling. Every loaded event, actor,
+timestamp and safe reason remains in the list. Technical strings wrap anywhere.
+No full-log link or automatic-check claim appears without repository support.
+Refresh keeps a stable-width desktop control and full-width mobile control.
+The existing inline MFA setup/challenge stays inline; only spacing, headings,
+and responsive button presentation change. Loading preserves the route boundary
+and uses the shared reduced-motion skeleton.
 
 ## Critical Confirmations
 

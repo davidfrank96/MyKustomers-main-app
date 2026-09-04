@@ -1,4 +1,12 @@
-import { AlertTriangle, CheckCircle2, Clock3, Send } from "lucide-react";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  ChevronRight,
+  Clock3,
+  Mail,
+  Send,
+  Server,
+} from "lucide-react";
 import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { AdminFilterSelect } from "@/components/admin/admin-filter-select";
@@ -42,6 +50,19 @@ const statusIcons = {
 
 const rangeLabels = { today: "Today", "7d": "Last 7 days", "30d": "Last 30 days" };
 
+const statusStyles = {
+  PENDING: "border-blue-200 bg-blue-50 text-blue-900",
+  SENDING: "border-amber-200 bg-amber-50 text-amber-900",
+  SENT: "border-primary/20 bg-primary/5 text-primary",
+  FAILED: "border-destructive/20 bg-destructive/5 text-destructive",
+} as const;
+const metricDescriptions = {
+  PENDING: "Waiting to be processed",
+  SENDING: "Currently being attempted",
+  SENT: "Accepted by configured provider",
+  FAILED: "Events in the failed state",
+} as const;
+
 function buildStatusHref(
   status: string,
   params: ReturnType<typeof parseAdminEmailParams>,
@@ -72,10 +93,15 @@ export default async function AdminEmailsPage({ searchParams }: PageProps) {
   ] as const;
 
   return (
-    <section aria-labelledby="admin-emails-title" className="space-y-8">
-      <header className="border-b border-border pb-6">
-        <p className="text-sm font-semibold text-primary">Platform Operations</p>
-        <h1 id="admin-emails-title" className="mt-2 text-3xl font-semibold">
+    <section aria-labelledby="admin-emails-title" className="min-w-0 space-y-4">
+      <header>
+        <p className="text-xs font-semibold uppercase leading-5 text-primary">
+          Platform Operations
+        </p>
+        <h1
+          id="admin-emails-title"
+          className="mt-1 text-[28px] font-semibold leading-tight sm:text-[32px]"
+        >
           Email Operations
         </h1>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
@@ -84,36 +110,64 @@ export default async function AdminEmailsPage({ searchParams }: PageProps) {
         </p>
       </header>
 
-      <section
-        aria-labelledby="email-delivery-state-title"
-        className="border-y border-border py-5"
-      >
-        <div className="flex flex-wrap items-start justify-between gap-6">
-          <div>
-            <p className="text-sm text-muted-foreground">Delivery configuration</p>
-            <h2 id="email-delivery-state-title" className="mt-1 font-semibold">
-              {delivery.label}
+      <div className="grid min-w-0 gap-4 lg:grid-cols-2">
+        <section
+          aria-labelledby="email-delivery-state-title"
+          className="flex min-w-0 items-start gap-3 rounded-lg border border-border bg-card p-4 sm:gap-4"
+        >
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/5 text-primary sm:size-12">
+            <Mail className="size-5" aria-hidden="true" />
+          </div>
+          <div className="min-w-0 [overflow-wrap:anywhere]">
+            <h2
+              id="email-delivery-state-title"
+              className="text-xs font-medium text-muted-foreground"
+            >
+              Delivery configuration
             </h2>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
+            <p className="mt-2 text-sm font-semibold">{delivery.label}</p>
+            <p className="mt-2 text-xs leading-5 text-muted-foreground">
               {delivery.description}
             </p>
           </div>
-          <div className="flex items-center gap-4">
-            <div>
-              <p className="text-sm text-muted-foreground">Transactional provider</p>
-              <p className="mt-1 font-semibold">{delivery.provider}</p>
-            </div>
-            <Badge variant={delivery.status === "incomplete" ? "accent" : "outline"}>
-              {formatOperationLabel(delivery.status)}
-            </Badge>
+        </section>
+        <section
+          aria-labelledby="email-provider-title"
+          className="flex min-w-0 items-start gap-3 rounded-lg border border-border bg-card p-4 sm:gap-4"
+        >
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/5 text-primary sm:size-12">
+            <Server className="size-5" aria-hidden="true" />
           </div>
-        </div>
-      </section>
+          <div className="min-w-0 [overflow-wrap:anywhere]">
+            <h2
+              id="email-provider-title"
+              className="text-xs font-medium text-muted-foreground"
+            >
+              Transactional provider
+            </h2>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <p className="min-w-0 text-sm font-semibold">{delivery.provider}</p>
+              <Badge
+                className="w-fit shrink-0 rounded"
+                variant={delivery.status === "incomplete" ? "accent" : "outline"}
+              >
+                {formatOperationLabel(delivery.status)}
+              </Badge>
+            </div>
+            <p className="mt-2 text-xs leading-5 text-muted-foreground">
+              Provider acceptance only; recipient delivery is not tracked.
+            </p>
+          </div>
+        </section>
+      </div>
 
-      <section aria-labelledby="email-summary-title">
+      <section
+        aria-labelledby="email-summary-title"
+        className="min-w-0 rounded-lg border border-border bg-card p-4"
+      >
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h2 id="email-summary-title" className="text-lg font-semibold">
+            <h2 id="email-summary-title" className="text-base font-semibold">
               Outbox summary
             </h2>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -121,55 +175,82 @@ export default async function AdminEmailsPage({ searchParams }: PageProps) {
               {result.summary.total.toLocaleString("en")} events
             </p>
           </div>
-          <div className="text-right text-sm">
-            <p className="font-semibold">{health.status}</p>
-            <p className="mt-1 text-muted-foreground">{health.description}</p>
+          <div className="min-w-0 text-xs sm:text-right">
+            <span
+              className={`inline-flex items-center gap-1.5 rounded border px-2 py-0.5 font-medium ${health.status === "Healthy" ? statusStyles.SENT : statusStyles.SENDING}`}
+            >
+              {health.status === "Healthy" ? (
+                <CheckCircle2 className="size-3.5" aria-hidden="true" />
+              ) : (
+                <AlertTriangle className="size-3.5" aria-hidden="true" />
+              )}
+              {health.status}
+            </span>
+            <p className="mt-1 leading-5 text-muted-foreground">{health.description}</p>
           </div>
         </div>
-        <dl className="mt-4 grid grid-cols-2 gap-px bg-border lg:grid-cols-4">
+        <div className="mt-3 grid grid-cols-2 rounded-md border border-border [&>div]:border-border [&>div:nth-child(odd)]:border-r [&>div:nth-child(-n+2)]:border-b xl:grid-cols-4 xl:[&>div:nth-child(-n+2)]:border-b-0 xl:[&>div:not(:last-child)]:border-r">
           {summaryValues.map(([status, value]) => {
             const Icon = statusIcons[status];
             return (
-              <Link
-                key={status}
-                href={buildStatusHref(status, params)}
-                data-admin-email-status={status}
-                className="bg-card p-4 transition-colors hover:bg-muted/60"
-              >
-                <dt className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Icon className="size-4" aria-hidden="true" />
-                  {formatOperationLabel(status)}
-                </dt>
-                <dd className="mt-2 text-2xl font-semibold tabular-nums">
-                  {value.toLocaleString("en")}
-                </dd>
-                {status === "SENT" ? (
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Accepted by configured provider
-                  </p>
-                ) : null}
-              </Link>
+              <div key={status} className="min-w-0">
+                <Link
+                  href={buildStatusHref(status, params)}
+                  data-admin-email-status={status}
+                  className="flex h-full min-w-0 flex-col items-start gap-3 p-3 transition-colors hover:bg-muted/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring min-[430px]:flex-row sm:p-4"
+                >
+                  <span
+                    className={`flex size-10 shrink-0 items-center justify-center rounded-lg ${status === "FAILED" && value === 0 ? "bg-muted text-muted-foreground" : statusStyles[status]}`}
+                  >
+                    <Icon className="size-5" aria-hidden="true" />
+                  </span>
+                  <dl className="min-w-0">
+                    <dt className="text-xs font-medium text-muted-foreground">
+                      {formatOperationLabel(status)}
+                    </dt>
+                    <dd
+                      className={`mt-1 break-words text-2xl font-semibold tabular-nums ${status === "FAILED" && value > 0 ? "text-destructive" : ""}`}
+                    >
+                      {value.toLocaleString("en")}
+                    </dd>
+                    <dd className="mt-1 text-xs leading-5 text-muted-foreground">
+                      {metricDescriptions[status]}
+                    </dd>
+                  </dl>
+                </Link>
+              </div>
             );
           })}
-        </dl>
+        </div>
       </section>
 
-      <section aria-labelledby="email-directory-title" className="space-y-5">
+      <section
+        aria-labelledby="email-directory-title"
+        className="min-w-0 space-y-3 rounded-lg border border-border bg-card p-4"
+      >
         <div>
-          <h2 id="email-directory-title" className="text-lg font-semibold">
+          <h2 id="email-directory-title" className="text-base font-semibold">
             Event directory
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Newest events first. Search booking reference, business, or event type.
           </p>
         </div>
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_15rem_15rem_15rem] lg:items-end">
-          <DebouncedSearchInput
-            clearLabel="Clear email event search"
-            initialValue={params.q}
-            label="Search email events"
-            placeholder="Booking reference, business, or event type"
-          />
+        <div
+          data-email-filters
+          className="grid min-w-0 gap-3 md:grid-cols-3 xl:grid-cols-[minmax(0,2fr)_repeat(3,minmax(0,1fr))] xl:items-end [&>div]:w-full"
+        >
+          <div className="min-w-0 md:col-span-3 xl:col-span-1">
+            <span className="mb-1.5 block text-xs font-medium text-muted-foreground">
+              Search email events
+            </span>
+            <DebouncedSearchInput
+              clearLabel="Clear email event search"
+              initialValue={params.q}
+              label="Search email events"
+              placeholder="Booking reference, business, or event type"
+            />
+          </div>
           <AdminFilterSelect
             label="Event status"
             param="status"
@@ -209,19 +290,27 @@ export default async function AdminEmailsPage({ searchParams }: PageProps) {
         ) : null}
 
         {result.event_types.length > 0 ? (
-          <dl className="flex flex-wrap gap-x-6 gap-y-2 border-y border-border py-3 text-sm">
-            {result.event_types.map((item) => (
-              <div key={item.event_type} className="flex items-center gap-2">
-                <dt className="text-muted-foreground">
-                  {formatOperationLabel(item.event_type)}
-                </dt>
-                <dd className="font-semibold tabular-nums">{item.count}</dd>
-                {item.failed > 0 ? (
-                  <span className="text-destructive">{item.failed} failed</span>
-                ) : null}
-              </div>
-            ))}
-          </dl>
+          <div
+            role="region"
+            aria-label="Event type totals"
+            tabIndex={0}
+            className="overflow-x-auto border-y border-border py-3 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring [overscroll-behavior-inline:contain]"
+          >
+            <dl className="flex w-max min-w-full gap-5 text-xs sm:w-auto sm:flex-wrap">
+              {result.event_types.map((item) => (
+                <div key={item.event_type} className="flex shrink-0 items-center gap-2">
+                  <Mail className="size-4 shrink-0 text-primary" aria-hidden="true" />
+                  <dt className="text-muted-foreground">
+                    {formatOperationLabel(item.event_type)}
+                  </dt>
+                  <dd className="font-semibold tabular-nums">{item.count}</dd>
+                  {item.failed > 0 ? (
+                    <span className="text-destructive">{item.failed} failed</span>
+                  ) : null}
+                </div>
+              ))}
+            </dl>
+          </div>
         ) : null}
 
         {result.items.length === 0 ? (
@@ -231,39 +320,53 @@ export default async function AdminEmailsPage({ searchParams }: PageProps) {
           />
         ) : (
           <div
-            className="divide-y divide-border border-y border-border"
+            role="region"
+            aria-label="Email outbox events"
+            tabIndex={0}
+            className="min-w-0 rounded-md border border-border focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring md:max-h-[clamp(32rem,56vh,48rem)] md:overflow-y-auto md:overscroll-contain md:[scrollbar-gutter:stable]"
             data-admin-directory="emails"
           >
-            {result.items.map((event) => (
-              <Link
-                key={event.id}
-                href={`/admin/emails/${event.id}` as Route}
-                className="grid gap-3 py-4 transition-colors hover:bg-muted/40 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:px-3"
-              >
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant={event.status === "FAILED" ? "accent" : "outline"}>
+            <ul className="divide-y divide-border">
+              {result.items.map((event) => (
+                <li key={event.id}>
+                  <Link
+                    href={`/admin/emails/${event.id}` as Route}
+                    className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-2 px-3 py-3 transition-colors hover:bg-muted/40 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring md:grid-cols-[5rem_minmax(0,1fr)_13rem_auto] md:items-center"
+                  >
+                    <Badge
+                      className={`col-start-1 w-fit rounded px-2 py-0.5 text-xs ${statusStyles[event.status]}`}
+                      variant="outline"
+                    >
                       {formatOperationLabel(event.status)}
                     </Badge>
-                    <span className="text-sm font-medium">
-                      {formatOperationLabel(event.event_type)}
-                    </span>
-                  </div>
-                  <h3 className="mt-2 break-words font-semibold">
-                    {event.booking.reference} · {event.booking.title}
-                  </h3>
-                  <p className="mt-1 break-words text-sm text-muted-foreground">
-                    {event.business.name}
-                  </p>
-                </div>
-                <div className="text-sm text-muted-foreground sm:text-right">
-                  <p>{dateTimeFormatter.format(new Date(event.created_at))} UTC</p>
-                  <p className="mt-1">
-                    {event.attempt_count.toLocaleString("en")} attempts
-                  </p>
-                </div>
-              </Link>
-            ))}
+                    <div className="col-start-1 min-w-0 [overflow-wrap:anywhere] md:col-start-2 md:row-start-1">
+                      <p className="text-sm font-medium">
+                        {formatOperationLabel(event.event_type)}
+                      </p>
+                      <h3 className="mt-0.5 text-sm font-semibold">
+                        {event.booking.reference} · {event.booking.title}
+                      </h3>
+                      <p className="mt-0.5 text-xs leading-5 text-muted-foreground">
+                        {event.business.name}
+                      </p>
+                    </div>
+                    <div className="col-start-1 min-w-0 text-xs leading-5 text-muted-foreground [overflow-wrap:anywhere] md:col-start-3 md:row-start-1 md:text-right">
+                      <time dateTime={event.created_at}>
+                        {dateTimeFormatter.format(new Date(event.created_at))} UTC
+                      </time>
+                      <p>
+                        {event.attempt_count.toLocaleString("en")}{" "}
+                        {event.attempt_count === 1 ? "attempt" : "attempts"}
+                      </p>
+                    </div>
+                    <ChevronRight
+                      className="col-start-2 row-span-3 row-start-1 size-4 self-center text-muted-foreground md:col-start-4 md:row-span-1"
+                      aria-hidden="true"
+                    />
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
         )}
 
