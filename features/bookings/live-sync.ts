@@ -47,7 +47,7 @@ export function createBookingLiveState({
 export function getBookingLiveNotification(
   previous: BookingLiveState,
   current: BookingLiveState,
-) {
+): { title: string; description: string } | null {
   if (
     (!previous.customerConfirmedAt && current.customerConfirmedAt) ||
     (previous.status !== "CONFIRMED" && current.status === "CONFIRMED")
@@ -68,16 +68,14 @@ export function getBookingLiveNotification(
   const previousDelivery = previous.providerDeliveryStatus ?? "UNKNOWN";
   const currentDelivery = current.providerDeliveryStatus ?? "UNKNOWN";
   if (previousDelivery !== currentDelivery) {
-    const title =
-      currentDelivery === "DELIVERED"
-        ? "Provider reported delivery"
-        : currentDelivery === "DEFERRED"
-          ? "Email delivery delayed"
-          : ["SOFT_BOUNCED", "HARD_BOUNCED", "INVALID"].includes(currentDelivery)
-            ? "Email could not be delivered"
-            : ["BLOCKED", "COMPLAINT"].includes(currentDelivery)
-              ? "Email sending unavailable"
-              : "Email delivery updated";
+    if (["UNKNOWN", "DELIVERED", "DEFERRED"].includes(currentDelivery)) {
+      return null;
+    }
+    const title = ["SOFT_BOUNCED", "HARD_BOUNCED", "INVALID"].includes(currentDelivery)
+      ? "Email could not be delivered"
+      : ["BLOCKED", "COMPLAINT"].includes(currentDelivery)
+        ? "Email sending unavailable"
+        : "Email delivery updated";
     return {
       title,
       description:

@@ -1,5 +1,11 @@
 # Platform Admin Feature Boundary
 
+Email Reliability Phase 3 does not change Admin Email Operations data, filters,
+counts, provider timeline, retry authorization, or health semantics. Admin remains
+the bounded operational evidence surface; Booking Details consumes the same Phase
+2B normalized state only to provide vendor recovery guidance. Development-adapter
+rows remain excluded from external-delivery success claims.
+
 Admin Phase 0/1 provides platform identity parsing, server authorization, and a
 protected `/admin` shell. Admin Phase 2 adds aggregate-only read operations.
 Admin Phase 3 adds narrow read-only business and user support directories and

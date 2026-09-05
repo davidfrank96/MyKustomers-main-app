@@ -1,5 +1,39 @@
 # Email Operations
 
+## Email Reliability Phase 3 — Vendor Recovery
+
+Booking Details now derives one compact, human-readable recovery presentation from
+the existing Phase 2B outbox and provider-delivery projection. It does not add an
+outbox, webhook, query waterfall, client dependency, or polling loop.
+
+| Database evidence          | Vendor copy                                           | Recommended action                                    |
+| -------------------------- | ----------------------------------------------------- | ----------------------------------------------------- |
+| `SENT` + `UNKNOWN`         | Email accepted for delivery                           | Share confirmation                                    |
+| `DELIVERED`                | Provider reported delivery; not proof of open/read    | Share confirmation                                    |
+| `DEFERRED`                 | Delivery delayed                                      | Share through WhatsApp                                |
+| `SOFT_BOUNCED`             | Email could not be delivered after temporary attempts | Check email                                           |
+| `HARD_BOUNCED` / `INVALID` | Email could not be delivered                          | Edit email                                            |
+| `BLOCKED` / `COMPLAINT`    | Sending unavailable/stopped for this address          | Use another contact method                            |
+| `PROVIDER_ERROR`           | Provider reported a delivery error                    | Share or check email according to acceptance evidence |
+| Development adapter        | Development adapter — no external email sent          | Share confirmation                                    |
+
+An unchanged recipient is not offered as a normal resend after acceptance,
+deferral, delivery, bounce, invalid, block, or complaint evidence. Correcting the
+booking-specific recipient uses the existing locked transaction: revoke the prior
+open capability, issue one fresh hash-only capability, and create one fresh request
+event without changing the customer profile. Existing rate limiting and atomic
+request creation remain the duplicate-send boundary.
+
+> Email delivery state and customer confirmation state are separate. Customer
+> confirmation is authoritative for the booking even when the original email was
+> delayed, bounced or delivered through another channel.
+
+> A customer-email problem must never make a booking unusable. Authorized manual
+> sharing remains available while customer confirmation is outstanding.
+
+> Deferred, ambiguous, permanently rejected, blocked and complaint outcomes must
+> not be treated as equivalent or exposed through one generic resend action.
+
 ## Email Reliability Stage 2 — Provider Delivery
 
 PRODUCTION ACTIVE — CONTROLLED PROVIDER VERIFICATION PENDING. Outbox state and provider delivery are now

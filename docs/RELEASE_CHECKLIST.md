@@ -1,5 +1,23 @@
 # Release Checklist
 
+## Email Reliability Phase 3 Release Gate
+
+- [x] Existing Phase 2B provider model, booking projection, and reconciliation reused.
+- [x] Accepted, delivered, deferred, bounce/invalid, blocked/complaint, provider-error,
+      development-adapter, no-email, and confirmed presentations are distinct.
+- [x] Customer confirmation outranks historical email transport concern.
+- [x] Manual secure sharing remains available while confirmation is outstanding.
+- [x] Permanent/suppressed outcomes do not expose ordinary unchanged-address resend.
+- [x] Booking-specific correction preserves the customer profile and uses the existing
+      prior-capability revocation/fresh-capability transaction.
+- [x] No second outbox/webhook, automatic provider failover, migration, environment
+      change, provider configuration change, dependency, or Production fixture added.
+- [x] Focused deterministic recovery and reconciliation tests pass.
+- [ ] One final full local verification pass, PR CI, exact-commit Production deployment,
+      read-only smoke, and Sentry review are recorded before VERIFIED status.
+
+Phase 2B remains: **PRODUCTION ACTIVE — CONTROLLED PROVIDER VERIFICATION PENDING**.
+
 ## Email Reliability Stage 2 Release Gate
 
 - [x] Explicit migration approval recorded before schema application.

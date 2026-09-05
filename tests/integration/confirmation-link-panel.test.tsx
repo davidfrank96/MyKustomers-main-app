@@ -87,32 +87,35 @@ describe("confirmation contact evidence", () => {
     ["HARD_BOUNCED", "Email could not be delivered"],
     ["INVALID", "Email could not be delivered"],
     ["BLOCKED", "Email sending is unavailable for this address"],
-    ["COMPLAINT", "Email sending is unavailable for this address"],
+    ["COMPLAINT", "Email sending has been stopped for this address"],
     ["PROVIDER_ERROR", "Provider reported a delivery error"],
-  ] as const)("shows compact %s provider evidence without removing sharing", (status, copy) => {
-    renderPanel(null, {
-      panelSummary: {
-        ...summary,
-        status: "active",
-        usedAt: null,
-        confirmedAt: null,
-        requestRecipientEmail: "controlled@example.com",
-        requestCreatedAt: "2026-08-26T10:00:00.000Z",
-      },
-      canManage: true,
-      providerDelivery: {
-        outbox_status: "SENT",
-        development_adapter: false,
-        provider_delivery_status: status,
-        provider_event_at: "2026-08-26T10:02:00.000Z",
-        reason_category: status === "DELIVERED" ? "NONE" : "PROVIDER_ERROR",
-        evidence_received_at: "2026-08-26T10:02:01.000Z",
-      },
-    });
+  ] as const)(
+    "shows compact %s provider evidence without removing sharing",
+    (status, copy) => {
+      renderPanel(null, {
+        panelSummary: {
+          ...summary,
+          status: "active",
+          usedAt: null,
+          confirmedAt: null,
+          requestRecipientEmail: "controlled@example.com",
+          requestCreatedAt: "2026-08-26T10:00:00.000Z",
+        },
+        canManage: true,
+        providerDelivery: {
+          outbox_status: "SENT",
+          development_adapter: false,
+          provider_delivery_status: status,
+          provider_event_at: "2026-08-26T10:02:00.000Z",
+          reason_category: status === "DELIVERED" ? "NONE" : "PROVIDER_ERROR",
+          evidence_received_at: "2026-08-26T10:02:01.000Z",
+        },
+      });
 
-    expect(screen.getByText(copy)).toBeVisible();
-    expect(screen.getByRole("button", { name: "Regenerate link" })).toBeVisible();
-  });
+      expect(screen.getByText(copy)).toBeVisible();
+      expect(screen.getByRole("button", { name: "Regenerate link" })).toBeVisible();
+    },
+  );
 
   it("lets customer confirmation outrank earlier transport failure", () => {
     renderPanel(null, {
@@ -130,15 +133,77 @@ describe("confirmation contact evidence", () => {
         requestCreatedAt: "2026-08-26T10:00:00.000Z",
       },
     });
-    expect(screen.getByText("Customer confirmed")).toBeVisible();
-    expect(screen.getByText("Email delivery: Email could not be delivered")).toBeVisible();
+    expect(screen.getAllByText("Customer confirmed")).toHaveLength(2);
+    expect(
+      screen.getByText("Earlier email status: Email could not be delivered"),
+    ).toBeVisible();
     expect(screen.queryByText("The address may be incorrect or unavailable.")).toBeNull();
+  });
+
+  it("requires a changed address before sending after permanent rejection", () => {
+    renderPanel(null, {
+      panelSummary: {
+        ...summary,
+        status: "active",
+        usedAt: null,
+        confirmedAt: null,
+        requestRecipientEmail: "rejected@example.com",
+        requestCreatedAt: "2026-08-26T10:00:00.000Z",
+      },
+      canManage: true,
+      providerDelivery: {
+        outbox_status: "SENT",
+        development_adapter: false,
+        provider_delivery_status: "INVALID",
+        provider_event_at: "2026-08-26T10:02:00.000Z",
+        reason_category: "INVALID_ADDRESS",
+        evidence_received_at: "2026-08-26T10:02:01.000Z",
+      },
+    });
+
+    const disclosure = screen.getByRole("button", { name: /Edit email/ });
+    fireEvent.click(disclosure);
+    expect(screen.getByRole("button", { name: "Change email to send" })).toBeDisabled();
+    fireEvent.change(screen.getByLabelText("Customer email"), {
+      target: { value: "corrected@example.com" },
+    });
+    expect(screen.getByRole("button", { name: "Send fresh confirmation" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Regenerate link" })).toBeVisible();
+  });
+
+  it("exposes provider state with an accessible non-color-only label", () => {
+    renderPanel(null, {
+      panelSummary: {
+        ...summary,
+        status: "active",
+        usedAt: null,
+        confirmedAt: null,
+        requestRecipientEmail: "long.customer.address+booking@example-domain.co.uk",
+      },
+      providerDelivery: {
+        outbox_status: "SENT",
+        development_adapter: false,
+        provider_delivery_status: "DEFERRED",
+        provider_event_at: "2026-08-26T10:02:00.000Z",
+        reason_category: "TEMPORARY_DELIVERY_FAILURE",
+        evidence_received_at: "2026-08-26T10:02:01.000Z",
+      },
+    });
+
+    expect(
+      screen.getByRole("region", {
+        name: /Delivery delayed.*temporarily delayed/i,
+      }),
+    ).toBeVisible();
+    expect(
+      screen.getByText("long.customer.address+booking@example-domain.co.uk"),
+    ).toHaveClass("break-all");
   });
 
   it("distinguishes a booking email from a different saved contact email", () => {
     renderPanel("old@example.com");
 
-    expect(screen.getByText("Customer email")).toBeVisible();
+    expect(screen.getByText("Customer email for this booking")).toBeVisible();
     expect(screen.getByText("new@example.com")).toBeVisible();
     expect(screen.getByText(/Saved contact email/)).toBeVisible();
     expect(screen.getByText("old@example.com")).toBeVisible();
@@ -147,7 +212,7 @@ describe("confirmation contact evidence", () => {
   it("does not duplicate the same normalized profile email", () => {
     renderPanel(" new@EXAMPLE.COM ");
 
-    expect(screen.getByText("Customer email")).toBeVisible();
+    expect(screen.getByText("Customer email for this booking")).toBeVisible();
     expect(screen.queryByText(/Saved contact email/)).toBeNull();
   });
 
@@ -164,8 +229,8 @@ describe("confirmation contact evidence", () => {
       canManage: true,
     });
 
-    expect(screen.getByText("No customer email added")).toBeVisible();
-    const disclosure = screen.getByRole("button", { name: /Custom email/ });
+    expect(screen.getAllByText("No customer email added")).toHaveLength(2);
+    const disclosure = screen.getByRole("button", { name: /Add email/ });
     fireEvent.click(disclosure);
     const recipient = screen.getByLabelText("Customer email");
     expect(recipient).toHaveValue("");
@@ -178,7 +243,7 @@ describe("confirmation contact evidence", () => {
   it("renders status and every existing confirmation metadata field", () => {
     renderPanel("old@example.com");
 
-    expect(screen.getByText("Customer confirmed")).toBeVisible();
+    expect(screen.getAllByText("Customer confirmed")).toHaveLength(2);
     for (const label of [
       "Status",
       "Created",
@@ -337,7 +402,7 @@ describe("confirmation contact evidence", () => {
     expect(recipient).toBeVisible();
     expect(recipient).toHaveValue("Updated.Person@hotmail.com");
 
-    fireEvent.click(screen.getByRole("button", { name: "Send confirmation email" }));
+    fireEvent.click(screen.getByRole("button", { name: "Send fresh confirmation" }));
 
     await waitFor(() => expect(sendAction).toHaveBeenCalledTimes(1));
     expect(sendAction.mock.calls[0]?.[1].get("recipientEmail")).toBe(
@@ -411,7 +476,7 @@ describe("confirmation contact evidence", () => {
   it("shows confirmation evidence without reopening link controls", () => {
     renderPanel("new@example.com", { panelSummary: summary, canManage: false });
 
-    expect(screen.getByText("Customer confirmed")).toBeVisible();
+    expect(screen.getAllByText("Customer confirmed")).toHaveLength(2);
     expect(
       screen.getByText("Customer confirmation is recorded for this booking."),
     ).toBeVisible();

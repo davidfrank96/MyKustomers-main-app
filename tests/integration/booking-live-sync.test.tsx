@@ -89,6 +89,39 @@ describe("BookingLiveSync PWA reconciliation", () => {
     expect(fetch).toHaveBeenCalledTimes(1);
   });
 
+  it.each(["DELIVERED", "DEFERRED"] as const)(
+    "silently refreshes %s provider evidence without a routine toast",
+    async (providerDeliveryStatus) => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(async () =>
+          Response.json({
+            ...initialState,
+            revision: `${initialState.revision}:${providerDeliveryStatus}`,
+            providerDeliveryStatus,
+            providerEventAt: "2026-09-05T10:00:00.000Z",
+          }),
+        ),
+      );
+      render(
+        <BookingLiveSync
+          bookingId="00000000-0000-4000-8000-000000000001"
+          initialState={{
+            ...initialState,
+            providerDeliveryStatus: "UNKNOWN",
+            providerEventAt: null,
+          }}
+        />,
+      );
+
+      window.dispatchEvent(new Event(PWA_BOOKING_RECONCILE_EVENT));
+
+      await waitFor(() => expect(navigation.refresh).toHaveBeenCalledTimes(1));
+      expect(screen.queryByText("Email delivery updated")).toBeNull();
+      expect(screen.queryByText("Booking updated")).toBeNull();
+    },
+  );
+
   it("uses the bounded visible fallback interval and makes no hidden-tab request", async () => {
     vi.useFakeTimers();
     const fetchMock = vi.fn(async () => Response.json(initialState));
@@ -117,7 +150,10 @@ describe("BookingLiveSync PWA reconciliation", () => {
   });
 
   it("opens one accessible success dialog when fresh server props enter completed", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => Response.json(liveState("COMPLETED"))));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => Response.json(liveState("COMPLETED"))),
+    );
     const { rerender } = render(
       <BookingLiveSync
         bookingId="00000000-0000-4000-8000-000000000001"
@@ -133,9 +169,9 @@ describe("BookingLiveSync PWA reconciliation", () => {
       />,
     );
 
-    expect(await screen.findByRole("dialog", { name: "Booking complete" })).toHaveTextContent(
-      "Everything for this booking is finished.",
-    );
+    expect(
+      await screen.findByRole("dialog", { name: "Booking complete" }),
+    ).toHaveTextContent("Everything for this booking is finished.");
     fireEvent.click(screen.getByRole("button", { name: "Done" }));
     await waitFor(() =>
       expect(screen.queryByRole("dialog", { name: "Booking complete" })).toBeNull(),
@@ -151,7 +187,10 @@ describe("BookingLiveSync PWA reconciliation", () => {
   });
 
   it("does not celebrate a historical completed initial load", () => {
-    vi.stubGlobal("fetch", vi.fn(async () => Response.json(liveState("COMPLETED"))));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => Response.json(liveState("COMPLETED"))),
+    );
     render(
       <BookingLiveSync
         bookingId="00000000-0000-4000-8000-000000000001"
@@ -163,7 +202,10 @@ describe("BookingLiveSync PWA reconciliation", () => {
   });
 
   it("supports keyboard dismissal, focus return, and reduced motion", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => Response.json(liveState("COMPLETED"))));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => Response.json(liveState("COMPLETED"))),
+    );
     const { rerender } = render(
       <BookingLiveSync
         bookingId="00000000-0000-4000-8000-000000000001"
@@ -195,7 +237,10 @@ describe("BookingLiveSync PWA reconciliation", () => {
   });
 
   it("returns focus to the stable journey heading when the prior control was replaced", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => Response.json(liveState("COMPLETED"))));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => Response.json(liveState("COMPLETED"))),
+    );
     const view = (status: "DELIVERED" | "COMPLETED", revision: string) => (
       <>
         <h2 id="booking-journey-title" tabIndex={-1}>
@@ -224,7 +269,10 @@ describe("BookingLiveSync PWA reconciliation", () => {
       "completed-by-feedback",
       "2026-09-03T10:05:00.000Z",
     );
-    vi.stubGlobal("fetch", vi.fn(async () => Response.json(completed)));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => Response.json(completed)),
+    );
     render(
       <BookingLiveSync
         bookingId="00000000-0000-4000-8000-000000000001"
@@ -246,7 +294,10 @@ describe("BookingLiveSync PWA reconciliation", () => {
       "feedback-with-balance",
       "2026-09-03T10:05:00.000Z",
     );
-    vi.stubGlobal("fetch", vi.fn(async () => Response.json(deliveredWithFeedback)));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => Response.json(deliveredWithFeedback)),
+    );
     const { rerender } = render(
       <BookingLiveSync
         bookingId="00000000-0000-4000-8000-000000000001"

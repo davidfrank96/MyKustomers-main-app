@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-09-05 — Vendor Email Recovery UX
+
+IMPLEMENTED — VERIFICATION PENDING. Booking Details now turns the existing Phase 2B
+delivery evidence into compact human recovery guidance without adding a provider,
+outbox, webhook, query waterfall, or poller. Customer confirmation outranks old
+transport concern; accepted, delivered, deferred, bounce/invalid, blocked,
+complaint, provider-error, development-adapter, and no-email states remain distinct.
+Manual WhatsApp/native/copy sharing stays available, and unsafe unchanged-address
+resend is suppressed after provider acceptance or recipient failure. Corrected
+booking recipients continue through the existing prior-link revocation and fresh
+capability transaction without mutating the customer profile. No Production Auth
+user or email traffic was created for this implementation.
+
 ## 2026-09-05 — Brevo Provider Delivery Evidence
 
 PRODUCTION ACTIVE — CONTROLLED PROVIDER VERIFICATION PENDING. The approved additive migration is applied and

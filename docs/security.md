@@ -1,5 +1,20 @@
 # Security
 
+## Email recovery invariants
+
+Email transport does not authorize or invalidate customer confirmation. A valid
+customer confirmation is authoritative even if earlier delivery evidence was
+delayed or failed. Unconfirmed bookings retain authorized manual sharing so an
+email problem cannot strand the booking.
+
+The UI does not offer one generic resend for deferred, ambiguous, permanently
+rejected, blocked, or complaint outcomes. Changing a booking recipient continues
+to require authentication and active-business authorization and uses the existing
+booking lock to revoke the prior open capability, issue one fresh hash-only
+capability, and append one request event. It neither clears provider suppression
+nor mutates `customers.email`, and it never switches automatically to the standby
+provider.
+
 ## Email Reliability Stage 2 Boundary
 
 The provider-evidence table is PostgreSQL-owned, RLS-enabled with zero policies,

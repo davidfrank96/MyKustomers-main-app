@@ -23,10 +23,11 @@ import {
   XCircle,
 } from "lucide-react";
 import { CustomerConfirmationShare } from "@/components/forms/customer-confirmation-share";
+import { EmailDeliveryStatus } from "@/components/forms/email-delivery-status";
 import { Button } from "@/components/ui/button";
 import type { ConfirmationLinkSummary } from "@/features/confirmation-links/queries";
 import {
-  presentProviderDelivery,
+  getEmailRecoveryPresentation,
   type ProviderDeliverySummary,
 } from "@/features/provider-delivery/model";
 import {
@@ -94,12 +95,14 @@ function SubmitButton({
   variant = "secondary",
   icon,
   className,
+  disabled = false,
 }: {
   label: string;
   pendingLabel: string;
   variant?: "primary" | "secondary" | "destructive";
   icon: "generate" | "regenerate" | "revoke" | "send";
   className?: string;
+  disabled?: boolean;
 }) {
   const { pending } = useFormStatus();
   const Icon =
@@ -116,7 +119,7 @@ function SubmitButton({
       type="submit"
       variant={variant}
       size="md"
-      disabled={pending}
+      disabled={pending || disabled}
       className={cn("min-w-0 whitespace-nowrap", className)}
     >
       <Icon className="size-4 shrink-0" aria-hidden="true" />
@@ -224,9 +227,6 @@ export function ConfirmationLinkPanel({
   }, [sendState]);
   const active = summary.status === "active";
   const confirmed = summary.status === "used" || Boolean(summary.confirmedAt);
-  const deliveryPresentation = providerDelivery
-    ? presentProviderDelivery(providerDelivery)
-    : null;
   const canGenerateFresh =
     canManage && ["none", "revoked", "expired"].includes(summary.status);
   const generatedUrl = generateState.confirmationUrl;
@@ -239,16 +239,13 @@ export function ConfirmationLinkPanel({
       (active && generateState.message !== "Confirmation link generated."));
   const showRevokeMessage =
     revokeState.message && (revokeState.status === "error" || !active);
+  const bookingEmail = summary.requestRecipientEmail ?? summary.contactEmail;
   const profileEmailDiffers = Boolean(
-    summary.contactEmail &&
+    bookingEmail &&
     customerProfileEmail &&
-    !customerContactEmailsMatch(summary.contactEmail, customerProfileEmail),
+    !customerContactEmailsMatch(bookingEmail, customerProfileEmail),
   );
-  const suggestedRecipient =
-    sendState.recipientEmail ??
-    summary.requestRecipientEmail ??
-    summary.contactEmail ??
-    "";
+  const suggestedRecipient = sendState.recipientEmail ?? bookingEmail ?? "";
   const [recipientEmail, setRecipientEmail] = useState(suggestedRecipient);
   const savedContactEmail = customerProfileEmail
     ? normalizeCustomerContactEmail(customerProfileEmail)
@@ -258,6 +255,26 @@ export function ConfirmationLinkPanel({
       ? undefined
       : sendState.fieldErrors?.recipientEmail?.[0];
   const customEmailVisible = customEmailOpen || sendState.status === "error";
+  const recoveryPresentation = getEmailRecoveryPresentation({
+    summary: providerDelivery,
+    confirmed,
+    hasCustomerEmail: Boolean(bookingEmail),
+  });
+  const recipientMatchesLastRequest = Boolean(
+    summary.requestRecipientEmail &&
+    recipientEmail &&
+    customerContactEmailsMatch(recipientEmail, summary.requestRecipientEmail),
+  );
+  const unchangedSendBlocked =
+    recipientMatchesLastRequest && !recoveryPresentation.allowUnchangedEmailSend;
+  const emailEditorLabel =
+    recoveryPresentation.primaryAction === "add_email"
+      ? "Add email"
+      : recoveryPresentation.primaryAction === "edit_email"
+        ? "Edit email"
+        : recoveryPresentation.primaryAction === "check_email"
+          ? "Check email"
+          : "Custom email";
 
   function useSavedContactEmail() {
     if (!savedContactEmail) return;
@@ -301,36 +318,34 @@ export function ConfirmationLinkPanel({
         </DetailRow>
       </dl>
 
-      {summary.contactEmail || savedContactEmail ? (
-        <div className="grid gap-3 rounded-lg border border-border bg-muted/60 p-3 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="min-w-0">
-            <p className="text-xs font-medium text-muted-foreground">Customer email</p>
-            <p className="mt-1 break-all text-sm">
-              {summary.contactEmail ?? "No customer email added"}
-            </p>
-          </div>
-          {savedContactEmail && (!summary.contactEmail || profileEmailDiffers) ? (
-            <div className="min-w-0">
-              <p className="text-xs font-medium text-muted-foreground">
-                Saved contact email <span className="font-normal">(optional)</span>
-              </p>
-              <p className="mt-1 break-all text-sm">{savedContactEmail}</p>
-            </div>
-          ) : null}
-          <div>
-            <p className="text-xs font-medium text-muted-foreground">Contact phone</p>
-            <p className="mt-1 text-sm">{summary.contactPhone ?? "Not provided"}</p>
-          </div>
-          <div>
-            <p className="text-xs font-medium text-muted-foreground">
-              Confirmation email
-            </p>
-            <p className="mt-1 text-sm capitalize">
-              {summary.emailStatus?.toLowerCase().replace("_", " ") ?? "Not queued"}
-            </p>
-          </div>
+      <div className="grid gap-3 rounded-lg border border-border bg-muted/60 p-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="min-w-0">
+          <p className="text-xs font-medium text-muted-foreground">
+            Customer email for this booking
+          </p>
+          <p className="mt-1 break-all text-sm">
+            {bookingEmail ?? "No customer email added"}
+          </p>
         </div>
-      ) : null}
+        {savedContactEmail && (!bookingEmail || profileEmailDiffers) ? (
+          <div className="min-w-0">
+            <p className="text-xs font-medium text-muted-foreground">
+              Saved contact email <span className="font-normal">(optional)</span>
+            </p>
+            <p className="mt-1 break-all text-sm">{savedContactEmail}</p>
+          </div>
+        ) : null}
+        <div>
+          <p className="text-xs font-medium text-muted-foreground">Contact phone</p>
+          <p className="mt-1 text-sm">{summary.contactPhone ?? "Not provided"}</p>
+        </div>
+        <div>
+          <p className="text-xs font-medium text-muted-foreground">Confirmation email</p>
+          <p className="mt-1 text-sm capitalize">
+            {summary.emailStatus?.toLowerCase().replace("_", " ") ?? "Not queued"}
+          </p>
+        </div>
+      </div>
 
       {summary.requestRecipientEmail ? (
         <div className="rounded-lg border border-border bg-muted/50 p-3 text-sm">
@@ -343,32 +358,10 @@ export function ConfirmationLinkPanel({
         </div>
       ) : null}
 
-      {deliveryPresentation && summary.requestCreatedAt ? (
-        <div
-          data-provider-delivery={providerDelivery?.provider_delivery_status}
-          className={cn(
-            "rounded-lg border p-3 text-sm",
-            confirmed || deliveryPresentation.tone === "neutral"
-              ? "border-border bg-muted/45"
-              : deliveryPresentation.tone === "positive"
-                ? "border-primary/20 bg-primary/[0.04]"
-                : deliveryPresentation.tone === "critical"
-                  ? "border-destructive/25 bg-destructive/[0.04]"
-                  : "border-amber-300/60 bg-amber-50/60",
-          )}
-        >
-          <p className="font-semibold">
-            {confirmed
-              ? `Email delivery: ${deliveryPresentation.title}`
-              : deliveryPresentation.title}
-          </p>
-          {!confirmed ? (
-            <p className="mt-1 leading-5 text-muted-foreground">
-              {deliveryPresentation.description}
-            </p>
-          ) : null}
-        </div>
-      ) : null}
+      <EmailDeliveryStatus
+        presentation={recoveryPresentation}
+        providerStatus={providerDelivery?.provider_delivery_status}
+      />
 
       {active && generatedUrl && generatedLinkId ? (
         <div className="space-y-4 rounded-lg border border-primary/20 bg-primary/[0.03] p-4">
@@ -420,10 +413,12 @@ export function ConfirmationLinkPanel({
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block text-sm font-semibold leading-5">
-                      Custom email
+                      {emailEditorLabel}
                     </span>
                     <span className="mt-0.5 block text-sm leading-5 text-muted-foreground">
-                      Send the confirmation link to a specific email address.
+                      {bookingEmail
+                        ? "Review the booking-specific address before sending a fresh confirmation."
+                        : "Add a booking-specific address without changing the customer profile."}
                     </span>
                   </span>
                   <ChevronDown
@@ -505,15 +500,29 @@ export function ConfirmationLinkPanel({
                     id="confirmation-recipient-help"
                     className="text-xs leading-5 text-muted-foreground"
                   >
-                    Used for updates about this booking. Sending creates a fresh secure
-                    link; changing this address revokes the previous link.
+                    Used only for this booking. Sending creates a fresh secure link;
+                    changing this address revokes the previous link without changing the
+                    customer profile.
                   </p>
+                  {unchangedSendBlocked ? (
+                    <p className="text-xs leading-5 text-amber-800" role="status">
+                      Check and change this address before sending another email. You can
+                      still share the secure link another way.
+                    </p>
+                  ) : null}
                   <SubmitButton
-                    label="Send confirmation email"
+                    label={
+                      unchangedSendBlocked
+                        ? "Change email to send"
+                        : summary.requestRecipientEmail
+                          ? "Send fresh confirmation"
+                          : "Send confirmation email"
+                    }
                     pendingLabel="Sending..."
                     variant="primary"
                     icon="send"
                     className="w-full sm:w-auto"
+                    disabled={unchangedSendBlocked}
                   />
                   {sendState.message ? (
                     <p

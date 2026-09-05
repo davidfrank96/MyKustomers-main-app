@@ -33,17 +33,13 @@ describe("booking live synchronization", () => {
       getBookingLiveNotification(
         state("AWAITING_CUSTOMER", null, null),
         state("CONFIRMED", "2026-08-26T10:01:00.000Z", null),
-      ).title,
+      )?.title,
     ).toBe("Customer confirmed");
     expect(
       getBookingLiveNotification(
         state("COMPLETED", "2026-08-26T10:01:00.000Z", null),
-        state(
-          "COMPLETED",
-          "2026-08-26T10:01:00.000Z",
-          "2026-08-26T10:02:00.000Z",
-        ),
-      ).title,
+        state("COMPLETED", "2026-08-26T10:01:00.000Z", "2026-08-26T10:02:00.000Z"),
+      )?.title,
     ).toBe("New customer feedback");
   });
 
@@ -86,8 +82,28 @@ describe("booking live synchronization", () => {
       providerEventAt: "2026-08-26T10:01:00.000Z",
     });
     expect(current.revision).not.toBe(previous.revision);
-    expect(getBookingLiveNotification(previous, current).title).toBe(
-      "Email delivery delayed",
+    expect(getBookingLiveNotification(previous, current)).toBeNull();
+  });
+
+  it("reserves provider-event notifications for actionable recovery states", () => {
+    const previous = createBookingLiveState({
+      status: "AWAITING_CUSTOMER",
+      updatedAt: "2026-08-26T10:00:00.000Z",
+      customerConfirmedAt: null,
+      feedbackSubmittedAt: null,
+      providerDeliveryStatus: "UNKNOWN",
+      providerEventAt: null,
+    });
+    const bounced = createBookingLiveState({
+      status: "AWAITING_CUSTOMER",
+      updatedAt: "2026-08-26T10:00:00.000Z",
+      customerConfirmedAt: null,
+      feedbackSubmittedAt: null,
+      providerDeliveryStatus: "SOFT_BOUNCED",
+      providerEventAt: "2026-08-26T10:01:00.000Z",
+    });
+    expect(getBookingLiveNotification(previous, bounced)?.title).toBe(
+      "Email could not be delivered",
     );
   });
 });
