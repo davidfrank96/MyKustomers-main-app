@@ -1,11 +1,14 @@
 # Email Reliability Phase 2 — Stage 2B Migration Approval Report
 
-STATUS: APPROVED AND APPLIED; APPLICATION VERIFICATION PENDING. The exact reviewed
-migration was applied transactionally to the validated Production-backed database on
-2026-09-05. Application commit, PR/CI, Vercel deployment, Brevo webhook activation,
-responsive review, and controlled provider verification remain pending. The
-dedicated Vercel Production secret is configured but cannot affect a deployment
-until the endpoint commit reaches Production.
+STATUS: DEPLOYED AND ACTIVE; CONTROLLED PROVIDER VERIFICATION PENDING. The exact
+reviewed migration was applied transactionally to the validated Production-backed
+database on 2026-09-05. PR #67 passed every required executable check, merged as
+`0fff7ceae3826f5c9b24835032399c5c2525238d`, and Vercel deployment
+`k4scVd8GPQpYejpqM9HsWEvstvpZ` is Ready on that exact merge. The dedicated Vercel
+Production secret is configured and exactly one authenticated Brevo transactional
+webhook is active. The Admin responsive matrix and canonical unsigned denial are
+verified. No controlled inbox was available, so callback-to-inbox proof is not
+claimed.
 
 ## A. Starting State
 
@@ -74,7 +77,11 @@ One append-only `email_provider_events` table linked by composite FK to the exac
 
 Brevo callback values map as follows: `delivered→DELIVERED`, `deferred→DEFERRED`, `soft_bounce→SOFT_BOUNCED`, `hard_bounce→HARD_BOUNCED`, `invalid_email→INVALID`, `blocked→BLOCKED`, `spam→COMPLAINT`, `error→PROVIDER_ERROR`.
 
-The current Create Webhook API subscription identifiers are `delivered`, `deferred`, `softBounce`, `hardBounce`, `invalid`, `blocked`, and `spam`. Its published enum currently omits `error`, although the transactional callback guide documents it. Do not claim an error subscription or activate configuration until this conflict is resolved with a controlled API check/Brevo support. No open/click events are in scope.
+The active Brevo dashboard configuration exposes and enables `delivered`,
+`deferred`, `softBounce`, `hardBounce`, `invalid`, `blocked`, `spam`, and `error`.
+This resolves the earlier Create Webhook API-enum ambiguity through the provider's
+current authenticated configuration UI. `sent`, `opened`, `uniqueProxyOpen`,
+`uniqueOpened`, `unsubscribed`, `click`, and `proxyOpen` are disabled.
 
 ## Q. Correlation Strategy
 
@@ -172,11 +179,18 @@ NONE. DDL builds indexes/constraints but no existing row value is inserted, upda
 
 ## AN. Environment Change Required
 
-`BREVO_WEBHOOK_SECRET`, Production only, after approval. Preview/local positive tests require a separate ephemeral value, never the Production secret.
+`BREVO_WEBHOOK_SECRET`, Production only. It is stored as a Vercel Secret; a
+pre-activation value was rotated before use and was never configured in Brevo.
+Preview/local positive tests use separate ephemeral values, never the Production
+secret.
 
 ## AO. Brevo Dashboard Change Required
 
-After migration + endpoint + secret + controlled tests: exactly one active transactional email webhook for the canonical HTTPS route; bearer auth; seven currently supported outcome subscriptions; no query secret, opens, clicks or duplicates. No sender/domain/API-key/provider/suppression changes.
+Exactly one active transactional email webhook is configured for the canonical
+HTTPS route with token/bearer authentication and all eight dashboard-supported
+delivery/suppression outcomes. It contains no query-string secret; all seven
+engagement/other events are disabled. No duplicate, sender, domain, API-key,
+provider, or suppression-list change was made.
 
 ## AP. Production Risk
 
@@ -196,26 +210,35 @@ sticky complaint ordering, and update/delete/truncate denial. Full Vitest passed
 vulnerabilities), and diff hygiene passed. Protected Runtime Security correctly
 skipped without its opt-in gates. Repository-wide Playwright exposed unrelated
 pre-existing homepage/auth presentation drift and was stopped; phase-specific CI,
-responsive, deployment, and controlled-provider evidence remains pending.
+deployment, and Admin responsive evidence now pass. Controlled provider/inbox and
+Production vendor-tenant evidence remain pending.
+
+PR #67 passed Quality, Tests, Build, Dependency Security, and E2E; protected
+Runtime Security was correctly reported as skipped. The post-merge `main` run
+passed all five executable jobs. Production Admin Email Operations was visually
+reviewed at 320, 360, 390, 430, 768, 1024, and 1440 pixels. The authenticated
+admin identity has no vendor workspace, so no Production tenant was fabricated;
+vendor responsive behavior remains covered by the merged component and bounded
+sync tests.
 
 ## AS. Documentation Plan
 
 DATA_MODEL, MIGRATIONS, EMAIL_OPERATIONS, architecture, security/Sentry, TESTING,
 release checklist, Booking Details, confirmation README, provider README, master
 plan, deployment configuration, and changelog are updated in this implementation.
-Production claims remain pending until the exact merge is deployed and activated.
+Production deployment and activation evidence is recorded here. Controlled
+provider callback/inbox evidence remains intentionally unclaimed.
 
 ## AT. Remaining Evidence Gaps
 
-Application commit/PR/CI and Vercel deployment remain pending. The final dedicated
-Production webhook secret is stored as a Vercel Secret and was rotated before use;
-no deployment can read it yet and no Brevo webhook is active. No callback or inbox
-was fabricated. The
-Create Webhook API enum still omits `error`, so configuration must use the seven
-supported subscriptions while the endpoint remains capable of safely ingesting a
-documented `error` callback. Runtime Security and controlled Gmail/Outlook/.ie inbox
-evidence remain pending.
+No controlled callback or inbox observation is available. Configuration itself
+created zero provider-event rows, so no evidence was fabricated. The active Brevo
+dashboard configuration includes all eight supported delivery/suppression outcomes,
+including `error`, and disables all seven engagement/other events. Protected
+Runtime Security remains an intentional skip without its opt-in gates. A controlled
+vendor workspace and Gmail/Outlook/.ie inbox remain future evidence gaps; legitimate
+customers and Production tenant data were not used to close them.
 
 ## AU. Final Status
 
-`EMAIL RELIABILITY PHASE 2B — IMPLEMENTED — VERIFICATION PENDING`
+`EMAIL RELIABILITY PHASE 2B — PRODUCTION ACTIVE — CONTROLLED PROVIDER VERIFICATION PENDING`

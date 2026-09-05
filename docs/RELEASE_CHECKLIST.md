@@ -7,14 +7,18 @@
 - [x] Existing outbox/attempt counts and full-row digests unchanged; zero backfill.
 - [x] Rollback-only ingestion/idempotency/order/append-only runtime smoke passed.
 - [x] Webhook endpoint, correlation header, Admin/vendor UI, and focused tests implemented.
-- [ ] Full local verification matrix passes, with protected skips reported accurately.
+- [x] Full local quality/unit/build/audit verification passes; protected skips and
+      the unrelated baseline Playwright drift are reported accurately.
 - [x] Final Production-only `BREVO_WEBHOOK_SECRET` configured as a Vercel Secret;
       the pre-activation value was rotated and never configured in Brevo.
-- [ ] PR executable checks pass and exact merge deploys Ready to Vercel Production.
-- [ ] Exactly one authenticated Brevo transactional webhook is active for the seven
-      currently supported delivery/suppression subscriptions; no engagement events.
-- [ ] Canonical endpoint, Admin/vendor responsive matrix, and controlled provider
-      outcomes are verified without contacting legitimate customers or fabricating inbox proof.
+- [x] PR #67 executable checks pass and exact merge `0fff7ce` deploys Ready to
+      Vercel Production as `k4scVd8GPQpYejpqM9HsWEvstvpZ`.
+- [x] Exactly one authenticated Brevo transactional webhook is active for the eight
+      dashboard-supported delivery/suppression subscriptions; no engagement events.
+- [x] Canonical unsigned endpoint denial and Admin 320–1440 responsive matrix are
+      verified without contacting legitimate customers or fabricating evidence.
+- [ ] Controlled provider callback/inbox outcomes and a Production vendor responsive
+      matrix remain pending because no authorized controlled inbox/vendor tenant was available.
 
 ## Email Reliability Stage 1 Release Gate
 
@@ -25,7 +29,8 @@
 - [x] Read-only production development-adapter labeling verified.
 - [x] Public normalization and ambiguous-copy artifact/synthetic evidence recorded;
       no real customer submission or email is allowed for smoke.
-- [x] Stage 2 migration remains unapplied pending explicit approval.
+- [x] At the Stage 1 release boundary, the Stage 2 migration remained unapplied
+      pending explicit approval; it was applied only after that approval.
 
 This checklist separates verified development evidence from remaining
 production-readiness work.
@@ -539,7 +544,8 @@ returned zero matching businesses and Auth users.
       request content omits add-on terms, confirmation shows recorded effective
       totals, and provider failure does not roll back state.
 - [ ] Failed-event retry worker/schedule configured.
-- [ ] Delivery/bounce webhook ingestion implemented.
+- [x] Delivery/bounce webhook ingestion implemented and active through Email
+      Reliability Stage 2B; controlled callback/inbox evidence remains tracked above.
 
 ## Billing
 

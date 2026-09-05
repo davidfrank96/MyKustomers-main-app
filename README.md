@@ -1,14 +1,21 @@
 # My Kustomers
 
-Email Reliability Stage 2B is implemented with release verification pending. It
+Email Reliability Stage 2B is deployed and active in Production, with controlled
+provider-callback and inbox evidence still pending. It
 keeps durable outbox acceptance separate from append-only Brevo delivery evidence,
 adds a bearer-authenticated and body-bounded callback boundary, and presents
 minimized provider outcomes separately in Admin Email Operations and Booking
 Details. It adds no automatic retry/failover, engagement tracking, historical
 backfill, raw provider payload storage, or booking-state mutation. The approved
 additive Production migration is applied and rollback-only functional evidence
-passed; PR/CI, exact-commit deployment, Production secret/webhook activation,
-responsive checks, and controlled provider evidence remain pending.
+passed. PR #67 passed every required executable check and merged as
+`0fff7ceae3826f5c9b24835032399c5c2525238d`; Vercel deployment
+`k4scVd8GPQpYejpqM9HsWEvstvpZ` is Ready on that exact merge. The dedicated
+Production secret is configured and exactly one authenticated Brevo transactional
+webhook is active for the eight delivery/suppression outcomes exposed by the
+dashboard, with engagement events disabled. Canonical unsigned denial, the Admin
+responsive matrix, and zero fabricated provider events are verified. No controlled
+inbox was available, so callback-to-inbox proof is not claimed.
 
 Image-picker reliability and booking-completion success UX are VERIFIED -
 PRODUCTION. The shared business-logo flow now opens the platform picker through

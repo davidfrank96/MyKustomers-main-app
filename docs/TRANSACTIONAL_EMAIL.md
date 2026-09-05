@@ -2,7 +2,7 @@
 
 ## Provider Delivery Evidence
 
-IMPLEMENTED — VERIFICATION PENDING. Future Brevo sends include
+PRODUCTION ACTIVE — CONTROLLED PROVIDER VERIFICATION PENDING. Future Brevo sends include
 `X-Mailin-custom: mk-attempt-v1:<opaque digest>` derived from the exact random
 delivery-attempt UUID. It contains no customer, booking, capability, or recipient
 data. `POST /api/webhooks/brevo/transactional` authenticates a dedicated bearer
@@ -14,7 +14,12 @@ Provider events are append-only and idempotent. Current state uses explicit stic
 priority plus provider timestamps, not HTTP receipt order. `SENT` remains provider
 acceptance and never means destination delivery, inbox placement, opening, or
 customer acknowledgement. Permanent failures/complaints never trigger automatic
-retry or Resend failover; manual secure-link sharing remains available.
+retry or Resend failover; manual secure-link sharing remains available. The exact
+merged application is Ready in Production, the dedicated Production secret is
+configured, and exactly one authenticated Brevo transactional webhook is active for
+the eight dashboard-supported delivery/suppression outcomes. Engagement events are
+disabled. Controlled callback-to-inbox evidence remains pending and is not inferred
+from provider configuration.
 
 Status: VERIFIED - PRODUCTION
 
