@@ -2,13 +2,17 @@
 
 ## Email Reliability Stage 2 — Provider Delivery
 
-IMPLEMENTED — VERIFICATION PENDING. Outbox state and provider delivery are now
+PRODUCTION ACTIVE — CONTROLLED PROVIDER VERIFICATION PENDING. Outbox state and provider delivery are now
 separate operational dimensions. `SENT` still means provider acceptance. The new
 bounded Admin projections return `UNKNOWN`, delivered, delayed, bounce/invalid,
 blocked, complaint, or provider-error evidence without provider IDs, recipients, or
 raw payloads. Detail exposes only ordered event type, provider/receipt timestamps,
 and a fixed reason category. Recipient failures may make **Recipient delivery** need
 attention while **Outbox** remains operational. Existing retry authority is unchanged.
+The exact merged application is Ready in Production and one authenticated Brevo
+transactional webhook is active for the eight delivery/suppression outcomes exposed
+by the provider dashboard; all engagement events are disabled. No controlled inbox
+was available, so recipient outcome evidence is not fabricated.
 
 ## Email Reliability Stage 1 — Code-Only Compatibility
 

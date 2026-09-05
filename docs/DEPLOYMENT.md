@@ -4,11 +4,14 @@
 
 `BREVO_WEBHOOK_SECRET` is a high-entropy server-only secret configured for
 Production only. It is distinct from `BREVO_API_KEY`, has no `NEXT_PUBLIC_`
-prefix, and never appears in a URL or repository file. Activate exactly one Brevo
-transactional webhook only after the additive migration is catalog-verified, the
+prefix, and never appears in a URL or repository file. Exactly one Brevo
+transactional webhook was activated after the additive migration was catalog-verified, the
 exact application commit is Ready in Production, unsigned requests return 401,
-and a signed controlled request succeeds. Subscribe only to delivery,
-delay/bounce, invalid, blocked, and complaint outcomes—never opens or clicks.
+and the endpoint/authentication contracts passed. It subscribes only to delivered,
+deferred, soft bounce, hard bounce, invalid, blocked, complaint, and provider-error
+outcomes—never opens, clicks, unsubscribe, proxy-load, or sent events. A controlled
+real-provider callback/inbox observation remains required before claiming recipient
+delivery verification.
 
 The callback endpoint is:
 
@@ -43,6 +46,10 @@ STATUS: VERIFIED
   `99f7f3834b9ec30ba0ba57fe13d536c41fbb644c`
 - Image-picker/completion UX deployment:
   `dpl_DN2GnoSvhJ8E6w1zMUBSrV58XT9L`
+- Email Reliability Stage 2B merge commit:
+  `0fff7ceae3826f5c9b24835032399c5c2525238d`
+- Email Reliability Stage 2B deployment:
+  `k4scVd8GPQpYejpqM9HsWEvstvpZ`
 
 The V2 deployment completed in 49 seconds, reported `Ready`, `Latest`,
 `Production`, and `Current`, and served `mykustomers.com` before controlled

@@ -13,9 +13,13 @@ Unit/integration coverage verifies all eight documented callback mappings, beare
 denials before DB work, malformed/media/body limits, privacy projection, retry-safe
 response codes, the Brevo-only opaque send header, Admin dimension separation,
 vendor compact states, customer-confirmation precedence, and reuse of the existing
-10-second booking reconciliation loop. Preview/Production activation, responsive
-matrix, controlled inboxes, and protected Runtime Security remain explicit release
-evidence, not implied by these tests.
+10-second booking reconciliation loop. PR #67 and post-merge `main` passed every
+required executable CI job; protected Runtime Security correctly skipped without
+its opt-in gates. The exact merge is Ready in Vercel Production, the canonical
+unsigned endpoint returns 401, exactly one authenticated Brevo webhook is active,
+and the Admin UI passed 320/360/390/430/768/1024/1440 visual review. The authenticated
+admin has no vendor workspace, so vendor production data was not fabricated.
+Controlled callback/inbox and Production vendor responsive evidence remain pending.
 
 ## Email Reliability Stage 1 Regression Coverage
 

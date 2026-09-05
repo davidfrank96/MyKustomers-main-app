@@ -2,14 +2,18 @@
 
 ## Email Reliability Stage 2 — 2026-09-05
 
-IMPLEMENTED — VERIFICATION PENDING. Exact append-only provider-delivery evidence,
+PRODUCTION ACTIVE — CONTROLLED PROVIDER VERIFICATION PENDING. Exact append-only provider-delivery evidence,
 service-only idempotent Brevo ingestion, future attempt correlation, Admin delivery
 reporting, and compact vendor confirmation-delivery presentation are implemented.
 The approved migration is applied and live-catalog/rollback verified without
-historical mutation. The final Production secret is configured as an inactive
-Vercel Secret. Exact application deployment, one Brevo transactional webhook,
-controlled callbacks/inboxes, responsive evidence, and full CI remain pending.
-Brevo stays primary and Resend stays pinned standby.
+historical mutation. PR #67 passed required executable CI and merged as
+`0fff7ce`; Vercel deployment `k4scVd8GPQpYejpqM9HsWEvstvpZ` is Ready on that
+exact merge. The final Production secret is active behind exactly one Brevo
+transactional webhook for eight delivery/suppression outcomes, with engagement
+events disabled. Canonical unsigned denial and the Admin 320–1440 matrix passed;
+configuration created zero synthetic provider events. Controlled callback/inbox
+and Production vendor-tenant evidence remain pending. Brevo stays primary and
+Resend stays pinned standby.
 
 ## Email Reliability Stage 1 — 2026-09-04
 
