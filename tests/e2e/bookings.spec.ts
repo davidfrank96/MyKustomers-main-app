@@ -604,6 +604,8 @@ test.describe("booking engine", () => {
     expect(Object.keys(await syncResponse.json()).sort()).toEqual([
       "customerConfirmedAt",
       "feedbackSubmittedAt",
+      "providerDeliveryStatus",
+      "providerEventAt",
       "revision",
       "status",
     ]);
