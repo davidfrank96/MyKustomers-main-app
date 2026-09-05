@@ -1,14 +1,22 @@
 import type { BookingStatus } from "@/features/bookings/status";
+import type { ProviderDeliveryStatus } from "@/features/provider-delivery/model";
 
 export type BookingLiveState = {
   revision: string;
   status: BookingStatus;
   customerConfirmedAt: string | null;
   feedbackSubmittedAt: string | null;
+  providerDeliveryStatus?: ProviderDeliveryStatus;
+  providerEventAt?: string | null;
 };
 
-type BookingLiveRevisionInput = Omit<BookingLiveState, "revision"> & {
+type BookingLiveRevisionInput = Omit<
+  BookingLiveState,
+  "revision" | "providerDeliveryStatus" | "providerEventAt"
+> & {
   updatedAt: string;
+  providerDeliveryStatus?: ProviderDeliveryStatus;
+  providerEventAt?: string | null;
 };
 
 export function createBookingLiveState({
@@ -16,14 +24,23 @@ export function createBookingLiveState({
   updatedAt,
   customerConfirmedAt,
   feedbackSubmittedAt,
+  providerDeliveryStatus = "UNKNOWN",
+  providerEventAt = null,
 }: BookingLiveRevisionInput): BookingLiveState {
   return {
-    revision: [status, updatedAt, customerConfirmedAt ?? "", feedbackSubmittedAt ?? ""].join(
-      ":",
-    ),
+    revision: [
+      status,
+      updatedAt,
+      customerConfirmedAt ?? "",
+      feedbackSubmittedAt ?? "",
+      providerDeliveryStatus,
+      providerEventAt ?? "",
+    ].join(":"),
     status,
     customerConfirmedAt,
     feedbackSubmittedAt,
+    providerDeliveryStatus,
+    providerEventAt,
   };
 }
 
@@ -45,6 +62,26 @@ export function getBookingLiveNotification(
     return {
       title: "New customer feedback",
       description: "Private feedback is now available on this booking.",
+    };
+  }
+
+  const previousDelivery = previous.providerDeliveryStatus ?? "UNKNOWN";
+  const currentDelivery = current.providerDeliveryStatus ?? "UNKNOWN";
+  if (previousDelivery !== currentDelivery) {
+    const title =
+      currentDelivery === "DELIVERED"
+        ? "Provider reported delivery"
+        : currentDelivery === "DEFERRED"
+          ? "Email delivery delayed"
+          : ["SOFT_BOUNCED", "HARD_BOUNCED", "INVALID"].includes(currentDelivery)
+            ? "Email could not be delivered"
+            : ["BLOCKED", "COMPLAINT"].includes(currentDelivery)
+              ? "Email sending unavailable"
+              : "Email delivery updated";
+    return {
+      title,
+      description:
+        "The Customer confirmation section now shows the latest provider evidence.",
     };
   }
 

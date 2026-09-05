@@ -32,7 +32,10 @@ import {
 import {
   ADMIN_EMAIL_PAGE_SIZE,
   describeAdminEmailDeliveryConfiguration,
+  parseAdminEmailDeliveryRows,
+  parseAdminEmailDeliveryTotals,
   parseAdminEmailEventDetail,
+  parseAdminEmailProviderHistory,
   parseAdminEmailOperationsPage,
   type AdminEmailDeliveryConfiguration,
   type AdminEmailDirectoryParams,
@@ -252,14 +255,39 @@ export async function listAdminEmailOperations(
   const result = error ? null : parseAdminEmailOperationsPage(data);
 
   if (!result) throw new AdminEmailOperationsUnavailableError();
-  const development = await findDevelopmentAdapterEvents(
+  const eventIds = result.items.map((item) => item.id);
+  const developmentEvidence = findDevelopmentAdapterEvents(
     result.items.map((item) => item.id),
+  );
+  const [development, deliveryResponse, totalsResponse] = await Promise.all([
+    developmentEvidence,
+    supabase.rpc("get_platform_admin_email_delivery", {
+      p_email_event_ids: eventIds,
+    }),
+    supabase.rpc("get_platform_admin_email_delivery_totals", {
+      p_range: params.range,
+    }),
+  ]);
+  const deliveryRows = deliveryResponse.error
+    ? null
+    : parseAdminEmailDeliveryRows(deliveryResponse.data);
+  const deliveryTotals = totalsResponse.error
+    ? null
+    : parseAdminEmailDeliveryTotals(totalsResponse.data);
+  if (!deliveryRows || !deliveryTotals) {
+    throw new AdminEmailOperationsUnavailableError();
+  }
+  const deliveryByEvent = new Map(
+    deliveryRows.map((row) => [row.email_event_id, row.delivery]),
   );
   return {
     ...result,
+    provider_delivery_totals: deliveryTotals,
     items: result.items.map((item) => ({
       ...item,
-      development_adapter: development.has(item.id),
+      provider_delivery: deliveryByEvent.get(item.id),
+      development_adapter:
+        deliveryByEvent.get(item.id)?.development_adapter ?? development.has(item.id),
     })),
   };
 }
@@ -282,10 +310,33 @@ export const getAdminEmailEvent = cache(async function getAdminEmailEvent(
     (provider) => getTransactionalEmailProviderSelectionForName(provider).configured,
   );
   if (!result) throw new AdminEmailOperationsUnavailableError();
-  const development = await findDevelopmentAdapterEvents([result.id]);
+  const [development, deliveryResponse, historyResponse] = await Promise.all([
+    findDevelopmentAdapterEvents([result.id]),
+    supabase.rpc("get_platform_admin_email_delivery", {
+      p_email_event_ids: [result.id],
+    }),
+    supabase.rpc("get_platform_admin_email_provider_history", {
+      p_email_event_id: result.id,
+      p_before: null,
+      p_before_id: null,
+    }),
+  ]);
+  const deliveryRows = deliveryResponse.error
+    ? null
+    : parseAdminEmailDeliveryRows(deliveryResponse.data);
+  const providerHistory = historyResponse.error
+    ? null
+    : parseAdminEmailProviderHistory(historyResponse.data);
+  if (!deliveryRows || !providerHistory) {
+    throw new AdminEmailOperationsUnavailableError();
+  }
+  const providerDelivery = deliveryRows[0]?.delivery;
   return {
     ...result,
+    provider_delivery: providerDelivery,
+    provider_history: providerHistory,
     development_adapter:
+      providerDelivery?.development_adapter ||
       development.has(result.id) ||
       result.delivery_attempts[0]?.provider === "development",
   };

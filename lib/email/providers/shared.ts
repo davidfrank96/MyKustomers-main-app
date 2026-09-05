@@ -6,11 +6,11 @@ import type { EmailProviderResult } from "@/lib/email/types";
 export type EmailProviderFetch = typeof fetch;
 
 const emailSchema = z.string().email().max(254);
-const correlationValuePattern = /^[a-f0-9]{32}$/;
-const allowedCorrelationHeaders = new Set([
-  "X-MyKustomers-Thread-Key",
-  "X-MyKustomers-Message-Key",
+const correlationHeaderPatterns = new Map([
+  ["X-MyKustomers-Thread-Key", /^[a-f0-9]{32}$/],
+  ["X-MyKustomers-Message-Key", /^[a-f0-9]{32}$/],
 ]);
+const brevoAttemptPattern = /^mk-attempt-v1:[a-f0-9]{64}$/;
 
 export type TransactionalEmailSender = {
   email: string;
@@ -36,6 +36,15 @@ export function parseTransactionalEmailSender(
     : { email: parsedEmail.data };
 }
 
+export function safeBrevoAttemptCorrelationHeader(
+  headers: Record<string, string> | undefined,
+) {
+  const value = headers?.["X-Mailin-custom"];
+  return typeof value === "string" && brevoAttemptPattern.test(value)
+    ? { "X-Mailin-custom": value }
+    : {};
+}
+
 export function deterministicProviderUuid(value: string) {
   const bytes = createHash("sha256").update(value, "utf8").digest().subarray(0, 16);
   bytes[6] = (bytes[6]! & 0x0f) | 0x50;
@@ -49,8 +58,7 @@ export function safeProviderCorrelationHeaders(
 ) {
   return Object.fromEntries(
     Object.entries(headers ?? {}).filter(
-      ([name, value]) =>
-        allowedCorrelationHeaders.has(name) && correlationValuePattern.test(value),
+      ([name, value]) => correlationHeaderPatterns.get(name)?.test(value) === true,
     ),
   );
 }

@@ -26,6 +26,7 @@ import {
   getAdminEmailDeliveryConfiguration,
   listAdminEmailOperations,
 } from "@/features/admin/queries";
+import { presentProviderDelivery } from "@/features/provider-delivery/model";
 
 export const metadata: Metadata = {
   title: "Email operations | Platform administration",
@@ -155,7 +156,7 @@ export default async function AdminEmailsPage({ searchParams }: PageProps) {
               </Badge>
             </div>
             <p className="mt-2 text-xs leading-5 text-muted-foreground">
-              Provider acceptance only; recipient delivery is not tracked.
+              Provider acceptance and recipient delivery are reported separately.
             </p>
           </div>
         </section>
@@ -224,9 +225,84 @@ export default async function AdminEmailsPage({ searchParams }: PageProps) {
         </div>
         <p className="mt-3 text-xs leading-5 text-muted-foreground">
           These are outbox operation counts, not externally sent or delivered totals.
-          External delivery health and recipient outcomes are not yet tracked.
+          Provider callbacks below supply separate recipient-delivery evidence.
         </p>
       </section>
+
+      {result.provider_delivery_totals ? (
+        <section
+          aria-labelledby="provider-delivery-summary-title"
+          className="min-w-0 rounded-lg border border-border bg-card p-4"
+        >
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2
+                id="provider-delivery-summary-title"
+                className="text-base font-semibold"
+              >
+                Provider delivery
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Brevo recipient outcomes; outbox infrastructure remains a separate signal.
+              </p>
+            </div>
+            <Badge
+              variant={
+                result.provider_delivery_totals.brevo_outcomes.soft_bounced +
+                  result.provider_delivery_totals.brevo_outcomes.hard_bounced +
+                  result.provider_delivery_totals.brevo_outcomes.invalid +
+                  result.provider_delivery_totals.brevo_outcomes.blocked +
+                  result.provider_delivery_totals.brevo_outcomes.complaint +
+                  result.provider_delivery_totals.brevo_outcomes.provider_error >
+                0
+                  ? "accent"
+                  : "outline"
+              }
+            >
+              Recipient delivery:{" "}
+              {result.provider_delivery_totals.brevo_outcomes.soft_bounced +
+                result.provider_delivery_totals.brevo_outcomes.hard_bounced +
+                result.provider_delivery_totals.brevo_outcomes.invalid +
+                result.provider_delivery_totals.brevo_outcomes.blocked +
+                result.provider_delivery_totals.brevo_outcomes.complaint +
+                result.provider_delivery_totals.brevo_outcomes.provider_error >
+              0
+                ? "Attention"
+                : "No current failures"}
+            </Badge>
+          </div>
+          <dl className="mt-3 grid grid-cols-2 gap-px overflow-hidden rounded-md border border-border bg-border sm:grid-cols-4">
+            {[
+              ["Accepted externally", result.provider_delivery_totals.external_accepted],
+              [
+                "Provider delivered",
+                result.provider_delivery_totals.brevo_outcomes.delivered,
+              ],
+              ["Delayed", result.provider_delivery_totals.brevo_outcomes.deferred],
+              [
+                "Delivery attention",
+                result.provider_delivery_totals.brevo_outcomes.soft_bounced +
+                  result.provider_delivery_totals.brevo_outcomes.hard_bounced +
+                  result.provider_delivery_totals.brevo_outcomes.invalid +
+                  result.provider_delivery_totals.brevo_outcomes.blocked +
+                  result.provider_delivery_totals.brevo_outcomes.complaint +
+                  result.provider_delivery_totals.brevo_outcomes.provider_error,
+              ],
+            ].map(([label, value]) => (
+              <div key={label} className="min-w-0 bg-card p-3 sm:p-4">
+                <dt className="text-xs leading-5 text-muted-foreground">{label}</dt>
+                <dd className="mt-1 text-2xl font-semibold tabular-nums">{value}</dd>
+              </div>
+            ))}
+          </dl>
+          <p className="mt-3 text-xs leading-5 text-muted-foreground">
+            {result.provider_delivery_totals.development_operations} development-adapter
+            operations and {result.provider_delivery_totals.brevo_outcomes.unknown} Brevo
+            operations without a callback are shown truthfully; no historical events were
+            fabricated.
+          </p>
+        </section>
+      ) : null}
 
       <section
         aria-labelledby="email-directory-title"
@@ -350,6 +426,11 @@ export default async function AdminEmailsPage({ searchParams }: PageProps) {
                       {event.development_adapter ? (
                         <p className="mt-1 text-xs leading-5 text-muted-foreground">
                           Development adapter — no external email sent
+                        </p>
+                      ) : null}
+                      {event.provider_delivery && !event.development_adapter ? (
+                        <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                          {presentProviderDelivery(event.provider_delivery).title}
                         </p>
                       ) : null}
                       <h3 className="mt-0.5 text-sm font-semibold">

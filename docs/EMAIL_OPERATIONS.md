@@ -1,5 +1,15 @@
 # Email Operations
 
+## Email Reliability Stage 2 — Provider Delivery
+
+IMPLEMENTED — VERIFICATION PENDING. Outbox state and provider delivery are now
+separate operational dimensions. `SENT` still means provider acceptance. The new
+bounded Admin projections return `UNKNOWN`, delivered, delayed, bounce/invalid,
+blocked, complaint, or provider-error evidence without provider IDs, recipients, or
+raw payloads. Detail exposes only ordered event type, provider/receipt timestamps,
+and a fixed reason category. Recipient failures may make **Recipient delivery** need
+attention while **Outbox** remains operational. Existing retry authority is unchanged.
+
 ## Email Reliability Stage 1 — Code-Only Compatibility
 
 Admin rows/details display **Development adapter — no external email sent** when

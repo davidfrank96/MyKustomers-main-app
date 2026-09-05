@@ -42,6 +42,17 @@ not assume repository presence alone proves application.
 
 ## Development Ledger
 
+### Email delivery evidence (2026-09-05)
+
+`20260904144304_brevo_delivery_evidence.sql` was explicitly approved and applied
+transactionally to the validated Production-backed database. Before/after counts
+remained 42 email events and 29 attempts, full-row SHA-256 digests were identical,
+and the new evidence table remained empty. Catalog inspection verified PostgreSQL
+ownership, RLS with zero policies, service-role-only ingestion, no direct table
+grants, two immutable triggers, and the reviewed indexes. A rollback-only live test
+proved idempotency, conflict/unmatched handling, deterministic ordering, and zero
+residue. Application deployment and webhook activation are separate pending gates.
+
 | Migration                                                                  | Development evidence                                                                                                                                                                                                                                                                                                                                                                        |
 | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `20260818113552_phase_2_auth_tenancy.sql`                                  | Applied; Phase 2 runtime tenancy/RLS verified                                                                                                                                                                                                                                                                                                                                               |

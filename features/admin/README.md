@@ -27,6 +27,13 @@ Email Operations also recognizes `BOOKING_RESCHEDULED` and
 secure URL is intentionally not persisted. This event-type extension does not
 change Admin Phase 6B's implementation/production-verification-pending status.
 
+Email Reliability Stage 2 adds a separate, read-only **Provider delivery**
+dimension. The directory and detail pages consume bounded admin RPC projections
+for derived delivery status and append-only event history; they never expose raw
+webhook payloads, provider message IDs, recipients, subjects, or bodies. Outbox
+`SENT` continues to mean provider acceptance, while recipient bounces and
+complaints can require attention without implying outbox degradation.
+
 ## Modules
 
 - `lib/admin/access-policy.ts` owns the explicit role/status parser and role
@@ -95,6 +102,9 @@ change Admin Phase 6B's implementation/production-verification-pending status.
   masked recipient, controlled failure category, safe attempt history, and
   server-derived retry eligibility; content, provider IDs, and raw failures
   remain absent.
+- Provider-delivery projections expose only normalized state, fixed reason
+  category, and bounded timestamps. They remain independent from retry authority,
+  booking lifecycle, and outbox state.
 - There is no self-service MFA removal, generic action dispatcher, arbitrary or
   bulk resend, automatic/provider-fallback retry, suspension, deletion,
   membership mutation, or impersonation.

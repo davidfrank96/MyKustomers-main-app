@@ -7,6 +7,7 @@ import {
 } from "@/features/confirmation-links/action-state";
 import type { ConfirmationLinkSummary } from "@/features/confirmation-links/queries";
 import type { ConfirmationShareMethod } from "@/features/confirmation-links/share";
+import type { ProviderDeliverySummary } from "@/features/provider-delivery/model";
 
 type LinkAction = (
   previousState: ConfirmationLinkActionState,
@@ -46,6 +47,7 @@ function renderPanel(
     revokeAction?: LinkAction;
     sendAction?: LinkAction;
     recordShareAction?: RecordShareAction;
+    providerDelivery?: ProviderDeliverySummary;
   } = {},
 ) {
   const generateAction = vi.fn(
@@ -62,6 +64,7 @@ function renderPanel(
   render(
     <ConfirmationLinkPanel
       summary={options.panelSummary ?? summary}
+      providerDelivery={options.providerDelivery}
       canManage={options.canManage ?? false}
       businessName="Test business"
       customerName="Test customer"
@@ -77,6 +80,61 @@ function renderPanel(
 }
 
 describe("confirmation contact evidence", () => {
+  it.each([
+    ["DELIVERED", "Provider reported delivery"],
+    ["DEFERRED", "Delivery delayed"],
+    ["SOFT_BOUNCED", "Email could not be delivered after temporary attempts"],
+    ["HARD_BOUNCED", "Email could not be delivered"],
+    ["INVALID", "Email could not be delivered"],
+    ["BLOCKED", "Email sending is unavailable for this address"],
+    ["COMPLAINT", "Email sending is unavailable for this address"],
+    ["PROVIDER_ERROR", "Provider reported a delivery error"],
+  ] as const)("shows compact %s provider evidence without removing sharing", (status, copy) => {
+    renderPanel(null, {
+      panelSummary: {
+        ...summary,
+        status: "active",
+        usedAt: null,
+        confirmedAt: null,
+        requestRecipientEmail: "controlled@example.com",
+        requestCreatedAt: "2026-08-26T10:00:00.000Z",
+      },
+      canManage: true,
+      providerDelivery: {
+        outbox_status: "SENT",
+        development_adapter: false,
+        provider_delivery_status: status,
+        provider_event_at: "2026-08-26T10:02:00.000Z",
+        reason_category: status === "DELIVERED" ? "NONE" : "PROVIDER_ERROR",
+        evidence_received_at: "2026-08-26T10:02:01.000Z",
+      },
+    });
+
+    expect(screen.getByText(copy)).toBeVisible();
+    expect(screen.getByRole("button", { name: "Regenerate link" })).toBeVisible();
+  });
+
+  it("lets customer confirmation outrank earlier transport failure", () => {
+    renderPanel(null, {
+      providerDelivery: {
+        outbox_status: "SENT",
+        development_adapter: false,
+        provider_delivery_status: "HARD_BOUNCED",
+        provider_event_at: "2026-08-26T10:02:00.000Z",
+        reason_category: "PERMANENT_DELIVERY_FAILURE",
+        evidence_received_at: "2026-08-26T10:02:01.000Z",
+      },
+      panelSummary: {
+        ...summary,
+        requestRecipientEmail: "controlled@example.com",
+        requestCreatedAt: "2026-08-26T10:00:00.000Z",
+      },
+    });
+    expect(screen.getByText("Customer confirmed")).toBeVisible();
+    expect(screen.getByText("Email delivery: Email could not be delivered")).toBeVisible();
+    expect(screen.queryByText("The address may be incorrect or unavailable.")).toBeNull();
+  });
+
   it("distinguishes a booking email from a different saved contact email", () => {
     renderPanel("old@example.com");
 

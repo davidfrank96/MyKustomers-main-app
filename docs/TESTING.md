@@ -1,5 +1,22 @@
 # Testing
 
+## Email Reliability Stage 2 Coverage
+
+Migration contracts cover zero historical DML, composite attempt/event integrity,
+RLS/grants, append-only triggers, exact Brevo correlation, internal idempotency,
+locking, bounded projections, and deterministic ordering. A live Production-backed
+rollback transaction verified service-role `RECORDED`/`DUPLICATE`, `UNMATCHED`,
+`CORRELATION_CONFLICT`, complaint-over-delivery ordering, mutation denial, and zero
+residue. Pre/post counts remained 42/29 and full-row digests matched.
+
+Unit/integration coverage verifies all eight documented callback mappings, bearer
+denials before DB work, malformed/media/body limits, privacy projection, retry-safe
+response codes, the Brevo-only opaque send header, Admin dimension separation,
+vendor compact states, customer-confirmation precedence, and reuse of the existing
+10-second booking reconciliation loop. Preview/Production activation, responsive
+matrix, controlled inboxes, and protected Runtime Security remain explicit release
+evidence, not implied by these tests.
+
 ## Email Reliability Stage 1 Regression Coverage
 
 Synthetic tests cover arbitrary domains, plus addressing, local-part preservation,

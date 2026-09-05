@@ -1,8 +1,22 @@
 # Master Plan
 
+## Email Reliability Stage 2 — 2026-09-05
+
+IMPLEMENTED — VERIFICATION PENDING. Exact append-only provider-delivery evidence,
+service-only idempotent Brevo ingestion, future attempt correlation, Admin delivery
+reporting, and compact vendor confirmation-delivery presentation are implemented.
+The approved migration is applied and live-catalog/rollback verified without
+historical mutation. The final Production secret is configured as an inactive
+Vercel Secret. Exact application deployment, one Brevo transactional webhook,
+controlled callbacks/inboxes, responsive evidence, and full CI remain pending.
+Brevo stays primary and Resend stays pinned standby.
+
 ## Email Reliability Stage 1 — 2026-09-04
 
-IMPLEMENTED — VERIFICATION PENDING. This code-only maintenance corrects public
+VERIFIED — PRODUCTION. PR #66 merged as `de0dc495`; all five executable CI jobs
+passed, Vercel deployed the exact merge Ready, and the read-only Production admin
+smoke showed the explicit legacy development-adapter label. This code-only
+maintenance corrects public
 contact normalization, ambiguous send wording, and historical development-adapter
 presentation. It preserves the current outbox, provider pinning, tenant/capability
 security, and immutable recipient evidence. Stage 2 delivery visibility is separately

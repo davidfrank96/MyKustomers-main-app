@@ -7,6 +7,7 @@ import {
   parseTransactionalEmailSender,
 } from "@/lib/email/providers/shared";
 import type { TransactionalEmailMessage } from "@/lib/email/types";
+import { buildBrevoAttemptCorrelation } from "@/lib/email/threading";
 
 vi.mock("server-only", () => ({}));
 
@@ -19,6 +20,7 @@ const message: TransactionalEmailMessage = {
   headers: {
     "X-MyKustomers-Thread-Key": "a".repeat(32),
     "X-MyKustomers-Message-Key": "b".repeat(32),
+    "X-Mailin-custom": `mk-attempt-v1:${"c".repeat(64)}`,
     "In-Reply-To": "<untrusted@example.com>",
   },
 };
@@ -82,6 +84,12 @@ describe("transactional email provider selection", () => {
 });
 
 describe("Brevo transactional email adapter", () => {
+  it("builds the exact opaque future-attempt correlation expected by the database", () => {
+    expect(buildBrevoAttemptCorrelation("11111111-1111-4111-8111-111111111111")).toBe(
+      "mk-attempt-v1:b21a2c0b8cd85614d036632388c751b46226d113bdc78206bc3d536c44472de1",
+    );
+  });
+
   it("sends normalized HTML and plaintext and returns only the provider message ID", async () => {
     const fetchMock = vi.fn(async (...args: Parameters<typeof fetch>) => {
       void args;
@@ -118,6 +126,7 @@ describe("Brevo transactional email adapter", () => {
     expect(body.headers).toMatchObject({
       "X-MyKustomers-Thread-Key": "a".repeat(32),
       "X-MyKustomers-Message-Key": "b".repeat(32),
+      "X-Mailin-custom": `mk-attempt-v1:${"c".repeat(64)}`,
     });
     expect(body.headers).not.toHaveProperty("In-Reply-To");
   });

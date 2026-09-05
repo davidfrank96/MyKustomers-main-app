@@ -26,6 +26,10 @@ import { CustomerConfirmationShare } from "@/components/forms/customer-confirmat
 import { Button } from "@/components/ui/button";
 import type { ConfirmationLinkSummary } from "@/features/confirmation-links/queries";
 import {
+  presentProviderDelivery,
+  type ProviderDeliverySummary,
+} from "@/features/provider-delivery/model";
+import {
   initialConfirmationLinkActionState,
   type ConfirmationLinkActionState,
 } from "@/features/confirmation-links/action-state";
@@ -38,6 +42,7 @@ import { cn } from "@/lib/utils/cn";
 
 type ConfirmationLinkPanelProps = {
   summary: ConfirmationLinkSummary;
+  providerDelivery?: ProviderDeliverySummary | null;
   canManage: boolean;
   businessName: string;
   customerName: string | null;
@@ -182,6 +187,7 @@ const statusPresentation: Record<
 
 export function ConfirmationLinkPanel({
   summary,
+  providerDelivery,
   canManage,
   businessName,
   customerName,
@@ -218,6 +224,9 @@ export function ConfirmationLinkPanel({
   }, [sendState]);
   const active = summary.status === "active";
   const confirmed = summary.status === "used" || Boolean(summary.confirmedAt);
+  const deliveryPresentation = providerDelivery
+    ? presentProviderDelivery(providerDelivery)
+    : null;
   const canGenerateFresh =
     canManage && ["none", "revoked", "expired"].includes(summary.status);
   const generatedUrl = generateState.confirmationUrl;
@@ -331,6 +340,33 @@ export function ConfirmationLinkPanel({
             {summary.requestEmailStatus?.toLowerCase() ?? "queued"} ·{" "}
             {formatDateTime(summary.requestCreatedAt)}
           </p>
+        </div>
+      ) : null}
+
+      {deliveryPresentation && summary.requestCreatedAt ? (
+        <div
+          data-provider-delivery={providerDelivery?.provider_delivery_status}
+          className={cn(
+            "rounded-lg border p-3 text-sm",
+            confirmed || deliveryPresentation.tone === "neutral"
+              ? "border-border bg-muted/45"
+              : deliveryPresentation.tone === "positive"
+                ? "border-primary/20 bg-primary/[0.04]"
+                : deliveryPresentation.tone === "critical"
+                  ? "border-destructive/25 bg-destructive/[0.04]"
+                  : "border-amber-300/60 bg-amber-50/60",
+          )}
+        >
+          <p className="font-semibold">
+            {confirmed
+              ? `Email delivery: ${deliveryPresentation.title}`
+              : deliveryPresentation.title}
+          </p>
+          {!confirmed ? (
+            <p className="mt-1 leading-5 text-muted-foreground">
+              {deliveryPresentation.description}
+            </p>
+          ) : null}
         </div>
       ) : null}
 

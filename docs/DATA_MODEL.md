@@ -1,5 +1,21 @@
 # Data Model
 
+## Provider Delivery Evidence
+
+`email_provider_events` is an append-only child of the exact composite
+`(delivery_attempt_id, email_event_id)` pair. It stores provider, canonical message
+digest, normalized event type, provider/receipt timestamps, fixed reason category,
+and a deterministic fingerprint. It stores no recipient, subject, body, raw payload,
+arbitrary diagnostic reason, provider ID, IP, user agent, mirror URL, or capability.
+Rows cannot be updated, deleted, or truncated. No historical events were backfilled;
+existing Brevo attempts begin with delivery state `UNKNOWN`.
+
+`email_events.status` remains outbox state. Current provider state is derived only
+from evidence for the latest attempt, using complaint > blocked > invalid > hard
+bounce > delivered > temporary/error priority and provider timestamps. Admin reads
+are capped at 20 event summaries/50 history entries and Today/7d/30d totals. Vendor
+reads return only the latest active confirmation request after tenant membership.
+
 ## Saved Profile Email And Booking Contact
 
 `customers.email` is nullable reusable directory data. It changes only through

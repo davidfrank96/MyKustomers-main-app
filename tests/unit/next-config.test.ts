@@ -48,4 +48,9 @@ describe("private capability cache headers", () => {
       'response.headers.set("Cache-Control", "no-store, max-age=0")',
     );
   });
+
+  it("keeps machine-authenticated provider callbacks outside session middleware", () => {
+    const proxy = fs.readFileSync("proxy.ts", "utf8");
+    expect(proxy).toContain("api/webhooks/");
+  });
 });

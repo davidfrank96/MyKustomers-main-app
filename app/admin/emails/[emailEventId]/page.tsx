@@ -5,6 +5,7 @@ import {
   Mail,
   RotateCw,
   ShieldAlert,
+  Activity,
 } from "lucide-react";
 import type { Metadata, Route } from "next";
 import Link from "next/link";
@@ -16,6 +17,7 @@ import { retryFailedEmailAction } from "@/features/admin/email-retry-actions";
 import { formatEmailFailureCategory } from "@/features/admin/email-operations";
 import { formatOperationLabel } from "@/features/admin/operations";
 import { getAdminEmailEvent } from "@/features/admin/queries";
+import { presentProviderDelivery } from "@/features/provider-delivery/model";
 
 export const metadata: Metadata = {
   title: "Email event | Platform administration",
@@ -38,6 +40,9 @@ export default async function AdminEmailEventPage({ params }: PageProps) {
   if (!parsedId.success) notFound();
   const event = await getAdminEmailEvent(parsedId.data);
   if (!event) notFound();
+  const providerPresentation = event.provider_delivery
+    ? presentProviderDelivery(event.provider_delivery)
+    : null;
 
   return (
     <section aria-labelledby="admin-email-event-title" className="space-y-8">
@@ -150,6 +155,55 @@ export default async function AdminEmailEventPage({ params }: PageProps) {
           delivery, opening, and reading are not tracked.
         </p>
       </section>
+
+      {event.provider_delivery && providerPresentation ? (
+        <section aria-labelledby="provider-delivery-title">
+          <div className="flex items-center gap-2">
+            <Activity className="size-5 text-primary" aria-hidden="true" />
+            <h2 id="provider-delivery-title" className="text-lg font-semibold">
+              Provider delivery
+            </h2>
+          </div>
+          <div className="mt-4 rounded-lg border border-border bg-card p-4">
+            <p className="font-semibold">{providerPresentation.title}</p>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">
+              {providerPresentation.description}
+            </p>
+            {event.provider_delivery.provider_event_at ? (
+              <p className="mt-2 text-xs text-muted-foreground">
+                Provider event {formatDate(event.provider_delivery.provider_event_at)}
+              </p>
+            ) : null}
+          </div>
+          {event.provider_history && event.provider_history.length > 0 ? (
+            <ol className="mt-4 divide-y divide-border border-y border-border">
+              {event.provider_history.map((providerEvent) => (
+                <li
+                  key={providerEvent.id}
+                  className="grid gap-1 py-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-4 sm:px-3"
+                >
+                  <div>
+                    <p className="text-sm font-medium">
+                      {formatOperationLabel(providerEvent.event_type)}
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {formatOperationLabel(providerEvent.reason_category)}
+                    </p>
+                  </div>
+                  <div className="text-xs leading-5 text-muted-foreground sm:text-right">
+                    <p>Provider {formatDate(providerEvent.provider_event_at)}</p>
+                    <p>Received {formatDate(providerEvent.received_at)}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          ) : (
+            <p className="mt-3 text-sm text-muted-foreground">
+              No provider callback evidence has been recorded for this event.
+            </p>
+          )}
+        </section>
+      ) : null}
 
       <section
         aria-labelledby="email-retry-title"

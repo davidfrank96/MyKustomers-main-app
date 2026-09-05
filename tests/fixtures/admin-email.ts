@@ -56,6 +56,25 @@ export function emailFixture(state: EmailState = "healthy") {
     page_size: 20,
     total: 60,
     totalPages: 3,
+    provider_delivery_totals: {
+      range: "7d",
+      range_start: "2026-08-28T00:00:00Z",
+      refreshed_at: "2026-09-04T00:00:00Z",
+      external_accepted: 0,
+      development_operations: 60,
+      unknown_provider_operations: 0,
+      brevo_outcomes: {
+        unknown: 0,
+        delivered: 0,
+        deferred: 0,
+        soft_bounced: 0,
+        hard_bounced: 0,
+        invalid: 0,
+        blocked: 0,
+        complaint: 0,
+        provider_error: 0,
+      },
+    },
   };
   const delivery = describeAdminEmailDeliveryConfiguration({
     label: "Development",
@@ -90,6 +109,9 @@ export function emailFixture(state: EmailState = "healthy") {
     });
     result.page = 2;
     result.summary.range = "30d";
+    if (result.provider_delivery_totals) {
+      result.provider_delivery_totals.range = "30d";
+    }
     result.summary.failed = 60;
     result.summary.sent = 0;
     result.event_types = [{ event_type: "BOOKING_DELIVERED", count: 60, failed: 60 }];
