@@ -67,4 +67,27 @@ describe("booking live synchronization", () => {
       ),
     ).toBe(false);
   });
+
+  it("includes provider evidence in the existing bounded reconciliation state", () => {
+    const previous = createBookingLiveState({
+      status: "AWAITING_CUSTOMER",
+      updatedAt: "2026-08-26T10:00:00.000Z",
+      customerConfirmedAt: null,
+      feedbackSubmittedAt: null,
+      providerDeliveryStatus: "UNKNOWN",
+      providerEventAt: null,
+    });
+    const current = createBookingLiveState({
+      status: "AWAITING_CUSTOMER",
+      updatedAt: "2026-08-26T10:00:00.000Z",
+      customerConfirmedAt: null,
+      feedbackSubmittedAt: null,
+      providerDeliveryStatus: "DEFERRED",
+      providerEventAt: "2026-08-26T10:01:00.000Z",
+    });
+    expect(current.revision).not.toBe(previous.revision);
+    expect(getBookingLiveNotification(previous, current).title).toBe(
+      "Email delivery delayed",
+    );
+  });
 });

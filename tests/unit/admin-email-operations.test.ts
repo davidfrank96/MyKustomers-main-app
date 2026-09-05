@@ -5,6 +5,9 @@ import {
   formatEmailFailureCategory,
   getAdminEmailHealth,
   parseAdminEmailEventDetail,
+  parseAdminEmailDeliveryRows,
+  parseAdminEmailDeliveryTotals,
+  parseAdminEmailProviderHistory,
   parseAdminEmailOperationsPage,
   parseAdminEmailParams,
 } from "@/features/admin/email-operations";
@@ -39,6 +42,57 @@ const summary = {
 };
 
 describe("platform admin email operation response boundaries", () => {
+  it("parses only minimized provider delivery projections", () => {
+    const delivery = {
+      outbox_status: "SENT",
+      development_adapter: false,
+      provider_delivery_status: "DELIVERED",
+      provider_event_at: createdAt,
+      reason_category: "NONE",
+      evidence_received_at: createdAt,
+    };
+    expect(
+      parseAdminEmailDeliveryRows([{ email_event_id: eventId, delivery }]),
+    ).toEqual([{ email_event_id: eventId, delivery }]);
+    expect(
+      parseAdminEmailProviderHistory([
+        {
+          id: "44444444-4444-4444-8444-444444444444",
+          event_type: "DELIVERED",
+          provider_event_at: createdAt,
+          received_at: createdAt,
+          reason_category: "NONE",
+        },
+      ]),
+    ).toHaveLength(1);
+    expect(
+      parseAdminEmailDeliveryTotals({
+        range: "7d",
+        range_start: createdAt,
+        refreshed_at: createdAt,
+        external_accepted: "2",
+        development_operations: "1",
+        unknown_provider_operations: "0",
+        brevo_outcomes: {
+          unknown: "1",
+          delivered: "1",
+          deferred: "0",
+          soft_bounced: "0",
+          hard_bounced: "0",
+          invalid: "0",
+          blocked: "0",
+          complaint: "0",
+          provider_error: "0",
+        },
+      })?.external_accepted,
+    ).toBe(2);
+    expect(
+      parseAdminEmailDeliveryRows([
+        { email_event_id: eventId, delivery: { ...delivery, recipient_email: "no" } },
+      ]),
+    ).toBeNull();
+  });
+
   it("normalizes bounded presets, filters, context, and punctuation search", () => {
     expect(
       parseAdminEmailParams({
@@ -188,7 +242,7 @@ describe("platform admin email operation response boundaries", () => {
       provider: "Brevo",
       label: "External delivery configured — Brevo",
       description:
-        "Sent means the configured provider accepted the request; delivery, opening, and reading are not tracked.",
+        "Sent records provider acceptance. Delivery callbacks report recipient outcomes separately; opening and reading are not tracked.",
     });
 
     expect(

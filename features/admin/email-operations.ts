@@ -5,6 +5,12 @@ import {
   type EmailRetryEligibility,
 } from "@/lib/email/retry-policy";
 import type { TransactionalEmailProviderName } from "@/lib/email/types";
+import {
+  providerDeliveryReasons,
+  providerDeliveryStatuses,
+  providerDeliverySummarySchema,
+  type ProviderDeliverySummary,
+} from "@/features/provider-delivery/model";
 
 export const ADMIN_EMAIL_PAGE_SIZE = 20;
 export const ADMIN_EMAIL_SEARCH_LIMIT = 80;
@@ -101,6 +107,51 @@ const adminEmailOperationsPageSchema = z
   })
   .strict();
 
+const adminEmailDeliveryRowSchema = z
+  .object({
+    email_event_id: uuidSchema,
+    delivery: providerDeliverySummarySchema,
+  })
+  .strict();
+
+const adminEmailProviderHistorySchema = z
+  .array(
+    z
+      .object({
+        id: uuidSchema,
+        event_type: z.enum(providerDeliveryStatuses).exclude(["UNKNOWN"]),
+        provider_event_at: timestampSchema,
+        received_at: timestampSchema,
+        reason_category: z.enum(providerDeliveryReasons),
+      })
+      .strict(),
+  )
+  .max(50);
+
+const adminEmailDeliveryTotalsSchema = z
+  .object({
+    range: rangeSchema,
+    range_start: timestampSchema,
+    refreshed_at: timestampSchema,
+    external_accepted: adminCountSchema,
+    development_operations: adminCountSchema,
+    unknown_provider_operations: adminCountSchema,
+    brevo_outcomes: z
+      .object({
+        unknown: adminCountSchema,
+        delivered: adminCountSchema,
+        deferred: adminCountSchema,
+        soft_bounced: adminCountSchema,
+        hard_bounced: adminCountSchema,
+        invalid: adminCountSchema,
+        blocked: adminCountSchema,
+        complaint: adminCountSchema,
+        provider_error: adminCountSchema,
+      })
+      .strict(),
+  })
+  .strict();
+
 const failureCategorySchema = z.enum([
   "provider_rejected",
   "configuration_error",
@@ -138,6 +189,7 @@ export type AdminEmailRange = (typeof adminEmailRanges)[number];
 export type AdminEmailSummary = z.infer<typeof adminEmailSummarySchema>;
 export type AdminEmailEventSummary = z.infer<typeof adminEmailSummaryRowSchema> & {
   development_adapter?: boolean;
+  provider_delivery?: ProviderDeliverySummary;
 };
 type AdminEmailEventDetailSource = z.infer<typeof adminEmailEventDetailSourceSchema>;
 export type AdminEmailDeliveryAttempt = Omit<
@@ -149,6 +201,8 @@ export type AdminEmailEventDetail = Omit<
   "retry_failure_code" | "delivery_attempts"
 > & {
   development_adapter?: boolean;
+  provider_delivery?: ProviderDeliverySummary;
+  provider_history?: z.infer<typeof adminEmailProviderHistorySchema>;
   delivery_attempts: AdminEmailDeliveryAttempt[];
   retry_eligibility: EmailRetryEligibility;
 };
@@ -158,6 +212,7 @@ export type AdminEmailOperationsPage = Omit<
 > & {
   items: AdminEmailEventSummary[];
   totalPages: number;
+  provider_delivery_totals?: z.infer<typeof adminEmailDeliveryTotalsSchema>;
 };
 export type AdminEmailDeliveryConfiguration = {
   status: "development" | "configured" | "incomplete";
@@ -216,6 +271,21 @@ export function parseAdminEmailOperationsPage(
     ...result.data,
     totalPages: Math.max(1, Math.ceil(result.data.total / result.data.page_size)),
   };
+}
+
+export function parseAdminEmailDeliveryRows(value: unknown) {
+  const result = z.array(adminEmailDeliveryRowSchema).max(20).safeParse(value);
+  return result.success ? result.data : null;
+}
+
+export function parseAdminEmailDeliveryTotals(value: unknown) {
+  const result = adminEmailDeliveryTotalsSchema.safeParse(value);
+  return result.success ? result.data : null;
+}
+
+export function parseAdminEmailProviderHistory(value: unknown) {
+  const result = adminEmailProviderHistorySchema.safeParse(value);
+  return result.success ? result.data : null;
 }
 
 export function parseAdminEmailEventDetail(
@@ -311,7 +381,7 @@ export function describeAdminEmailDeliveryConfiguration(selection: {
       provider: selection.label,
       label: `External delivery configured — ${selection.label}`,
       description:
-        "Sent means the configured provider accepted the request; delivery, opening, and reading are not tracked.",
+        "Sent records provider acceptance. Delivery callbacks report recipient outcomes separately; opening and reading are not tracked.",
     };
   }
 

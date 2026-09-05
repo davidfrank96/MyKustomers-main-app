@@ -1,5 +1,22 @@
 # Security
 
+## Email Reliability Stage 2 Boundary
+
+The provider-evidence table is PostgreSQL-owned, RLS-enabled with zero policies,
+has no direct table rights for `PUBLIC`, anon, authenticated, or service_role, and
+rejects update/delete/truncate through immutable triggers. Only service_role may
+execute the narrow ingestion function; public roles cannot supply internal event or
+attempt IDs. Correlation uses canonical message/attempt SHA-256 keys, never recipient
+email. Admin/vendor reads re-check platform role or business membership.
+
+The callback secret is server-only, Production-only, and distinct from the Brevo API
+key. The route compares bearer tokens with a timing-safe digest, rejects before DB
+work, caps JSON at 32 KiB, stores no raw payload/reason/recipient/subject/body/IP/URL,
+and reports only fixed categories to Sentry on unexpected persistence failure.
+Authentication denials, duplicates, unsupported engagement events, and validation
+failures are expected outcomes. There is no automatic resend, provider failover,
+suppression removal, historical backfill, or booking-state mutation.
+
 ## Email Reliability Stage 1 Boundary
 
 The public-confirmation schema preserves local-part case through the shared contact

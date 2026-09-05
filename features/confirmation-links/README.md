@@ -9,6 +9,15 @@ accepted, failed, ambiguous, queued/unprocessed, rate_limited, or duplicate.
 Unknown outcomes discourage repeated sending rather than promising safe retry.
 Existing manual sharing/reissue and old-open-link revocation remain unchanged.
 
+## Email Reliability Stage 2
+
+Future Brevo attempts carry an opaque digest bound to the exact persisted
+delivery-attempt UUID. Provider callbacks are append-only evidence; recipient
+email is never correlation authority. Booking Details shows a compact, derived
+delivery state without provider IDs or raw reasons. Email remains only one
+transport for the secure capability, so provider failure never removes manual
+sharing or changes confirmation-link authorization.
+
 Phase 6 implements secure customer confirmation links for bookings.
 
 ## Owns

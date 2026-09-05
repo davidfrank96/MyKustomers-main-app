@@ -7,6 +7,7 @@ import {
   parseTransactionalEmailSender,
   providerHttpFailure,
   requestEmailProvider,
+  safeBrevoAttemptCorrelationHeader,
   safeProviderCorrelationHeaders,
 } from "@/lib/email/providers/shared";
 
@@ -54,6 +55,7 @@ export function createBrevoEmailProvider({
             textContent: message.text,
             headers: {
               ...safeProviderCorrelationHeaders(message.headers),
+              ...safeBrevoAttemptCorrelationHeader(message.headers),
               idempotencyKey: deterministicProviderUuid(message.idempotencyKey),
             },
           }),

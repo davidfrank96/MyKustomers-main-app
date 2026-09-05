@@ -1,5 +1,14 @@
 # Sentry Production Observability
 
+## Brevo Webhook Privacy Boundary
+
+Unexpected provider-evidence persistence failures may report only fixed provider,
+event-category, failure-category, release, and environment values. The webhook
+route must not send recipient, subject, body, provider message ID, arbitrary
+provider diagnostics, raw callback JSON, authorization headers, or webhook secret
+to Sentry. Authentication denials, schema rejections, unsupported events, and
+idempotent duplicates are expected outcomes and are not reported as issues.
+
 Implementation state: IMPLEMENTED - PRODUCTION VERIFICATION PENDING.
 
 My Kustomers uses the official `@sentry/nextjs` SDK for production error

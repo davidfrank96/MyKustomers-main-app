@@ -1,5 +1,21 @@
 # Transactional Email
 
+## Provider Delivery Evidence
+
+IMPLEMENTED — VERIFICATION PENDING. Future Brevo sends include
+`X-Mailin-custom: mk-attempt-v1:<opaque digest>` derived from the exact random
+delivery-attempt UUID. It contains no customer, booking, capability, or recipient
+data. `POST /api/webhooks/brevo/transactional` authenticates a dedicated bearer
+secret before parsing, enforces JSON and a 32 KiB streaming body limit, maps only
+approved delivery/suppression events, and invokes one service-role-only ingestion
+RPC. Raw callbacks and arbitrary provider reasons are never persisted.
+
+Provider events are append-only and idempotent. Current state uses explicit sticky
+priority plus provider timestamps, not HTTP receipt order. `SENT` remains provider
+acceptance and never means destination delivery, inbox placement, opening, or
+customer acknowledgement. Permanent failures/complaints never trigger automatic
+retry or Resend failover; manual secure-link sharing remains available.
+
 Status: VERIFIED - PRODUCTION
 
 My Kustomers uses its own durable transactional outbox. Supabase Auth email is
@@ -36,6 +52,7 @@ Environment variable names are:
 TRANSACTIONAL_EMAIL_PROVIDER
 TRANSACTIONAL_EMAIL_FROM
 BREVO_API_KEY
+BREVO_WEBHOOK_SECRET
 RESEND_API_KEY
 ```
 

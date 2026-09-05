@@ -1,5 +1,15 @@
 # My Kustomers
 
+Email Reliability Stage 2B is implemented with release verification pending. It
+keeps durable outbox acceptance separate from append-only Brevo delivery evidence,
+adds a bearer-authenticated and body-bounded callback boundary, and presents
+minimized provider outcomes separately in Admin Email Operations and Booking
+Details. It adds no automatic retry/failover, engagement tracking, historical
+backfill, raw provider payload storage, or booking-state mutation. The approved
+additive Production migration is applied and rollback-only functional evidence
+passed; PR/CI, exact-commit deployment, Production secret/webhook activation,
+responsive checks, and controlled provider evidence remain pending.
+
 Image-picker reliability and booking-completion success UX are VERIFIED -
 PRODUCTION. The shared business-logo flow now opens the platform picker through
 a unique native label/input association instead of

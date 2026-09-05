@@ -89,6 +89,8 @@ describe("Email Operations presentation", () => {
       expect(mocks.config).toHaveBeenCalledTimes(1);
       expect(screen.getByText(fixture.delivery.label)).toBeInTheDocument();
       expect(screen.getByText(fixture.delivery.description)).toBeInTheDocument();
+      expect(screen.getByText("Provider delivery")).toBeInTheDocument();
+      expect(screen.getByText(/Recipient delivery:/)).toBeInTheDocument();
       expect(
         screen.getByText(getAdminEmailHealth(fixture.result.summary).description),
       ).toBeInTheDocument();

@@ -1,5 +1,18 @@
 # Email
 
+## Provider Delivery Evidence
+
+Future Brevo attempts add `X-Mailin-custom` with a namespaced SHA-256 digest of
+the exact attempt UUID. The value contains no recipient, booking, customer, or
+capability data. The authenticated callback route maps allowlisted outcomes into
+one narrow service-role RPC; it never sends mail, retries, falls back to another
+provider, or changes booking state.
+
+Provider delivery callbacks are append-only, idempotent evidence correlated to
+the exact provider message attempt. Permanent recipient failures and complaints
+must not trigger automatic retry or provider failover. Temporary and ambiguous
+outcomes retain their existing proven classifications.
+
 ## Email Reliability Stage 1 Presentation Invariants
 
 `SENT` records adapter/provider acceptance. It does not prove destination delivery,

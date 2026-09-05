@@ -1,5 +1,21 @@
 # Deployment
 
+## Brevo Provider-Delivery Activation
+
+`BREVO_WEBHOOK_SECRET` is a high-entropy server-only secret configured for
+Production only. It is distinct from `BREVO_API_KEY`, has no `NEXT_PUBLIC_`
+prefix, and never appears in a URL or repository file. Activate exactly one Brevo
+transactional webhook only after the additive migration is catalog-verified, the
+exact application commit is Ready in Production, unsigned requests return 401,
+and a signed controlled request succeeds. Subscribe only to delivery,
+delay/bounce, invalid, blocked, and complaint outcomes—never opens or clicks.
+
+The callback endpoint is:
+
+```text
+https://mykustomers.com/api/webhooks/brevo/transactional
+```
+
 STATUS: VERIFIED
 
 ## Current Production

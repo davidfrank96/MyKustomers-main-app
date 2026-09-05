@@ -4,6 +4,8 @@ import {
   isConfirmationShareMethod,
   type ConfirmationShareMethod,
 } from "@/features/confirmation-links/share";
+import { parseProviderDeliverySummary } from "@/features/provider-delivery/model";
+import { createClient } from "@/lib/supabase/server";
 
 export type ConfirmationLinkSummary = {
   id: string;
@@ -23,6 +25,14 @@ export type ConfirmationLinkSummary = {
   sharedAt: string | null;
   shareMethod: ConfirmationShareMethod | null;
 };
+
+export async function getConfirmationDeliveryForBooking(bookingId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("get_booking_confirmation_delivery", {
+    p_booking_id: bookingId,
+  });
+  return error ? null : parseProviderDeliverySummary(data);
+}
 
 export async function getConfirmationLinkSummaryForBooking(
   businessId: string,

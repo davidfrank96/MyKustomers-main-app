@@ -7,6 +7,13 @@ saved email**. Public confirmation stores its normalized address on the booking
 evidence only. Missing booking email creates no automatic event and does not
 block manual sharing or no-email delivery/feedback capability creation.
 
+Email Reliability Stage 2 adds one compact provider-delivery summary to the
+existing customer-confirmation section. It is loaded through a tenant-authorized,
+bounded booking projection and refreshed by the existing 10-second reconciliation
+path; it does not add a poller. Customer confirmation outranks transport state,
+and WhatsApp/native/copy-link sharing remains available while confirmation is
+outstanding even when email delivery is delayed or fails.
+
 Phase 5 implements vendor-side booking management. Phase 6 extends booking
 lifecycle behavior with secure customer confirmation before a booking can move
 to confirmed. Phase 7 adds controlled operational fulfilment transitions,

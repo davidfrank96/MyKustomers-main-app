@@ -66,7 +66,10 @@ import {
   revokeConfirmationLinkAction,
   sendConfirmationEmailAction,
 } from "@/features/confirmation-links/actions";
-import { getConfirmationLinkSummaryForBooking } from "@/features/confirmation-links/queries";
+import {
+  getConfirmationDeliveryForBooking,
+  getConfirmationLinkSummaryForBooking,
+} from "@/features/confirmation-links/queries";
 import { isConfirmationEligibleStatus } from "@/features/confirmation-links/terms";
 import {
   createBookingIssueAction,
@@ -179,6 +182,7 @@ export default async function BookingDetailPage({
     history,
     changes,
     confirmationSummary,
+    confirmationDelivery,
     amendmentSummary,
     addonSummary,
     feedbackSummary,
@@ -188,6 +192,7 @@ export default async function BookingDetailPage({
     listBookingStatusHistoryForBusiness(currentBusiness.id, booking.id),
     listBookingChangesForBusiness(currentBusiness.id, booking.id),
     getConfirmationLinkSummaryForBooking(currentBusiness.id, booking.id),
+    getConfirmationDeliveryForBooking(booking.id),
     getBookingAmendmentSummary(currentBusiness.id, booking.id),
     getBookingAddonSummary(currentBusiness.id, booking.id, booking),
     getFeedbackLinkSummaryForBooking(currentBusiness.id, booking.id),
@@ -323,6 +328,8 @@ export default async function BookingDetailPage({
     updatedAt: booking.updated_at,
     customerConfirmedAt: booking.customer_confirmed_at,
     feedbackSubmittedAt: feedback?.submitted_at ?? null,
+    providerDeliveryStatus: confirmationDelivery?.provider_delivery_status ?? "UNKNOWN",
+    providerEventAt: confirmationDelivery?.provider_event_at ?? null,
   });
   const defaultOpenSection = getDefaultOpenBookingDetailSection({
     status: booking.status,
@@ -543,6 +550,7 @@ export default async function BookingDetailPage({
         >
           <ConfirmationLinkPanel
             summary={confirmationSummary}
+            providerDelivery={confirmationDelivery}
             canManage={isConfirmationEligibleStatus(booking.status)}
             businessName={currentBusiness.name}
             customerName={booking.customer?.name ?? null}

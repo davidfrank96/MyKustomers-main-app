@@ -607,6 +607,34 @@ export type Database = {
         };
         Relationships: [];
       };
+      email_provider_events: {
+        Row: {
+          id: string;
+          email_event_id: string;
+          delivery_attempt_id: string;
+          provider: string;
+          message_key: string;
+          event_type: string;
+          provider_event_at: string;
+          received_at: string;
+          reason_category: string;
+          event_fingerprint: string;
+        };
+        Insert: {
+          id?: string;
+          email_event_id: string;
+          delivery_attempt_id: string;
+          provider?: string;
+          message_key: string;
+          event_type: string;
+          provider_event_at: string;
+          received_at?: string;
+          reason_category: string;
+          event_fingerprint: string;
+        };
+        Update: never;
+        Relationships: [];
+      };
       confirmation_rate_limits: {
         Row: {
           bucket_key: string;
@@ -878,6 +906,35 @@ export type Database = {
       get_platform_admin_email_event: {
         Args: { p_email_event_id: string };
         Returns: Json;
+      };
+      get_platform_admin_email_delivery: {
+        Args: { p_email_event_ids: string[] };
+        Returns: Json;
+      };
+      get_platform_admin_email_delivery_totals: {
+        Args: { p_range?: string };
+        Returns: Json;
+      };
+      get_platform_admin_email_provider_history: {
+        Args: {
+          p_email_event_id: string;
+          p_before?: string | null;
+          p_before_id?: string | null;
+        };
+        Returns: Json;
+      };
+      get_booking_confirmation_delivery: {
+        Args: { p_booking_id: string };
+        Returns: Json;
+      };
+      ingest_brevo_transactional_event: {
+        Args: {
+          p_message_id: string;
+          p_event_type: string;
+          p_event_epoch: number;
+          p_correlation_key?: string | null;
+        };
+        Returns: string;
       };
       create_booking_with_customer: {
         Args: {

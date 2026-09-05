@@ -18,7 +18,10 @@ import {
 import { bookingDeliveredEmail } from "@/lib/email/templates/booking-delivered";
 import { bookingRescheduledEmail } from "@/lib/email/templates/booking-rescheduled";
 import { bookingConfirmationRequestedEmail } from "@/lib/email/templates/booking-confirmation-requested";
-import { applyBookingEmailThreading } from "@/lib/email/threading";
+import {
+  applyBookingEmailThreading,
+  buildBrevoAttemptCorrelation,
+} from "@/lib/email/threading";
 import { publicEnv } from "@/lib/config/public-env";
 import { getTransactionalEmailProvider } from "@/lib/email/provider";
 import { sendWithProviderBoundary } from "@/lib/email/send";
@@ -863,6 +866,16 @@ export async function deliverClaimedEmailEvent({
     emailEventId: event.id,
     ...threadContext,
   });
+
+  if (provider.name === "brevo" && attempt.id) {
+    message = {
+      ...message,
+      headers: {
+        ...message.headers,
+        "X-Mailin-custom": buildBrevoAttemptCorrelation(attempt.id),
+      },
+    };
+  }
 
   const result = await sendWithProviderBoundary(provider, {
     ...message,

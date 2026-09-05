@@ -1468,3 +1468,30 @@ migration `20260902104919_customer_email_source_of_truth.sql`. No table, column,
 RLS policy, environment value, provider, or dependency changes. Optional phone
 enrichment remains. The delivery result's `email_event_id` is nullable because
 a valid version 1 feedback capability may exist without an email event.
+
+## ADR-061 - Provider Delivery Is Append-Only Evidence, Not Outbox State
+
+Status: Accepted
+
+Date: 2026-09-04
+
+Context: Brevo acceptance was durably represented by outbox `SENT`, but later
+destination outcomes were not. Two sampled accepted messages later soft-bounced,
+so presenting acceptance as delivery obscured recipient failures. Webhooks can be
+duplicated, delayed, or delivered before a provider message ID is durably stored.
+
+Decision: Preserve the outbox model and add a separate append-only
+`email_provider_events` evidence stream. Correlate callbacks to the exact Brevo
+attempt through canonical message-ID hashing or a future-send opaque attempt
+digest, never recipient email. Authenticate a minimized Node callback with a
+dedicated Production-only bearer secret, project allowlisted fields into one
+service-only idempotent RPC, and derive current state by explicit severity and
+provider-time rules. Exclude opens/clicks, raw payloads, retries, provider
+failover, suppression removal, historical backfill, and booking lifecycle writes.
+
+Consequences: `SENT` permanently means provider acceptance, not destination
+delivery or customer acknowledgement. Admin and vendor projections remain
+bounded and authorized; customer confirmation outranks transport warnings and
+manual secure-link sharing stays available. Temporary outcomes may be superseded
+by delivery, while permanent failures and complaints never cause automatic retry
+through Brevo or Resend.

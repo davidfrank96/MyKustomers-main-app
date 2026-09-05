@@ -1,15 +1,31 @@
 # Release Checklist
 
+## Email Reliability Stage 2 Release Gate
+
+- [x] Explicit migration approval recorded before schema application.
+- [x] Exact additive migration applied transactionally and live catalog verified.
+- [x] Existing outbox/attempt counts and full-row digests unchanged; zero backfill.
+- [x] Rollback-only ingestion/idempotency/order/append-only runtime smoke passed.
+- [x] Webhook endpoint, correlation header, Admin/vendor UI, and focused tests implemented.
+- [ ] Full local verification matrix passes, with protected skips reported accurately.
+- [x] Final Production-only `BREVO_WEBHOOK_SECRET` configured as a Vercel Secret;
+      the pre-activation value was rotated and never configured in Brevo.
+- [ ] PR executable checks pass and exact merge deploys Ready to Vercel Production.
+- [ ] Exactly one authenticated Brevo transactional webhook is active for the seven
+      currently supported delivery/suppression subscriptions; no engagement events.
+- [ ] Canonical endpoint, Admin/vendor responsive matrix, and controlled provider
+      outcomes are verified without contacting legitimate customers or fabricating inbox proof.
+
 ## Email Reliability Stage 1 Release Gate
 
-- [ ] Focused and full local quality, build, and dependency checks recorded.
-- [ ] Protected runtime/E2E outcomes reported accurately, including skips.
-- [ ] Focused PR required checks green before merge.
-- [ ] Exact merged Vercel Production commit verified Ready.
-- [ ] Read-only production development-adapter labeling verified.
-- [ ] Public normalization and ambiguous-copy artifact/synthetic evidence recorded;
+- [x] Focused and full local quality, build, and dependency checks recorded.
+- [x] Protected runtime/E2E outcomes reported accurately, including skips.
+- [x] Focused PR #66 required checks green before merge.
+- [x] Exact merged Vercel Production commit `de0dc495` verified Ready.
+- [x] Read-only production development-adapter labeling verified.
+- [x] Public normalization and ambiguous-copy artifact/synthetic evidence recorded;
       no real customer submission or email is allowed for smoke.
-- [ ] Stage 2 migration remains unapplied pending explicit approval.
+- [x] Stage 2 migration remains unapplied pending explicit approval.
 
 This checklist separates verified development evidence from remaining
 production-readiness work.

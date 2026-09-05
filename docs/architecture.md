@@ -1,5 +1,16 @@
 # Architecture
 
+## Provider Delivery Evidence Boundary
+
+The durable outbox and append-only provider evidence are independent. A logical
+email event is claimed into one provider-pinned attempt; Brevo acceptance remains
+`SENT`. A future-send opaque attempt digest plus canonical provider-message digest
+correlates callbacks without recipient authority. One bearer-authenticated Node
+route projects allowlisted fields into one service-only, idempotent database RPC.
+Vendor/admin reads cross only membership/admin-checked JSON projections. Raw webhook
+payloads, engagement tracking, retries, fallback sends, and booking lifecycle writes
+are outside this boundary.
+
 ## Customer Email Source Boundary
 
 Customer profile email is optional saved directory data; booking confirmation

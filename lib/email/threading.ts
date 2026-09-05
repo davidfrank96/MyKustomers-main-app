@@ -13,6 +13,12 @@ function opaqueCorrelation(value: string) {
   return createHash("sha256").update(value).digest("hex").slice(0, 32);
 }
 
+export function buildBrevoAttemptCorrelation(attemptId: string) {
+  return `mk-attempt-v1:${createHash("sha256")
+    .update(`brevo-attempt/v1/${attemptId}`)
+    .digest("hex")}`;
+}
+
 export function applyBookingEmailThreading(
   message: TransactionalEmailMessage,
   input: BookingThreadInput,
@@ -22,9 +28,7 @@ export function applyBookingEmailThreading(
     subject: `Booking ${input.bookingReference} - ${input.businessName}`,
     headers: {
       "X-MyKustomers-Thread-Key": opaqueCorrelation(`booking/${input.bookingId}`),
-      "X-MyKustomers-Message-Key": opaqueCorrelation(
-        `email-event/${input.emailEventId}`,
-      ),
+      "X-MyKustomers-Message-Key": opaqueCorrelation(`email-event/${input.emailEventId}`),
     },
   };
 }

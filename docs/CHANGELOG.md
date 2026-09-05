@@ -1,8 +1,21 @@
 # Changelog
 
+## 2026-09-05 — Brevo Provider Delivery Evidence
+
+IMPLEMENTED — VERIFICATION PENDING. The approved additive migration is applied and
+catalog/runtime verified with zero historical-row mutation. A bearer-authenticated,
+32 KiB-bounded Brevo callback route records only append-only minimized evidence;
+future Brevo attempts carry an opaque attempt digest. Admin Email Operations now
+separates outbox and recipient delivery, Booking Details shows one compact delivery
+summary through existing reconciliation, and no automatic retry/failover, raw
+payload retention, backfill, suppression change, or engagement tracking was added.
+The final dedicated Vercel Production secret is configured and inactive until a
+new deployment. Deployment, Brevo activation, CI, responsive, and
+controlled-provider verification remain release gates.
+
 ## 2026-09-04 — Email Reliability Stage 1
 
-IMPLEMENTED — VERIFICATION PENDING. Public confirmation now reuses domain-only
+VERIFIED — PRODUCTION (`de0dc495`, PR #66). Public confirmation now reuses domain-only
 customer-contact normalization. Confirmation-send feedback distinguishes accepted,
 proven rejection, ambiguous, unprocessed, rate-limited, and duplicate outcomes
 without changing retry eligibility or capability state. Admin email rows identify
