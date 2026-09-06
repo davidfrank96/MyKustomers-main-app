@@ -14,6 +14,15 @@ path; it does not add a poller. Customer confirmation outranks transport state,
 and WhatsApp/native/copy-link sharing remains available while confirmation is
 outstanding even when email delivery is delayed or fails.
 
+Email Reliability Phase 3 turns that evidence into a central typed recovery
+presentation. Accepted, delivered, deferred, soft/hard bounce, invalid, blocked,
+complaint, provider error, development-adapter, no-email, and confirmed states
+retain distinct copy and actions. Routine accepted/delivered/deferred changes
+refresh silently through the same visible-page and PWA-resume reconciliation;
+only actionable failures may announce a restrained status update. The displayed
+recipient remains the booking-specific request address and wraps safely at narrow
+widths.
+
 Phase 5 implements vendor-side booking management. Phase 6 extends booking
 lifecycle behavior with secure customer confirmation before a booking can move
 to confirmed. Phase 7 adds controlled operational fulfilment transitions,

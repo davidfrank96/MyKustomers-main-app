@@ -83,8 +83,9 @@ export function BookingLiveSync({ bookingId, initialState }: BookingLiveSyncProp
         if (becameCompleted) {
           setCompletionOpen(true);
         } else {
-          setNotification(getBookingLiveNotification(previousState, nextState));
-          setToastOpen(true);
+          const nextNotification = getBookingLiveNotification(previousState, nextState);
+          setNotification(nextNotification);
+          setToastOpen(Boolean(nextNotification));
         }
         startTransition(() => router.refresh());
       } catch (error) {

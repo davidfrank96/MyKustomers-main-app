@@ -18,6 +18,16 @@ delivery state without provider IDs or raw reasons. Email remains only one
 transport for the secure capability, so provider failure never removes manual
 sharing or changes confirmation-link authorization.
 
+## Email Reliability Phase 3
+
+The vendor recovery policy is derived centrally from the existing provider summary.
+Customer confirmation always outranks historical transport concern. While a booking
+is unconfirmed, manual WhatsApp/native/copy sharing stays available. Permanent,
+invalid, blocked, and complaint states do not expose an ordinary same-address
+resend; a corrected address must go through the existing fresh-request transaction,
+which revokes the previous open URL and preserves historical evidence. The saved
+customer profile email is never mutated by this booking-specific correction.
+
 Phase 6 implements secure customer confirmation links for bookings.
 
 ## Owns

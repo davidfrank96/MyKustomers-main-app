@@ -1,5 +1,18 @@
 # Testing
 
+## Email Reliability Phase 3
+
+Deterministic unit and component fixtures cover the complete normalized provider
+matrix, outbox accepted/queued/sending/failed distinctions, development adapter,
+no-email recovery, confirmed-state precedence, accessible status labels, long
+recipient wrapping, and unchanged-address resend suppression. Booking reconciliation
+coverage verifies that delivered/deferred evidence refreshes without routine toast
+noise and that actionable failures remain announceable. Existing confirmation-link
+security, wrong-recipient revocation, request idempotency/rate limits, out-of-order
+provider events, Admin Email Operations, PWA, responsive, and accessibility suites
+remain the authoritative integration gates. These tests create no Production Auth
+user, inbox, provider event, or customer email.
+
 ## Email Reliability Stage 2 Coverage
 
 Migration contracts cover zero historical DML, composite attempt/event integrity,
