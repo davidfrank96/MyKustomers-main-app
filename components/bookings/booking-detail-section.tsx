@@ -31,6 +31,7 @@ type BookingDetailSectionProps = {
   summary: string;
   defaultOpen?: boolean;
   attention?: boolean;
+  current?: boolean;
   icon?:
     | "addon"
     | "changes"
@@ -84,6 +85,7 @@ export function BookingDetailSection({
   summary,
   defaultOpen = false,
   attention = false,
+  current = false,
   icon,
   children,
 }: BookingDetailSectionProps) {
@@ -103,7 +105,11 @@ export function BookingDetailSection({
       id={id}
       className={cn(
         "scroll-mt-6 overflow-hidden rounded-lg border bg-card text-foreground shadow-[0_1px_2px_rgba(23,33,29,0.04)]",
-        attention ? "border-accent/50" : "border-border",
+        current
+          ? "border-primary/50 bg-primary/[0.015] ring-1 ring-primary/15"
+          : attention
+            ? "border-accent/50"
+            : "border-border",
       )}
     >
       <h2>
@@ -113,6 +119,7 @@ export function BookingDetailSection({
           className="flex min-h-14 w-full items-center justify-between gap-4 px-4 py-3 text-left outline-none transition-colors hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset sm:min-h-16 sm:px-5"
           aria-expanded={open}
           aria-controls={contentId}
+          aria-current={current ? "step" : undefined}
           onClick={() => setOpen((current) => !current)}
         >
           <span className="flex min-w-0 items-center gap-3">
@@ -149,8 +156,13 @@ export function BookingDetailSection({
               </span>
             ) : null}
             <span className="min-w-0">
-              <span className="block text-sm font-semibold leading-5 sm:text-base sm:leading-6">
-                {title}
+              <span className="flex flex-wrap items-center gap-2 text-sm font-semibold leading-5 sm:text-base sm:leading-6">
+                <span>{title}</span>
+                {current ? (
+                  <span className="rounded-full bg-primary px-2 py-0.5 text-[0.6875rem] font-semibold uppercase tracking-wide text-primary-foreground">
+                    Current step
+                  </span>
+                ) : null}
               </span>
               <span className="mt-0.5 block break-words text-xs font-normal leading-5 text-muted-foreground sm:text-sm">
                 {summary}

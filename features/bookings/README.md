@@ -262,3 +262,14 @@ server-action RSC props. It opens the same accessible success modal once for
 feedback-, payment-, or manual-completion transitions, adds no poller or stored
 acknowledgement, and stays silent on historical load, refresh, repeated
 `COMPLETED`, `DELIVERED`, and `CANCELLED` observations.
+
+Booking, amendment, add-on, and payment amount entry uses one shared client
+control. Visible comma grouping never crosses the form boundary: the named value
+is the ungrouped decimal string consumed by the existing minor-unit parser.
+
+The completion dialog uses current feedback and `BOOKING_DELIVERED` outbox
+acceptance evidence for truthful follow-up copy. Pending feedback offers a
+secondary route to the existing feedback section; it never generates a second
+capability or sends another email. Delivered/completed pending feedback defaults
+open but remains manually collapsible. The independently derived current section
+uses primary-brand emphasis, visible **Current step** text, and `aria-current`.

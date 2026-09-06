@@ -22,7 +22,7 @@ describe("booking detail default section", () => {
     ["CONFIRMED", "operational-progress"],
     ["IN_PROGRESS", "operational-progress"],
     ["READY", "operational-progress"],
-    ["DELIVERED", "booking-payments"],
+    ["DELIVERED", "private-feedback"],
     ["COMPLETED", "private-feedback"],
     ["CANCELLED", null],
   ] satisfies Array<[BookingStatus, string | null]>)(
@@ -34,6 +34,12 @@ describe("booking detail default section", () => {
 
   it("does not auto-open completed feedback after feedback is received", () => {
     expect(sectionFor("COMPLETED", { feedbackReceived: true })).toBeNull();
+  });
+
+  it("returns delivered payment details to the default when feedback is received", () => {
+    expect(sectionFor("DELIVERED", { feedbackReceived: true })).toBe(
+      "booking-payments",
+    );
   });
 
   it("prioritizes pending amendment and add-on customer actions", () => {

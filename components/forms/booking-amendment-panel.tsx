@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { CustomerConfirmationShare } from "@/components/forms/customer-confirmation-share";
+import { CurrencyAmountInput } from "@/components/forms/currency-amount-input";
 import type { BookingAmendmentSummary } from "@/features/amendments/queries";
 import {
   initialAmendmentActionState,
@@ -333,10 +334,9 @@ export function BookingAmendmentPanel({
                   <p className="text-xs text-muted-foreground">
                     Current: {initialValues.totalAmount}
                   </p>
-                  <Input
+                  <CurrencyAmountInput
                     id="amendment-total"
                     name="totalAmount"
-                    inputMode="decimal"
                     defaultValue={initialValues.totalAmount}
                     required
                   />
@@ -347,10 +347,9 @@ export function BookingAmendmentPanel({
                   <p className="text-xs text-muted-foreground">
                     Current: {initialValues.depositAmount}
                   </p>
-                  <Input
+                  <CurrencyAmountInput
                     id="amendment-deposit"
                     name="depositAmount"
-                    inputMode="decimal"
                     defaultValue={initialValues.depositAmount}
                     required
                   />

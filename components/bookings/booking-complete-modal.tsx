@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -14,11 +14,17 @@ import {
 type BookingCompleteModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  feedbackReceived: boolean;
+  deliveryEmailAccepted: boolean;
+  onShareFeedback: () => void;
 };
 
 export function BookingCompleteModal({
   open,
   onOpenChange,
+  feedbackReceived,
+  deliveryEmailAccepted,
+  onShareFeedback,
 }: BookingCompleteModalProps) {
   const returnFocusRef = useRef<HTMLElement | null>(null);
 
@@ -56,13 +62,30 @@ export function BookingCompleteModal({
           <DialogHeader className="min-w-0 flex-1 pr-8">
             <DialogTitle>Booking complete</DialogTitle>
             <DialogDescription>
-              Everything for this booking is finished.
+              {feedbackReceived
+                ? "Customer feedback has been received and this booking journey is complete."
+                : deliveryEmailAccepted
+                  ? "This booking is complete. A private feedback link was included in the customer’s delivery email. You can also share the link manually if they miss it."
+                  : "This booking is complete. You can still share the private feedback link directly with the customer."}
             </DialogDescription>
           </DialogHeader>
         </div>
-        <Button type="button" className="mt-5 w-full" onClick={() => onOpenChange(false)}>
-          Done
-        </Button>
+        <div className="mt-5 grid gap-2 sm:grid-cols-2">
+          <Button type="button" className="w-full" onClick={() => onOpenChange(false)}>
+            Done
+          </Button>
+          {!feedbackReceived ? (
+            <Button
+              type="button"
+              variant="secondary"
+              className="w-full border-primary/30 text-primary hover:bg-primary/[0.05] hover:text-primary"
+              onClick={onShareFeedback}
+            >
+              <Share2 className="size-4" aria-hidden="true" />
+              Share feedback
+            </Button>
+          ) : null}
+        </div>
       </DialogContent>
     </Dialog>
   );

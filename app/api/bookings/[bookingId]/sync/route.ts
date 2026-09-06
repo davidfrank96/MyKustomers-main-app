@@ -4,6 +4,7 @@ import { createBookingLiveState } from "@/features/bookings/live-sync";
 import { getAuthenticatedUser, getCurrentBusinessContext } from "@/lib/auth/server";
 import { createClient } from "@/lib/supabase/server";
 import { parseProviderDeliverySummary } from "@/features/provider-delivery/model";
+import { getDeliveryFeedbackEmailStatusForBooking } from "@/features/feedback/queries";
 
 const bookingIdSchema = z.string().uuid();
 
@@ -32,7 +33,12 @@ export async function GET(_request: Request, context: RouteContext) {
 
   const supabase = await createClient();
   const businessId = businessContext.currentBusiness.id;
-  const [{ data: booking }, { data: feedback }, deliveryResponse] = await Promise.all([
+  const [
+    { data: booking },
+    { data: feedback },
+    deliveryResponse,
+    deliveryFeedbackEmailStatus,
+  ] = await Promise.all([
     supabase
       .from("bookings")
       .select("status, updated_at, customer_confirmed_at")
@@ -48,6 +54,7 @@ export async function GET(_request: Request, context: RouteContext) {
     supabase.rpc("get_booking_confirmation_delivery", {
       p_booking_id: parsedBookingId.data,
     }),
+    getDeliveryFeedbackEmailStatusForBooking(businessId, parsedBookingId.data),
   ]);
 
   if (!booking) {
@@ -64,6 +71,7 @@ export async function GET(_request: Request, context: RouteContext) {
       updatedAt: booking.updated_at,
       customerConfirmedAt: booking.customer_confirmed_at,
       feedbackSubmittedAt: feedback?.submitted_at ?? null,
+      deliveryFeedbackEmailAccepted: deliveryFeedbackEmailStatus === "SENT",
       providerDeliveryStatus: providerDelivery?.provider_delivery_status ?? "UNKNOWN",
       providerEventAt: providerDelivery?.provider_event_at ?? null,
     }),

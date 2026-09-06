@@ -40,7 +40,7 @@ export function getDefaultOpenBookingDetailSection({
     case "READY":
       return "operational-progress";
     case "DELIVERED":
-      return "booking-payments";
+      return feedbackReceived ? "booking-payments" : "private-feedback";
     case "COMPLETED":
       return feedbackReceived ? null : "private-feedback";
     case "CANCELLED":

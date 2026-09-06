@@ -44,6 +44,7 @@ type FeedbackLinkPanelProps = {
     feedbackLinkId: string,
     method: FeedbackShareMethod,
   ) => Promise<void>;
+  deliveryEmailAccepted?: boolean;
 };
 
 function formatDateTime(value: string | null) {
@@ -155,6 +156,7 @@ export function FeedbackLinkPanel({
   businessName,
   customerName,
   recordShareAction,
+  deliveryEmailAccepted = false,
 }: FeedbackLinkPanelProps) {
   const [generateState, generateFormAction] = useActionState(
     generateAction,
@@ -180,6 +182,14 @@ export function FeedbackLinkPanel({
 
   return (
     <div className="space-y-4">
+      <div
+        role="note"
+        className="rounded-md border border-primary/15 bg-primary/[0.035] px-3 py-2.5 text-sm leading-6 text-muted-foreground"
+      >
+        {deliveryEmailAccepted
+          ? "A private feedback link was included in the delivery email. You can also share the same link manually if the customer missed it."
+          : "You can share the existing private feedback link directly with the customer. No additional email is sent automatically."}
+      </div>
       <dl className="divide-y divide-border border-y border-border">
         <DetailRow icon={CircleDot} label="Status">
           <span

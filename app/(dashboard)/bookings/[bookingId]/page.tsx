@@ -79,6 +79,7 @@ import {
   revokeFeedbackLinkAction,
 } from "@/features/feedback/actions";
 import {
+  getDeliveryFeedbackEmailStatusForBooking,
   getFeedbackForBooking,
   getFeedbackLinkSummaryForBooking,
   listBookingIssuesForBooking,
@@ -188,6 +189,7 @@ export default async function BookingDetailPage({
     feedbackSummary,
     feedback,
     paymentState,
+    deliveryFeedbackEmailStatus,
   ] = await Promise.all([
     listBookingStatusHistoryForBusiness(currentBusiness.id, booking.id),
     listBookingChangesForBusiness(currentBusiness.id, booking.id),
@@ -198,6 +200,7 @@ export default async function BookingDetailPage({
     getFeedbackLinkSummaryForBooking(currentBusiness.id, booking.id),
     getFeedbackForBooking(currentBusiness.id, booking.id),
     getBookingPaymentState(currentBusiness.id, booking.id),
+    getDeliveryFeedbackEmailStatusForBooking(currentBusiness.id, booking.id),
   ]);
   const timeline = [
     ...history.map((event) => ({
@@ -328,6 +331,7 @@ export default async function BookingDetailPage({
     updatedAt: booking.updated_at,
     customerConfirmedAt: booking.customer_confirmed_at,
     feedbackSubmittedAt: feedback?.submitted_at ?? null,
+    deliveryFeedbackEmailAccepted: deliveryFeedbackEmailStatus === "SENT",
     providerDeliveryStatus: confirmationDelivery?.provider_delivery_status ?? "UNKNOWN",
     providerEventAt: confirmationDelivery?.provider_event_at ?? null,
   });
@@ -337,6 +341,19 @@ export default async function BookingDetailPage({
     pendingAmendment: amendmentSummary.displayStatus === "pending",
     awaitingAddon: addonSummary.hasAwaitingAddon,
   });
+  const currentDetailSection = amendmentSummary.displayStatus === "pending"
+    ? "booking-changes"
+    : addonSummary.hasAwaitingAddon
+      ? "booking-addons"
+      : booking.status === "DRAFT" || booking.status === "AWAITING_CUSTOMER"
+        ? "customer-confirmation"
+        : ["CONFIRMED", "IN_PROGRESS", "READY"].includes(booking.status)
+          ? "operational-progress"
+          : booking.status === "DELIVERED"
+            ? "booking-payments"
+            : booking.status === "COMPLETED" && !feedback
+              ? "private-feedback"
+              : null;
   const confirmationSectionSummary = confirmationSummary.confirmedAt
     ? "Customer confirmed"
     : confirmationSummary.status === "active"
@@ -489,6 +506,7 @@ export default async function BookingDetailPage({
           summary={paymentSectionSummary}
           icon="wallet"
           defaultOpen={defaultOpenSection === "booking-payments"}
+          current={currentDetailSection === "booking-payments"}
           attention={
             booking.status === "DELIVERED" &&
             (paymentState.summary?.outstandingAmountMinor ?? 0) > 0
@@ -511,6 +529,7 @@ export default async function BookingDetailPage({
           summary={getBookingStatusLabel(booking.status)}
           icon="progress"
           defaultOpen={defaultOpenSection === "operational-progress"}
+          current={currentDetailSection === "operational-progress"}
         >
           <BookingOperationalProgress
             started={{
@@ -547,6 +566,7 @@ export default async function BookingDetailPage({
           summary={confirmationSectionSummary}
           defaultOpen={defaultOpenSection === "customer-confirmation"}
           icon="link"
+          current={currentDetailSection === "customer-confirmation"}
         >
           <ConfirmationLinkPanel
             summary={confirmationSummary}
@@ -575,6 +595,7 @@ export default async function BookingDetailPage({
           icon="changes"
           defaultOpen={defaultOpenSection === "booking-changes"}
           attention={amendmentSummary.displayStatus === "pending"}
+          current={currentDetailSection === "booking-changes"}
         >
           <BookingAmendmentPanel
             summary={amendmentSummary}
@@ -614,6 +635,7 @@ export default async function BookingDetailPage({
           icon="addon"
           defaultOpen={defaultOpenSection === "booking-addons"}
           attention={addonSummary.hasAwaitingAddon}
+          current={currentDetailSection === "booking-addons"}
         >
           <BookingAddonPanel
             summary={addonSummary}
@@ -641,6 +663,7 @@ export default async function BookingDetailPage({
           icon="feedback"
           defaultOpen={defaultOpenSection === "private-feedback"}
           attention={isFeedbackEligibleStatus(booking.status) && !feedback}
+          current={currentDetailSection === "private-feedback"}
         >
           {feedback ? (
             <div className="space-y-4">
@@ -707,6 +730,7 @@ export default async function BookingDetailPage({
               businessName={currentBusiness.name}
               customerName={booking.customer?.name ?? null}
               recordShareAction={recordFeedbackShareAction.bind(null, booking.id)}
+              deliveryEmailAccepted={deliveryFeedbackEmailStatus === "SENT"}
             />
           )}
         </BookingDetailSection>

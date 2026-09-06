@@ -72,3 +72,11 @@ Google OAuth also completed through the canonical callback after the Production
   retry, quota monitoring, and deliberate provider failover remain future work.
 
 No database migration or new infrastructure is part of this activation.
+
+## Sender Avatar / BIMI Readiness (2026-09-06)
+
+Read-only public DNS now records `p=none` at `_dmarc.mykustomers.com` and no TXT
+record at `default._bimi.mykustomers.com`. This is not BIMI-ready and was not
+changed. The existing body logo, From identity, Brevo provider, Supabase Auth
+SMTP, and all authenticated-mail records remain untouched. The approval boundary
+and vector-source blocker are recorded in `EMAIL_SENDER_AVATAR_BIMI.md`.

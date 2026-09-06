@@ -417,7 +417,9 @@ test.describe("booking engine", () => {
       ).toBeVisible();
       await expect(bookingIdentity.getByText("Draft", { exact: true })).toBeVisible();
       await expect(page.getByRole("heading", { name: "Booking created" })).toBeVisible();
-      await expect(bookingJourney.getByText("Current", { exact: true })).toBeVisible();
+      await expect(
+        bookingJourney.getByText("Current step", { exact: true }),
+      ).toBeVisible();
       const visibleBusinessSwitcher = page.getByRole("button", {
         name: `Switch business. Current business: ${businessName}`,
       });
@@ -603,6 +605,7 @@ test.describe("booking engine", () => {
     expect(syncResponse.headers()["cache-control"]).toContain("no-store");
     expect(Object.keys(await syncResponse.json()).sort()).toEqual([
       "customerConfirmedAt",
+      "deliveryFeedbackEmailAccepted",
       "feedbackSubmittedAt",
       "providerDeliveryStatus",
       "providerEventAt",
@@ -1921,7 +1924,12 @@ test.describe("booking engine", () => {
     });
     await expect(completionSuccessDialog).toBeVisible({ timeout: serverActionTimeout });
     await expect(
-      completionSuccessDialog.getByText("Everything for this booking is finished."),
+      completionSuccessDialog.getByText(
+        "You can still share the private feedback link directly with the customer.",
+      ),
+    ).toBeVisible();
+    await expect(
+      completionSuccessDialog.getByRole("button", { name: "Share feedback" }),
     ).toBeVisible();
     if (testInfo.project.name === "chromium") {
       await completionSuccessDialog.screenshot({

@@ -32,12 +32,20 @@ export function BookingLiveSync({ bookingId, initialState }: BookingLiveSyncProp
   const pollingRef = useRef(false);
   const [toastOpen, setToastOpen] = useState(false);
   const [completionOpen, setCompletionOpen] = useState(false);
+  const [completionContext, setCompletionContext] = useState({
+    feedbackReceived: Boolean(initialState.feedbackSubmittedAt),
+    deliveryEmailAccepted: Boolean(initialState.deliveryFeedbackEmailAccepted),
+  });
   const [notification, setNotification] = useState<ReturnType<
     typeof getBookingLiveNotification
   > | null>(null);
 
   useEffect(() => {
     if (didBookingBecomeCompleted(currentRef.current, initialState)) {
+      setCompletionContext({
+        feedbackReceived: Boolean(initialState.feedbackSubmittedAt),
+        deliveryEmailAccepted: Boolean(initialState.deliveryFeedbackEmailAccepted),
+      });
       setCompletionOpen(true);
     }
     currentRef.current = initialState;
@@ -81,6 +89,10 @@ export function BookingLiveSync({ bookingId, initialState }: BookingLiveSyncProp
         currentRef.current = nextState;
         const becameCompleted = didBookingBecomeCompleted(previousState, nextState);
         if (becameCompleted) {
+          setCompletionContext({
+            feedbackReceived: Boolean(nextState.feedbackSubmittedAt),
+            deliveryEmailAccepted: Boolean(nextState.deliveryFeedbackEmailAccepted),
+          });
           setCompletionOpen(true);
         } else {
           const nextNotification = getBookingLiveNotification(previousState, nextState);
@@ -113,10 +125,30 @@ export function BookingLiveSync({ bookingId, initialState }: BookingLiveSyncProp
     };
   }, [bookingId, router]);
 
+  function shareFeedback() {
+    setCompletionOpen(false);
+    window.setTimeout(() => {
+      const targetHash = "#private-feedback";
+      const unchanged = window.location.hash === targetHash;
+      window.location.hash = targetHash;
+      if (unchanged) window.dispatchEvent(new HashChangeEvent("hashchange"));
+      document
+        .getElementById("private-feedback")
+        ?.querySelector<HTMLElement>("button[aria-controls]")
+        ?.focus();
+    }, 0);
+  }
+
   return (
     <>
       <span ref={syncRef} data-pwa-booking-sync hidden />
-      <BookingCompleteModal open={completionOpen} onOpenChange={setCompletionOpen} />
+      <BookingCompleteModal
+        open={completionOpen}
+        onOpenChange={setCompletionOpen}
+        feedbackReceived={completionContext.feedbackReceived}
+        deliveryEmailAccepted={completionContext.deliveryEmailAccepted}
+        onShareFeedback={shareFeedback}
+      />
       <ToastProvider swipeDirection="right">
         <ToastRoot
           className="rounded-md border border-border bg-background p-4 shadow-lg"

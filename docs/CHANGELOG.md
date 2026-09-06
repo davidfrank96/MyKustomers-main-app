@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-09-06 — Money Input, Completion Feedback UX, And Sender Avatar Readiness
+
+IMPLEMENTED — RELEASE VERIFICATION PENDING. Booking, amendment, add-on, and
+payment amount fields now share one grouped editing control while submitting
+ungrouped canonical decimal strings to the unchanged integer-minor-unit parser.
+The one-time completion dialog distinguishes feedback received, a provider-
+accepted delivery email, and manual-share fallback; its secondary action opens
+the existing feedback capability without sending email or minting a duplicate.
+Delivered/completed bookings with pending feedback default the feedback section
+open, and current journey sections have visible, non-destructive brand emphasis
+plus `aria-current="step"`.
+
+The existing single email-body logo remains unchanged and is regression-locked
+to one occurrence. Public sender-avatar review found DMARC `p=none` and no BIMI
+record. No DNS, Brevo, Supabase Auth SMTP, certificate, billing, environment,
+database, dependency, or logo-source change was made. A BIMI asset is blocked:
+the approved supplied masters are raster images or SVG wrappers containing an
+embedded raster, while SVG Tiny P/S forbids embedded rasters; tracing them would
+be a material logo redesign requiring approval.
+
 ## 2026-09-06 — Vendor Confirmation Email Presentation
 
 IMPLEMENTED — RELEASE VERIFICATION PENDING. Booking Details no longer combines

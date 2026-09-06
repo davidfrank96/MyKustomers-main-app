@@ -79,7 +79,7 @@ describe("BookingForm mobile create presentation", () => {
     ).toBeVisible();
     expect(screen.getByLabelText("Saved contact email (optional)")).not.toBeRequired();
     expect(screen.getByLabelText("Booking title")).toHaveValue("Website redesign");
-    expect(screen.getByLabelText("Agreed total")).toHaveValue("45000");
+    expect(screen.getByLabelText("Agreed total")).toHaveValue("45,000");
     expect(action).not.toHaveBeenCalled();
 
     fireEvent.change(screen.getByLabelText("Customer name"), {
@@ -93,7 +93,7 @@ describe("BookingForm mobile create presentation", () => {
     expect(screen.getByLabelText("Search existing customers")).toBeVisible();
     expect(screen.queryByLabelText("Customer name")).toBeNull();
     expect(screen.getByLabelText("Booking title")).toHaveValue("Website redesign");
-    expect(screen.getByLabelText("Agreed total")).toHaveValue("45000");
+    expect(screen.getByLabelText("Agreed total")).toHaveValue("45,000");
     expect(action).not.toHaveBeenCalled();
   });
 

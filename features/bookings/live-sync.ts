@@ -6,6 +6,7 @@ export type BookingLiveState = {
   status: BookingStatus;
   customerConfirmedAt: string | null;
   feedbackSubmittedAt: string | null;
+  deliveryFeedbackEmailAccepted?: boolean;
   providerDeliveryStatus?: ProviderDeliveryStatus;
   providerEventAt?: string | null;
 };
@@ -24,6 +25,7 @@ export function createBookingLiveState({
   updatedAt,
   customerConfirmedAt,
   feedbackSubmittedAt,
+  deliveryFeedbackEmailAccepted = false,
   providerDeliveryStatus = "UNKNOWN",
   providerEventAt = null,
 }: BookingLiveRevisionInput): BookingLiveState {
@@ -33,12 +35,14 @@ export function createBookingLiveState({
       updatedAt,
       customerConfirmedAt ?? "",
       feedbackSubmittedAt ?? "",
+      deliveryFeedbackEmailAccepted ? "delivery-feedback-email-accepted" : "",
       providerDeliveryStatus,
       providerEventAt ?? "",
     ].join(":"),
     status,
     customerConfirmedAt,
     feedbackSubmittedAt,
+    deliveryFeedbackEmailAccepted,
     providerDeliveryStatus,
     providerEventAt,
   };
