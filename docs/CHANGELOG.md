@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-09-06 — Customer Email Review Before Booking Confirmation
+
+IMPLEMENTED — RELEASE VERIFICATION PENDING. Public customers now validate and
+review the exact domain-normalized booking email before the existing final
+confirmation action runs. They can edit with restored email focus while the
+optional phone remains intact; rapid final clicks are guarded and the existing
+atomic transaction remains the database authority. The review makes no mailbox
+or delivery claim, and the booking contact still never overwrites the customer
+profile email. No migration, environment, dependency, provider configuration,
+outbox, webhook, retry, or email event was added. Controlled Production
+provider/webhook/inbox verification is deferred because no controlled inbox was
+supplied. Focused component tests and a headed real-form browser check pass at
+390x844 and 1440x1000, including focus, correction, long-address containment, and
+duplicate-submit behavior. Isolated base/feature public checks also pass; the
+earlier broad Playwright failures are classified as reused-server environment
+interference rather than demonstrated branch regressions. PR CI, exact-commit
+deployment, and read-only Production smoke remain release gates.
+
 ## 2026-09-05 — Vendor Email Recovery UX
 
 IMPLEMENTED — VERIFICATION PENDING. Booking Details now turns the existing Phase 2B

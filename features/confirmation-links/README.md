@@ -1,5 +1,16 @@
 # Confirmation Links Feature
 
+## Email Reliability Phase 4A
+
+The public customer form validates with the shared confirmation-contact schema
+before showing an application-owned review state. It displays the exact
+domain-normalized booking email, preserves local-part case and optional phone,
+and lets the customer edit with focus restored before final submission. Only
+**Confirm booking** invokes the existing atomic confirmation action. The UI guard
+limits rapid duplicate submissions, while the database transaction remains the
+idempotency authority. Review does not verify mailbox ownership or delivery and
+does not write the saved customer profile email.
+
 ## Email Reliability Stage 1
 
 Public contact validation reuses `normalizeCustomerContactEmail`: trim whitespace,

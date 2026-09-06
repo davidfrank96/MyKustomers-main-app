@@ -1,5 +1,46 @@
 # Testing
 
+## Email Reliability Phase 4A
+
+Customer-review component coverage proves that malformed contact is rejected
+before review, review itself does not call the server action, domain-only
+normalization preserves local-part case, the exact persisted address is visible,
+the review heading receives focus, Edit restores email focus and preserves phone,
+correction reaches final submission, long addresses wrap, rapid final clicks call
+the action once, and no native alert/confirm/prompt is used. Existing normalization
+fixtures cover Gmail, Outlook, Hotmail, `.ie`, `.co.uk`, custom/subdomains, and
+plus addressing. The canonical booking E2E now covers review/edit/re-review,
+profile-email separation, one immutable confirmation/event, and entry/review
+containment at 320, 360, 390, 430, 768, 1024, and 1440 pixels.
+
+No controlled inbox was supplied. Provider acceptance, webhook, delivery, inbox,
+and Production customer-confirmation evidence remain deferred rather than being
+fabricated with a new account or unrelated address.
+
+Focused Phase 4A verification passed 27 normalization/component tests, changed-file
+lint, and strict typecheck. The one full local pass also passed repository lint,
+typecheck, 859 ordinary tests with 24 intentional skips, production build, the
+moderate dependency audit with zero vulnerabilities, and diff integrity. The
+protected runtime command skipped all 21 guarded tests and provides no live
+evidence.
+
+A headed Chromium check rendered the real `PublicConfirmationForm` against a
+temporary in-memory action at 390x844 and 1440x1000. It verified malformed-email
+rejection and focus, keyboard review entry, exact domain-only normalization, phone
+preservation, review-heading focus, safe Escape behavior, Edit focus restoration,
+long-address wrapping, no horizontal overflow, disabled pending controls, and one
+action invocation after two immediate final clicks. Browser console output was
+clean. The temporary route, browser artifacts, and local server were removed; the
+check created no Auth user, business, booking, capability, provider event, or email.
+
+The initial broad Playwright run reported 20 passed, 35 failed, 18 skipped, and 2
+not run while reusing a pre-existing server on port 3000, so it was not accepted as
+clean branch evidence. A bounded isolated comparison then ran unchanged public
+homepage and branding checks against both base `b440a49` and the Phase 4A branch on
+dedicated ports; all four runs passed. The broad-run result is therefore classified
+as environment-dependent reused-server interference, not a demonstrated Phase 4A
+regression. No Production-backed fixture path was bypassed.
+
 ## Email Reliability Phase 3
 
 Deterministic unit and component fixtures cover the complete normalized provider

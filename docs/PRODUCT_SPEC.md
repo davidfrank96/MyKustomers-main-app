@@ -160,9 +160,13 @@ a new customer confirmation; internal notes are private vendor data and do not
 affect confirmed terms.
 
 Confirmation requires a normalized customer-provided contact email and accepts
-an optional phone number. These values are booking confirmation evidence, not
-proof of email or phone ownership. The submitted email never populates or
-overwrites the optional saved `customers.email` profile field. A
+an optional phone number. Before the confirmation transaction, the customer
+selects **Review and confirm**, sees the exact domain-normalized email that will
+be persisted, and may either **Edit email** or **Confirm booking**. Validation
+precedes review; editing restores focus to the email field without clearing the
+phone. The review reduces typing mistakes but is not proof of mailbox existence,
+access, delivery, or email/phone ownership. The submitted email never populates
+or overwrites the optional saved `customers.email` profile field. A
 booking-confirmed email event is committed atomically and
 delivered after commit; delivery failure does not change the confirmed booking.
 Customers still do not create accounts or complete OTP verification.

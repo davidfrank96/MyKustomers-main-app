@@ -1,5 +1,15 @@
 # My Kustomers
 
+Email Reliability Phase 4A adds an application-owned customer email review step
+to the public booking-confirmation form. The customer validates their contact,
+reviews the exact domain-normalized booking email, and may edit it before the
+existing secure confirmation action runs once. Local-part case and the optional
+phone are preserved, customer profile email remains unchanged, and the review
+does not claim mailbox ownership or deliverability. This changes no database,
+provider, environment, dependency, or email transaction. Controlled Brevo
+webhook/inbox verification remains deferred until an operator-controlled inbox
+is supplied.
+
 Email Reliability Stage 2B is deployed and active in Production, with controlled
 provider-callback and inbox evidence still pending. It
 keeps durable outbox acceptance separate from append-only Brevo delivery evidence,

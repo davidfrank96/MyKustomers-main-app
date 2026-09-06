@@ -1008,7 +1008,7 @@ test.describe("booking engine", () => {
         customerPage.getByRole("heading", { name: "Review your order" }),
       ).toBeVisible();
 
-      await customerPage.getByRole("button", { name: "Confirm booking" }).click();
+      await customerPage.getByRole("button", { name: "Review and confirm" }).click();
       await expect(customerPage.getByText("Email address is required.")).toBeVisible();
       await expectNoPageOverflow(customerPage);
       await customerPage.screenshot({
@@ -1027,7 +1027,7 @@ test.describe("booking engine", () => {
       });
       await expectNoPageOverflow(customerPage);
       await expect(
-        customerPage.getByRole("button", { name: "Confirm booking" }),
+        customerPage.getByRole("button", { name: "Review and confirm" }),
       ).toBeVisible();
       await expect(
         customerPage.getByRole("link", { name: "Learn more about My Kustomers" }),
@@ -1037,10 +1037,45 @@ test.describe("booking engine", () => {
       await customerPage.setViewportSize(customerConfirmationViewport);
     }
 
+    await customerPage.getByLabel("Email address").fill("wrong@EXAMPLE.IE");
+    await customerPage.getByLabel("Phone number (optional)").fill("+353 01 555 0155");
+    await customerPage.getByRole("button", { name: "Review and confirm" }).click();
+    await expect(
+      customerPage.getByRole("heading", { name: "Confirm your email" }),
+    ).toBeFocused();
+    await expect(customerPage.getByTestId("reviewed-email")).toHaveText(
+      "wrong@example.ie",
+    );
+    await customerPage.getByRole("button", { name: "Edit email" }).click();
+    await expect(customerPage.getByLabel("Email address")).toBeFocused();
+    await expect(customerPage.getByLabel("Phone number (optional)")).toHaveValue(
+      "+353 01 555 0155",
+    );
     await customerPage
       .getByLabel("Email address")
-      .fill("customer-confirmation@example.com");
-    await customerPage.getByLabel("Phone number (optional)").fill("+353 01 555 0155");
+      .fill("customer-confirmation@EXAMPLE.COM");
+    await customerPage.getByRole("button", { name: "Review and confirm" }).click();
+    await expect(customerPage.getByTestId("reviewed-email")).toHaveText(
+      "customer-confirmation@example.com",
+    );
+
+    for (const width of [320, 360, 390, 430, 768, 1024, 1440]) {
+      await customerPage.setViewportSize({
+        width,
+        height: width < 768 ? 900 : 1000,
+      });
+      await expectNoPageOverflow(customerPage);
+      await expect(
+        customerPage.getByRole("button", { name: "Edit email" }),
+      ).toBeVisible();
+      await expect(
+        customerPage.getByRole("button", { name: "Confirm booking" }),
+      ).toBeVisible();
+    }
+    if (customerConfirmationViewport) {
+      await customerPage.setViewportSize(customerConfirmationViewport);
+    }
+
     await customerPage.getByRole("button", { name: "Confirm booking" }).click();
     await expect(customerPage).toHaveURL(/confirmed=1/, { timeout: 15_000 });
     await expect(
@@ -1740,6 +1775,7 @@ test.describe("booking engine", () => {
     await page.goto(regeneratedConfirmationUrl);
     await page.getByLabel("Email address").fill("customer-confirmation@example.com");
     await page.getByLabel("Phone number (optional)").fill("+353 01 555 0155");
+    await page.getByRole("button", { name: "Review and confirm" }).click();
     await page.getByRole("button", { name: "Confirm booking" }).click();
     await expect(page.getByRole("heading", { name: "Booking confirmed" })).toBeVisible();
 
@@ -2686,6 +2722,7 @@ test.describe("booking engine", () => {
     );
     await page.getByLabel("Email address").fill(duplicateEmail);
     await page.getByLabel("Phone number (optional)").fill("+353 01 555 0188");
+    await page.getByRole("button", { name: "Review and confirm" }).click();
     await page.getByRole("button", { name: "Confirm booking" }).click();
     await expect(page.getByRole("heading", { name: "Booking confirmed" })).toBeVisible();
 
@@ -2758,6 +2795,7 @@ test.describe("booking engine", () => {
 
     await page.goto(confirmationUrl);
     await page.getByLabel("Email address").fill(confirmationEmail);
+    await page.getByRole("button", { name: "Review and confirm" }).click();
     await page.getByRole("button", { name: "Confirm booking" }).click();
     await expect(page.getByRole("heading", { name: "Booking confirmed" })).toBeVisible({
       timeout: 15_000,
@@ -2886,6 +2924,7 @@ test.describe("booking engine", () => {
 
     await page.goto(secondConfirmationUrl);
     await page.getByLabel("Email address").fill(secondBookingEmail);
+    await page.getByRole("button", { name: "Review and confirm" }).click();
     await page.getByRole("button", { name: "Confirm booking" }).click();
     await expect(page.getByRole("heading", { name: "Booking confirmed" })).toBeVisible({
       timeout: serverActionTimeout,

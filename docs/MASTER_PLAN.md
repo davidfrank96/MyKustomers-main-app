@@ -1,5 +1,20 @@
 # Master Plan
 
+## Email Reliability Phase 4A — 2026-09-06
+
+IMPLEMENTED — RELEASE VERIFICATION PENDING. The public customer confirmation
+flow now validates contact details before showing a compact, accessible review
+state with the exact domain-normalized booking email. Edit restores focus without
+clearing the optional phone; final confirmation alone invokes the unchanged
+atomic server transaction, and duplicate final clicks are guarded in the UI and
+remain database-idempotent. The immutable booking contact stays separate from
+`customers.email`. No migration, provider, environment, dependency, or email
+system change is included. Controlled provider/webhook/inbox verification is
+deferred because no operator-controlled inbox was supplied. Focused component and
+headed real-form browser verification pass at mobile and desktop widths; isolated
+base/feature public comparisons also pass. PR CI, exact-commit deployment, and
+read-only Production smoke remain required before the release is marked verified.
+
 ## Email Reliability Stage 2 — 2026-09-05
 
 PRODUCTION ACTIVE — CONTROLLED PROVIDER VERIFICATION PENDING. Exact append-only provider-delivery evidence,

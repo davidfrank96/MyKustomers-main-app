@@ -1,5 +1,22 @@
 # Release Checklist
 
+## Email Reliability Phase 4A Release Gate
+
+- [x] Public contact validation occurs before the customer review state.
+- [x] Review shows the exact domain-normalized booking email and preserves local-part case.
+- [x] Edit restores email focus without clearing the optional phone.
+- [x] Final confirmation alone invokes the existing atomic transaction; rapid clicks are guarded.
+- [x] Customer profile email remains unchanged and booking-specific evidence remains authoritative.
+- [x] Review copy makes no mailbox-existence, ownership, or delivery claim.
+- [x] No native popup, migration, environment, dependency, provider, outbox, or retry change exists.
+- [x] Focused normalization, validation, accessibility, edit, and duplicate-submit tests pass.
+- [x] Headed Chromium verifies the real form at 390x844 and 1440x1000 with no overflow or console errors.
+- [x] The temporary in-memory browser harness and artifacts are removed with no Production fixture or email created.
+- [x] Bounded isolated base/feature public checks pass; the earlier reused-server failures are environment-dependent.
+- [x] One full local lint/type/test/runtime/build/audit/diff pass is recorded; guarded runtime checks remain skips.
+- [ ] PR CI and exact-commit deployment are recorded if release is separately authorized.
+- [ ] Controlled provider/webhook/inbox verification awaits an operator-controlled inbox.
+
 ## Email Reliability Phase 3 Release Gate
 
 - [x] Existing Phase 2B provider model, booking projection, and reconciliation reused.
