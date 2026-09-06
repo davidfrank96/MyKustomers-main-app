@@ -417,7 +417,9 @@ test.describe("booking engine", () => {
       ).toBeVisible();
       await expect(bookingIdentity.getByText("Draft", { exact: true })).toBeVisible();
       await expect(page.getByRole("heading", { name: "Booking created" })).toBeVisible();
-      await expect(bookingJourney.getByText("Current", { exact: true })).toBeVisible();
+      await expect(
+        bookingJourney.getByText("Current step", { exact: true }),
+      ).toBeVisible();
       const visibleBusinessSwitcher = page.getByRole("button", {
         name: `Switch business. Current business: ${businessName}`,
       });
