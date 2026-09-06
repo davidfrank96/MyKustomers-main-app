@@ -139,9 +139,12 @@ export function presentProviderDelivery(summary: ProviderDeliverySummary) {
 }
 
 function recovery(
-  value: Omit<EmailRecoveryPresentation, "ariaLabel">,
+  value: Omit<EmailRecoveryPresentation, "ariaLabel"> & { ariaLabel?: string },
 ): EmailRecoveryPresentation {
-  return { ...value, ariaLabel: `${value.title}. ${value.description}` };
+  return {
+    ...value,
+    ariaLabel: value.ariaLabel ?? `${value.title}. ${value.description}`,
+  };
 }
 
 export function getEmailRecoveryPresentation({
@@ -176,6 +179,8 @@ export function getEmailRecoveryPresentation({
       primaryAction: "add_email",
       secondaryActions: ["share_confirmation"],
       allowUnchangedEmailSend: false,
+      ariaLabel:
+        "No booking recipient added. Add an email to send the confirmation, or share the secure link directly.",
     });
   }
 

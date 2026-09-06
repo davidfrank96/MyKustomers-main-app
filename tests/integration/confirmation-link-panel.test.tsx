@@ -230,6 +230,9 @@ describe("confirmation contact evidence", () => {
     });
 
     expect(screen.getAllByText("No customer email added")).toHaveLength(2);
+    expect(
+      screen.getByRole("region", { name: /No booking recipient added/ }),
+    ).toBeVisible();
     const disclosure = screen.getByRole("button", { name: /Add email/ });
     fireEvent.click(disclosure);
     const recipient = screen.getByLabelText("Customer email");
