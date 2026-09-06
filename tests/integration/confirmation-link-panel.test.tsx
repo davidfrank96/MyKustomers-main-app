@@ -61,7 +61,7 @@ function renderPanel(
     options.sendAction ?? (async () => initialConfirmationLinkActionState),
   );
 
-  render(
+  const view = render(
     <ConfirmationLinkPanel
       summary={options.panelSummary ?? summary}
       providerDelivery={options.providerDelivery}
@@ -76,7 +76,7 @@ function renderPanel(
     />,
   );
 
-  return { generateAction, revokeAction, sendAction, recordShareAction };
+  return { ...view, generateAction, revokeAction, sendAction, recordShareAction };
 }
 
 describe("confirmation contact evidence", () => {
@@ -161,7 +161,7 @@ describe("confirmation contact evidence", () => {
       },
     });
 
-    const disclosure = screen.getByRole("button", { name: /Edit email/ });
+    const disclosure = screen.getByRole("button", { name: "Send confirmation to" });
     fireEvent.click(disclosure);
     expect(screen.getByRole("button", { name: "Change email to send" })).toBeDisabled();
     fireEvent.change(screen.getByLabelText("Customer email"), {
@@ -203,16 +203,87 @@ describe("confirmation contact evidence", () => {
   it("distinguishes a booking email from a different saved contact email", () => {
     renderPanel("old@example.com");
 
-    expect(screen.getByText("Customer email for this booking")).toBeVisible();
+    expect(screen.getByText("Confirmed booking contact")).toBeVisible();
     expect(screen.getByText("new@example.com")).toBeVisible();
     expect(screen.getByText(/Saved contact email/)).toBeVisible();
     expect(screen.getByText("old@example.com")).toBeVisible();
   });
 
+  it("presents an outstanding request recipient without calling it confirmed", () => {
+    renderPanel(null, {
+      panelSummary: {
+        ...summary,
+        status: "active",
+        usedAt: null,
+        confirmedAt: null,
+        contactEmail: null,
+        requestRecipientEmail: "VendorEntered@example.com",
+        requestEmailStatus: "SENT",
+        requestCreatedAt: "2026-08-26T10:00:00.000Z",
+      },
+      canManage: true,
+    });
+
+    expect(screen.getByText("Confirmation request sent to")).toBeVisible();
+    expect(screen.getAllByText("VendorEntered@example.com")).toHaveLength(1);
+    expect(screen.queryByText("Confirmed booking contact")).toBeNull();
+    expect(screen.getByText(/Recipient shown above · sent/)).toBeVisible();
+  });
+
+  it("avoids repeating the same confirmed and request address", () => {
+    renderPanel(null, {
+      panelSummary: {
+        ...summary,
+        contactEmail: "Customer@example.com",
+        requestRecipientEmail: "Customer@example.com",
+        requestEmailStatus: "SENT",
+        requestCreatedAt: "2026-08-26T10:00:00.000Z",
+      },
+    });
+
+    expect(screen.getByText("Confirmed booking contact")).toBeVisible();
+    expect(screen.getAllByText("Customer@example.com")).toHaveLength(1);
+    expect(screen.getByText(/Same as confirmed booking contact · sent/)).toBeVisible();
+  });
+
+  it("keeps a different request recipient as secondary history", () => {
+    renderPanel(null, {
+      panelSummary: {
+        ...summary,
+        contactEmail: "CustomerEntered@example.com",
+        requestRecipientEmail: "VendorEntered@example.com",
+        requestEmailStatus: "SENT",
+        requestCreatedAt: "2026-08-26T10:00:00.000Z",
+      },
+    });
+
+    expect(screen.getByText("Confirmed booking contact")).toBeVisible();
+    expect(screen.getByText("CustomerEntered@example.com")).toBeVisible();
+    expect(screen.getByText(/Sent to VendorEntered@example.com · sent/)).toBeVisible();
+  });
+
+  it("reconstructs both email concepts from a refreshed server summary", () => {
+    const panelSummary: ConfirmationLinkSummary = {
+      ...summary,
+      contactEmail: "CustomerEntered@example.com",
+      requestRecipientEmail: "VendorEntered@example.com",
+      requestEmailStatus: "SENT",
+      requestCreatedAt: "2026-08-26T10:00:00.000Z",
+    };
+    const firstRender = renderPanel(null, { panelSummary });
+    expect(screen.getByText("CustomerEntered@example.com")).toBeVisible();
+    firstRender.unmount();
+
+    renderPanel(null, { panelSummary });
+    expect(screen.getByText("Confirmed booking contact")).toBeVisible();
+    expect(screen.getByText("CustomerEntered@example.com")).toBeVisible();
+    expect(screen.getByText(/Sent to VendorEntered@example.com · sent/)).toBeVisible();
+  });
+
   it("does not duplicate the same normalized profile email", () => {
     renderPanel(" new@EXAMPLE.COM ");
 
-    expect(screen.getByText("Customer email for this booking")).toBeVisible();
+    expect(screen.getByText("Confirmed booking contact")).toBeVisible();
     expect(screen.queryByText(/Saved contact email/)).toBeNull();
   });
 
@@ -229,11 +300,13 @@ describe("confirmation contact evidence", () => {
       canManage: true,
     });
 
-    expect(screen.getAllByText("No customer email added")).toHaveLength(2);
+    expect(screen.getByText("Confirmation contact")).toBeVisible();
+    expect(screen.getByText("Not recorded")).toBeVisible();
+    expect(screen.getByText("No customer email added")).toBeVisible();
     expect(
       screen.getByRole("region", { name: /No booking recipient added/ }),
     ).toBeVisible();
-    const disclosure = screen.getByRole("button", { name: /Add email/ });
+    const disclosure = screen.getByRole("button", { name: "Send confirmation to" });
     fireEvent.click(disclosure);
     const recipient = screen.getByLabelText("Customer email");
     expect(recipient).toHaveValue("");
@@ -319,7 +392,9 @@ describe("confirmation contact evidence", () => {
     expect(screen.getAllByText("Confirmation link generated.")).toHaveLength(1);
     expect(screen.queryByText("An active confirmation link exists.")).toBeNull();
     const share = screen.getByRole("button", { name: "Share with customer" });
-    const customEmail = screen.getByRole("button", { name: /Custom email/ });
+    const customEmail = screen.getByRole("button", {
+      name: "Send confirmation to",
+    });
     expect(share).toBeVisible();
     expect(share).toHaveClass("w-full", "whitespace-nowrap");
     expect(screen.getByText("OR")).toBeVisible();
@@ -357,11 +432,11 @@ describe("confirmation contact evidence", () => {
     ).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Revoke link" })).not.toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: "Custom email" }),
+      screen.queryByRole("button", { name: "Send confirmation to" }),
     ).not.toBeInTheDocument();
   });
 
-  it("keeps the editable confirmation recipient in a reversible Custom email disclosure", async () => {
+  it("keeps the editable confirmation recipient in a reversible send disclosure", async () => {
     const sendAction = vi.fn<LinkAction>(async () => ({
       status: "success",
       message: "Email accepted for delivery to Updated.Person@hotmail.com.",
@@ -383,7 +458,7 @@ describe("confirmation contact evidence", () => {
       sendAction,
     });
 
-    const disclosure = screen.getByRole("button", { name: /Custom email/ });
+    const disclosure = screen.getByRole("button", { name: "Send confirmation to" });
     expect(disclosure).toHaveAttribute("aria-expanded", "false");
     expect(screen.getByLabelText("Customer email")).not.toBeVisible();
 
@@ -418,7 +493,7 @@ describe("confirmation contact evidence", () => {
     ).toBeVisible();
   });
 
-  it("keeps Custom email open and focuses its field after a safe validation error", async () => {
+  it("keeps Send confirmation to open and focuses its field after a safe validation error", async () => {
     const sendAction = vi.fn<LinkAction>(async () => ({
       status: "error",
       message: "Check the recipient email before sending.",
@@ -435,7 +510,7 @@ describe("confirmation contact evidence", () => {
       sendAction,
     });
 
-    const disclosure = screen.getByRole("button", { name: /Custom email/ });
+    const disclosure = screen.getByRole("button", { name: "Send confirmation to" });
     fireEvent.click(disclosure);
     const recipient = screen.getByLabelText("Customer email");
     fireEvent.change(recipient, { target: { value: "not-an-email" } });
