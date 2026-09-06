@@ -4,6 +4,11 @@ STATUS: VERIFIED FOR THE DEPLOYED BASELINE; BRANCH RELEASE MATRIX VERIFIED
 
 Audit date: 2026-08-31.
 
+Email Reliability Phase 4A adds a compact inline public confirmation review,
+not a modal. Entry and review states retain full-width mobile actions, visible
+focus, `break-all` long-address containment, and zero horizontal overflow at
+320, 360, 390, 430, 768, 1024, and 1440 pixels in the canonical booking E2E.
+
 The 2026-09-03 local MyKustomers.com brand rollout replaces only existing
 platform marks. Its acceptance matrix is 320x568, 360x800, 375x812, 390x844,
 414x896, 430x932, 768x1024, 1024x768, 1280x800, 1440x900, plus 1600x900 for the

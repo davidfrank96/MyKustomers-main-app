@@ -15,6 +15,12 @@ capability, and append one request event. It neither clears provider suppression
 nor mutates `customers.email`, and it never switches automatically to the standby
 provider.
 
+The public customer email review is a usability boundary, not authorization or
+identity proof. It uses the same contact schema as final server validation,
+reveals only the address the customer just entered, and performs no mutation
+until the explicit final submission. The server action, opaque capability,
+rate limit, atomic confirmation RPC, and database idempotency remain authoritative.
+
 ## Email Reliability Stage 2 Boundary
 
 The provider-evidence table is PostgreSQL-owned, RLS-enabled with zero policies,
