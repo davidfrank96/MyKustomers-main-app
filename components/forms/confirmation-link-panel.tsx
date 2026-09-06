@@ -404,6 +404,11 @@ export function ConfirmationLinkPanel({
                 <button
                   type="button"
                   className="flex min-h-[4.5rem] w-full min-w-0 items-center gap-3 px-3.5 py-3 text-left outline-none transition-colors hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:px-4"
+                  aria-label={
+                    emailEditorLabel === "Custom email"
+                      ? "Custom email"
+                      : `Custom email — ${emailEditorLabel}`
+                  }
                   aria-expanded={customEmailVisible}
                   aria-controls="confirmation-custom-email-content"
                   onClick={() => setCustomEmailOpen((current) => !current)}
