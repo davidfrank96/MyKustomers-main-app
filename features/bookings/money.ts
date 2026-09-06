@@ -35,6 +35,57 @@ export function minorUnitsToInput(value: number) {
   return `${sign}${major}.${minor.toString().padStart(2, "0")}`;
 }
 
+export type MoneyInputPresentation = {
+  canonicalValue: string;
+  displayValue: string;
+  formattable: boolean;
+};
+
+/**
+ * Formats a non-negative, two-decimal booking amount for editing while keeping
+ * the submitted value free of grouping separators. Invalid input is preserved
+ * so the authoritative server validator can return a field-level error.
+ */
+export function presentMoneyInput(input: string): MoneyInputPresentation {
+  const canonicalValue = input.replace(/,/g, "");
+
+  if (!/^\d*(?:\.\d{0,2})?$/.test(canonicalValue)) {
+    return { canonicalValue, displayValue: input, formattable: false };
+  }
+
+  const hasDecimalPoint = canonicalValue.includes(".");
+  const [rawMajor = "", minor = ""] = canonicalValue.split(".");
+  const major = rawMajor.replace(/^0+(?=\d)/, "") || (hasDecimalPoint ? "0" : "");
+  const groupedMajor = major.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  const normalizedCanonical = `${major}${hasDecimalPoint ? `.${minor}` : ""}`;
+
+  return {
+    canonicalValue: normalizedCanonical,
+    displayValue: `${groupedMajor}${hasDecimalPoint ? `.${minor}` : ""}`,
+    formattable: true,
+  };
+}
+
+export function moneyCaretAfterFormatting(
+  rawValue: string,
+  rawCaret: number,
+  formattedValue: string,
+) {
+  if (rawCaret >= rawValue.length) return formattedValue.length;
+
+  const meaningfulBeforeCaret = (rawValue.slice(0, rawCaret).match(/[\d.]/g) ?? [])
+    .length;
+  if (meaningfulBeforeCaret === 0) return 0;
+
+  let meaningfulSeen = 0;
+  for (let index = 0; index < formattedValue.length; index += 1) {
+    if (/[\d.]/.test(formattedValue[index])) meaningfulSeen += 1;
+    if (meaningfulSeen === meaningfulBeforeCaret) return index + 1;
+  }
+
+  return formattedValue.length;
+}
+
 export function deriveBalanceMinor(totalAmountMinor: number, depositAmountMinor: number) {
   return totalAmountMinor - depositAmountMinor;
 }

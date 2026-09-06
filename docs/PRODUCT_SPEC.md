@@ -487,3 +487,18 @@ destructive confirmation and a database-authoritative race-safe check. Members
 cannot permanently delete, and no Customer action cascades to a booking. Mobile
 swipe only reveals actions; the visible action menu remains available to desktop,
 keyboard, and assistive-technology users.
+
+## Money Entry And Completion Feedback Follow-Up
+
+Editable booking amounts use a shared grouped display while forms submit an
+ungrouped canonical decimal string to the existing minor-unit parser. Empty
+fields remain empty, decimals remain editable, negative/scientific/malformed
+values remain invalid, and no floating-point value becomes authoritative.
+
+Feedback does not gate manual completion when the authoritative balance is zero.
+An observed transition into `COMPLETED` opens one contextual success dialog;
+historical completed loads do not. Pending feedback keeps manual sharing as a
+secondary fallback through the existing capability and never sends another
+email automatically. Pending feedback defaults open for delivered/completed
+bookings but remains user-collapsible. Current journey sections use visible text
+and `aria-current`, not red/error styling alone.

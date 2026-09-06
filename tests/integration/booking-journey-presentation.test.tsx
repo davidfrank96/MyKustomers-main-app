@@ -70,7 +70,7 @@ describe("booking journey presentation", () => {
     const progress = screen.getByRole("list", { name: "Booking progress" });
     expect(within(progress).getByText("Booking created")).toBeVisible();
     expect(within(progress).getAllByText("Completed")).toHaveLength(3);
-    expect(within(progress).getByText("Current")).toBeVisible();
+    expect(within(progress).getByText("Current step")).toBeVisible();
     expect(within(progress).getAllByText("Upcoming")).toHaveLength(3);
     expect(
       within(progress).getByText("Ready for delivery").closest("li"),

@@ -72,8 +72,8 @@ describe("BookingForm edit presentation", () => {
       "type",
       "datetime-local",
     );
-    expect(screen.getByLabelText("Agreed total")).toHaveValue("50000.00");
-    expect(screen.getByLabelText("Deposit recorded")).toHaveValue("30000.00");
+    expect(screen.getByLabelText("Agreed total")).toHaveValue("50,000.00");
+    expect(screen.getByLabelText("Deposit recorded")).toHaveValue("30,000.00");
     expect(screen.getByLabelText("Internal notes")).toHaveValue("Private business note");
     expect(screen.getByText("Only visible to your business.")).toBeVisible();
     expect(screen.getByRole("button", { name: "Save booking" })).toHaveClass(

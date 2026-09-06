@@ -47,6 +47,7 @@ function renderPanel(
     generateAction?: LinkAction;
     revokeAction?: LinkAction;
     recordShareAction?: RecordShareAction;
+    deliveryEmailAccepted?: boolean;
   } = {},
 ) {
   const generateAction = vi.fn(
@@ -66,6 +67,7 @@ function renderPanel(
       generateAction={generateAction}
       revokeAction={revokeAction}
       recordShareAction={recordShareAction}
+      deliveryEmailAccepted={options.deliveryEmailAccepted}
     />,
   );
 
@@ -73,6 +75,16 @@ function renderPanel(
 }
 
 describe("private feedback link panel", () => {
+  it("describes accepted delivery email evidence without creating another send", () => {
+    renderPanel({ summary: activeSummary, deliveryEmailAccepted: true });
+
+    expect(
+      screen.getByText(/private feedback link was included in the delivery email/i),
+    ).toBeVisible();
+    expect(screen.getByText(/share the same link manually/i)).toBeVisible();
+    expect(screen.queryByRole("button", { name: /send email/i })).toBeNull();
+  });
+
   it("renders the complete not-requested state with only its eligible action", () => {
     renderPanel();
 

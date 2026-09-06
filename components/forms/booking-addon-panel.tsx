@@ -28,6 +28,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { CustomerConfirmationShare } from "@/components/forms/customer-confirmation-share";
+import { CurrencyAmountInput } from "@/components/forms/currency-amount-input";
 import type { BookingAddonItem, BookingAddonSummary } from "@/features/addons/queries";
 import {
   initialAddonActionState,
@@ -447,10 +448,9 @@ export function BookingAddonPanel({
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="addon-total">Agreed amount</Label>
-                    <Input
+                    <CurrencyAmountInput
                       id="addon-total"
                       name="totalAmount"
-                      inputMode="decimal"
                       placeholder="0.00"
                       required
                       aria-invalid={Boolean(createState.fieldErrors?.totalAmount)}
@@ -464,10 +464,9 @@ export function BookingAddonPanel({
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="addon-deposit">Deposit recorded</Label>
-                    <Input
+                    <CurrencyAmountInput
                       id="addon-deposit"
                       name="depositAmount"
-                      inputMode="decimal"
                       defaultValue="0"
                       required
                       aria-invalid={Boolean(createState.fieldErrors?.depositAmount)}

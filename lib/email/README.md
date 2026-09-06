@@ -153,3 +153,10 @@ Provider modules in `lib/email/providers` use bounded HTTP timeouts and return
 only a safe provider message ID or bounded failure. See
 `docs/TRANSACTIONAL_EMAIL.md` for activation, sender authentication, privacy,
 historical-event, and deferred webhook/retry rules.
+
+The shared HTML shell already includes exactly one canonical My Kustomers body
+logo; sender-avatar work must not add another. Inbox sender imagery is a BIMI and
+visible-From-domain identity concern. The 2026-09-06 read-only audit found the
+public DMARC policy at `p=none` and no default BIMI record, so no Production DNS
+or Brevo account-wide header change is authorized. See
+`docs/EMAIL_SENDER_AVATAR_BIMI.md`.

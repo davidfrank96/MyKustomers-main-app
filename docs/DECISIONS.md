@@ -1495,3 +1495,45 @@ bounded and authorized; customer confirmation outranks transport warnings and
 manual secure-link sharing stays available. Temporary outcomes may be superseded
 by delivery, while permanent failures and complaints never cause automatic retry
 through Brevo or Resend.
+
+## ADR-062 - Grouped Money Entry Is Presentation Over Canonical Minor Units
+
+Status: Accepted
+
+Date: 2026-09-06
+
+Context: Unseparated large amounts are difficult to scan, but storing formatted
+strings or introducing floating-point calculations would weaken the existing
+money invariant.
+
+Decision: Use one shared client money control across booking, amendment, add-on,
+and payment forms. It may display comma grouping while editing, but a separate
+named form value contains the ungrouped decimal string consumed by the existing
+server validator and integer-minor-unit parser. Invalid values remain available
+to authoritative validation rather than being silently coerced.
+
+Consequences: Database types, calculations, currency support, transition gates,
+and server actions are unchanged. Formatting and caret behavior are tested once
+at the shared boundary and cross-form tests retain domain parity.
+
+## ADR-063 - Sender Avatars Are Domain Identity, Not Email-Body Branding
+
+Status: Accepted
+
+Date: 2026-09-06
+
+Context: Application transactional emails already contain the approved platform
+logo. Inbox avatars are selected by mailbox providers from authenticated sender
+identity signals such as BIMI, not from another image in the HTML body.
+
+Decision: Keep exactly one existing body logo. Treat sender-avatar work as a
+separate BIMI/domain-authentication concern tied to the static platform identity.
+Production DMARC, DNS, Brevo account-wide BIMI headers, mark certificates,
+billing, and sender changes require explicit approval after all legitimate
+senders are aligned. Never promise display by every mailbox provider.
+
+Consequences: The current `p=none` policy blocks BIMI readiness. No BIMI record
+or asset is published until DMARC enforcement is approved and an authentic SVG
+Tiny P/S master can be produced without materially redrawing the approved raster
+logo. Supabase Auth and application email remain operationally independent but
+must be assessed against the same visible From-domain alignment.

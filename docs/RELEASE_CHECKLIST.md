@@ -1,5 +1,24 @@
 # Release Checklist
 
+## Money, Completion Feedback, And Sender Avatar Release Gate
+
+- [x] One shared amount control covers booking, edit, amendment, add-on, and payment entry.
+- [x] Grouped display submits an ungrouped canonical value to unchanged minor-unit parsing.
+- [x] Empty, decimal, invalid, negative, scientific, paste, and caret cases have focused coverage.
+- [x] Completion remains independent of feedback and the modal still appears only on an observed transition.
+- [x] Pending/received/no-accepted-delivery-email modal states are truthful.
+- [x] Share feedback opens the existing section and creates no email or duplicate capability.
+- [x] Pending feedback defaults open for delivered/completed bookings and manual collapse is respected.
+- [x] Current sections use visible brand treatment and `aria-current="step"`, not error red.
+- [x] Existing transactional email logo remains exactly once; no body-template logo change exists.
+- [x] Production From identity is documented as the last verified `My Kustomers <notifications@mykustomers.com>` configuration.
+- [x] Public SPF, DMARC, and BIMI state audited read-only; DMARC is `p=none` and BIMI is absent.
+- [x] No DNS, provider, Auth SMTP, certificate, billing, database, environment, dependency, or secret change exists.
+- [x] BIMI SVG blocker documented because the approved source contains no compliant vector master.
+- [ ] Operator approves a full legitimate-sender alignment review and DMARC enforcement plan.
+- [ ] Operator supplies/approves an authentic vector master and any Gmail-required CMC/VMC purchase.
+- [ ] Full local verification, PR CI, exact Production deployment, and read-only smoke are recorded.
+
 ## Vendor Confirmation Email Presentation Release Gate
 
 - [x] Request recipient and confirmed booking contact use separate typed presentation states.

@@ -92,4 +92,22 @@ describe("booking detail section", () => {
     expect(screen.getByText("Payment controls")).toBeVisible();
     window.history.replaceState(null, "", "/");
   });
+
+  it("marks the current step visibly and semantically without forcing it open", () => {
+    render(
+      <BookingDetailSection
+        id="private-feedback"
+        title="Private feedback"
+        summary="Not requested"
+        current
+      >
+        <p>Feedback controls</p>
+      </BookingDetailSection>,
+    );
+
+    const trigger = screen.getByRole("button", { name: /Private feedback/ });
+    expect(trigger).toHaveAttribute("aria-current", "step");
+    expect(trigger).toHaveAttribute("aria-expanded", "false");
+    expect(screen.getByText("Current step")).toBeVisible();
+  });
 });

@@ -45,7 +45,7 @@ describe("BookingForm entry clarity", () => {
       />,
     );
 
-    expect(screen.getByLabelText("Agreed total")).toHaveValue("45000.00");
-    expect(screen.getByLabelText("Deposit recorded")).toHaveValue("5000.00");
+    expect(screen.getByLabelText("Agreed total")).toHaveValue("45,000.00");
+    expect(screen.getByLabelText("Deposit recorded")).toHaveValue("5,000.00");
   });
 });

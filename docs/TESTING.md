@@ -1743,3 +1743,19 @@ and fixture cleanup passed against merge commit `d2f55fd`.
 - Production verification additionally requires the exact release, uploaded
   source maps, one controlled client/server error maximum, readable application
   frames, and dashboard inspection proving no private data was stored.
+
+## Money, Completion Feedback, And Sender Avatar Verification
+
+- `tests/integration/currency-amount-input.test.tsx` verifies grouped display,
+  canonical form submission, decimals, paste, clearing, and invalid preservation.
+- Booking form, amendment, add-on, and payment integration suites verify the same
+  shared control without changing minor-unit persistence or balance rules.
+- Booking live-sync coverage verifies one transition-only completion dialog,
+  accepted-delivery-email and manual-share copy, feedback-received copy, and the
+  existing feedback-section focus path without an automatic send.
+- Detail-section and journey suites verify delivered/completed pending-feedback
+  defaults, manual collapse persistence, visible current-step text, and semantic
+  `aria-current="step"`.
+- Transactional-email presentation asserts the canonical body logo occurs exactly
+  once. Sender-avatar readiness is documented separately because DMARC/DNS and
+  mailbox display are external evidence, not HTML-render test outcomes.

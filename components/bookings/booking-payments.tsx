@@ -10,6 +10,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { CurrencyAmountInput } from "@/components/forms/currency-amount-input";
 import {
   Dialog,
   DialogClose,
@@ -19,7 +20,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   initialBookingActionState,
@@ -88,10 +88,9 @@ function PaymentDialog({
           <input type="hidden" name="operationId" value={operationId} />
           <div className="space-y-2">
             <Label htmlFor="booking-payment-amount">Payment amount</Label>
-            <Input
+            <CurrencyAmountInput
               id="booking-payment-amount"
               name="amount"
-              inputMode="decimal"
               placeholder="0.00"
               max={minorUnitsToInput(summary.outstandingAmountMinor)}
               aria-describedby="booking-payment-balance booking-payment-amount-error"

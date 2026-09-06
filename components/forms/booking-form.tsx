@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { CurrencyAmountInput } from "@/components/forms/currency-amount-input";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -791,12 +792,11 @@ export function BookingForm({
       </Label>
       {editing ? (
         <EditFieldControl icon={Banknote}>
-          <Input
+          <CurrencyAmountInput
             id="totalAmount"
             name="totalAmount"
-            inputMode="decimal"
-            value={totalAmount}
-            onChange={(event) => setTotalAmount(event.target.value)}
+            defaultValue={totalAmount}
+            onValueChange={setTotalAmount}
             required
             disabled={disabled || materialDisabled}
             aria-invalid={Boolean(fieldError(state, "totalAmount"))}
@@ -807,12 +807,11 @@ export function BookingForm({
           />
         </EditFieldControl>
       ) : (
-        <Input
+        <CurrencyAmountInput
           id="totalAmount"
           name="totalAmount"
-          inputMode="decimal"
-          value={totalAmount}
-          onChange={(event) => setTotalAmount(event.target.value)}
+          defaultValue={totalAmount}
+          onValueChange={setTotalAmount}
           placeholder="Enter amount"
           required
           disabled={disabled || materialDisabled}
@@ -833,12 +832,11 @@ export function BookingForm({
       <Label htmlFor="depositAmount">Deposit recorded</Label>
       {editing ? (
         <EditFieldControl icon={WalletCards}>
-          <Input
+          <CurrencyAmountInput
             id="depositAmount"
             name="depositAmount"
-            inputMode="decimal"
-            value={depositAmount}
-            onChange={(event) => setDepositAmount(event.target.value)}
+            defaultValue={depositAmount}
+            onValueChange={setDepositAmount}
             disabled={disabled || materialDisabled}
             aria-invalid={Boolean(fieldError(state, "depositAmount"))}
             aria-describedby={
@@ -848,12 +846,11 @@ export function BookingForm({
           />
         </EditFieldControl>
       ) : (
-        <Input
+        <CurrencyAmountInput
           id="depositAmount"
           name="depositAmount"
-          inputMode="decimal"
-          value={depositAmount}
-          onChange={(event) => setDepositAmount(event.target.value)}
+          defaultValue={depositAmount}
+          onValueChange={setDepositAmount}
           placeholder="Optional"
           disabled={disabled || materialDisabled}
           aria-invalid={Boolean(fieldError(state, "depositAmount"))}

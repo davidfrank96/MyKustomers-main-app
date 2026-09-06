@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   deriveBalanceMinor,
   formatMoneyMinor,
+  moneyCaretAfterFormatting,
   parseMoneyToMinorUnits,
+  presentMoneyInput,
 } from "@/features/bookings/money";
 import {
   areMaterialBookingTermsLocked,
@@ -32,6 +34,26 @@ describe("booking domain", () => {
     expect(parseMoneyToMinorUnits("90071992547409.91")).toBe(Number.MAX_SAFE_INTEGER);
     expect(parseMoneyToMinorUnits("45.999")).toBeNull();
     expect(parseMoneyToMinorUnits("-1")).toBeNull();
+  });
+
+  it("separates grouped money presentation from the canonical submitted value", () => {
+    expect(presentMoneyInput("4000")).toEqual({
+      canonicalValue: "4000",
+      displayValue: "4,000",
+      formattable: true,
+    });
+    expect(presentMoneyInput("0004000.5").displayValue).toBe("4,000.5");
+    expect(presentMoneyInput("12500.").displayValue).toBe("12,500.");
+    expect(presentMoneyInput("4,000.50").canonicalValue).toBe("4000.50");
+    expect(presentMoneyInput("").displayValue).toBe("");
+    expect(presentMoneyInput("-1").formattable).toBe(false);
+    expect(presentMoneyInput("1e3").canonicalValue).toBe("1e3");
+  });
+
+  it("keeps the caret near the edited digit when grouping changes", () => {
+    expect(moneyCaretAfterFormatting("4000", 4, "4,000")).toBe(5);
+    expect(moneyCaretAfterFormatting("4000", 1, "4,000")).toBe(1);
+    expect(moneyCaretAfterFormatting("12,345", 3, "12,345")).toBe(2);
   });
 
   it("derives balances without storing a mutable balance", () => {

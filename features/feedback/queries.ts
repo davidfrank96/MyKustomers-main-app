@@ -10,6 +10,9 @@ import {
 export type Feedback = Database["public"]["Tables"]["feedback"]["Row"];
 export type FeedbackLink = Database["public"]["Tables"]["feedback_links"]["Row"];
 export type BookingIssue = Database["public"]["Tables"]["booking_issues"]["Row"];
+export type DeliveryFeedbackEmailStatus =
+  | Database["public"]["Enums"]["email_event_status"]
+  | null;
 
 export type FeedbackLinkSummary = {
   id: string;
@@ -110,6 +113,26 @@ export async function getFeedbackLinkSummaryForBooking(
     sharedAt: shareEvent?.created_at ?? null,
     shareMethod: isFeedbackShareMethod(shareMethod) ? shareMethod : null,
   };
+}
+
+export async function getDeliveryFeedbackEmailStatusForBooking(
+  businessId: string,
+  bookingId: string,
+): Promise<DeliveryFeedbackEmailStatus> {
+  if (!canUseServiceRoleClient()) return null;
+
+  const { data, error } = await createServiceRoleClient()
+    .from("email_events")
+    .select("status, provider_message_id")
+    .eq("business_id", businessId)
+    .eq("booking_id", bookingId)
+    .eq("event_type", "BOOKING_DELIVERED")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error || data?.provider_message_id?.startsWith("development-")) return null;
+  return data?.status ?? null;
 }
 
 export async function getFeedbackForBooking(businessId: string, bookingId: string) {

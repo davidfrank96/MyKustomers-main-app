@@ -49,9 +49,9 @@ function formatDateTime(value: string | null) {
 
 const stateLabels = {
   completed: "Completed",
-  current: "Current",
+  current: "Current step",
   upcoming: "Upcoming",
-  attention: "Waiting",
+  attention: "Action needed",
   cancelled: "Cancelled",
 } as const;
 
@@ -286,7 +286,10 @@ export function BookingJourney({
             return (
               <li
                 key={stage.key}
-                className="relative flex min-h-[3.75rem] gap-3 pb-3 last:min-h-0 last:pb-0"
+                className={cn(
+                  "relative flex min-h-[3.75rem] gap-3 pb-3 last:min-h-0 last:pb-0",
+                  isCurrent && "-mx-2 rounded-md bg-primary/[0.04] px-2 pt-2",
+                )}
                 aria-current={isCurrent ? "step" : undefined}
               >
                 {index < journey.stages.length - 1 ? (
@@ -304,11 +307,11 @@ export function BookingJourney({
                     stage.state === "completed" &&
                       "border-primary bg-primary text-primary-foreground",
                     stage.state === "current" &&
-                      "border-primary bg-card text-primary ring-2 ring-primary/15",
+                      "border-primary bg-primary text-primary-foreground ring-4 ring-primary/15",
                     stage.state === "upcoming" &&
                       "border-border bg-card text-muted-foreground",
                     stage.state === "attention" &&
-                      "border-accent bg-accent/10 text-accent",
+                      "border-primary bg-primary/10 text-primary ring-4 ring-primary/10",
                     stage.state === "cancelled" &&
                       "border-destructive bg-destructive text-white",
                   )}

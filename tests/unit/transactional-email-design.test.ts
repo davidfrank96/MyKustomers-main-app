@@ -39,6 +39,11 @@ function expectMyKustomersAttribution(email: { html: string; text: string }) {
   expect(email.html).toContain(
     'src="https://mykustomers.com/brand/mykustomers/v1/email/mykustomers-email-logo-512w.png"',
   );
+  expect(
+    email.html.match(
+      /src="https:\/\/mykustomers\.com\/brand\/mykustomers\/v1\/email\/mykustomers-email-logo-512w\.png"/g,
+    ),
+  ).toHaveLength(1);
   expect(email.html).toContain('alt="MyKustomers.com"');
   expect(email.html).toContain("Visit My Kustomers");
 }

@@ -21,12 +21,14 @@ function liveState(
   status: "DELIVERED" | "COMPLETED" | "CANCELLED",
   revision: string = status,
   feedbackSubmittedAt: string | null = null,
+  deliveryFeedbackEmailAccepted = false,
 ) {
   return {
     revision,
     status,
     customerConfirmedAt: "2026-09-03T10:00:00.000Z",
     feedbackSubmittedAt,
+    deliveryFeedbackEmailAccepted,
   } as const;
 }
 
@@ -171,7 +173,10 @@ describe("BookingLiveSync PWA reconciliation", () => {
 
     expect(
       await screen.findByRole("dialog", { name: "Booking complete" }),
-    ).toHaveTextContent("Everything for this booking is finished.");
+    ).toHaveTextContent(
+      "You can still share the private feedback link directly with the customer.",
+    );
+    expect(screen.getByRole("button", { name: "Share feedback" })).toBeVisible();
     fireEvent.click(screen.getByRole("button", { name: "Done" }));
     await waitFor(() =>
       expect(screen.queryByRole("dialog", { name: "Booking complete" })).toBeNull(),
@@ -184,6 +189,75 @@ describe("BookingLiveSync PWA reconciliation", () => {
       />,
     );
     expect(screen.queryByRole("dialog", { name: "Booking complete" })).toBeNull();
+  });
+
+  it("uses delivery-email evidence for pending feedback and opens the existing panel", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => Response.json(liveState("COMPLETED"))));
+    const { rerender } = render(
+      <>
+        <section id="private-feedback">
+          <button type="button" aria-controls="feedback-region">
+            Private feedback
+          </button>
+        </section>
+        <BookingLiveSync
+          bookingId="00000000-0000-4000-8000-000000000001"
+          initialState={liveState("DELIVERED")}
+        />
+      </>,
+    );
+
+    rerender(
+      <>
+        <section id="private-feedback">
+          <button type="button" aria-controls="feedback-region">
+            Private feedback
+          </button>
+        </section>
+        <BookingLiveSync
+          bookingId="00000000-0000-4000-8000-000000000001"
+          initialState={liveState("COMPLETED", "completed-email-accepted", null, true)}
+        />
+      </>,
+    );
+
+    expect(await screen.findByRole("dialog", { name: "Booking complete" })).toHaveTextContent(
+      "A private feedback link was included in the customer’s delivery email.",
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Share feedback" }));
+    await waitFor(() => expect(window.location.hash).toBe("#private-feedback"));
+    await waitFor(() =>
+      expect(document.activeElement).toBe(
+        screen.getByRole("button", { name: "Private feedback" }),
+      ),
+    );
+    window.history.replaceState(null, "", "/");
+  });
+
+  it("acknowledges received feedback without offering another share action", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => Response.json(liveState("COMPLETED"))));
+    const { rerender } = render(
+      <BookingLiveSync
+        bookingId="00000000-0000-4000-8000-000000000001"
+        initialState={liveState("DELIVERED")}
+      />,
+    );
+
+    rerender(
+      <BookingLiveSync
+        bookingId="00000000-0000-4000-8000-000000000001"
+        initialState={liveState(
+          "COMPLETED",
+          "completed-with-feedback",
+          "2026-09-03T10:05:00.000Z",
+        )}
+      />,
+    );
+
+    expect(await screen.findByRole("dialog", { name: "Booking complete" })).toHaveTextContent(
+      "Customer feedback has been received",
+    );
+    expect(screen.queryByRole("button", { name: "Share feedback" })).toBeNull();
   });
 
   it("does not celebrate a historical completed initial load", () => {

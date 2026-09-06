@@ -60,3 +60,9 @@ On vendor booking detail, feedback is projected as the final journey step from
 feedback request, and submitted feedback closes the journey as Feedback
 received. This is presentation only; feedback does not add or alter a booking
 status.
+
+For `DELIVERED` or `COMPLETED` bookings without submitted feedback, the vendor
+section defaults open once from server-resolved state and may then be closed by
+the user. It explains whether the delivery email was accepted before claiming
+that the feedback link was included. Manual share always reuses the current
+recoverable capability and never manufactures a standalone feedback email.
