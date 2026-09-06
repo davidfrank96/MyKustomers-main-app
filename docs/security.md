@@ -15,6 +15,12 @@ capability, and append one request event. It neither clears provider suppression
 nor mutates `customers.email`, and it never switches automatically to the standby
 provider.
 
+Booking Details treats the vendor-selected request recipient as delivery history,
+not confirmation authority. Once customer confirmation exists, the immutable
+`booking_confirmations.contact_email` is the primary displayed booking contact;
+the earlier request recipient cannot visually override it. Equal values may be
+collapsed for presentation, but both persisted evidence records remain intact.
+
 The public customer email review is a usability boundary, not authorization or
 identity proof. It uses the same contact schema as final server validation,
 reveals only the address the customer just entered, and performs no mutation

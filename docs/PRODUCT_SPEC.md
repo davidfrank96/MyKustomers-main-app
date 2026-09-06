@@ -178,6 +178,14 @@ booking-specific evidence but does not promote itself to the canonical profile.
 No preferred-contact, multi-email, ownership-verification, merge, or hidden
 contact-history model is implied.
 
+Booking Details presents the vendor-selected initial request recipient separately
+from the customer-confirmed booking contact. Before confirmation, the request
+recipient may be shown as **Confirmation request sent to**. After confirmation,
+the immutable customer-entered address is the primary **Confirmed booking
+contact**; the earlier request remains compact historical evidence. The vendor
+send editor is **Send confirmation to** and never confirms a booking or mutates
+the saved customer profile.
+
 Once customer-confirmed, material booking terms cannot be silently edited.
 Customer, title, customer-facing description, currency, total, deposit, and
 schedule are agreement fields. Internal notes remain internal and editable

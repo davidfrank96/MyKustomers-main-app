@@ -2907,7 +2907,7 @@ test.describe("booking engine", () => {
     const secondConfirmationUrl = await page
       .getByLabel("Generated confirmation link")
       .inputValue();
-    await page.getByRole("button", { name: /Custom email/ }).click();
+    await page.getByRole("button", { name: "Send confirmation to" }).click();
     const secondBookingEmailInput = page.getByLabel("Customer email");
     await expect(secondBookingEmailInput).toHaveValue("");
     await expect(page.getByText(`Saved contact: ${staleCustomerEmail}`)).toBeVisible();

@@ -1,5 +1,16 @@
 # Release Checklist
 
+## Vendor Confirmation Email Presentation Release Gate
+
+- [x] Request recipient and confirmed booking contact use separate typed presentation states.
+- [x] Outstanding request is never labelled as confirmed contact.
+- [x] Confirmed contact is primary after confirmation.
+- [x] Same-address history is compact; different addresses remain explicit.
+- [x] Latest request remains the resend suggestion and **Send confirmation to** remains accessible.
+- [x] Customer profile, automatic confirmation, manual share, later lifecycle recipients, and persistence are unchanged.
+- [x] No migration, environment, dependency, provider, capability, outbox, or webhook change exists.
+- [ ] Full local verification, PR CI, exact Production deployment, and read-only smoke are recorded.
+
 ## Email Reliability Phase 4A Release Gate
 
 - [x] Public contact validation occurs before the customer review state.
@@ -14,7 +25,7 @@
 - [x] The temporary in-memory browser harness and artifacts are removed with no Production fixture or email created.
 - [x] Bounded isolated base/feature public checks pass; the earlier reused-server failures are environment-dependent.
 - [x] One full local lint/type/test/runtime/build/audit/diff pass is recorded; guarded runtime checks remain skips.
-- [ ] PR CI and exact-commit deployment are recorded if release is separately authorized.
+- [x] PR #70 CI passed; exact merge `ab9b695` deployed Ready/Latest to Production as `AN1Vzedq2xjZZiiaMPSmWm2xa6Eh`.
 - [ ] Controlled provider/webhook/inbox verification awaits an operator-controlled inbox.
 
 ## Email Reliability Phase 3 Release Gate

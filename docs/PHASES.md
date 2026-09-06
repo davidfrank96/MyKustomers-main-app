@@ -8,8 +8,17 @@
 
 Documentation is not implementation evidence.
 
-The 2026-09-06 Email Reliability Phase 4A customer review is IMPLEMENTED with
-release verification pending. The public confirmation form now validates
+The 2026-09-06 vendor confirmation email presentation correction is IMPLEMENTED
+with release verification pending. Booking Details no longer lets the initial
+request recipient override the immutable confirmed booking contact. It labels
+the active vendor send path **Send confirmation to**, preserves request history
+and resend suggestions, avoids repeated same-address presentation, and displays
+different request/confirmed addresses according to their actual authority. No
+database, profile, capability, outbox, provider, environment, dependency, or
+automatic-confirmation behavior changed.
+
+The 2026-09-06 Email Reliability Phase 4A customer review is VERIFIED —
+PRODUCTION. The public confirmation form now validates
 before an application-owned email review, shows the exact domain-normalized
 booking contact, supports focus-restoring correction with form preservation, and
 invokes the existing atomic confirmation only from the final explicit action.
@@ -17,8 +26,10 @@ It changes no database, provider, environment, dependency, profile-email rule,
 or email transaction. Controlled provider/webhook/inbox verification remains
 deferred until an operator-controlled inbox is available; no Production fixture
 or email was manufactured. Focused component tests, a headed real-form mobile and
-desktop check, and bounded isolated base/feature public comparisons pass. PR CI,
-exact-commit deployment, and read-only Production smoke remain release gates.
+desktop check, and bounded isolated base/feature public comparisons pass. PR #70
+passed required executable CI, merged as `ab9b695`, and deployed Ready/Latest as
+Vercel Production deployment `AN1Vzedq2xjZZiiaMPSmWm2xa6Eh`; canonical health,
+non-mutating smoke, post-merge main CI, and Sentry review passed.
 
 The 2026-09-02 Auth verification and application abuse-control work is
 IMPLEMENTED cross-phase maintenance for Phases 2, 6, 7, and 8. It preserves the

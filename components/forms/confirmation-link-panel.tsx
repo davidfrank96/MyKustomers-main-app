@@ -35,6 +35,7 @@ import {
   type ConfirmationLinkActionState,
 } from "@/features/confirmation-links/action-state";
 import type { ConfirmationShareMethod } from "@/features/confirmation-links/share";
+import { getConfirmationEmailPresentation } from "@/features/confirmation-links/presentation";
 import {
   customerContactEmailsMatch,
   normalizeCustomerContactEmail,
@@ -239,13 +240,22 @@ export function ConfirmationLinkPanel({
       (active && generateState.message !== "Confirmation link generated."));
   const showRevokeMessage =
     revokeState.message && (revokeState.status === "error" || !active);
-  const bookingEmail = summary.requestRecipientEmail ?? summary.contactEmail;
+  const emailPresentation = getConfirmationEmailPresentation({
+    confirmed,
+    confirmedContactEmail: summary.contactEmail,
+    requestRecipientEmail: summary.requestRecipientEmail,
+  });
+  const currentContactEmail = emailPresentation.primaryEmail;
   const profileEmailDiffers = Boolean(
-    bookingEmail &&
+    currentContactEmail &&
     customerProfileEmail &&
-    !customerContactEmailsMatch(bookingEmail, customerProfileEmail),
+    !customerContactEmailsMatch(currentContactEmail, customerProfileEmail),
   );
-  const suggestedRecipient = sendState.recipientEmail ?? bookingEmail ?? "";
+  const suggestedRecipient =
+    sendState.recipientEmail ??
+    emailPresentation.requestRecipientEmail ??
+    summary.contactEmail ??
+    "";
   const [recipientEmail, setRecipientEmail] = useState(suggestedRecipient);
   const savedContactEmail = customerProfileEmail
     ? normalizeCustomerContactEmail(customerProfileEmail)
@@ -258,7 +268,9 @@ export function ConfirmationLinkPanel({
   const recoveryPresentation = getEmailRecoveryPresentation({
     summary: providerDelivery,
     confirmed,
-    hasCustomerEmail: Boolean(bookingEmail),
+    hasCustomerEmail: Boolean(
+      emailPresentation.requestRecipientEmail ?? summary.contactEmail,
+    ),
   });
   const recipientMatchesLastRequest = Boolean(
     summary.requestRecipientEmail &&
@@ -267,15 +279,6 @@ export function ConfirmationLinkPanel({
   );
   const unchangedSendBlocked =
     recipientMatchesLastRequest && !recoveryPresentation.allowUnchangedEmailSend;
-  const emailEditorLabel =
-    recoveryPresentation.primaryAction === "add_email"
-      ? "Add email"
-      : recoveryPresentation.primaryAction === "edit_email"
-        ? "Edit email"
-        : recoveryPresentation.primaryAction === "check_email"
-          ? "Check email"
-          : "Custom email";
-
   function useSavedContactEmail() {
     if (!savedContactEmail) return;
 
@@ -321,13 +324,13 @@ export function ConfirmationLinkPanel({
       <div className="grid gap-3 rounded-lg border border-border bg-muted/60 p-3 sm:grid-cols-2 lg:grid-cols-4">
         <div className="min-w-0">
           <p className="text-xs font-medium text-muted-foreground">
-            Customer email for this booking
+            {emailPresentation.primaryLabel}
           </p>
           <p className="mt-1 break-all text-sm">
-            {bookingEmail ?? "No customer email added"}
+            {emailPresentation.primaryEmail ?? "Not recorded"}
           </p>
         </div>
-        {savedContactEmail && (!bookingEmail || profileEmailDiffers) ? (
+        {savedContactEmail && (!currentContactEmail || profileEmailDiffers) ? (
           <div className="min-w-0">
             <p className="text-xs font-medium text-muted-foreground">
               Saved contact email <span className="font-normal">(optional)</span>
@@ -351,7 +354,11 @@ export function ConfirmationLinkPanel({
         <div className="rounded-lg border border-border bg-muted/50 p-3 text-sm">
           <p className="font-medium">Last confirmation request</p>
           <p className="mt-1 break-all text-muted-foreground">
-            {summary.requestRecipientEmail} ·{" "}
+            {emailPresentation.requestRecipientRepeatsPrimary
+              ? emailPresentation.primaryKind === "confirmed_contact"
+                ? "Same as confirmed booking contact"
+                : "Recipient shown above"
+              : `Sent to ${summary.requestRecipientEmail}`} ·{" "}
             {summary.requestEmailStatus?.toLowerCase() ?? "queued"} ·{" "}
             {formatDateTime(summary.requestCreatedAt)}
           </p>
@@ -404,11 +411,7 @@ export function ConfirmationLinkPanel({
                 <button
                   type="button"
                   className="flex min-h-[4.5rem] w-full min-w-0 items-center gap-3 px-3.5 py-3 text-left outline-none transition-colors hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:px-4"
-                  aria-label={
-                    emailEditorLabel === "Custom email"
-                      ? "Custom email"
-                      : `Custom email — ${emailEditorLabel}`
-                  }
+                  aria-label="Send confirmation to"
                   aria-expanded={customEmailVisible}
                   aria-controls="confirmation-custom-email-content"
                   onClick={() => setCustomEmailOpen((current) => !current)}
@@ -418,10 +421,10 @@ export function ConfirmationLinkPanel({
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block text-sm font-semibold leading-5">
-                      {emailEditorLabel}
+                      Send confirmation to
                     </span>
                     <span className="mt-0.5 block text-sm leading-5 text-muted-foreground">
-                      {bookingEmail
+                      {emailPresentation.requestRecipientEmail
                         ? "Review the booking-specific address before sending a fresh confirmation."
                         : "Add a booking-specific address without changing the customer profile."}
                     </span>

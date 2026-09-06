@@ -1,5 +1,15 @@
 # Confirmation Links Feature
 
+## Vendor Confirmation Email Presentation
+
+The authenticated Booking Details panel derives one typed presentation from two
+independent values. An outstanding `BOOKING_CONFIRMATION_REQUESTED` recipient is
+shown as **Confirmation request sent to**. After customer confirmation,
+`booking_confirmations.contact_email` becomes the primary **Confirmed booking
+contact**, while the request stays compact historical evidence and the editor's
+resend suggestion. The editor is labelled **Send confirmation to**. This changes
+no persistence, profile, capability, provider, or lifecycle-recipient behavior.
+
 ## Email Reliability Phase 4A
 
 The public customer form validates with the shared confirmation-contact schema

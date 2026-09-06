@@ -1,5 +1,15 @@
 # Testing
 
+## Vendor Confirmation Email Presentation
+
+Focused presentation-model and panel tests cover no-address, request-only,
+confirmed-only, same-address, different-address, and server-summary refresh
+states. They verify that a confirmed contact outranks request history, identical
+addresses are not repeated, a distinct request remains secondary evidence, the
+latest request remains the resend suggestion, **Send confirmation to** stays
+keyboard accessible, saved profile data remains opt-in, and manual sharing plus
+later lifecycle recipient contracts are unchanged.
+
 ## Email Reliability Phase 4A
 
 Customer-review component coverage proves that malformed contact is rejected
@@ -40,6 +50,11 @@ homepage and branding checks against both base `b440a49` and the Phase 4A branch
 dedicated ports; all four runs passed. The broad-run result is therefore classified
 as environment-dependent reused-server interference, not a demonstrated Phase 4A
 regression. No Production-backed fixture path was bypassed.
+
+PR #70 passed all required executable checks with Runtime Security correctly
+skipped, merged as `ab9b695`, and deployed Ready/Latest to Vercel Production as
+`AN1Vzedq2xjZZiiaMPSmWm2xa6Eh`. Canonical health, non-mutating route/bundle
+smoke, post-merge main CI, and the one-hour Sentry review passed.
 
 ## Email Reliability Phase 3
 

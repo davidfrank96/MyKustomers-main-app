@@ -1,8 +1,20 @@
 # Changelog
 
+## 2026-09-06 — Vendor Confirmation Email Presentation
+
+IMPLEMENTED — RELEASE VERIFICATION PENDING. Booking Details no longer combines
+the vendor-selected confirmation-request recipient with the immutable
+customer-confirmed booking contact. Outstanding requests are labelled
+**Confirmation request sent to**; confirmed bookings make **Confirmed booking
+contact** primary while retaining compact request history. Equal addresses are
+not repeated, different addresses remain visibly distinct, and the vendor editor
+is now **Send confirmation to**. No server action, profile mutation, automatic
+confirmation, capability, outbox, provider, database, environment, or dependency
+behavior changed.
+
 ## 2026-09-06 — Customer Email Review Before Booking Confirmation
 
-IMPLEMENTED — RELEASE VERIFICATION PENDING. Public customers now validate and
+VERIFIED — PRODUCTION. Public customers now validate and
 review the exact domain-normalized booking email before the existing final
 confirmation action runs. They can edit with restored email focus while the
 optional phone remains intact; rapid final clicks are guarded and the existing
@@ -15,8 +27,11 @@ supplied. Focused component tests and a headed real-form browser check pass at
 390x844 and 1440x1000, including focus, correction, long-address containment, and
 duplicate-submit behavior. Isolated base/feature public checks also pass; the
 earlier broad Playwright failures are classified as reused-server environment
-interference rather than demonstrated branch regressions. PR CI, exact-commit
-deployment, and read-only Production smoke remain release gates.
+interference rather than demonstrated branch regressions. PR #70 passed every
+required executable check with Runtime Security correctly skipped, merged as
+`ab9b695`, and deployed Ready/Latest to Vercel Production as
+`AN1Vzedq2xjZZiiaMPSmWm2xa6Eh`. Canonical health, non-mutating route/bundle
+smoke, post-merge main CI, and the one-hour Sentry review passed.
 
 ## 2026-09-05 — Vendor Email Recovery UX
 

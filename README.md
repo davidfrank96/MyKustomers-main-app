@@ -1,5 +1,13 @@
 # My Kustomers
 
+The vendor confirmation panel now presents the initial request recipient and the
+customer-confirmed booking contact as separate concepts. Before confirmation it
+labels the vendor-selected address **Confirmation request sent to**; after
+confirmation the immutable `booking_confirmations.contact_email` becomes the
+primary **Confirmed booking contact**. The request remains compact historical
+evidence, and **Send confirmation to** retains the existing safe resend/editor
+behavior without changing customer profiles, capabilities, or email delivery.
+
 Email Reliability Phase 4A adds an application-owned customer email review step
 to the public booking-confirmation form. The customer validates their contact,
 reviews the exact domain-normalized booking email, and may edit it before the

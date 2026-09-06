@@ -1,8 +1,19 @@
 # Master Plan
 
+## Vendor Confirmation Email Presentation — 2026-09-06
+
+IMPLEMENTED — RELEASE VERIFICATION PENDING. A typed presentation model now keeps
+the vendor-selected request recipient separate from the customer-confirmed
+booking contact on Booking Details. The confirmed contact is primary after
+confirmation; the request recipient remains historical evidence and the resend
+suggestion. The visible editor label is **Send confirmation to**. Same-address
+history is compact, different addresses remain explicit, and no persistence,
+profile, capability, outbox, provider, or later-lifecycle recipient behavior is
+changed.
+
 ## Email Reliability Phase 4A — 2026-09-06
 
-IMPLEMENTED — RELEASE VERIFICATION PENDING. The public customer confirmation
+VERIFIED — PRODUCTION. The public customer confirmation
 flow now validates contact details before showing a compact, accessible review
 state with the exact domain-normalized booking email. Edit restores focus without
 clearing the optional phone; final confirmation alone invokes the unchanged
@@ -12,8 +23,10 @@ remain database-idempotent. The immutable booking contact stays separate from
 system change is included. Controlled provider/webhook/inbox verification is
 deferred because no operator-controlled inbox was supplied. Focused component and
 headed real-form browser verification pass at mobile and desktop widths; isolated
-base/feature public comparisons also pass. PR CI, exact-commit deployment, and
-read-only Production smoke remain required before the release is marked verified.
+base/feature public comparisons also pass. PR #70 passed required executable CI,
+merged as `ab9b695`, and deployed Ready/Latest to Vercel Production as
+`AN1Vzedq2xjZZiiaMPSmWm2xa6Eh`. Canonical health, non-mutating route/bundle
+smoke, post-merge main CI, and Sentry review passed.
 
 ## Email Reliability Stage 2 — 2026-09-05
 

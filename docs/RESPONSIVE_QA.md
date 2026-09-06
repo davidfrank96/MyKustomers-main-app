@@ -4,6 +4,12 @@ STATUS: VERIFIED FOR THE DEPLOYED BASELINE; BRANCH RELEASE MATRIX VERIFIED
 
 Audit date: 2026-08-31.
 
+The vendor confirmation email presentation correction keeps the existing compact
+Booking Details grid and disclosure. Long request and confirmed addresses retain
+`break-all` containment; the fixed **Send confirmation to** label, compact request
+history, and distinct primary contact must remain legible without horizontal
+overflow at 320, 360, 390, 430, 768, 1024, and 1440 pixels.
+
 Email Reliability Phase 4A adds a compact inline public confirmation review,
 not a modal. Entry and review states retain full-width mobile actions, visible
 focus, `break-all` long-address containment, and zero horizontal overflow at
