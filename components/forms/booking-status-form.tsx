@@ -46,7 +46,7 @@ function SubmitButton({
       type="submit"
       variant={variant}
       size={fullWidth ? "md" : "sm"}
-      className={fullWidth ? "w-full" : "w-full sm:w-fit"}
+      className="w-full sm:w-fit"
       disabled={pending}
       aria-live="polite"
     >
@@ -107,7 +107,7 @@ export function BookingStatusForm({
           type="button"
           variant={variant}
           size={fullWidth ? "md" : "sm"}
-          className={fullWidth ? "w-full" : "w-full sm:w-fit"}
+          className="w-full sm:w-fit"
         >
           {label}
         </Button>

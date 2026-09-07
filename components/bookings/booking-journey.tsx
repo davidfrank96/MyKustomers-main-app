@@ -161,7 +161,7 @@ export function BookingJourney({
                         fullWidth
                       />
                     ) : (
-                      <Button asChild className="w-full">
+                      <Button asChild className="w-full sm:w-fit">
                         <a
                           href={journey.primaryAction.href}
                           style={{ color: "var(--primary-foreground)" }}
@@ -286,19 +286,29 @@ export function BookingJourney({
             return (
               <li
                 key={stage.key}
-                className={cn(
-                  "relative flex min-h-[3.75rem] gap-3 pb-3 last:min-h-0 last:pb-0",
-                  isCurrent && "-mx-2 rounded-md bg-primary/[0.04] px-2 pt-2",
-                )}
+                className="relative flex min-h-[3.75rem] gap-3 pb-3 last:min-h-0 last:pb-0"
                 aria-current={isCurrent ? "step" : undefined}
+                data-booking-journey-stage={stage.state}
               >
+                {isCurrent ? (
+                  <span
+                    className={cn(
+                      "pointer-events-none absolute -inset-x-2 -top-1 bottom-2 rounded-md border",
+                      stage.state === "attention"
+                        ? "border-accent/25 bg-accent/[0.045]"
+                        : "border-primary/20 bg-primary/[0.045]",
+                    )}
+                    aria-hidden="true"
+                  />
+                ) : null}
                 {index < journey.stages.length - 1 ? (
                   <span
                     className={cn(
-                      "absolute left-[15px] top-8 h-[calc(100%-0.75rem)] w-px",
+                      "absolute left-[15px] top-4 h-full w-px",
                       stage.state === "completed" ? "bg-primary/45" : "bg-border",
                     )}
                     aria-hidden="true"
+                    data-booking-journey-connector
                   />
                 ) : null}
                 <span
@@ -311,18 +321,20 @@ export function BookingJourney({
                     stage.state === "upcoming" &&
                       "border-border bg-card text-muted-foreground",
                     stage.state === "attention" &&
-                      "border-primary bg-primary/10 text-primary ring-4 ring-primary/10",
+                      "border-accent bg-card text-accent ring-4 ring-accent/10",
                     stage.state === "cancelled" &&
                       "border-destructive bg-destructive text-white",
                   )}
+                  data-booking-journey-marker
                 >
                   <StageIcon state={stage.state} />
                 </span>
-                <span className="min-w-0 pt-0.5">
+                <span className="relative z-10 min-w-0 pt-0.5">
                   <span
                     className={cn(
                       "block break-words text-sm font-semibold leading-5 sm:text-base",
-                      isCurrent && "text-primary",
+                      stage.state === "current" && "text-primary",
+                      stage.state === "attention" && "text-accent",
                       stage.state === "upcoming" && "text-muted-foreground",
                     )}
                   >
@@ -331,7 +343,8 @@ export function BookingJourney({
                   <span
                     className={cn(
                       "mt-0.5 block text-xs text-muted-foreground",
-                      isCurrent && "font-medium text-primary",
+                      stage.state === "current" && "font-medium text-primary",
+                      stage.state === "attention" && "font-medium text-accent",
                     )}
                   >
                     {stateLabels[stage.state]}

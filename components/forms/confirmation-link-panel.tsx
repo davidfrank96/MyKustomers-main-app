@@ -41,6 +41,7 @@ import {
   normalizeCustomerContactEmail,
 } from "@/features/customers/email";
 import { cn } from "@/lib/utils/cn";
+import { formatDisplayDateTime } from "@/lib/utils/display-date";
 
 type ConfirmationLinkPanelProps = {
   summary: ConfirmationLinkSummary;
@@ -72,10 +73,7 @@ function formatDateTime(value: string | null) {
     return "Not available";
   }
 
-  return new Intl.DateTimeFormat("en", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value));
+  return formatDisplayDateTime(value);
 }
 
 function shareMethodLabel(method: ConfirmationShareMethod) {

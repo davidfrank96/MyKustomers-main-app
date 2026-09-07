@@ -18,7 +18,7 @@ export function DropdownMenuContent({
       <DropdownMenuPrimitive.Content
         align="end"
         className={cn(
-          "z-50 min-w-44 rounded-md border border-border bg-card p-1 shadow-lg",
+          "z-50 max-h-[var(--radix-dropdown-menu-content-available-height)] max-w-[calc(100vw-2rem)] min-w-44 overflow-y-auto overscroll-contain rounded-md border border-border bg-card p-1 shadow-lg",
           className,
         )}
         {...props}
@@ -34,7 +34,7 @@ export function DropdownMenuItem({
   return (
     <DropdownMenuPrimitive.Item
       className={cn(
-        "flex cursor-default select-none items-center rounded px-3 py-2 text-sm outline-none data-[highlighted]:bg-muted",
+        "flex min-h-10 cursor-default select-none items-center rounded px-3 py-2 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-muted",
         className,
       )}
       {...props}

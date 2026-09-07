@@ -114,6 +114,42 @@ Current structural rules:
 
 Required viewport and route evidence is recorded in `docs/RESPONSIVE_QA.md`.
 
+## Permanent Alignment Invariants
+
+Shared layout, spacing, typography, form, modal, navigation, and status
+primitives must remain visually consistent across mobile web, installed PWA,
+tablet, desktop, public customer flows, and administrative surfaces.
+
+Responsive fixes must resolve the responsible component rather than hiding
+overflow globally or adding viewport-specific patches that fail at adjacent
+sizes. Workspace pages use 16px mobile gutters, 32px tablet gutters, and 40px
+desktop gutters inside the existing route-specific maximum width. Page titles
+and compact actions occupy the first header row; descriptions use the complete
+second row so an action cannot compress body copy into a narrow column.
+
+Workspace creation and detail routes use the shared page title scale and shared
+text-labelled back link. Critical navigation labels stay visible. Shared
+buttons keep icons from shrinking and preserve native link/button semantics.
+Client-rendered booking and customer dates use the shared deterministic display
+formatter; browser engines must not choose different punctuation during
+hydration.
+
+Dialogs use a 16px mobile viewport margin, dynamic viewport height, safe-area
+allowance, bounded internal scrolling, and contained overscroll. Sheets account
+for top and bottom safe areas, including the close control. Dropdowns are
+bounded by their available viewport height. Authenticated mobile toasts clear
+the fixed five-item navigation and bottom safe area. These rules refine the
+existing primitives; they do not create a second overlay system.
+
+The Booking Journey must maintain aligned connectors, stable step markers,
+clear completed/current/upcoming states, and an unmistakable current action
+without changing the authoritative booking lifecycle. A connector begins at
+the centre of its marker and ends at the centre of the following marker. Current
+row emphasis is an absolutely positioned, non-layout-changing branded surface;
+action-needed emphasis uses the existing amber accent, while red remains
+reserved for destructive/error states. Primary journey actions fill narrow
+screens and return to intrinsic width from the existing `sm` breakpoint.
+
 ## Approved Mobile Workspace System
 
 The `ui/mobile-redesign` branch applies the approved mobile redesign package to

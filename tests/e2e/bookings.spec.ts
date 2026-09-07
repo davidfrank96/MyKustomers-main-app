@@ -100,6 +100,55 @@ async function expectNoPageOverflow(page: Page) {
   expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth + 1);
 }
 
+async function expectJourneyConnectorAlignment(page: Page) {
+  const geometry = await page
+    .getByRole("list", { name: "Booking progress" })
+    .evaluate((progress) => {
+      const stages = Array.from(
+        progress.querySelectorAll<HTMLElement>("[data-booking-journey-stage]"),
+      );
+
+      return stages.slice(0, -1).map((stage, index) => {
+        const connector = stage.querySelector<HTMLElement>(
+          "[data-booking-journey-connector]",
+        );
+        const marker = stage.querySelector<HTMLElement>(
+          "[data-booking-journey-marker]",
+        );
+        const nextMarker = stages[index + 1]?.querySelector<HTMLElement>(
+          "[data-booking-journey-marker]",
+        );
+
+        if (!connector || !marker || !nextMarker) return null;
+
+        const connectorBox = connector.getBoundingClientRect();
+        const markerBox = marker.getBoundingClientRect();
+        const nextMarkerBox = nextMarker.getBoundingClientRect();
+
+        return {
+          centerX: Math.abs(
+            connectorBox.x + connectorBox.width / 2 -
+              (markerBox.x + markerBox.width / 2),
+          ),
+          startY: Math.abs(
+            connectorBox.y - (markerBox.y + markerBox.height / 2),
+          ),
+          endY: Math.abs(
+            connectorBox.bottom - (nextMarkerBox.y + nextMarkerBox.height / 2),
+          ),
+        };
+      });
+    });
+
+  expect(geometry.length).toBeGreaterThan(0);
+  expect(geometry).not.toContain(null);
+  for (const segment of geometry) {
+    expect(segment!.centerX).toBeLessThanOrEqual(1);
+    expect(segment!.startY).toBeLessThanOrEqual(1);
+    expect(segment!.endY).toBeLessThanOrEqual(1);
+  }
+}
+
 async function expandBookingSection(page: Page, sectionId: string) {
   const trigger = page.locator(`#${sectionId} > h2 > button`);
   await expect(trigger).toBeVisible();
@@ -246,8 +295,23 @@ test.describe("booking engine", () => {
     page,
     context,
   }, testInfo) => {
-    test.setTimeout(180_000);
-    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+    test.setTimeout(testInfo.project.name.includes("webkit") ? 360_000 : 180_000);
+    if (testInfo.project.name.includes("webkit")) {
+      await context.addInitScript(() => {
+        let clipboardValue = "";
+        Object.defineProperty(navigator, "clipboard", {
+          configurable: true,
+          value: {
+            readText: async () => clipboardValue,
+            writeText: async (value: string) => {
+              clipboardValue = value;
+            },
+          },
+        });
+      });
+    } else {
+      await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+    }
     const rateLimitIdentity =
       testInfo.project.name === "mobile-chrome" ? "198.51.100.42" : "198.51.100.41";
     await context.setExtraHTTPHeaders({ "x-forwarded-for": rateLimitIdentity });
@@ -420,6 +484,7 @@ test.describe("booking engine", () => {
       await expect(
         bookingJourney.getByText("Current step", { exact: true }),
       ).toBeVisible();
+      await expectJourneyConnectorAlignment(page);
       const visibleBusinessSwitcher = page.getByRole("button", {
         name: `Switch business. Current business: ${businessName}`,
       });

@@ -65,7 +65,9 @@ describe("booking journey presentation", () => {
       screen.getByText("The order is prepared for delivery or collection."),
     ).toBeVisible();
     expect(screen.getByText("What to do next")).toBeVisible();
-    expect(screen.getByRole("button", { name: "Mark as delivered" })).toBeVisible();
+    const primaryAction = screen.getByRole("button", { name: "Mark as delivered" });
+    expect(primaryAction).toBeVisible();
+    expect(primaryAction).toHaveClass("w-full", "sm:w-fit");
 
     const progress = screen.getByRole("list", { name: "Booking progress" });
     expect(within(progress).getByText("Booking created")).toBeVisible();
@@ -75,6 +77,11 @@ describe("booking journey presentation", () => {
     expect(
       within(progress).getByText("Ready for delivery").closest("li"),
     ).toHaveAttribute("aria-current", "step");
+    expect(
+      within(progress).getByText("Ready for delivery").closest("li"),
+    ).toHaveAttribute("data-booking-journey-stage", "current");
+    expect(progress.querySelectorAll("[data-booking-journey-marker]")).toHaveLength(7);
+    expect(progress.querySelectorAll("[data-booking-journey-connector]")).toHaveLength(6);
   });
 
   it("preserves every supported child action under Other actions", () => {

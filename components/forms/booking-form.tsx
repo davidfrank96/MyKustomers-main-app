@@ -45,6 +45,7 @@ import { normalizeCustomerContactEmail } from "@/features/customers/email";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useFormErrorNavigation } from "@/hooks/use-form-error-navigation";
 import { cn } from "@/lib/utils/cn";
+import { formatDisplayDateTime } from "@/lib/utils/display-date";
 
 const bookingFieldOrder = [
   "customerId",
@@ -222,13 +223,7 @@ function formatSummaryDate(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "—";
 
-  return new Intl.DateTimeFormat("en", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(date);
+  return formatDisplayDateTime(date);
 }
 
 export function BookingForm({

@@ -28,15 +28,12 @@ import {
 } from "@/features/customers/actions";
 import { initialCustomerActionState } from "@/features/customers/action-state";
 import type { CustomerListItem } from "@/features/customers/queries";
+import { formatDisplayDate } from "@/lib/utils/display-date";
 
 type LifecycleOperation = "archive" | "restore" | "delete";
 
 function formatDate(value: string) {
-  return new Intl.DateTimeFormat("en", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(new Date(value));
+  return formatDisplayDate(value);
 }
 
 function ActionSubmit({ label }: { label: string }) {
