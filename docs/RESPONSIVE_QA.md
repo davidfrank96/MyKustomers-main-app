@@ -4,6 +4,33 @@ STATUS: VERIFIED FOR THE DEPLOYED BASELINE; BRANCH RELEASE MATRIX VERIFIED
 
 Audit date: 2026-08-31.
 
+## 2026-09-06 Master Alignment Pass
+
+The maintenance branch audits the current product rather than replacing its
+approved layouts. The shared workspace header now keeps descriptions on a
+complete row at narrow widths, and customer/booking creation and detail routes
+reuse one gutter, title, and back-navigation system. Shared dialogs, sheets,
+dropdowns, buttons, toasts, and the PWA status strip retain dynamic-viewport,
+safe-area, overscroll, touch, icon, and mobile-navigation containment.
+
+Booking Journey current-row emphasis no longer changes marker position. Browser
+coverage measures every connector against the current and following marker
+centres with a one-pixel rendering tolerance at 320, 360, 375, 390, 430, 768,
+1024, and 1440 pixels. The canonical Chromium journey passed that matrix along
+with zero document overflow, current-step semantics, completion at 320px, and
+feedback follow-up. The full repository matrix adds 1280x800 and uses 1440x900/
+1000 where specified. WebKit remains emulation rather than physical-iOS proof.
+
+No global overflow suppression, duplicate responsive markup, migration,
+environment/provider change, or dependency is part of this pass. Generated
+screenshots remain ignored test evidence and are not committed.
+
+Chromium completed the full canonical lifecycle at the responsive matrix.
+WebKit emulation completed the same authenticated and public responsive geometry
+checks, including connector alignment, before the external test backend
+intermittently stalled later mutation steps; the configured PWA WebKit suite
+completed. This is simulated WebKit evidence, not physical iOS verification.
+
 The vendor confirmation email presentation correction keeps the existing compact
 Booking Details grid and disclosure. Long request and confirmed addresses retain
 `break-all` containment; the fixed **Send confirmation to** label, compact request

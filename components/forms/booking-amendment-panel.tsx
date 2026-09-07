@@ -33,6 +33,7 @@ import {
 import type { ConfirmationShareMethod } from "@/features/confirmation-links/share";
 import { bookingCurrencies, formatMoneyMinor } from "@/features/bookings/money";
 import type { Json } from "@/types/database";
+import { formatDisplayDateTime } from "@/lib/utils/display-date";
 
 type BookingAmendmentPanelProps = {
   summary: BookingAmendmentSummary;
@@ -83,10 +84,7 @@ function RevokeButton() {
 
 function formatDate(value: string | null) {
   if (!value) return "Not scheduled";
-  return new Intl.DateTimeFormat("en", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value));
+  return formatDisplayDateTime(value);
 }
 
 function localDateTime(value: string | null) {

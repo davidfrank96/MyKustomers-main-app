@@ -1,10 +1,11 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { Route } from "next";
-import { ArrowLeft } from "lucide-react";
 import { BookingForm } from "@/components/forms/booking-form";
-import { WorkspacePage } from "@/components/layout/workspace-page";
-import { Button } from "@/components/ui/button";
+import {
+  WorkspaceBackLink,
+  WorkspacePage,
+  WorkspacePageHeader,
+} from "@/components/layout/workspace-page";
 import { createBookingAction } from "@/features/bookings/actions";
 import { listActiveBookingCustomerOptions } from "@/features/bookings/queries";
 import { getCurrentBusinessContext } from "@/lib/auth/server";
@@ -22,19 +23,12 @@ export default async function NewBookingPage() {
   return (
     <WorkspacePage className="max-w-3xl pb-28 lg:pb-8">
       <div>
-        <Button asChild variant="ghost" size="sm">
-          <Link href={"/bookings" as Route}>
-            <ArrowLeft className="size-4" aria-hidden="true" />
-            Bookings
-          </Link>
-        </Button>
-        <h1 className="mt-4 text-2xl font-semibold leading-tight sm:text-3xl">
-          New booking
-        </h1>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-          Record the agreed work, scheduled delivery date, and any deposit already
-          agreed. This is not payment verification.
-        </p>
+        <WorkspaceBackLink href={"/bookings" as Route}>Bookings</WorkspaceBackLink>
+        <WorkspacePageHeader
+          className="mt-3"
+          title="New booking"
+          description="Record the agreed work, scheduled delivery date, and any deposit already agreed. This is not payment verification."
+        />
       </div>
 
       <BookingForm

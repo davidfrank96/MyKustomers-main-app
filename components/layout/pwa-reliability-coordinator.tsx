@@ -282,7 +282,7 @@ export function PwaReliabilityCoordinator() {
       <span ref={coordinatorRef} data-pwa-reliability-coordinator hidden />
       {online && !deferred && !refreshing ? null : (
         <div
-          className="border-b border-border bg-muted px-5 py-2.5 text-sm sm:px-8 lg:px-10"
+          className="border-b border-border bg-muted px-4 py-2.5 text-sm sm:px-8 lg:px-10"
           role={online ? "status" : "alert"}
           aria-live="polite"
           data-pwa-reliability-status

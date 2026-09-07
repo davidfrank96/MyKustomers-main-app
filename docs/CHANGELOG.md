@@ -1,5 +1,26 @@
 # Changelog
 
+## 2026-09-06 — Master Frontend Alignment And Responsive Polish
+
+IMPLEMENTED — RELEASE VERIFICATION PENDING. The existing interface received a
+shared-source alignment pass without changing routes, lifecycle rules, email
+behavior, authorization, persistence, or product terminology. Workspace page
+headers now preserve a full-width description row beside compact actions at
+320px; booking/customer creation and detail pages share the same heading,
+gutter, and back-navigation rhythm. Booking Journey connectors now run exactly
+marker-centre to marker-centre, current emphasis no longer moves the marker,
+attention remains visually distinct from error, and primary journey actions
+stay full-width only on narrow screens.
+
+Shared dialogs, sheets, dropdowns, buttons, toasts, and PWA status presentation
+now retain dynamic-viewport, safe-area, overscroll, icon, touch, and mobile-nav
+clearance consistently. Client-rendered booking and customer timestamps now use
+one deterministic display formatter so browser-specific punctuation cannot
+trigger hydration recovery. Existing admin, Auth, onboarding, public capability,
+money-input, logo-picker, email-delivery, PWA, and tenant-isolation architecture
+is unchanged. No database migration, environment/provider change, or dependency
+was added.
+
 ## 2026-09-06 — Money Input, Completion Feedback UX, And Sender Avatar Readiness
 
 IMPLEMENTED — RELEASE VERIFICATION PENDING. Booking, amendment, add-on, and

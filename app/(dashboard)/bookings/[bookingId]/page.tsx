@@ -1,9 +1,7 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import type { Route } from "next";
 import { Suspense } from "react";
 import {
-  ArrowLeft,
   CalendarDays,
   CheckCircle2,
   MessageSquareQuote,
@@ -11,7 +9,10 @@ import {
   Timer,
   UserRound,
 } from "lucide-react";
-import { WorkspacePage } from "@/components/layout/workspace-page";
+import {
+  WorkspaceBackLink,
+  WorkspacePage,
+} from "@/components/layout/workspace-page";
 import {
   BookingDetailSection,
   BookingDetailSections,
@@ -33,7 +34,6 @@ import { BookingRescheduleForm } from "@/components/forms/booking-reschedule-for
 import { ConfirmationLinkPanel } from "@/components/forms/confirmation-link-panel";
 import { FeedbackLinkPanel } from "@/components/forms/feedback-link-panel";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   completeBookingStatusAction,
@@ -388,17 +388,7 @@ export default async function BookingDetailPage({
     <WorkspacePage className="max-w-6xl gap-4 sm:gap-6">
       <BookingLiveSync bookingId={booking.id} initialState={liveState} />
       <div className="min-w-0">
-        <Button
-          asChild
-          variant="ghost"
-          size="sm"
-          className="-ml-2 px-2 text-muted-foreground"
-        >
-          <Link href={"/bookings" as Route}>
-            <ArrowLeft className="size-4" aria-hidden="true" />
-            Bookings
-          </Link>
-        </Button>
+        <WorkspaceBackLink href={"/bookings" as Route}>Bookings</WorkspaceBackLink>
         <section
           className="mt-3 rounded-lg border border-border bg-card p-4 shadow-[0_1px_3px_rgba(23,33,29,0.04)] sm:p-5"
           aria-labelledby="booking-detail-title"

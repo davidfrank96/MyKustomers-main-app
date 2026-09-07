@@ -18,7 +18,7 @@ export function ToastViewport({
   return (
     <ToastPrimitive.Viewport
       className={cn(
-        "fixed bottom-4 right-4 z-50 flex w-[calc(100%-2rem)] max-w-sm flex-col gap-2",
+        "fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-[max(1rem,env(safe-area-inset-right))] z-50 flex w-[calc(100%-2rem)] max-w-sm flex-col gap-2 lg:bottom-4",
         className,
       )}
       {...props}

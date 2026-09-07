@@ -11,6 +11,7 @@ import { deriveBalanceMinor, formatMoneyMinor } from "@/features/bookings/money"
 import type { BookingWithCustomer } from "@/features/bookings/queries";
 import { isBookingOverdue } from "@/features/bookings/status";
 import type { BookingListFilter } from "@/features/bookings/validation";
+import { formatDisplayDateTime } from "@/lib/utils/display-date";
 
 type BookingLoadMoreResponse = {
   bookings: BookingWithCustomer[];
@@ -20,13 +21,7 @@ type BookingLoadMoreResponse = {
 function formatDate(value: string | null) {
   if (!value) return "Not scheduled";
 
-  return new Intl.DateTimeFormat("en", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(new Date(value));
+  return formatDisplayDateTime(value);
 }
 
 function isLoadMoreResponse(value: unknown): value is BookingLoadMoreResponse {

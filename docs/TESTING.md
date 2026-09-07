@@ -1759,3 +1759,32 @@ and fixture cleanup passed against merge commit `d2f55fd`.
 - Transactional-email presentation asserts the canonical body logo occurs exactly
   once. Sender-avatar readiness is documented separately because DMARC/DNS and
   mailbox display are external evidence, not HTML-render test outcomes.
+
+## Master Frontend Alignment Coverage
+
+- Workspace presentation integration coverage locks semantic headings, native
+  primary actions, full-row narrow-screen descriptions, and the shared
+  text-labelled back-navigation link.
+- Booking Journey presentation coverage locks all seven markers, six connector
+  segments, current-step semantics, and a mobile-full/desktop-intrinsic primary
+  action without changing the derived lifecycle model.
+- The canonical booking browser journey measures connector start, end, and
+  horizontal centre against adjacent marker centres with a one-pixel rendering
+  tolerance at 320, 360, 375, 390, 430, 768, 1024, and 1440 pixels. It retains
+  completion-dialog, payment, email-contact, lifecycle, feedback, overflow, and
+  cleanup assertions.
+- The existing authenticated route matrix remains authoritative for Dashboard,
+  Bookings, New Booking, Booking Detail, Customers, New Customer, Customer
+  Detail, Insights, Business, Add Business, and Settings at 320x568, 360x800,
+  375x812, 390x844, 430x932, 768x1024, 1024x768, 1280x800, and 1440x900.
+- Existing Auth, public capability, admin, PWA Chromium/WebKit-emulation,
+  multi-business, logo-picker, money-input, email-delivery, and security suites
+  remain regression evidence. WebKit emulation is not physical iOS, and runtime
+  security remains subject to its protected non-production target guard.
+- Cross-engine browser checks use a test-only in-memory clipboard for WebKit,
+  whose automation API does not expose Chromium's clipboard permission names.
+  The canonical WebKit journey receives an engine-appropriate timeout while
+  Chromium retains the existing three-minute ceiling. Product behavior and
+  production clipboard handling are unchanged.
+- Client-rendered date coverage locks the shared display formatter's punctuation
+  so Node and browser engines do not hydrate different timestamp strings.

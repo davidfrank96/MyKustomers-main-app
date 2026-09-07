@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import Link from "next/link";
 import { describe, expect, it } from "vitest";
 import {
+  WorkspaceBackLink,
   WorkspacePage,
   WorkspacePageHeader,
   WorkspaceSectionHeader,
@@ -21,7 +22,9 @@ describe("workspace page presentation", () => {
 
     expect(screen.getByRole("main")).toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 1, name: "Bookings" })).toBeVisible();
-    expect(screen.getByText("Track agreed work and delivery status.")).toBeVisible();
+    const description = screen.getByText("Track agreed work and delivery status.");
+    expect(description).toBeVisible();
+    expect(description).toHaveClass("col-span-2");
     expect(screen.getByRole("link", { name: "New booking" })).toHaveAttribute(
       "href",
       "/bookings/new",
@@ -41,5 +44,14 @@ describe("workspace page presentation", () => {
       screen.getByRole("heading", { level: 2, name: "Needs attention" }),
     ).toBeVisible();
     expect(screen.getByRole("link", { name: "View all" })).toBeVisible();
+  });
+
+  it("keeps workspace back navigation consistent and link-native", () => {
+    render(<WorkspaceBackLink href="/bookings">Bookings</WorkspaceBackLink>);
+
+    expect(screen.getByRole("link", { name: "Bookings" })).toHaveAttribute(
+      "href",
+      "/bookings",
+    );
   });
 });

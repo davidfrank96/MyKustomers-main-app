@@ -26,6 +26,7 @@ import {
   type FeedbackShareMethod,
 } from "@/features/feedback/share";
 import { cn } from "@/lib/utils/cn";
+import { formatDisplayDateTime } from "@/lib/utils/display-date";
 
 type FeedbackLinkPanelProps = {
   summary: FeedbackLinkSummary;
@@ -50,10 +51,7 @@ type FeedbackLinkPanelProps = {
 function formatDateTime(value: string | null) {
   if (!value) return "Not available";
 
-  return new Intl.DateTimeFormat("en", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value));
+  return formatDisplayDateTime(value);
 }
 
 function shareMethodLabel(method: FeedbackShareMethod) {

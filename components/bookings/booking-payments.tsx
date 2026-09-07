@@ -27,6 +27,7 @@ import {
 } from "@/features/bookings/action-state";
 import { formatMoneyMinor, minorUnitsToInput } from "@/features/bookings/money";
 import type { BookingPayment, BookingPaymentSummary } from "@/features/bookings/queries";
+import { formatDisplayDateTime } from "@/lib/utils/display-date";
 
 type BookingPaymentsProps = {
   summary: BookingPaymentSummary | null;
@@ -40,10 +41,7 @@ type BookingPaymentsProps = {
 };
 
 function formatPaymentDate(value: string) {
-  return new Intl.DateTimeFormat("en", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value));
+  return formatDisplayDateTime(value);
 }
 
 function PaymentDialog({

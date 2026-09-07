@@ -1,12 +1,14 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import type { Route } from "next";
 import { Suspense } from "react";
-import { ArrowLeft, CalendarDays } from "lucide-react";
+import { CalendarDays } from "lucide-react";
 import { CustomerLifecyclePanel } from "@/components/customers/customer-lifecycle-panel";
 import { CustomerForm } from "@/components/forms/customer-form";
+import {
+  WorkspaceBackLink,
+  WorkspacePage,
+} from "@/components/layout/workspace-page";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -133,26 +135,16 @@ export default async function CustomerDetailPage({
   const created = query.created === "1";
 
   return (
-    <main className="mx-auto flex w-full max-w-3xl flex-col gap-5 px-4 py-5 sm:gap-6 sm:px-8 sm:py-8 lg:px-10">
+    <WorkspacePage className="max-w-3xl">
       <div>
-        <Button
-          asChild
-          variant="ghost"
-          size="sm"
-          className="-ml-3 text-primary hover:text-primary"
-        >
-          <Link href={"/customers" as Route}>
-            <ArrowLeft className="size-5" aria-hidden="true" />
-            Customers
-          </Link>
-        </Button>
-        <div className="mt-5 flex flex-wrap items-center gap-2">
-          <h1 className="min-w-0 break-words text-3xl font-semibold leading-tight sm:text-4xl">
+        <WorkspaceBackLink href={"/customers" as Route}>Customers</WorkspaceBackLink>
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <h1 className="min-w-0 break-words text-[1.625rem] font-semibold leading-tight sm:text-3xl">
             {customer.name}
           </h1>
           {isArchived ? <Badge variant="outline">Archived</Badge> : null}
         </div>
-        <p className="mt-3 flex items-center gap-2 text-sm leading-6 text-muted-foreground sm:text-base">
+        <p className="mt-2 flex items-center gap-2 text-sm leading-6 text-muted-foreground sm:text-base">
           <CalendarDays className="size-4 shrink-0" aria-hidden="true" />
           <span>Created {formatCreatedDateTime(customer.created_at)}</span>
         </p>
@@ -196,6 +188,6 @@ export default async function CustomerDetailPage({
       <Suspense fallback={<CustomerFeedbackFallback />}>
         <CustomerFeedback feedbackPromise={feedbackPromise} />
       </Suspense>
-    </main>
+    </WorkspacePage>
   );
 }
