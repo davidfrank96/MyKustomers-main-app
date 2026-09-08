@@ -55,9 +55,12 @@ describe("Sentry observability security boundary", () => {
     expect(clientConfig).toContain("beforeSendTransaction: beforeSentryTransaction");
     expect(clientConfig).toContain("beforeSendSpan: beforeSentrySpan");
     expect(clientConfig).toContain("beforeBreadcrumb: beforeSentryBreadcrumb");
+    expect(clientConfig).toContain("ignoreTransactions: SENTRY_IGNORED_TRANSACTIONS");
+    expect(serverConfig).toContain("ignoreTransactions: SENTRY_IGNORED_TRANSACTIONS");
     expect(sanitizer).toContain("CAPABILITY_PATH_PATTERN");
     expect(sanitizer).toContain("delete event.user");
     expect(sanitizer).toContain("delete event.extra");
+    expect(buildConfig).toContain('metadataName !== "baggage"');
   });
 
   it("does not add a public crash route or alter the service worker", () => {

@@ -35,6 +35,13 @@ describe("Next.js request logging", () => {
   });
 });
 
+describe("Sentry trace metadata privacy", () => {
+  it("keeps trace correlation without rendering dynamic-sampling baggage", () => {
+    expect(nextConfig.experimental?.clientTraceMetadata).toContain("sentry-trace");
+    expect(nextConfig.experimental?.clientTraceMetadata).not.toContain("baggage");
+  });
+});
+
 describe("private capability cache headers", () => {
   it("keeps every customer capability route non-cacheable and non-indexable", async () => {
     const headers = await nextConfig.headers?.();

@@ -59,6 +59,7 @@ against the post-trial plan and real traffic; never raise it blindly to 100%.
 
 - removes Sentry user objects, arbitrary extras, request headers, cookies, bodies, and query strings;
 - redacts raw `/c`, `/a`, `/x`, and `/f` capability values everywhere Sentry receives strings;
+- omits dynamic-sampling `baggage` from rendered App Router metadata so request transaction names cannot expose capability values in page source, while retaining the non-identifying `sentry-trace` correlation value;
 - removes identity/contact, tenant, booking, customer, search, feedback, token, credential, and content fields;
 - drops console and text-bearing UI breadcrumbs;
 - allowlists bounded navigation/HTTP breadcrumb and span fields;

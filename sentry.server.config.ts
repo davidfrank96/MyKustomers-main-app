@@ -6,6 +6,7 @@ import {
   beforeSentrySpan,
   beforeSentryTransaction,
   SENTRY_DATA_COLLECTION,
+  SENTRY_IGNORED_TRANSACTIONS,
   sentryTraceSampleRate,
 } from "@/lib/observability/sentry";
 
@@ -28,5 +29,5 @@ Sentry.init({
   beforeSendTransaction: beforeSentryTransaction,
   beforeSendSpan: beforeSentrySpan,
   beforeBreadcrumb: beforeSentryBreadcrumb,
-  ignoreTransactions: [/\/api\/health(?:\?|$)/],
+  ignoreTransactions: SENTRY_IGNORED_TRANSACTIONS,
 });

@@ -45,6 +45,9 @@ observe its page/header noindex; `robots.txt` is not an authorization mechanism.
 Capability metadata is deliberately generic. It contains no token URL, tenant
 name, customer/booking value, tenant logo, canonical, or Open Graph URL. Existing
 `Cache-Control: no-store` and `Referrer-Policy: no-referrer` controls remain.
+Sentry dynamic-sampling `baggage` is also omitted from rendered metadata so
+request transaction names cannot expose capability values in page source; the
+non-identifying `sentry-trace` correlation value remains available.
 
 ## Sitemap
 

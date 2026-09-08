@@ -8,6 +8,7 @@ import {
   beforeSentryTransaction,
   sanitizeSentryString,
   sanitizeSentryUrl,
+  SENTRY_IGNORED_TRANSACTIONS,
   sentryTraceSampleRate,
 } from "@/lib/observability/sentry";
 
@@ -228,6 +229,23 @@ describe("Sentry privacy boundary", () => {
     expect(sentryTraceSampleRate("GET /api/health")).toBe(0);
     expect(sentryTraceSampleRate("GET /dashboard")).toBe(0.05);
   });
+
+  it.each(["c", "a", "x", "f"])(
+    "does not trace %s capability requests",
+    (prefix) => {
+      expect(sentryTraceSampleRate(`GET /${prefix}/private-token`)).toBe(0);
+      expect(
+        sentryTraceSampleRate(
+          `https://mykustomers.com/${prefix}/private-token?source=private`,
+        ),
+      ).toBe(0);
+      expect(
+        SENTRY_IGNORED_TRANSACTIONS.some((pattern) =>
+          pattern.test(`GET /${prefix}/private-token`),
+        ),
+      ).toBe(true);
+    },
+  );
 
   it("fails closed when an event cannot be normalized", () => {
     const event = { type: undefined, message: "safe" } as ErrorEvent;

@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-08 — Capability Metadata Privacy Hardening
+
+Removed Sentry dynamic-sampling `baggage` from rendered App Router metadata while
+preserving trace-ID correlation, preventing capability route values from appearing
+in page source before telemetry sanitizers run. Performance-trace sampling is also
+disabled for `/c`, `/a`, `/x`, and `/f` capability requests, with focused unit and
+security coverage for both boundaries.
+
 ## 2026-09-08 — SEO Phase 1 Technical And On-Page Foundation
 
 IMPLEMENTED — RELEASE VERIFICATION PENDING. The canonical SEO origin is now
