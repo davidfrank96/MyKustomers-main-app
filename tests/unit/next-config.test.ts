@@ -1,6 +1,16 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import nextConfig from "../../next.config";
 import fs from "node:fs";
+
+const originalVercelEnvironment = process.env.VERCEL_ENV;
+
+afterEach(() => {
+  if (originalVercelEnvironment === undefined) {
+    delete process.env.VERCEL_ENV;
+  } else {
+    process.env.VERCEL_ENV = originalVercelEnvironment;
+  }
+});
 
 describe("Next.js request logging", () => {
   it("suppresses OAuth callback query strings without disabling ordinary logs", () => {
@@ -35,10 +45,42 @@ describe("private capability cache headers", () => {
         expect.arrayContaining([
           { key: "Cache-Control", value: "no-store, max-age=0" },
           { key: "Referrer-Policy", value: "no-referrer" },
-          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+          {
+            key: "X-Robots-Tag",
+            value: "noindex, nofollow, noarchive, nosnippet, noimageindex",
+          },
         ]),
       );
     }
+  });
+
+  it("adds explicit noindex headers to auth and private workspace routes", async () => {
+    const headers = await nextConfig.headers?.();
+
+    for (const source of ["/login", "/onboarding/:path*", "/dashboard/:path*", "/admin/:path*"]) {
+      expect(headers?.find((candidate) => candidate.source === source)?.headers).toContainEqual({
+        key: "X-Robots-Tag",
+        value: "noindex, nofollow, noarchive, nosnippet, noimageindex",
+      });
+    }
+  });
+
+  it("adds a deployment-wide noindex header outside Production only", async () => {
+    process.env.VERCEL_ENV = "preview";
+    expect((await nextConfig.headers?.())?.find((rule) => rule.source === "/:path*"))
+      .toMatchObject({
+        headers: [
+          {
+            key: "X-Robots-Tag",
+            value: "noindex, nofollow, noarchive, nosnippet, noimageindex",
+          },
+        ],
+      });
+
+    process.env.VERCEL_ENV = "production";
+    expect(
+      (await nextConfig.headers?.())?.find((rule) => rule.source === "/:path*"),
+    ).toBeUndefined();
   });
 
   it("preserves capability headers through the session proxy", () => {

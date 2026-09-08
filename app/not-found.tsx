@@ -1,6 +1,13 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
+import { PRIVATE_ROBOTS } from "@/lib/seo/site";
+
+export const metadata: Metadata = {
+  title: "Page not found",
+  robots: PRIVATE_ROBOTS,
+};
 
 export default function NotFound() {
   return (

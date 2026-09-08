@@ -14,10 +14,7 @@ import {
   amendmentFieldLabels,
   type AmendableBookingField,
 } from "@/features/amendments/terms";
-import {
-  getPublicAmendmentMetadata,
-  getPublicAmendmentView,
-} from "@/features/amendments/public";
+import { getPublicAmendmentView } from "@/features/amendments/public";
 import { confirmPublicAmendmentAction } from "@/features/amendments/public-actions";
 import { safePublicAmendmentMessage } from "@/features/amendments/messages";
 import { buildPublicAmendmentMetadata } from "@/features/amendments/metadata";
@@ -31,17 +28,7 @@ type AmendmentPageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 };
 
-export async function generateMetadata({
-  params,
-}: AmendmentPageProps): Promise<Metadata> {
-  const { token } = await params;
-  const metadata = await getPublicAmendmentMetadata(token);
-  return buildPublicAmendmentMetadata({
-    token,
-    businessName: metadata?.name,
-    businessLogoPath: metadata?.logo_path,
-  });
-}
+export const metadata: Metadata = buildPublicAmendmentMetadata();
 
 function formatDate(value: string | null) {
   if (!value) return "Not scheduled";

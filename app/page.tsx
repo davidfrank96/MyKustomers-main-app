@@ -19,14 +19,39 @@ import { AppFrame } from "@/components/layout/app-frame";
 import { HomepageProductDemo } from "@/components/homepage/homepage-product-demo";
 import { BrandLogo } from "@/components/shared/brand-logo";
 import { Button } from "@/components/ui/button";
+import { MYKUSTOMERS_BRAND_ASSETS } from "@/lib/brand/assets";
+import {
+  SEO_SITE,
+  buildHomepageStructuredData,
+  serializeStructuredData,
+} from "@/lib/seo/site";
 
 export const metadata: Metadata = {
-  title: {
-    absolute:
-      "My Kustomers — Customers, Bookings, Confirmations & Insights for Small Businesses",
+  title: { absolute: SEO_SITE.title },
+  description: SEO_SITE.description,
+  alternates: { canonical: "/" },
+  openGraph: {
+    title: SEO_SITE.title,
+    description: SEO_SITE.description,
+    url: SEO_SITE.origin,
+    siteName: SEO_SITE.name,
+    type: "website",
+    locale: "en_NG",
+    images: [
+      {
+        url: MYKUSTOMERS_BRAND_ASSETS.openGraph,
+        width: 1200,
+        height: 630,
+        alt: "My Kustomers booking and customer management platform",
+      },
+    ],
   },
-  description:
-    "My Kustomers helps small businesses manage customers, bookings, confirmations, deliveries and services, private feedback, and business insights in one professional workspace.",
+  twitter: {
+    card: "summary_large_image",
+    title: SEO_SITE.title,
+    description: SEO_SITE.description,
+    images: [MYKUSTOMERS_BRAND_ASSETS.openGraph],
+  },
 };
 
 type IconComponent = ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
@@ -75,12 +100,12 @@ const workflow: Array<{
   },
   {
     title: "Send confirmation",
-    description: "Automatic email confirmation keeps your customers informed.",
+    description: "Send a secure request so the customer can review and confirm.",
     icon: Mail,
   },
   {
-    title: "Fulfil or deliver",
-    description: "Manage jobs, deliveries or services and keep things moving.",
+    title: "Track payment and fulfilment",
+    description: "Record payments, manage the work, and keep delivery moving.",
     icon: Truck,
   },
   {
@@ -96,19 +121,19 @@ const businessTypes: Array<{
   icon: IconComponent;
 }> = [
   {
-    title: "Book jobs and appointments",
-    description: "Manage customer bookings, schedules and reschedules in one place.",
+    title: "Food and event vendors",
+    description: "Cake vendors, caterers and decorators managing custom orders and events.",
     icon: CalendarDays,
   },
   {
-    title: "Manage deliveries",
+    title: "Fashion and beauty businesses",
     description:
-      "Track orders, delivery status, and keep customers updated automatically.",
+      "Keep appointments, customer requests, payments and delivery details together.",
     icon: Truck,
   },
   {
-    title: "Provide professional services",
-    description: "Deliver great experiences and collect feedback that helps you grow.",
+    title: "Creative service professionals",
+    description: "Photographers and other service businesses coordinating client work.",
     icon: BriefcaseBusiness,
   },
 ];
@@ -140,8 +165,14 @@ function TrustItem({ icon: Icon, children }: { icon: IconComponent; children: st
 }
 
 export default function HomePage() {
+  const structuredData = buildHomepageStructuredData();
+
   return (
     <AppFrame>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: serializeStructuredData(structuredData) }}
+      />
       <header className="border-b border-border bg-card">
         <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
           <Brand />
@@ -181,7 +212,7 @@ export default function HomePage() {
           <div className="min-w-0">
             <p className="inline-flex items-center gap-2 rounded-full bg-primary/5 px-3 py-1.5 text-sm font-medium text-primary">
               <Store className="size-4" aria-hidden="true" />
-              Built for small businesses
+              Built for Nigerian service businesses
             </p>
             <h1 className="mt-5 max-w-2xl text-[1.875rem] font-semibold leading-[1.08] sm:mt-6 sm:text-5xl lg:text-[2.75rem] xl:text-[3.35rem]">
               <span className="block">From customer request to</span>
@@ -189,8 +220,8 @@ export default function HomePage() {
               <span className="mt-1 block text-primary">one clear journey.</span>
             </h1>
             <p className="mt-5 max-w-xl text-[0.9375rem] leading-6 text-muted-foreground sm:mt-6 sm:text-lg sm:leading-8">
-              Manage bookings, send digital receipts and updates, collect private
-              feedback, and keep every customer journey organized in one place.
+              Manage customers and bookings, track confirmations and payments,
+              coordinate delivery, and collect private feedback in one clear workspace.
             </p>
 
             <div className="mt-6 grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 sm:mt-7 sm:flex sm:flex-wrap">
@@ -269,7 +300,7 @@ export default function HomePage() {
         <section
           id="how-it-works"
           aria-labelledby="how-it-works-heading"
-          className="hidden scroll-mt-6 md:block"
+          className="scroll-mt-6"
         >
           <div className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-11">
             <h2 id="how-it-works-heading" className="text-center text-2xl font-semibold">
@@ -304,14 +335,14 @@ export default function HomePage() {
         <section
           id="for-businesses"
           aria-labelledby="for-businesses-heading"
-          className="hidden scroll-mt-6 border-y border-border bg-card md:block"
+          className="scroll-mt-6 border-y border-border bg-card"
         >
           <div className="mx-auto w-full max-w-7xl px-4 py-9 sm:px-6 lg:px-8">
             <h2
               id="for-businesses-heading"
               className="text-center text-2xl font-semibold"
             >
-              Perfect for businesses that...
+              Built for growing service businesses in Nigeria
             </h2>
             <div className="mt-8 grid gap-7 md:grid-cols-3 md:gap-0">
               {businessTypes.map((business, index) => {
@@ -369,10 +400,36 @@ export default function HomePage() {
       </main>
 
       <footer className="border-t border-border bg-card">
-        <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-2.5 px-4 py-4 sm:grid-cols-3 sm:gap-3 sm:px-6 sm:py-5 lg:px-8">
-          <TrustItem icon={LockKeyhole}>Secure by design</TrustItem>
-          <TrustItem icon={ShieldCheck}>Private & confidential</TrustItem>
-          <TrustItem icon={Store}>Built for small businesses</TrustItem>
+        <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+          <div className="grid gap-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
+            <div className="max-w-lg">
+              <BrandLogo variant="horizontal" className="h-9 w-32" decorative />
+              <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                Booking and customer management for growing service businesses.
+              </p>
+              <a
+                href={SEO_SITE.origin}
+                className="mt-2 inline-flex text-sm font-medium text-primary underline-offset-4 hover:underline"
+              >
+                mykustomers.com
+              </a>
+            </div>
+            <nav
+              aria-label="Footer navigation"
+              className="flex flex-wrap gap-x-5 gap-y-3 text-sm font-medium"
+            >
+              <a href="#features">Features</a>
+              <a href="#how-it-works">How it works</a>
+              <a href="#for-businesses">For businesses</a>
+              <Link href="/login">Log in</Link>
+              <Link href="/signup">Get started</Link>
+            </nav>
+          </div>
+          <div className="mt-6 grid grid-cols-1 gap-2.5 border-t border-border pt-4 sm:grid-cols-3 sm:gap-3">
+            <TrustItem icon={LockKeyhole}>Secure by design</TrustItem>
+            <TrustItem icon={ShieldCheck}>Private & confidential</TrustItem>
+            <TrustItem icon={Store}>Built for small businesses</TrustItem>
+          </div>
         </div>
       </footer>
     </AppFrame>

@@ -9,10 +9,7 @@ import {
   SecureConfirmationLabel,
 } from "@/components/forms/public-confirmation-content";
 import { PublicConfirmationForm } from "@/components/forms/public-confirmation-form";
-import {
-  getPublicConfirmationMetadata,
-  getPublicConfirmationView,
-} from "@/features/confirmation-links/public";
+import { getPublicConfirmationView } from "@/features/confirmation-links/public";
 import { confirmPublicBookingAction } from "@/features/confirmation-links/public-actions";
 import { safePublicConfirmationMessage } from "@/features/confirmation-links/messages";
 import { buildPublicConfirmationMetadata } from "@/features/confirmation-links/metadata";
@@ -25,18 +22,7 @@ type ConfirmationPageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 };
 
-export async function generateMetadata({
-  params,
-}: ConfirmationPageProps): Promise<Metadata> {
-  const { token } = await params;
-  const safeMetadata = await getPublicConfirmationMetadata(token);
-
-  return buildPublicConfirmationMetadata({
-    token,
-    businessName: safeMetadata?.businessName,
-    businessLogoPath: safeMetadata?.businessLogoPath,
-  });
-}
+export const metadata: Metadata = buildPublicConfirmationMetadata();
 
 export default async function ConfirmationPage({
   params,

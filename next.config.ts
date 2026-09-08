@@ -1,6 +1,28 @@
 import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
 
+const privateRobotsHeader = {
+  key: "X-Robots-Tag",
+  value: "noindex, nofollow, noarchive, nosnippet, noimageindex",
+} as const;
+
+const privateRouteSources = [
+  "/login",
+  "/signup",
+  "/logout",
+  "/forgot-password",
+  "/reset-password",
+  "/auth/:path*",
+  "/onboarding/:path*",
+  "/dashboard/:path*",
+  "/bookings/:path*",
+  "/customers/:path*",
+  "/insights/:path*",
+  "/business/:path*",
+  "/settings/:path*",
+  "/admin/:path*",
+] as const;
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   typedRoutes: true,
@@ -10,7 +32,7 @@ const nextConfig: NextConfig = {
     },
   },
   async headers() {
-    return [
+    const headers = [
       {
         source: "/c/:token*",
         headers: [
@@ -24,7 +46,7 @@ const nextConfig: NextConfig = {
           },
           {
             key: "X-Robots-Tag",
-            value: "noindex, nofollow",
+            value: "noindex, nofollow, noarchive, nosnippet, noimageindex",
           },
         ],
       },
@@ -41,7 +63,7 @@ const nextConfig: NextConfig = {
           },
           {
             key: "X-Robots-Tag",
-            value: "noindex, nofollow",
+            value: "noindex, nofollow, noarchive, nosnippet, noimageindex",
           },
         ],
       },
@@ -58,7 +80,7 @@ const nextConfig: NextConfig = {
           },
           {
             key: "X-Robots-Tag",
-            value: "noindex, nofollow",
+            value: "noindex, nofollow, noarchive, nosnippet, noimageindex",
           },
         ],
       },
@@ -75,7 +97,7 @@ const nextConfig: NextConfig = {
           },
           {
             key: "X-Robots-Tag",
-            value: "noindex, nofollow",
+            value: "noindex, nofollow, noarchive, nosnippet, noimageindex",
           },
         ],
       },
@@ -92,11 +114,24 @@ const nextConfig: NextConfig = {
           },
           {
             key: "X-Robots-Tag",
-            value: "noindex, nofollow",
+            value: "noindex, nofollow, noarchive, nosnippet, noimageindex",
           },
         ],
       },
+      ...privateRouteSources.map((source) => ({
+        source,
+        headers: [privateRobotsHeader],
+      })),
     ];
+
+    if (process.env.VERCEL_ENV !== "production") {
+      headers.push({
+        source: "/:path*",
+        headers: [privateRobotsHeader],
+      });
+    }
+
+    return headers;
   },
 };
 

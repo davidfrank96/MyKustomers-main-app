@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-09-08 — SEO Phase 1 Technical And On-Page Foundation
+
+IMPLEMENTED — RELEASE VERIFICATION PENDING. The canonical SEO origin is now
+locked to `https://mykustomers.com`; the homepage has a self-canonical, accurate
+booking/customer-management metadata, complete Open Graph/X presentation, and
+server-rendered Organization, WebSite, and WebApplication JSON-LD without
+ratings, prices, reviews, private data, or invented profiles. Native App Router
+robots and sitemap routes expose only the Production homepage, while Preview,
+local, Auth, onboarding, private workspace, admin, and capability routes are
+explicitly non-indexable. Capability metadata no longer emits token URLs,
+tenant names, tenant logos, or canonicals.
+
+The homepage retains its approved H1 and visual direction while making the real
+workflow and Nigerian service-business audience visible at mobile widths. The
+footer now provides crawlable product-section and account links plus canonical
+brand attribution. No dependency, database, Supabase, Auth, email provider, email
+DNS, analytics, or environment change was introduced.
+
 ## 2026-09-06 — Master Frontend Alignment And Responsive Polish
 
 IMPLEMENTED — RELEASE VERIFICATION PENDING. The existing interface received a
