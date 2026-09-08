@@ -1,23 +1,19 @@
 import type { Metadata } from "next";
 import { buildPublicCapabilityMetadata } from "@/features/confirmation-links/metadata";
 
-export function buildPublicAmendmentMetadata({
-  token,
-  businessName,
-  businessLogoPath,
-}: {
-  token: string;
+type LegacyAmendmentMetadataInput = {
+  token?: string;
   businessName?: string | null;
   businessLogoPath?: string | null;
-}): Metadata {
+};
+
+export function buildPublicAmendmentMetadata(
+  _legacyInput?: LegacyAmendmentMetadataInput,
+): Metadata {
+  void _legacyInput;
   return buildPublicCapabilityMetadata({
-    token,
-    businessName,
-    businessLogoPath,
-    routePrefix: "/a",
-    title: (safeName) => `Review an update to your booking with ${safeName}`,
-    description: (safeName) =>
-      `${safeName} has proposed changes for your review and confirmation.`,
+    title: "Secure booking update | My Kustomers",
+    description: "Open this private link to review a proposed booking update.",
     imageAlt: "My Kustomers secure booking update",
   });
 }

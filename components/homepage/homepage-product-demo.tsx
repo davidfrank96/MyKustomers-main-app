@@ -425,19 +425,23 @@ export function HomepageProductDemo() {
               <div>
                 <dt className="text-[0.625rem] text-muted-foreground">Bookings</dt>
                 <dd className="text-lg font-semibold">{showBooking ? 128 : 127}</dd>
-                <p className="text-[0.625rem] text-muted-foreground">+18% vs last week</p>
+                <dd className="text-[0.625rem] text-muted-foreground">
+                  +18% vs last week
+                </dd>
               </div>
               <div>
                 <dt className="text-[0.625rem] text-muted-foreground">Deliveries</dt>
                 <dd className="text-lg font-semibold">{showWork ? 32 : 31}</dd>
-                <p className="text-[0.625rem] text-muted-foreground">
+                <dd className="text-[0.625rem] text-muted-foreground">
                   {rank >= 6 ? "In progress" : "Scheduled"}
-                </p>
+                </dd>
               </div>
               <div>
                 <dt className="text-[0.625rem] text-muted-foreground">Feedback</dt>
                 <dd className="text-lg font-semibold">{rank >= 8 ? "4.9 ★" : "4.8 ★"}</dd>
-                <p className="text-[0.625rem] text-muted-foreground">Average rating</p>
+                <dd className="text-[0.625rem] text-muted-foreground">
+                  Average rating
+                </dd>
               </div>
             </dl>
           </aside>
@@ -458,11 +462,6 @@ export function HomepageProductDemo() {
           className={`inline-flex h-9 items-center gap-1.5 rounded-md px-2.5 font-medium hover:bg-primary/5 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
             prefersReducedMotion ? "invisible pointer-events-none" : ""
           }`}
-          aria-label={
-            isUserPaused
-              ? "Resume My Kustomers product demo"
-              : "Pause My Kustomers product demo"
-          }
           tabIndex={prefersReducedMotion ? -1 : 0}
         >
           {isUserPaused ? (
@@ -476,7 +475,6 @@ export function HomepageProductDemo() {
           type="button"
           onClick={replay}
           className="inline-flex h-9 items-center gap-1.5 rounded-md px-2.5 font-medium hover:bg-primary/5 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-          aria-label="Replay My Kustomers product demo"
         >
           <RotateCcw className="size-3.5" aria-hidden="true" />
           Replay demo

@@ -1,41 +1,25 @@
-import { getBusinessLogoPublicUrl } from "@/features/businesses/logo-public";
-import { publicEnv } from "@/lib/config/public-env";
 import { MYKUSTOMERS_BRAND_ASSETS } from "@/lib/brand/assets";
+import { absoluteSeoUrl } from "@/lib/seo/site";
 
 export type FeedbackMetadata = {
   title: string;
   description: string;
-  canonicalUrl: string;
   imageUrl: string;
 };
 
-function cleanBusinessName(value: string | null | undefined) {
-  return (
-    value
-      ?.replace(/[\u0000-\u001f\u007f]+/g, " ")
-      .replace(/\s+/g, " ")
-      .trim() || "your business"
-  );
-}
-
-export function buildFeedbackMetadata({
-  token,
-  businessName,
-  businessLogoPath,
-}: {
-  token: string;
+type LegacyFeedbackMetadataInput = {
+  token?: string;
   businessName?: string | null;
   businessLogoPath?: string | null;
-}): FeedbackMetadata {
-  const name = cleanBusinessName(businessName);
-  const baseUrl = publicEnv.NEXT_PUBLIC_APP_URL.replace(/\/$/, "");
+};
 
+export function buildFeedbackMetadata(
+  _legacyInput?: LegacyFeedbackMetadataInput,
+): FeedbackMetadata {
+  void _legacyInput;
   return {
-    title: `Share private feedback with ${name}`,
-    description: `${name} has requested private feedback about your experience.`,
-    canonicalUrl: `${baseUrl}/f/${encodeURIComponent(token)}`,
-    imageUrl:
-      getBusinessLogoPublicUrl(businessLogoPath) ??
-      `${baseUrl}${MYKUSTOMERS_BRAND_ASSETS.openGraph}`,
+    title: "Private customer feedback | My Kustomers",
+    description: "Open this private link to share feedback about a completed booking.",
+    imageUrl: absoluteSeoUrl(MYKUSTOMERS_BRAND_ASSETS.openGraph),
   };
 }

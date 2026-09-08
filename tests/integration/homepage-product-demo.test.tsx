@@ -87,10 +87,10 @@ describe("HomepageProductDemo", () => {
       }),
     ).toHaveAccessibleDescription(/customer booking being confirmed/i);
     expect(
-      screen.getByRole("button", { name: "Pause My Kustomers product demo" }),
+      screen.getByRole("button", { name: "Pause" }),
     ).toBeVisible();
     expect(
-      screen.getByRole("button", { name: "Replay My Kustomers product demo" }),
+      screen.getByRole("button", { name: "Replay demo" }),
     ).toBeVisible();
     expect(screen.getByRole("status")).toHaveAttribute("aria-live", "polite");
     expect(screen.getByRole("img", { name: "Bookings trend increased" })).toBeVisible();
@@ -131,13 +131,13 @@ describe("HomepageProductDemo", () => {
     showDemo();
 
     fireEvent.click(
-      screen.getByRole("button", { name: "Pause My Kustomers product demo" }),
+      screen.getByRole("button", { name: "Pause" }),
     );
     act(() => vi.advanceTimersByTime(10_000));
     expect(screen.getByTestId("demo-booking")).toHaveAttribute("aria-hidden", "true");
 
     fireEvent.click(
-      screen.getByRole("button", { name: "Resume My Kustomers product demo" }),
+      screen.getByRole("button", { name: "Resume" }),
     );
     advanceStep();
     expect(screen.getByTestId("demo-booking-status")).toHaveTextContent("Created");
@@ -145,7 +145,7 @@ describe("HomepageProductDemo", () => {
     advanceStep();
     expect(screen.getByTestId("demo-booking-status")).toHaveTextContent("Confirmed");
     fireEvent.click(
-      screen.getByRole("button", { name: "Replay My Kustomers product demo" }),
+      screen.getByRole("button", { name: "Replay demo" }),
     );
     expect(screen.getByTestId("demo-booking")).toHaveAttribute("aria-hidden", "true");
     advanceStep();

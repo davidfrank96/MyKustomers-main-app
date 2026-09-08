@@ -63,7 +63,7 @@ describe("trusted confirmation sharing", () => {
     expect(telegram.searchParams.get("text")).toBe(message);
   });
 
-  it("builds generic safe metadata with complete social fields and no PII", () => {
+  it("builds generic noindex capability metadata without tenant or token data", () => {
     const metadata = buildPublicConfirmationMetadata({
       token: "safe-token_123",
       businessName: "Bella Cakes",
@@ -71,13 +71,15 @@ describe("trusted confirmation sharing", () => {
     });
     const serialized = JSON.stringify(metadata);
 
-    expect(metadata.title).toBe("Review your order with Bella Cakes");
+    expect(metadata.title).toEqual({
+      absolute: "Secure booking confirmation | My Kustomers",
+    });
     expect(metadata.description).toBe(
-      "Bella Cakes has sent you an order for review and confirmation.",
+      "Open this private link to review and confirm a booking request.",
     );
     expect(metadata.openGraph).toMatchObject({
-      title: "Review your order with Bella Cakes",
-      description: "Bella Cakes has sent you an order for review and confirmation.",
+      title: "Secure booking confirmation | My Kustomers",
+      description: "Open this private link to review and confirm a booking request.",
       siteName: "My Kustomers",
       type: "website",
     });
@@ -94,6 +96,10 @@ describe("trusted confirmation sharing", () => {
     expect(serialized).not.toContain("David Okafor");
     expect(serialized).not.toContain("Private address");
     expect(serialized).not.toContain("EUR 500");
+    expect(serialized).not.toContain("safe-token_123");
+    expect(serialized).not.toContain("Bella Cakes");
+    expect(metadata.alternates).toBeUndefined();
+    expect(metadata.openGraph).not.toHaveProperty("url");
   });
 
   it("recognizes messaging preview crawlers without classifying normal browsers", () => {

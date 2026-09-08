@@ -3,7 +3,11 @@ import { Inter } from "next/font/google";
 import type { ReactNode } from "react";
 import { Toaster } from "@/components/ui/toast";
 import { MYKUSTOMERS_BRAND_ASSETS } from "@/lib/brand/assets";
-import { publicEnv } from "@/lib/config/public-env";
+import {
+  PRIVATE_ROBOTS,
+  SEO_SITE,
+  isProductionSeoDeployment,
+} from "@/lib/seo/site";
 import "./globals.css";
 
 const inter = Inter({
@@ -12,15 +16,14 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(publicEnv.NEXT_PUBLIC_APP_URL),
+  metadataBase: new URL(SEO_SITE.origin),
   title: {
-    default: "My Kustomers",
+    default: SEO_SITE.title,
     template: "%s | My Kustomers",
   },
-  description:
-    "A mobile-first customer and booking operations platform for small businesses.",
-  applicationName: "My Kustomers",
-  alternates: { canonical: "/" },
+  description: SEO_SITE.description,
+  applicationName: SEO_SITE.name,
+  robots: isProductionSeoDeployment() ? undefined : PRIVATE_ROBOTS,
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [
@@ -50,14 +53,14 @@ export const metadata: Metadata = {
     ],
   },
   openGraph: {
-    siteName: "My Kustomers",
+    siteName: SEO_SITE.name,
     type: "website",
     images: [
       {
         url: MYKUSTOMERS_BRAND_ASSETS.openGraph,
         width: 1200,
         height: 630,
-        alt: "MyKustomers.com",
+        alt: "My Kustomers booking and customer management platform",
       },
     ],
   },

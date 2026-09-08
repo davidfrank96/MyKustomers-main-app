@@ -884,7 +884,8 @@ test.describe("booking engine", () => {
     expect(previewResponse.ok()).toBe(true);
     const previewHtml = await previewResponse.text();
     expect(previewHtml).toContain("Secure order confirmation");
-    expect(previewHtml).toContain("Review your order with Phase 5 E2E Business");
+    expect(previewHtml).toContain("Secure booking confirmation | My Kustomers");
+    expect(previewHtml).not.toContain("Phase 5 E2E Business");
     expect(previewHtml).not.toContain(customerName);
     expect(previewHtml).not.toContain(updatedTitle);
     expect(previewHtml).not.toContain("₦45,000");
@@ -961,16 +962,13 @@ test.describe("booking engine", () => {
       .toBe(true);
     await expect(customerPage.locator('meta[property="og:title"]')).toHaveAttribute(
       "content",
-      "Review your order with Phase 5 E2E Business",
+      "Secure booking confirmation | My Kustomers",
     );
     await expect(customerPage.locator('meta[property="og:description"]')).toHaveAttribute(
       "content",
-      "Phase 5 E2E Business has sent you an order for review and confirmation.",
+      "Open this private link to review and confirm a booking request.",
     );
-    await expect(customerPage.locator('meta[property="og:url"]')).toHaveAttribute(
-      "content",
-      confirmationUrl,
-    );
+    await expect(customerPage.locator('meta[property="og:url"]')).toHaveCount(0);
     await expect(customerPage.locator('meta[property="og:type"]')).toHaveAttribute(
       "content",
       "website",
@@ -981,7 +979,7 @@ test.describe("booking engine", () => {
     );
     await expect(customerPage.locator('meta[property="og:image"]')).toHaveAttribute(
       "content",
-      /business-logos/,
+      "https://mykustomers.com/brand/mykustomers/v1/social/mykustomers-open-graph-1200x630.png",
     );
     await expect(
       customerPage.getByText("Phase 5 E2E Business", { exact: true }),
@@ -1326,9 +1324,8 @@ test.describe("booking engine", () => {
       },
     });
     const amendmentPreviewHtml = await amendmentPreview.text();
-    expect(amendmentPreviewHtml).toContain(
-      "Review an update to your booking with Phase 5 E2E Business",
-    );
+    expect(amendmentPreviewHtml).toContain("Secure booking update | My Kustomers");
+    expect(amendmentPreviewHtml).not.toContain("Phase 5 E2E Business");
     expect(amendmentPreviewHtml).not.toContain(customerName);
     expect(amendmentPreviewHtml).not.toContain(amendedTitle);
     expect(amendmentPreviewHtml).not.toContain("55000");
@@ -1523,9 +1520,8 @@ test.describe("booking engine", () => {
     });
     expect(addonPreview.ok()).toBe(true);
     const addonPreviewHtml = await addonPreview.text();
-    expect(addonPreviewHtml).toContain(
-      "Review an addition to your booking with Phase 5 E2E Business",
-    );
+    expect(addonPreviewHtml).toContain("Secure booking addition | My Kustomers");
+    expect(addonPreviewHtml).not.toContain("Phase 5 E2E Business");
     expect(addonPreviewHtml).not.toContain(customerName);
     expect(addonPreviewHtml).not.toContain("24 Cupcakes");
     expect(addonPreviewHtml).not.toContain("18000");
@@ -2257,12 +2253,11 @@ test.describe("booking engine", () => {
     });
     expect(feedbackPreviewResponse.ok()).toBe(true);
     const feedbackPreviewHtml = await feedbackPreviewResponse.text();
+    expect(feedbackPreviewHtml).toContain("Private customer feedback | My Kustomers");
     expect(feedbackPreviewHtml).toContain(
-      "Share private feedback with Phase 5 E2E Business",
+      "Open this private link to share feedback about a completed booking.",
     );
-    expect(feedbackPreviewHtml).toContain(
-      "Phase 5 E2E Business has requested private feedback about your experience.",
-    );
+    expect(feedbackPreviewHtml).not.toContain("Phase 5 E2E Business");
     expect(feedbackPreviewHtml).not.toContain(customerName);
     expect(feedbackPreviewHtml).not.toContain(amendedTitle);
     expect(feedbackPreviewHtml).not.toContain("MC-");
@@ -2284,7 +2279,7 @@ test.describe("booking engine", () => {
     ).toBeVisible();
     await expect(feedbackPage.locator('meta[property="og:title"]')).toHaveAttribute(
       "content",
-      "Share private feedback with Phase 5 E2E Business",
+      "Private customer feedback | My Kustomers",
     );
     await expect(feedbackPage.getByText(amendedTitle)).toBeVisible();
     await expect(feedbackPage.getByText("Updated private E2E note.")).toHaveCount(0);

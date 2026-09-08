@@ -19,10 +19,9 @@ vi.mock("@/features/businesses/logo-public", () => ({
 
 vi.mock("@/features/feedback/metadata", () => ({
   buildFeedbackMetadata: vi.fn(
-    ({ token, businessName }: { token: string; businessName?: string | null }) => ({
+    ({ businessName }: { businessName?: string | null } = {}) => ({
       title: `Share private feedback with ${businessName ?? "your business"}`,
       description: "Private feedback request",
-      canonicalUrl: `https://app.example.com/f/${encodeURIComponent(token)}`,
       imageUrl:
         "https://app.example.com/brand/mykustomers/v1/social/mykustomers-open-graph-1200x630.png",
     }),
@@ -177,7 +176,9 @@ describe("public private feedback route presentation", () => {
 
     expect(response.headers.get("cache-control")).toBe("no-store, max-age=0");
     expect(response.headers.get("referrer-policy")).toBe("no-referrer");
-    expect(response.headers.get("x-robots-tag")).toBe("noindex, nofollow");
+    expect(response.headers.get("x-robots-tag")).toBe(
+      "noindex, nofollow, noarchive, nosnippet, noimageindex",
+    );
     expect(response.headers.get("content-type")).toContain("text/html");
   });
 });

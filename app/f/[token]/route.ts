@@ -27,7 +27,7 @@ const securityHeaders = {
   "Content-Type": "text/html; charset=utf-8",
   "Cache-Control": "no-store, max-age=0",
   "Referrer-Policy": "no-referrer",
-  "X-Robots-Tag": "noindex, nofollow",
+  "X-Robots-Tag": "noindex, nofollow, noarchive, nosnippet, noimageindex",
 };
 
 function escapeHtml(value: string | number | null | undefined) {
@@ -85,15 +85,13 @@ function pageShell({ metadata, body }: { metadata: FeedbackMetadata; body: strin
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="robots" content="noindex,nofollow">
+  <meta name="robots" content="noindex,nofollow,noarchive,nosnippet,noimageindex">
   <title>${escapeHtml(metadata.title)}</title>
-  <link rel="canonical" href="${escapeHtml(metadata.canonicalUrl)}">
   <meta name="description" content="${escapeHtml(metadata.description)}">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="My Kustomers">
   <meta property="og:title" content="${escapeHtml(metadata.title)}">
   <meta property="og:description" content="${escapeHtml(metadata.description)}">
-  <meta property="og:url" content="${escapeHtml(metadata.canonicalUrl)}">
   <meta property="og:image" content="${escapeHtml(metadata.imageUrl)}">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="${escapeHtml(metadata.title)}">
@@ -635,12 +633,7 @@ export async function GET(request: NextRequest, context: FeedbackRouteContext) {
   const userAgent = request.headers.get("user-agent");
 
   if (isSocialPreviewCrawler(userAgent)) {
-    const publicMetadata = await getPublicFeedbackMetadata(token);
-    const metadata = buildFeedbackMetadata({
-      token,
-      businessName: publicMetadata?.businessName,
-      businessLogoPath: publicMetadata?.businessLogoPath,
-    });
+    const metadata = buildFeedbackMetadata();
     const body = `<div class="notice">
       <h1>Private feedback request</h1>
       <p>Open this secure link in your browser to share private feedback. No account is required.</p>
@@ -656,11 +649,7 @@ export async function GET(request: NextRequest, context: FeedbackRouteContext) {
   const booking = view.booking;
   const submitted =
     request.nextUrl.searchParams.get("submitted") === "1" || view.status === "submitted";
-  const metadata = buildFeedbackMetadata({
-    token,
-    businessName: booking?.business_name,
-    businessLogoPath: publicMetadata?.businessLogoPath,
-  });
+  const metadata = buildFeedbackMetadata();
   const businessLogoUrl = getBusinessLogoPublicUrl(publicMetadata?.businessLogoPath);
 
   if (booking) {

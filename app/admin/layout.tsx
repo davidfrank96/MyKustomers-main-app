@@ -9,6 +9,7 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
+import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import {
   PLATFORM_ADMIN_ROLES,
@@ -21,6 +22,11 @@ import {
 import { requireUser } from "@/lib/auth/server";
 import { BrandLogo } from "@/components/shared/brand-logo";
 import { AdminNavigationLink } from "@/components/admin/admin-navigation";
+import { PRIVATE_ROBOTS } from "@/lib/seo/site";
+
+export const metadata: Metadata = {
+  robots: PRIVATE_ROBOTS,
+};
 
 export const dynamic = "force-dynamic";
 

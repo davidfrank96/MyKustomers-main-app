@@ -134,18 +134,19 @@ describe("Phase 8 feedback domain", () => {
     expect(telegram.searchParams.get("url")).toBe(feedbackUrl);
   });
 
-  it("builds feedback metadata without customer or booking details", () => {
+  it("builds generic feedback metadata without tenant, booking, or token details", () => {
     const metadata = buildFeedbackMetadata({
       token: "token with spaces",
       businessName: "Divine Cakes",
     });
 
-    expect(metadata.title).toBe("Share private feedback with Divine Cakes");
+    expect(metadata.title).toBe("Private customer feedback | My Kustomers");
     expect(metadata.description).toBe(
-      "Divine Cakes has requested private feedback about your experience.",
+      "Open this private link to share feedback about a completed booking.",
     );
-    expect(metadata.canonicalUrl).toContain("/f/token%20with%20spaces");
-    expect(JSON.stringify(metadata)).not.toMatch(/Sarah|booking|amount|schedule/i);
+    expect(JSON.stringify(metadata)).not.toMatch(
+      /Sarah|Divine Cakes|token with spaces|amount|schedule/i,
+    );
   });
 
   it("validates issue creation and terminal resolution rule", () => {

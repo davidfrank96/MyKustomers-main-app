@@ -46,7 +46,7 @@ test.describe("public homepage", () => {
     await page.goto("/");
 
     await expect(page).toHaveTitle(
-      "My Kustomers — Customers, Bookings, Confirmations & Insights for Small Businesses",
+      "My Kustomers — Booking & Customer Management for Small Businesses",
     );
     await expect(page.getByRole("banner")).toBeVisible();
     await expect(page.getByRole("main")).toBeVisible();
@@ -54,7 +54,8 @@ test.describe("public homepage", () => {
     await expect(page.getByRole("link", { name: "MyKustomers.com home" })).toBeVisible();
     await expect(page.getByText("My Customers", { exact: true })).toHaveCount(0);
 
-    await expect(page.getByRole("link", { name: "Log in" })).toHaveAttribute(
+    const header = page.getByRole("banner");
+    await expect(header.getByRole("link", { name: "Log in" })).toHaveAttribute(
       "href",
       "/login",
     );
@@ -82,7 +83,7 @@ test.describe("public homepage", () => {
     await expect(page).toHaveURL(/#how-it-works$/);
     await expect(page.getByRole("heading", { name: "How it works" })).toBeInViewport();
 
-    await page.getByRole("link", { name: "Log in" }).click();
+    await header.getByRole("link", { name: "Log in" }).click();
     await expect(page).toHaveURL(/\/login$/);
     await expect(page.getByRole("heading", { name: "Log in" })).toBeVisible();
 
@@ -124,7 +125,7 @@ test.describe("public homepage", () => {
       ).toBeVisible();
       await expect(
         page.getByText(
-          "Manage bookings, send digital receipts and updates, collect private feedback, and keep every customer journey organized in one place.",
+          "Manage customers and bookings, track confirmations and payments, coordinate delivery, and collect private feedback in one clear workspace.",
         ),
       ).toBeVisible();
       for (const [title, description] of [
@@ -147,7 +148,9 @@ test.describe("public homepage", () => {
       if (viewport.width >= 768) {
         await expect(page.getByRole("heading", { name: "How it works" })).toBeVisible();
         await expect(
-          page.getByRole("heading", { name: "Perfect for businesses that..." }),
+          page.getByRole("heading", {
+            name: "Built for growing service businesses in Nigeria",
+          }),
         ).toBeVisible();
       }
       await expectNoPageOverflow(page, viewport.width);

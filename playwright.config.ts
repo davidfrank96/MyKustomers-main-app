@@ -20,6 +20,7 @@ export default defineConfig({
     command: `npm run dev -- --hostname 127.0.0.1 --port ${port}`,
     env: {
       NEXT_PUBLIC_APP_URL: `http://127.0.0.1:${port}`,
+      VERCEL_ENV: "production",
     },
     url: `http://127.0.0.1:${port}`,
     reuseExistingServer: !process.env.CI,

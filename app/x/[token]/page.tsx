@@ -10,7 +10,7 @@ import {
   getBusinessLogoPublicUrl,
   getSafeBusinessWebsiteUrl,
 } from "@/features/businesses/logo-public";
-import { getPublicAddonMetadata, getPublicAddonView } from "@/features/addons/public";
+import { getPublicAddonView } from "@/features/addons/public";
 import { confirmPublicAddonAction } from "@/features/addons/public-actions";
 import { safePublicAddonMessage } from "@/features/addons/messages";
 import { buildPublicAddonMetadata } from "@/features/addons/metadata";
@@ -24,15 +24,7 @@ type AddonPageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 };
 
-export async function generateMetadata({ params }: AddonPageProps): Promise<Metadata> {
-  const { token } = await params;
-  const metadata = await getPublicAddonMetadata(token);
-  return buildPublicAddonMetadata({
-    token,
-    businessName: metadata?.name,
-    businessLogoPath: metadata?.logo_path,
-  });
-}
+export const metadata: Metadata = buildPublicAddonMetadata();
 
 function formatDate(value: string | null) {
   if (!value) return "Not scheduled";

@@ -38,7 +38,9 @@ describe("platform admin MFA boundary", () => {
     expect(nextConfig).toContain('source: "/admin/security/:path*"');
     expect(nextConfig).toContain('value: "private, no-store, max-age=0"');
     expect(nextConfig).toContain('value: "no-referrer"');
-    expect(nextConfig).toContain('value: "noindex, nofollow"');
+    expect(nextConfig).toContain(
+      'value: "noindex, nofollow, noarchive, nosnippet, noimageindex"',
+    );
   });
 
   it("provides application confirmation without generic action dispatch", () => {

@@ -1,74 +1,51 @@
 import type { Metadata } from "next";
-import { getBusinessLogoPublicUrl } from "@/features/businesses/logo-public";
-import { publicEnv } from "@/lib/config/public-env";
 import { MYKUSTOMERS_BRAND_ASSETS } from "@/lib/brand/assets";
+import { PRIVATE_ROBOTS, SEO_SITE } from "@/lib/seo/site";
 
-type PublicCapabilityMetadataInput = {
-  token: string;
+type LegacyCapabilityMetadataInput = {
+  token?: string;
   businessName?: string | null;
   businessLogoPath?: string | null;
-  routePrefix: "/c" | "/a" | "/x";
-  title: (businessName: string) => string;
-  description: (businessName: string) => string;
+};
+
+type PublicCapabilityMetadataInput = {
+  title: string;
+  description: string;
   imageAlt: string;
 };
 
 export function buildPublicCapabilityMetadata({
-  token,
-  businessName,
-  businessLogoPath,
-  routePrefix,
-  title: buildTitle,
-  description: buildDescription,
+  title,
+  description,
   imageAlt,
 }: PublicCapabilityMetadataInput): Metadata {
-  const safeBusinessName =
-    businessName?.replace(/[\u0000-\u001f\u007f]+/g, " ").trim() || "your business";
-  const title = buildTitle(safeBusinessName);
-  const description = buildDescription(safeBusinessName);
-  const baseUrl = publicEnv.NEXT_PUBLIC_APP_URL.replace(/\/$/, "");
-  const canonicalUrl = `${baseUrl}${routePrefix}/${encodeURIComponent(token)}`;
-  const businessLogoUrl = getBusinessLogoPublicUrl(businessLogoPath);
-  const imageUrl = businessLogoUrl ?? `${baseUrl}${MYKUSTOMERS_BRAND_ASSETS.openGraph}`;
-
   return {
-    title,
+    title: { absolute: title },
     description,
-    alternates: { canonical: canonicalUrl },
-    robots: {
-      index: false,
-      follow: false,
-      noarchive: true,
-    },
+    robots: PRIVATE_ROBOTS,
     openGraph: {
       title,
       description,
-      url: canonicalUrl,
-      siteName: "My Kustomers",
+      siteName: SEO_SITE.name,
       type: "website",
-      images: [{ url: imageUrl, alt: imageAlt }],
+      images: [{ url: MYKUSTOMERS_BRAND_ASSETS.openGraph, alt: imageAlt }],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      images: [imageUrl],
+      images: [MYKUSTOMERS_BRAND_ASSETS.openGraph],
     },
   };
 }
 
 export function buildPublicConfirmationMetadata(
-  input: Omit<
-    PublicCapabilityMetadataInput,
-    "routePrefix" | "title" | "description" | "imageAlt"
-  >,
+  _legacyInput?: LegacyCapabilityMetadataInput,
 ): Metadata {
+  void _legacyInput;
   return buildPublicCapabilityMetadata({
-    ...input,
-    routePrefix: "/c",
-    title: (businessName) => `Review your order with ${businessName}`,
-    description: (businessName) =>
-      `${businessName} has sent you an order for review and confirmation.`,
-    imageAlt: "My Kustomers secure order confirmation",
+    title: "Secure booking confirmation | My Kustomers",
+    description: "Open this private link to review and confirm a booking request.",
+    imageAlt: "My Kustomers secure booking confirmation",
   });
 }
