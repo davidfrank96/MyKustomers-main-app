@@ -135,7 +135,7 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withSentryConfig(nextConfig, {
+const sentryNextConfig = withSentryConfig(nextConfig, {
   org: process.env.SENTRY_ORG ?? "my-kustomers",
   project: process.env.SENTRY_PROJECT ?? "javascript-nextjs",
   authToken: process.env.SENTRY_AUTH_TOKEN,
@@ -167,3 +167,16 @@ export default withSentryConfig(nextConfig, {
     excludeReplayWorker: true,
   },
 });
+
+// Keep Sentry's trace identifier for App Router page-load correlation, but do
+// not render the dynamic-sampling `baggage` value into public HTML. That value
+// includes the request transaction name and can expose capability route
+// parameters before event sanitizers run.
+if (typeof sentryNextConfig !== "function" && sentryNextConfig.experimental) {
+  sentryNextConfig.experimental.clientTraceMetadata =
+    sentryNextConfig.experimental.clientTraceMetadata?.filter(
+      (metadataName) => metadataName !== "baggage",
+    );
+}
+
+export default sentryNextConfig;

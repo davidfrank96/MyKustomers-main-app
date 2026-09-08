@@ -9,6 +9,8 @@ import type {
 const REDACTED = "[redacted]";
 const REDACTED_EMAIL = "[redacted-email]";
 const CAPABILITY_PATH_PATTERN = /\/(c|a|x|f)\/[^/?#\s]+/gi;
+const CAPABILITY_TRANSACTION_PATTERN =
+  /(?:^|\s|https?:\/\/[^/\s]+)\/(?:c|a|x|f)\/[^/?#\s]+/i;
 const EMAIL_PATTERN = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi;
 const BEARER_PATTERN = /\bBearer\s+[A-Za-z0-9._~+/-]+=*/gi;
 const JWT_PATTERN = /\b[A-Za-z0-9_-]{16,}\.[A-Za-z0-9_-]{16,}\.[A-Za-z0-9_-]{16,}\b/g;
@@ -59,6 +61,11 @@ export const SENTRY_DATA_COLLECTION: DataCollection = {
   stackFrameVariables: false,
   frameContextLines: 3,
 };
+
+export const SENTRY_IGNORED_TRANSACTIONS = [
+  /\/api\/health(?:\?|$)/,
+  CAPABILITY_TRANSACTION_PATTERN,
+];
 
 export function sanitizeSentryUrl(value: string): string {
   const redactPath = (pathname: string) =>
@@ -323,6 +330,10 @@ export function beforeSentrySpan(span: SpanJSON): SpanJSON {
 }
 
 export function sentryTraceSampleRate(name: string): number {
+  if (CAPABILITY_TRANSACTION_PATTERN.test(name)) {
+    return 0;
+  }
+
   const sanitizedName = sanitizeSentryString(name);
   if (sanitizedName === "/api/health" || sanitizedName.includes("GET /api/health")) {
     return 0;
