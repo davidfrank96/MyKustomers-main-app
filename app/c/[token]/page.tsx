@@ -9,7 +9,10 @@ import {
   SecureConfirmationLabel,
 } from "@/components/forms/public-confirmation-content";
 import { PublicConfirmationForm } from "@/components/forms/public-confirmation-form";
-import { getPublicConfirmationView } from "@/features/confirmation-links/public";
+import {
+  getPublicConfirmationMetadata,
+  getPublicConfirmationView,
+} from "@/features/confirmation-links/public";
 import { confirmPublicBookingAction } from "@/features/confirmation-links/public-actions";
 import { safePublicConfirmationMessage } from "@/features/confirmation-links/messages";
 import { buildPublicConfirmationMetadata } from "@/features/confirmation-links/metadata";
@@ -22,7 +25,17 @@ type ConfirmationPageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 };
 
-export const metadata: Metadata = buildPublicConfirmationMetadata();
+export async function generateMetadata({
+  params,
+}: ConfirmationPageProps): Promise<Metadata> {
+  const { token } = await params;
+  const business = await getPublicConfirmationMetadata(token);
+
+  return buildPublicConfirmationMetadata({
+    businessName: business?.businessName,
+    businessLogoPath: business?.businessLogoPath,
+  });
+}
 
 export default async function ConfirmationPage({
   params,
@@ -54,7 +67,7 @@ export default async function ConfirmationPage({
 
   const view = await getPublicConfirmationView(token);
   const booking = view.booking;
-  const confirmed = query.confirmed === "1" || view.status === "already_confirmed";
+  const confirmed = view.status === "already_confirmed";
 
   return (
     <main className="min-h-dvh bg-[#f2f3f0] px-4 py-6 text-foreground sm:px-6 sm:py-10 lg:py-12">
@@ -71,11 +84,11 @@ export default async function ConfirmationPage({
             ) : null}
             <PublicConfirmationBusinessIdentity booking={booking} />
             <h1 className="mt-10 text-3xl font-semibold leading-tight sm:text-4xl">
-              {confirmed ? "Booking confirmed" : "Review your order"}
+              {confirmed ? "Booking already confirmed" : "Review your order"}
             </h1>
             <p className="mt-3 max-w-xl text-base leading-7 text-muted-foreground">
               {confirmed
-                ? `Your booking has been confirmed with ${booking.business_name}.`
+                ? `Thank you. This booking has already been confirmed with ${booking.business_name}.`
                 : `${booking.business_name} has asked you to review and confirm the details below.`}
             </p>
 
@@ -89,11 +102,14 @@ export default async function ConfirmationPage({
                     aria-hidden="true"
                   />
                   <div>
-                    <p className="font-medium">Confirmed</p>
+                    <p className="font-medium">No further action is required</p>
                     <p className="mt-1 text-sm leading-6 text-muted-foreground">
                       {booking.contact_email_masked
-                        ? `We'll send a confirmation to ${booking.contact_email_masked}.`
-                        : "No My Kustomers account is required."}
+                        ? `We'll send future booking updates to ${booking.contact_email_masked}.`
+                        : "Your confirmation has been sent to the business."}
+                    </p>
+                    <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                      You can close this page now.
                     </p>
                   </div>
                 </div>
@@ -101,6 +117,7 @@ export default async function ConfirmationPage({
             ) : view.status === "valid" ? (
               <PublicConfirmationForm
                 action={confirmPublicBookingAction.bind(null, token)}
+                businessName={booking.business_name}
               />
             ) : (
               <p className="mt-6 rounded-lg border border-border bg-card p-4 text-sm leading-6 text-muted-foreground shadow-sm">

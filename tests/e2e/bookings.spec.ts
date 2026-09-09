@@ -884,8 +884,12 @@ test.describe("booking engine", () => {
     expect(previewResponse.ok()).toBe(true);
     const previewHtml = await previewResponse.text();
     expect(previewHtml).toContain("Secure order confirmation");
-    expect(previewHtml).toContain("Secure booking confirmation | My Kustomers");
-    expect(previewHtml).not.toContain("Phase 5 E2E Business");
+    expect(previewHtml).toContain(
+      "Confirm your booking with Phase 5 E2E Business",
+    );
+    expect(previewHtml).toContain(
+      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/business-logos/${logoPath}`,
+    );
     expect(previewHtml).not.toContain(customerName);
     expect(previewHtml).not.toContain(updatedTitle);
     expect(previewHtml).not.toContain("₦45,000");
@@ -962,11 +966,11 @@ test.describe("booking engine", () => {
       .toBe(true);
     await expect(customerPage.locator('meta[property="og:title"]')).toHaveAttribute(
       "content",
-      "Secure booking confirmation | My Kustomers",
+      "Confirm your booking with Phase 5 E2E Business",
     );
     await expect(customerPage.locator('meta[property="og:description"]')).toHaveAttribute(
       "content",
-      "Open this private link to review and confirm a booking request.",
+      "Review and confirm your booking with Phase 5 E2E Business.",
     );
     await expect(customerPage.locator('meta[property="og:url"]')).toHaveCount(0);
     await expect(customerPage.locator('meta[property="og:type"]')).toHaveAttribute(
@@ -977,7 +981,12 @@ test.describe("booking engine", () => {
       "content",
       "My Kustomers",
     );
-    await expect(customerPage.locator('meta[property="og:image"]')).toHaveAttribute(
+    const openGraphImages = customerPage.locator('meta[property="og:image"]');
+    await expect(openGraphImages.first()).toHaveAttribute(
+      "content",
+      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/business-logos/${logoPath}`,
+    );
+    await expect(openGraphImages.nth(1)).toHaveAttribute(
       "content",
       "https://mykustomers.com/brand/mykustomers/v1/social/mykustomers-open-graph-1200x630.png",
     );
@@ -1125,7 +1134,7 @@ test.describe("booking engine", () => {
       "customer-confirmation@example.com",
     );
 
-    for (const width of [320, 360, 390, 430, 768, 1024, 1440]) {
+    for (const width of [320, 360, 375, 390, 430, 768, 1024, 1440]) {
       await customerPage.setViewportSize({
         width,
         height: width < 768 ? 900 : 1000,
@@ -1143,18 +1152,34 @@ test.describe("booking engine", () => {
     }
 
     await customerPage.getByRole("button", { name: "Confirm booking" }).click();
-    await expect(customerPage).toHaveURL(/confirmed=1/, { timeout: 15_000 });
     await expect(
       customerPage.getByRole("heading", { name: "Booking confirmed" }),
-    ).toBeVisible();
+    ).toBeVisible({ timeout: 15_000 });
     await expect(
       page.locator('[data-state="open"]').getByText("Customer confirmed", {
         exact: true,
       }),
     ).toBeVisible({ timeout: serverActionTimeout });
     await expect(
-      customerPage.getByText("We'll send a confirmation to c***@example.com."),
+      customerPage.getByText(
+        "Thank you. Your confirmation has been sent to Phase 5 E2E Business.",
+      ),
     ).toBeVisible();
+    await expect(customerPage.getByTestId("confirmed-email")).toHaveText(
+      "customer-confirmation@example.com",
+    );
+    await expect(customerPage.getByRole("button", { name: "Done" })).toBeVisible();
+
+    for (const viewport of [
+      { width: 320, height: 568 },
+      { width: 375, height: 812 },
+      { width: 430, height: 932 },
+      { width: 1024, height: 768 },
+    ]) {
+      await customerPage.setViewportSize(viewport);
+      await expectNoPageOverflow(customerPage);
+      await expect(customerPage.getByRole("button", { name: "Done" })).toBeVisible();
+    }
 
     const [
       { data: capturedCustomer },
@@ -1195,8 +1220,9 @@ test.describe("booking engine", () => {
 
     await customerPage.goto(confirmationUrl);
     await expect(
-      customerPage.getByRole("heading", { name: "Booking confirmed" }),
+      customerPage.getByRole("heading", { name: "Booking already confirmed" }),
     ).toBeVisible();
+    await expect(customerPage.getByText("You can close this page now.")).toBeVisible();
 
     await expect(
       page.locator("span.inline-flex.w-fit").filter({ hasText: /^In progress$/ }),

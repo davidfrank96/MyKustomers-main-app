@@ -13,8 +13,11 @@ export const DialogClose = DialogPrimitive.Close;
 export function DialogContent({
   className,
   children,
+  showCloseButton = true,
   ...props
-}: ComponentPropsWithoutRef<typeof DialogPrimitive.Content>) {
+}: ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & {
+  showCloseButton?: boolean;
+}) {
   return (
     <DialogPrimitive.Portal>
       <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/35" />
@@ -26,16 +29,18 @@ export function DialogContent({
         {...props}
       >
         {children}
-        <DialogPrimitive.Close asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute right-3 top-3"
-            aria-label="Close dialog"
-          >
-            <X className="size-4" aria-hidden="true" />
-          </Button>
-        </DialogPrimitive.Close>
+        {showCloseButton ? (
+          <DialogPrimitive.Close asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-3 top-3"
+              aria-label="Close dialog"
+            >
+              <X className="size-4" aria-hidden="true" />
+            </Button>
+          </DialogPrimitive.Close>
+        ) : null}
       </DialogPrimitive.Content>
     </DialogPrimitive.Portal>
   );

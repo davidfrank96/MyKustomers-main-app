@@ -38,6 +38,11 @@ export default defineConfig({
       use: { ...devices["Pixel 5"] },
     },
     {
+      name: "confirmation-webkit",
+      testMatch: /customer-confirmation-hotfix\.spec\.ts/,
+      use: { ...devices["iPhone 13"] },
+    },
+    {
       name: "pwa-chromium",
       testMatch: /pwa-reliability\.spec\.ts/,
       use: { ...devices["Desktop Chrome"] },

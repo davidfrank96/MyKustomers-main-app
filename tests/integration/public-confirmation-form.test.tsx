@@ -140,4 +140,32 @@ describe("public confirmation email review", () => {
 
     finishAction?.(initialPublicConfirmationActionState);
   });
+
+  it("renders a stable accessible success acknowledgement with the confirmed email", async () => {
+    const action = vi.fn(async () => ({
+      status: "success" as const,
+      businessName: "Bella Cakes",
+      contactEmail: "David.Frank@hotmail.com",
+      alreadyConfirmed: false,
+    }));
+    render(<PublicConfirmationForm action={action} />);
+
+    fireEvent.change(screen.getByLabelText("Email address"), {
+      target: { value: "David.Frank@HOTMAIL.COM" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Review and confirm" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirm booking" }));
+
+    expect(
+      await screen.findByRole("heading", { name: "Booking confirmed" }),
+    ).toBeVisible();
+    expect(
+      screen.getByText("Thank you. Your confirmation has been sent to Bella Cakes."),
+    ).toBeVisible();
+    expect(screen.getByTestId("confirmed-email")).toHaveTextContent(
+      "David.Frank@hotmail.com",
+    );
+    expect(screen.getByRole("button", { name: "Done" })).toBeVisible();
+    expect(screen.queryByLabelText("Close dialog")).toBeNull();
+  });
 });
