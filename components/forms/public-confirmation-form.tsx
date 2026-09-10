@@ -8,8 +8,22 @@ import {
   useRef,
   useState,
 } from "react";
-import { ArrowLeft, ArrowRight, Mail, Phone, ShieldCheck } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  CheckCircle2,
+  Mail,
+  Phone,
+  ShieldCheck,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -23,13 +37,17 @@ type PublicConfirmationFormProps = {
     previousState: PublicConfirmationActionState,
     formData: FormData,
   ) => Promise<PublicConfirmationActionState>;
+  businessName?: string;
 };
 
 type ContactFieldErrors = NonNullable<
-  PublicConfirmationActionState["fieldErrors"]
+  Extract<PublicConfirmationActionState, { status: "error" }>["fieldErrors"]
 >;
 
-export function PublicConfirmationForm({ action }: PublicConfirmationFormProps) {
+export function PublicConfirmationForm({
+  action,
+  businessName,
+}: PublicConfirmationFormProps) {
   const finalSubmissionStartedRef = useRef(false);
   const runConfirmationAction = useCallback(
     async (previousState: PublicConfirmationActionState, formData: FormData) => {
@@ -106,8 +124,12 @@ export function PublicConfirmationForm({ action }: PublicConfirmationFormProps) 
   }
 
   const visibleFieldErrors = {
-    contactEmail: fieldErrors.contactEmail ?? state.fieldErrors?.contactEmail,
-    contactPhone: fieldErrors.contactPhone ?? state.fieldErrors?.contactPhone,
+    contactEmail:
+      fieldErrors.contactEmail ??
+      (state.status === "error" ? state.fieldErrors?.contactEmail : undefined),
+    contactPhone:
+      fieldErrors.contactPhone ??
+      (state.status === "error" ? state.fieldErrors?.contactPhone : undefined),
   };
 
   return (
@@ -157,7 +179,7 @@ export function PublicConfirmationForm({ action }: PublicConfirmationFormProps) 
           <input type="hidden" name="contact_email" value={email} />
           <input type="hidden" name="contact_phone" value={phone} />
 
-          {state.message ? (
+          {state.status === "error" ? (
             <p
               role="status"
               className="mt-4 rounded-md border border-border bg-card px-3 py-2 text-sm text-muted-foreground"
@@ -315,6 +337,61 @@ export function PublicConfirmationForm({ action }: PublicConfirmationFormProps) 
           </div>
         </>
       )}
+
+      {state.status === "success" ? (
+        <Dialog open onOpenChange={() => undefined}>
+          <DialogContent
+            showCloseButton={false}
+            className="max-w-md p-5 sm:p-6"
+            onEscapeKeyDown={(event) => event.preventDefault()}
+            onInteractOutside={(event) => event.preventDefault()}
+          >
+            <div aria-live="polite" className="flex items-start gap-3.5 sm:gap-4">
+              <span className="grid size-11 shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
+                <CheckCircle2 className="size-6" aria-hidden="true" />
+              </span>
+              <DialogHeader className="min-w-0 flex-1 pr-0">
+                <DialogTitle>Booking confirmed</DialogTitle>
+                <DialogDescription>
+                  {state.alreadyConfirmed
+                    ? "Thank you. This booking has already been confirmed."
+                    : state.businessName ?? businessName
+                      ? `Thank you. Your confirmation has been sent to ${state.businessName ?? businessName}.`
+                      : "Thank you. Your confirmation has been sent to the business."}
+                </DialogDescription>
+              </DialogHeader>
+            </div>
+
+            {state.contactEmail ? (
+              <div className="mt-5 rounded-lg border border-[#ccddd5] bg-[#f2f7f4] p-4">
+                <p className="text-sm leading-6 text-muted-foreground">
+                  We&apos;ll send updates about this booking to your confirmed email
+                  address:
+                </p>
+                <p className="mt-1 break-all font-semibold" data-testid="confirmed-email">
+                  {state.contactEmail}
+                </p>
+              </div>
+            ) : null}
+
+            <p className="mt-4 text-sm leading-6 text-muted-foreground">
+              No further action is required. You can close this page now.
+            </p>
+            <Button
+              type="button"
+              size="lg"
+              className="mt-5 h-12 w-full"
+              onClick={() => {
+                if (window.opener && !window.opener.closed) {
+                  window.close();
+                }
+              }}
+            >
+              Done
+            </Button>
+          </DialogContent>
+        </Dialog>
+      ) : null}
     </form>
   );
 }

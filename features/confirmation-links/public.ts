@@ -73,11 +73,6 @@ export async function getPublicConfirmationMetadata(
   }
 
   const tokenHash = hashConfirmationToken(token);
-  const allowed = await consumeConfirmationRateLimit("metadata", tokenHash);
-  if (!allowed) {
-    return null;
-  }
-
   const supabase = createServiceRoleClient();
   const { data: link, error: linkError } = await supabase
     .from("confirmation_links")
@@ -143,6 +138,10 @@ export async function confirmPublicBooking(
 ): Promise<
   PublicConfirmationView & {
     fieldErrors?: { contactEmail?: string[]; contactPhone?: string[] };
+    confirmation?: {
+      businessName: string | null;
+      contactEmail: string;
+    };
   }
 > {
   const contact = confirmationContactSchema.safeParse(contactInput);
@@ -180,9 +179,53 @@ export async function confirmPublicBooking(
     data.status === "confirmed" &&
     typeof data.email_event_id === "string"
   ) {
-    await deliverEmailEvent(data.email_event_id);
+    try {
+      await deliverEmailEvent(data.email_event_id);
+    } catch {
+      // Confirmation is already committed. The durable outbox owns delivery recovery.
+    }
   }
 
   const parsed = parsePublicConfirmationView(data);
-  return parsed.status === "confirmed" ? { status: "confirmed" } : parsed;
+  if (parsed.status !== "confirmed") {
+    return parsed;
+  }
+
+  const businessId = isRecord(data) && typeof data.business_id === "string"
+    ? data.business_id
+    : null;
+  const bookingId = isRecord(data) && typeof data.booking_id === "string"
+    ? data.booking_id
+    : null;
+  let businessName: string | null = null;
+  let persistedContactEmail = contact.data.contactEmail;
+
+  if (businessId && bookingId) {
+    const [{ data: business }, { data: confirmation }] = await Promise.all([
+      supabase
+        .from("businesses")
+        .select("name")
+        .eq("id", businessId)
+        .maybeSingle(),
+      supabase
+        .from("booking_confirmations")
+        .select("contact_email")
+        .eq("business_id", businessId)
+        .eq("booking_id", bookingId)
+        .order("confirmed_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+    ]);
+
+    businessName = business?.name ?? null;
+    persistedContactEmail = confirmation?.contact_email ?? persistedContactEmail;
+  }
+
+  return {
+    status: "confirmed",
+    confirmation: {
+      businessName,
+      contactEmail: persistedContactEmail,
+    },
+  };
 }

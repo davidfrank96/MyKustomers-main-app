@@ -26,7 +26,13 @@ it.each([
   async (input, expected) => {
     await expect(
       confirmPublicBooking("a".repeat(43), { contactEmail: input }),
-    ).resolves.toEqual({ status: "confirmed" });
+    ).resolves.toEqual({
+      status: "confirmed",
+      confirmation: {
+        businessName: null,
+        contactEmail: expected,
+      },
+    });
     expect(mocks.rpc).toHaveBeenCalledExactlyOnceWith(
       "confirm_booking_by_token_hash",
       expect.objectContaining({ p_contact_email: expected }),

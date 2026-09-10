@@ -71,25 +71,29 @@ describe("SEO Phase 1 foundation", () => {
     expect(serializeStructuredData({ unsafe: "</script>" })).not.toContain("</script>");
   });
 
-  it("keeps every capability family noindex and free of capability URLs or tenant data", () => {
+  it("keeps capability metadata noindex and free of capability URLs", () => {
     const privateInput = {
-      token: "secret-capability-token",
       businessName: "Private Tenant Ltd",
       businessLogoPath: "private/logo.webp",
     };
+    const confirmationMetadata = buildPublicConfirmationMetadata(privateInput);
     const capabilityMetadata = [
-      buildPublicConfirmationMetadata(privateInput),
       buildPublicAmendmentMetadata(privateInput),
       buildPublicAddonMetadata(privateInput),
     ];
-    const metadata = [...capabilityMetadata, buildFeedbackMetadata(privateInput)];
+    const metadata = [
+      confirmationMetadata,
+      ...capabilityMetadata,
+      buildFeedbackMetadata(privateInput),
+    ];
     const serialized = JSON.stringify(metadata);
 
     expect(serialized).not.toContain("secret-capability-token");
-    expect(serialized).not.toContain("Private Tenant Ltd");
+    expect(JSON.stringify(capabilityMetadata)).not.toContain("Private Tenant Ltd");
+    expect(JSON.stringify(confirmationMetadata)).toContain("Private Tenant Ltd");
     expect(serialized).not.toContain("private/logo.webp");
     expect(serialized).not.toMatch(/\/c\/|\/a\/|\/x\/|\/f\//);
-    for (const entry of capabilityMetadata) {
+    for (const entry of [confirmationMetadata, ...capabilityMetadata]) {
       expect(entry).toMatchObject({ robots: PRIVATE_ROBOTS });
       expect(entry).not.toHaveProperty("alternates");
       expect(entry.openGraph).not.toHaveProperty("url");

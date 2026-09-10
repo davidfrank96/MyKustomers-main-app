@@ -21,6 +21,22 @@ limits rapid duplicate submissions, while the database transaction remains the
 idempotency authority. Review does not verify mailbox ownership or delivery and
 does not write the saved customer profile email.
 
+## Customer Confirmation Trust Hotfix
+
+Valid `/c/[token]` pages resolve the booking-owned business through a read-only,
+server-authoritative metadata lookup. Open Graph and X metadata use the current
+business name and public business logo first, with the platform PNG only as a
+compatibility or no-logo fallback. Capability URLs remain absent from canonical,
+Open Graph URL, structured data, and telemetry fields; preview-crawler rendering
+does not record a customer open.
+
+After the atomic confirmation returns success, the server action returns the
+persisted booking contact to a terminal accessible success dialog instead of
+redirecting through a query flag. Provider delivery remains an independent
+durable-outbox concern. Refreshing the consumed capability renders the existing
+server-authoritative already-confirmed state, and neither path writes the saved
+customer profile email.
+
 ## Email Reliability Stage 1
 
 Public contact validation reuses `normalizeCustomerContactEmail`: trim whitespace,

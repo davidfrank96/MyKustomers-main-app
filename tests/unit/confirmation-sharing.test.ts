@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   buildCustomerConfirmationMessageText,
   buildCustomerConfirmationShareMessage,
@@ -7,6 +7,13 @@ import {
 } from "@/features/confirmation-links/share";
 import { buildPublicConfirmationMetadata } from "@/features/confirmation-links/metadata";
 import { isSocialPreviewCrawler } from "@/features/confirmation-links/crawlers";
+
+vi.mock("@/features/businesses/logo-public", () => ({
+  getBusinessLogoPublicUrl: (path: string | null | undefined) =>
+    path
+      ? `https://project.supabase.co/storage/v1/object/public/business-logos/${path}`
+      : null,
+}));
 
 const confirmationUrl = "https://app.example.com/c/safe-token_123";
 
@@ -63,27 +70,51 @@ describe("trusted confirmation sharing", () => {
     expect(telegram.searchParams.get("text")).toBe(message);
   });
 
-  it("builds generic noindex capability metadata without tenant or token data", () => {
+  it("builds vendor-branded noindex confirmation metadata without token data", () => {
+    const logoPath = "11111111-1111-4111-8111-111111111111/logo.webp";
     const metadata = buildPublicConfirmationMetadata({
-      token: "safe-token_123",
       businessName: "Bella Cakes",
-      businessLogoPath: null,
+      businessLogoPath: logoPath,
     });
     const serialized = JSON.stringify(metadata);
 
     expect(metadata.title).toEqual({
-      absolute: "Secure booking confirmation | My Kustomers",
+      absolute: "Confirm your booking with Bella Cakes",
     });
     expect(metadata.description).toBe(
-      "Open this private link to review and confirm a booking request.",
+      "Review and confirm your booking with Bella Cakes.",
     );
     expect(metadata.openGraph).toMatchObject({
-      title: "Secure booking confirmation | My Kustomers",
-      description: "Open this private link to review and confirm a booking request.",
+      title: "Confirm your booking with Bella Cakes",
+      description: "Review and confirm your booking with Bella Cakes.",
       siteName: "My Kustomers",
       type: "website",
     });
-    expect(metadata.twitter).toMatchObject({ card: "summary_large_image" });
+    expect(metadata.twitter).toMatchObject({ card: "summary" });
+    expect(metadata.openGraph).toMatchObject({
+      images: [
+        expect.objectContaining({
+          url: expect.stringContaining(`/business-logos/${logoPath}`),
+          type: "image/webp",
+          alt: "Bella Cakes business logo",
+        }),
+        expect.objectContaining({ type: "image/png" }),
+      ],
+    });
+    expect(serialized).not.toContain("David Okafor");
+    expect(serialized).not.toContain("Private address");
+    expect(serialized).not.toContain("EUR 500");
+    expect(serialized).not.toContain("safe-token_123");
+    expect(serialized).toContain("Bella Cakes");
+    expect(metadata.alternates).toBeUndefined();
+    expect(metadata.openGraph).not.toHaveProperty("url");
+  });
+
+  it("uses the neutral platform fallback when business identity is unavailable", () => {
+    const metadata = buildPublicConfirmationMetadata();
+    expect(metadata.title).toEqual({
+      absolute: "Secure booking confirmation | My Kustomers",
+    });
     expect(metadata.openGraph).toMatchObject({
       images: [
         expect.objectContaining({
@@ -93,13 +124,28 @@ describe("trusted confirmation sharing", () => {
         }),
       ],
     });
-    expect(serialized).not.toContain("David Okafor");
-    expect(serialized).not.toContain("Private address");
-    expect(serialized).not.toContain("EUR 500");
-    expect(serialized).not.toContain("safe-token_123");
-    expect(serialized).not.toContain("Bella Cakes");
-    expect(metadata.alternates).toBeUndefined();
-    expect(metadata.openGraph).not.toHaveProperty("url");
+  });
+
+  it("keeps each confirmation preview bound to its own business logo", () => {
+    const businessA = buildPublicConfirmationMetadata({
+      businessName: "Business A",
+      businessLogoPath: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/logo.webp",
+    });
+    const businessB = buildPublicConfirmationMetadata({
+      businessName: "Business B",
+      businessLogoPath: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/logo.webp",
+    });
+    const serializedA = JSON.stringify(businessA);
+    const serializedB = JSON.stringify(businessB);
+
+    expect(serializedA).toContain("Business A");
+    expect(serializedA).toContain("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa");
+    expect(serializedA).not.toContain("Business B");
+    expect(serializedA).not.toContain("bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb");
+    expect(serializedB).toContain("Business B");
+    expect(serializedB).toContain("bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb");
+    expect(serializedB).not.toContain("Business A");
+    expect(serializedB).not.toContain("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa");
   });
 
   it("recognizes messaging preview crawlers without classifying normal browsers", () => {

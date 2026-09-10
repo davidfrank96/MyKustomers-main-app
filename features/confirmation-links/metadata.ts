@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
+import { getBusinessLogoPublicUrl } from "@/features/businesses/logo-public";
 import { MYKUSTOMERS_BRAND_ASSETS } from "@/lib/brand/assets";
 import { PRIVATE_ROBOTS, SEO_SITE } from "@/lib/seo/site";
 
-type LegacyCapabilityMetadataInput = {
-  token?: string;
+type ConfirmationMetadataInput = {
   businessName?: string | null;
   businessLogoPath?: string | null;
 };
@@ -40,12 +40,54 @@ export function buildPublicCapabilityMetadata({
 }
 
 export function buildPublicConfirmationMetadata(
-  _legacyInput?: LegacyCapabilityMetadataInput,
+  input: ConfirmationMetadataInput = {},
 ): Metadata {
-  void _legacyInput;
-  return buildPublicCapabilityMetadata({
-    title: "Secure booking confirmation | My Kustomers",
-    description: "Open this private link to review and confirm a booking request.",
-    imageAlt: "My Kustomers secure booking confirmation",
+  const businessName = input.businessName
+    ?.replace(/[\u0000-\u001f\u007f]+/g, " ")
+    .trim();
+
+  if (!businessName) {
+    return buildPublicCapabilityMetadata({
+      title: "Secure booking confirmation | My Kustomers",
+      description: "Open this private link to review and confirm a booking request.",
+      imageAlt: "My Kustomers secure booking confirmation",
+    });
+  }
+
+  const title = `Confirm your booking with ${businessName}`;
+  const description = `Review and confirm your booking with ${businessName}.`;
+  const businessLogoUrl = getBusinessLogoPublicUrl(input.businessLogoPath);
+  const metadata = buildPublicCapabilityMetadata({
+    title,
+    description,
+    imageAlt: `${businessName} business logo`,
   });
+
+  if (!businessLogoUrl) {
+    return metadata;
+  }
+
+  return {
+    ...metadata,
+    openGraph: {
+      ...metadata.openGraph,
+      images: [
+        {
+          url: businessLogoUrl,
+          type: "image/webp",
+          alt: `${businessName} business logo`,
+        },
+        {
+          url: MYKUSTOMERS_BRAND_ASSETS.openGraph,
+          type: "image/png",
+          alt: "My Kustomers secure booking confirmation",
+        },
+      ],
+    },
+    twitter: {
+      ...metadata.twitter,
+      card: "summary",
+      images: [businessLogoUrl],
+    },
+  };
 }

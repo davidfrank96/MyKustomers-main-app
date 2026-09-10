@@ -1,7 +1,5 @@
 "use server";
 
-import { redirect } from "next/navigation";
-import type { Route } from "next";
 import { confirmPublicBooking } from "@/features/confirmation-links/public";
 import type { PublicConfirmationActionState } from "@/features/confirmation-links/public-action-state";
 
@@ -15,8 +13,22 @@ export async function confirmPublicBookingAction(
     contactPhone: formData.get("contact_phone"),
   });
 
-  if (result.status === "confirmed" || result.status === "already_confirmed") {
-    redirect(`/c/${token}?confirmed=1` as Route);
+  if (result.status === "confirmed") {
+    return {
+      status: "success",
+      businessName: result.confirmation?.businessName ?? null,
+      contactEmail: result.confirmation?.contactEmail ?? null,
+      alreadyConfirmed: false,
+    };
+  }
+
+  if (result.status === "already_confirmed") {
+    return {
+      status: "success",
+      businessName: null,
+      contactEmail: null,
+      alreadyConfirmed: true,
+    };
   }
 
   if (result.status === "invalid_contact") {
