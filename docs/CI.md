@@ -101,3 +101,12 @@ does not weaken the merge policy: required CI must pass and the pull request mus
 be conflict-free before merge. Preview receives no current runtime secrets, and
 Vercel builds never apply migrations. The operational process and rollback
 boundary are documented in `docs/DEPLOYMENT.md`.
+
+## Notification Contracts
+
+The independent `Notification Contracts` job compiles and tests the notification
+foundation in a new native PostgreSQL cluster, then runs Chromium/WebKit UI
+journeys against a loopback fixture service. It uses no cloud secrets or Docker,
+never applies SQL to Supabase, and removes its disposable database. The fixture
+browser tests prove UI/API integration, not real provider or physical-device
+push delivery. Keep this job green alongside the existing required checks.

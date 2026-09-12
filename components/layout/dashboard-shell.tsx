@@ -1,3 +1,4 @@
+import { NotificationBell } from "@/components/notifications/notification-center";
 import Link from "next/link";
 import type { Route } from "next";
 import type { ReactNode } from "react";
@@ -77,7 +78,8 @@ export function DashboardShell({ children, user, businessContext }: DashboardShe
               currentBusiness={businessContext.currentBusiness}
             />
           </div>
-          <div className="flex shrink-0 items-center gap-3">
+          <div className="flex shrink-0 items-center gap-1 sm:gap-3">
+            <NotificationBell />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button

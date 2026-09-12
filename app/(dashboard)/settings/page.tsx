@@ -1,12 +1,13 @@
+import { NotificationSettings } from "@/components/notifications/notification-settings";
 import Link from "next/link";
 import type { Route } from "next";
-import { BriefcaseBusiness, LogOut } from "lucide-react";
+import { BriefcaseBusiness } from "lucide-react";
 import { BusinessMembershipList } from "@/components/businesses/business-membership-list";
 import { WorkspacePage } from "@/components/layout/workspace-page";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { logoutAction } from "@/features/auth/actions";
+import { LogoutForm } from "@/components/notifications/logout-form";
 import { requireVendorWorkspace } from "@/lib/auth/server";
 
 export default async function SettingsPage() {
@@ -53,17 +54,14 @@ export default async function SettingsPage() {
         </CardContent>
       </Card>
 
+      <NotificationSettings />
+
       <Card>
         <CardHeader>
           <CardTitle>Session</CardTitle>
         </CardHeader>
         <CardContent>
-          <form action={logoutAction}>
-            <Button type="submit" variant="secondary" className="w-full sm:w-fit">
-              <LogOut className="size-4" aria-hidden="true" />
-              Log out
-            </Button>
-          </form>
+          <LogoutForm />
         </CardContent>
       </Card>
     </WorkspacePage>

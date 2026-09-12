@@ -1,5 +1,14 @@
 # My Kustomers
 
+The 2026-09-12 positioning sweep is implemented locally: **Built for service
+businesses — from independent operators to growing teams.** Homepage, SEO,
+manifest and email-footer copy follow this direction without enterprise claims.
+Vendor notifications are implemented with an authenticated inbox and optional
+Web Push. The approved database foundation is applied; Production receiver and
+scheduler verification follow release. Architecture and device limitations are in
+[docs/NOTIFICATIONS.md](docs/NOTIFICATIONS.md) and the
+[release report](docs/NOTIFICATIONS_RELEASE_REPORT.md).
+
 The vendor confirmation panel now presents the initial request recipient and the
 customer-confirmed booking contact as separate concepts. Before confirmation it
 labels the vendor-selected address **Confirmation request sent to**; after
@@ -88,7 +97,7 @@ state and a new controlled-inbox delivery. Both fixtures and their business,
 membership, profile, audit, logo, and identity-limiter rows were independently
 verified absent after cleanup.
 
-My Kustomers is a mobile-first SaaS application for small businesses that manage
+My Kustomers is a mobile-first SaaS application for service businesses that manage
 customers, bookings, orders, confirmations, feedback, and customer history through
 informal channels today.
 

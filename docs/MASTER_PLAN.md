@@ -1,5 +1,16 @@
 # Master Plan
 
+## PWA notifications and positioning — 2026-09-12
+
+IMPLEMENTED — RELEASE AND DEVICE VERIFICATION PENDING. The approved foundation
+is applied to the configured My Kustomers database. The branch contains a durable
+notification inbox, optional Web Push, three preferences, safe business-aware
+booking links, and a push-only service worker. VAPID and worker credentials are
+configured for Production; scheduler activation follows the deployed receiver.
+The broader service-business positioning is implemented in the same branch.
+See [NOTIFICATIONS](NOTIFICATIONS.md), [PRODUCT_POSITIONING](PRODUCT_POSITIONING.md)
+and [the release report](NOTIFICATIONS_RELEASE_REPORT.md) for evidence and limits.
+
 ## Vendor Confirmation Email Presentation — 2026-09-06
 
 IMPLEMENTED — RELEASE VERIFICATION PENDING. A typed presentation model now keeps
@@ -71,7 +82,7 @@ My Kustomers
 
 ## Product Vision
 
-My Kustomers is a mobile-first SaaS platform for small businesses and SMEs that commonly manage customer orders through informal channels such as WhatsApp, Instagram, phone calls, social media, referrals, and direct messages.
+My Kustomers is a mobile-first SaaS platform for service businesses, from independent operators to growing teams, that commonly manage customer orders through informal channels such as WhatsApp, Instagram, phone calls, social media, referrals, and direct messages.
 
 It converts informal customer agreements into structured business records.
 
@@ -87,7 +98,11 @@ The platform does not initially process payment between the vendor and their cus
 
 Primary positioning:
 
-> My Kustomers helps small businesses turn informal customer conversations into organised business records.
+> Built for service businesses — from independent operators to growing teams.
+
+My Kustomers helps service businesses turn informal customer conversations into
+organised business records. Where geographic context is useful: **Built for
+service businesses in Nigeria and beyond.** See [product positioning](PRODUCT_POSITIONING.md).
 
 Supporting concept:
 

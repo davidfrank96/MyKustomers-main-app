@@ -212,7 +212,7 @@ export default function HomePage() {
           <div className="min-w-0">
             <p className="inline-flex items-center gap-2 rounded-full bg-primary/5 px-3 py-1.5 text-sm font-medium text-primary">
               <Store className="size-4" aria-hidden="true" />
-              Built for Nigerian service businesses
+              Built for service businesses in Nigeria and beyond.
             </p>
             <h1 className="mt-5 max-w-2xl text-[1.875rem] font-semibold leading-[1.08] sm:mt-6 sm:text-5xl lg:text-[2.75rem] xl:text-[3.35rem]">
               <span className="block">From customer request to</span>
@@ -220,8 +220,11 @@ export default function HomePage() {
               <span className="mt-1 block text-primary">one clear journey.</span>
             </h1>
             <p className="mt-5 max-w-xl text-[0.9375rem] leading-6 text-muted-foreground sm:mt-6 sm:text-lg sm:leading-8">
-              Manage customers and bookings, track confirmations and payments,
-              coordinate delivery, and collect private feedback in one clear workspace.
+              Manage customers, bookings, confirmations, payments, delivery and
+              feedback in one clear workspace.
+            </p>
+            <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground">
+              Built for service businesses — from independent operators to growing teams.
             </p>
 
             <div className="mt-6 grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 sm:mt-7 sm:flex sm:flex-wrap">
@@ -253,7 +256,7 @@ export default function HomePage() {
             <div className="mt-7 hidden flex-wrap gap-x-6 gap-y-3 lg:flex">
               <TrustItem icon={LockKeyhole}>Secure by design</TrustItem>
               <TrustItem icon={ShieldCheck}>Private & confidential</TrustItem>
-              <TrustItem icon={Store}>Built for small businesses</TrustItem>
+              <TrustItem icon={Store}>For growing service businesses</TrustItem>
             </div>
           </div>
 
@@ -342,7 +345,7 @@ export default function HomePage() {
               id="for-businesses-heading"
               className="text-center text-2xl font-semibold"
             >
-              Built for growing service businesses in Nigeria
+              Built for growing service businesses
             </h2>
             <div className="mt-8 grid gap-7 md:grid-cols-3 md:gap-0">
               {businessTypes.map((business, index) => {
@@ -428,7 +431,7 @@ export default function HomePage() {
           <div className="mt-6 grid grid-cols-1 gap-2.5 border-t border-border pt-4 sm:grid-cols-3 sm:gap-3">
             <TrustItem icon={LockKeyhole}>Secure by design</TrustItem>
             <TrustItem icon={ShieldCheck}>Private & confidential</TrustItem>
-            <TrustItem icon={Store}>Built for small businesses</TrustItem>
+            <TrustItem icon={Store}>For growing service businesses</TrustItem>
           </div>
         </div>
       </footer>

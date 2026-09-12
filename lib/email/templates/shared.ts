@@ -29,7 +29,7 @@ export function withMyKustomersAttribution(text: string) {
     text,
     "",
     "Want to know more about My Kustomers?",
-    "Discover how My Kustomers helps small businesses manage bookings and customers.",
+    "Discover how My Kustomers helps service businesses manage bookings and customers.",
     `Visit My Kustomers: ${getTransactionalEmailPlatformUrl()}`,
   ].join("\n");
 }
@@ -219,7 +219,7 @@ export function renderTransactionalEmailHtml(input: TransactionalEmailHtmlInput)
             <tr>
               <td style="padding:18px 24px;border-top:1px solid #dfe7e2;background:#ffffff;color:#52605a;font-size:13px;line-height:1.55;">
                 <p style="margin:0;color:#17201c;font-weight:700;">Want to know more about My Kustomers?</p>
-                <p style="margin:5px 0 8px;">Discover how My Kustomers helps small businesses manage bookings and customers.</p>
+                <p style="margin:5px 0 8px;">Discover how My Kustomers helps service businesses manage bookings and customers.</p>
                 <a href="${escapeEmailHtml(platformUrl)}" style="color:#176c56;font-weight:700;text-decoration:underline;">Visit My Kustomers</a>
               </td>
             </tr>

@@ -8,6 +8,13 @@
 
 Documentation is not implementation evidence.
 
+The 2026-09-12 positioning expansion is IMPLEMENTED locally with release pending.
+The companion PWA notification phase is IMPLEMENTED — RELEASE AND DEVICE
+VERIFICATION PENDING. The explicitly approved foundation is applied; inbox,
+settings, resolver and push-only worker code are implemented. Production secrets
+are configured; the approved scheduler follows receiver deployment. Evidence is
+in [NOTIFICATIONS_RELEASE_REPORT](NOTIFICATIONS_RELEASE_REPORT.md).
+
 The 2026-09-06 vendor confirmation email presentation correction is IMPLEMENTED
 with release verification pending. Booking Details no longer lets the initial
 request recipient override the immutable confirmed booking contact. It labels

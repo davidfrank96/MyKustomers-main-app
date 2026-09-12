@@ -1,5 +1,19 @@
 # Data Model
 
+## Notification foundation — 2026-09-12
+
+APPLIED after explicit user approval. `notifications`, `notification_preferences`
+and `push_subscriptions` are account-scoped RLS tables. Notification reads also
+require current business membership and an enabled account. Private delivery rows
+hold independent device leases with at most three attempts. Private overdue
+receipts last for the booking lifetime, outliving 90-day inbox retention.
+All five tables have narrow grants and PostgreSQL-owned privileged functions with
+empty search paths. Types in `types/database.ts` include the approved tables/RPCs.
+The migration suppresses the existing overdue backlog (21 receipts at application)
+and rewrites no customer, booking, payment or email records. Actual catalog checks
+confirm RLS, column grants, helper access and service-only sender functions.
+See [NOTIFICATIONS](NOTIFICATIONS.md) for event, retention and authorization rules.
+
 ## Provider Delivery Evidence
 
 `email_provider_events` is an append-only child of the exact composite

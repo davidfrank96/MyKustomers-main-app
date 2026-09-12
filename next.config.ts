@@ -20,6 +20,7 @@ const privateRouteSources = [
   "/insights/:path*",
   "/business/:path*",
   "/settings/:path*",
+  "/notifications/:path*",
   "/admin/:path*",
 ] as const;
 
@@ -33,6 +34,25 @@ const nextConfig: NextConfig = {
   },
   async headers() {
     const headers = [
+      {
+        source: "/sw.js",
+        headers: [
+          { key: "Cache-Control", value: "no-store, max-age=0" },
+          {
+            key: "Content-Security-Policy",
+            value:
+              "default-src 'self'; script-src 'self'; connect-src 'self'; object-src 'none'",
+          },
+          { key: "Service-Worker-Allowed", value: "/" },
+        ],
+      },
+      {
+        source: "/api/notifications/:path*",
+        headers: [
+          { key: "Cache-Control", value: "private, no-store, max-age=0" },
+          privateRobotsHeader,
+        ],
+      },
       {
         source: "/c/:token*",
         headers: [

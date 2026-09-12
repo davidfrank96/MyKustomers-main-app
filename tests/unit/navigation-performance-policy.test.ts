@@ -108,27 +108,13 @@ describe("authenticated navigation performance policy", () => {
     }
   });
 
-  it("does not register a service worker that could cache private routes or RSC", () => {
-    const sourceFiles = [
-      ...fs.readdirSync("app", { recursive: true }),
-      ...fs.readdirSync("components", { recursive: true }),
-      ...fs.readdirSync("lib", { recursive: true }),
-    ]
-      .filter((entry) => typeof entry === "string" && /\.(?:ts|tsx|js|jsx)$/.test(entry))
-      .map(String);
-    const source = sourceFiles
-      .flatMap((entry) => {
-        for (const root of ["app", "components", "lib"]) {
-          const path = `${root}/${entry}`;
-          if (fs.existsSync(path) && fs.statSync(path).isFile()) {
-            return [fs.readFileSync(path, "utf8")];
-          }
-        }
-        return [];
-      })
-      .join("\n");
-
-    expect(fs.existsSync("public/sw.js")).toBe(false);
-    expect(source).not.toContain("serviceWorker.register");
+  it("keeps the notification worker free of private-route caching and fetch interception", () => {
+    const worker = fs.readFileSync("public/sw.js", "utf8");
+    expect(worker).not.toMatch(/addEventListener\([\s]*["']fetch["']/);
+    expect(worker).not.toMatch(/caches\.|CacheStorage|respondWith/);
+    expect(worker).toContain('addEventListener("push"');
+    expect(fs.readFileSync("features/notifications/client.ts", "utf8")).toContain(
+      'updateViaCache: "none"',
+    );
   });
 });

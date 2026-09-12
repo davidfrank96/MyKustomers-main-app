@@ -1,5 +1,24 @@
 # Migrations
 
+## Approved notification migrations — 2026-09-12
+
+- `20260912001130_pwa_notifications_foundation.sql`: **APPLIED** transactionally
+  after explicit approval, local native PostgreSQL verification, and a complete
+  rollback-only compile against the actual configured database. SHA-256:
+  `3c3ab4a41cd63b34f50d2b7bca1846b92199f17532e5831c318df016ad8a9482`.
+  Catalog: five RLS tables, six triggers, own read/read_at grants, no endpoint/key
+  SELECT, service-only delivery RPCs, zero backfilled notifications, 21 existing
+  overdue receipts. No historical migration or migration ledger was rewritten.
+- `20260912002523_pwa_notification_scheduler_activation.sql`: **APPROVED; ACTIVATION
+  PENDING RECEIVER DEPLOYMENT**. SHA-256:
+  `e9e01079286cfda24a165c9bebb24d2faf6a507642a826b31f67d09fd291a23f`.
+  Separate transaction: pg_cron/pg_net, restricted net ACLs, Vault-backed wakeup,
+  one minute job. Never batch it with the foundation or apply from PR CI.
+
+The SQL file comments preserve their original approval-stage wording and hashes;
+this ledger records actual status. See [NOTIFICATIONS](NOTIFICATIONS.md), the
+historical approval report and the current release report for order and rollback.
+
 STATUS: IMPLEMENTED AND VERIFIED FOR DEVELOPMENT
 
 Supabase PostgreSQL migrations live only in `supabase/migrations`. Repository
