@@ -1,5 +1,5 @@
 import fs from "node:fs";
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page, type Request } from "@playwright/test";
 
 const fixtureOrigin = "http://127.0.0.1:55441";
 const artifactRoot = "output/playwright/my-profile-phase-2";
@@ -73,9 +73,22 @@ test("the Profile hub follows the ten-width alignment and native-scroll gate", a
   const measurements = [];
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
+  const pendingPrefetches = new Set<Request>();
+  page.on("request", (request) => {
+    if (new URL(request.url()).searchParams.has("_rsc")) pendingPrefetches.add(request);
+  });
+  const finished = (request: Request) => {
+    pendingPrefetches.delete(request);
+  };
+  page.on("requestfinished", finished);
+  page.on("requestfailed", finished);
+  const settlePrefetches = () => expect.poll(() => pendingPrefetches.size).toBe(0);
+  await page.goto("/business");
+  await ready(page);
   for (const [width, height] of matrix) {
+    await settlePrefetches();
     await page.setViewportSize({ width, height });
-    await page.goto("/business");
+    await page.evaluate(() => window.scrollTo(0, 0));
     await ready(page);
     await noOverflow(page);
     await expect(page.locator("main li")).toHaveCount(9);
@@ -191,6 +204,7 @@ test("the Profile hub follows the ten-width alignment and native-scroll gate", a
     }
     if (screenshotWidths.has(width)) {
       const prefix = `${artifactRoot}/${testInfo.project.name}-${width}`;
+      await settlePrefetches();
       await fullPageCapture(page, `${prefix}-full.png`);
       if (testInfo.project.name === "chromium") {
         await page.evaluate(() => window.scrollTo(0, 0));
@@ -225,6 +239,7 @@ test("the Profile hub follows the ten-width alignment and native-scroll gate", a
       }
     }
   }
+  await settlePrefetches();
   expect(errors).toEqual([]);
   fs.writeFileSync(
     `${artifactRoot}/${testInfo.project.name}-geometry.json`,

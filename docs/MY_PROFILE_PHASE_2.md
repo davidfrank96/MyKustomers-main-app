@@ -241,9 +241,38 @@ Scheduler: left active; no automation, cron or worker configuration was changed.
 
 ## V–Z. Commit, push, PR, merge and deployment
 
-Release in progress. Commit, push, PR, CI, Preview, merge SHA and exact Production
-deployment will be recorded here after each operation is verified. No merge or
-Phase 2 Production deployment is currently claimed.
+Implementation commit: `c791630d40668532c08360f7a1750e60199a2507`,
+`Wire My Profile and render booking-owned social previews`. Pushed successfully to
+`feat/profile-social-previews`. [PR #79](https://github.com/davidfrank96/MyKustomers-main-app/pull/79)
+targets `main`.
+
+The first CI run, `34676850996`, passed Quality, Dependency Security, Build, Tests
+and Notification Contracts (12 browser cases). Runtime Security was guarded and
+skipped. Profile and Social Previews passed 22 cases and failed one WebKit hub
+matrix case because repeated document navigation cancelled RSC prefetches. The
+test now loads the hub once, waits for prefetch completion and resets scroll
+before each viewport measurement; all geometry and zero-error assertions remain.
+Both corrected Chromium/WebKit hub cases passed locally.
+
+The first inherited E2E run passed 65 cases, failed three, skipped 19 and left one
+dependent case unrun. Two failures were remote fetch errors during fixture setup
+(Auth create-user and a customer insert with ECONNRESET). The third rendered the
+existing fail-closed payment-summary-unavailable state. Its query and component
+are unchanged; the saved artifact does not prove why the summary read failed.
+No retry, skip, assertion relaxation or payment behavior change was added. The
+full suite must pass on the corrected commit before merge. The run completed
+normally with its existing fixture cleanup, rather than being cancelled.
+
+The exact implementation SHA has Ready Preview deployment
+`dpl_7qZ6Am4DpD9pVgUUTwCqFYnSVYCx`. Authenticated protection-bypass HTTP checks
+verified public root metadata, generic invalid-capability metadata and image
+404/privacy headers. Profile/editor requests redirect to login because runtime
+environment variables are Production-only. This is not authenticated destination
+or valid vendor-image verification. Sanitized results are in
+`output/playwright/my-profile-phase-2/preview-smoke.json` locally.
+
+No merge or Phase 2 Production deployment is currently claimed. Corrected CI and
+the remaining Preview gate must be resolved before release.
 
 ## AA–AB. Intentional gaps and real limitations
 
