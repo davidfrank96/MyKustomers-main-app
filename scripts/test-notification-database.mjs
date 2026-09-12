@@ -57,11 +57,12 @@ try {
   run("psql", [...psql, "-f", "tests/database/notifications/concurrency.sql"]);
   const claim = () =>
     new Promise((resolve, reject) => {
-      const proc = spawn(path.join(bin, "psql"), [
-        ...psql,
-        "-c",
-        "begin; select delivery_id from public.claim_notification_push(1); select pg_sleep(1); commit;",
-      ]);
+      const proc = spawn(path.join(bin, "psql"), [...psql, "-f", "-"]);
+      // Older psql versions only print the last result of a multi-statement -c.
+      // stdin preserves the lease SELECT result on both PostgreSQL 16 and 18.
+      proc.stdin.end(
+        "begin;\nselect delivery_id from public.claim_notification_push(1);\nselect pg_sleep(1);\ncommit;\n",
+      );
       let output = "";
       let error = "";
       proc.stdout.on("data", (chunk) => {

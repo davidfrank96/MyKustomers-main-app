@@ -69,16 +69,16 @@ Status: IMPLEMENTED — RELEASE AND DEVICE VERIFICATION PENDING.
 | BE. Build | Passed; network access required for the existing Google font dependency. Typecheck then passed sequentially. |
 | BF. Dependency Audit | Final npm audit: zero known vulnerabilities. |
 | BG. Diff Check | Passed before release commit. |
-| BH. PR Number | Pending creation after local gates. |
+| BH. PR Number | [PR #77](https://github.com/davidfrank96/MyKustomers-main-app/pull/77). |
 | BI. CI Result | Pending PR checks, including added Notification Contracts job. |
-| BJ. Preview Result | Pending deployment; intentionally no Production runtime credentials. |
+| BJ. Preview Result | READY Preview `dpl_FHQ36tewc6BhAPV9BrAfviC5ZHJx` at source `5ba3b8038a9ebe06f16863c6f21ffaa950fb08e1`; deployed homepage positioning verified. No Production runtime credentials. |
 | BK. Merge SHA | Not merged yet. |
 | BL. Production Deployment | Starting deployment unchanged at this checkpoint. Release follows required CI. |
 | BM. Production Android Push Smoke | Not run. |
 | BN. Production iOS Push Smoke | Not run. |
 | BO. Sentry Result | Privacy unit tests pass; worker captures fixed messages only. Private VAPID and worker values are absent from all 136 built browser artifacts. No Production log/issue scan yet. |
 | BP. Cleanup | No cloud test users/businesses/customer emails created. Local SQL fixtures are rolled back or disposable clusters removed. Initial local cluster will be stopped after verification. |
-| BQ. Defects Found | Fixed Next internal-host same-origin rejection, asynchronous checkbox feedback, old no-worker test assumption, test Auth isolation, and fixture projection/browser-interception differences. |
+| BQ. Defects Found | Fixed Next internal-host same-origin rejection, asynchronous checkbox feedback, old no-worker test assumption, test Auth isolation, fixture projection/browser-interception differences, and older psql output handling in the concurrency harness. |
 | BR. Remaining Limitations | Physical Android/iOS lock-screen delivery/badging unavailable. Protected cloud security suite remains skipped. PR/CI/Preview/Production and scheduler activation still pending at this checkpoint. |
 | BS. Final Status | PWA NOTIFICATIONS + PRODUCT POSITIONING — RELEASE VERIFICATION PENDING |
 
