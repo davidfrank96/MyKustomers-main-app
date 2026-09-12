@@ -1,9 +1,7 @@
+import { subscriptionSchema } from "@/features/notifications/validation";
 import { cookies } from "next/headers";
 import { z } from "zod";
-import {
-  PUSH_DEVICE_COOKIE,
-  subscriptionSchema,
-} from "@/features/notifications/contracts";
+import { PUSH_DEVICE_COOKIE } from "@/features/notifications/contracts";
 import {
   boundedJson,
   notificationAuth,

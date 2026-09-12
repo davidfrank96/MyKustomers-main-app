@@ -5,7 +5,7 @@ import { createServiceRoleClient } from "@/lib/supabase/admin";
 import {
   notificationTypeSchema,
   subscriptionSchema,
-} from "@/features/notifications/contracts";
+} from "@/features/notifications/validation";
 import { notificationTopic, retryAfterSeconds } from "@/features/notifications/delivery";
 import type { Database } from "@/types/database";
 

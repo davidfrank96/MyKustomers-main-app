@@ -138,7 +138,9 @@ not reset a booking's receipt. No follow-up reminder or digest is included.
 
 ## Application integration
 
-Keep the server SDK under a `server-only` notification module. Registration API
+Keep the server SDK and Zod notification validation under `server-only` modules.
+Client contracts contain only types and lightweight constants so UI imports do
+not pull validation into shared browser chunks. Registration API
 must verify a fresh Supabase user, same-origin request, bounded JSON (8 KiB),
 endpoint allowlist and Web Push key shape; derive user ID exclusively on server.
 RLS and the registration RPC remain authoritative if API validation is bypassed.

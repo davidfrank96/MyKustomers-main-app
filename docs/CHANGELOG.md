@@ -15,6 +15,10 @@
   to service businesses and growing teams, retaining Nigeria context.
 - Added isolated native PostgreSQL and credential-free browser CI coverage.
   Physical iOS/Android delivery remains unverified; see NOTIFICATIONS_RELEASE_REPORT.
+- Isolated the interactive vendor shell from public-page client references and
+  kept notification request validation server-only. The optimized local build
+  loads 909,160 decoded JavaScript bytes on the homepage versus 914,228 before the
+  feature, removing the initial release's unintended dashboard-chunk overhead.
 
 ## 2026-09-08 — Capability Metadata Privacy Hardening
 

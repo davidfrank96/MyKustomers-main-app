@@ -1,3 +1,5 @@
+"use client";
+
 import { NotificationBell } from "@/components/notifications/notification-center";
 import Link from "next/link";
 import type { Route } from "next";
@@ -19,19 +21,16 @@ import {
 } from "@/components/layout/dashboard-navigation";
 import { PwaReliabilityCoordinator } from "@/components/layout/pwa-reliability-coordinator";
 import { BrandLogo } from "@/components/shared/brand-logo";
-import type { BusinessContext, AuthenticatedUser } from "@/lib/auth/server";
+import type { BusinessContext } from "@/lib/auth/server";
 
 type DashboardShellProps = {
   children: ReactNode;
-  user: AuthenticatedUser;
-  businessContext: BusinessContext;
+  user: { email?: string; displayName?: string };
+  businessContext: Pick<BusinessContext, "businesses" | "currentBusiness">;
 };
 
-function getInitials(user: AuthenticatedUser) {
-  const name =
-    typeof user.userMetadata.display_name === "string"
-      ? user.userMetadata.display_name
-      : user.email;
+function getInitials(user: DashboardShellProps["user"]) {
+  const name = user.displayName ?? user.email;
 
   if (!name) {
     return "MK";

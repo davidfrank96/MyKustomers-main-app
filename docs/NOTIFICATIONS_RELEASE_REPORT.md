@@ -43,7 +43,7 @@ Status: IMPLEMENTED — DEVICE VERIFICATION PENDING; deployed to Production.
 | AE. Real Android Result | NOT VERIFIED; no physical-device test. |
 | AF. Real iOS Result | NOT VERIFIED; no physical Home Screen push test. |
 | AG. PWA Result | Manifest identity unchanged; registration only from vendor shell. Existing resume coordinator/file-picker logic retained. No physical installed-device proof. |
-| AH. Performance Result | No startup-blocking notification fetch or browser SDK. On-demand list, bounded count reconciliation, partial due index, max eight sends per scheduled invocation. Three warm homepage samples: median headers 85 ms before, 76 ms after; HTML 89,771→91,434 bytes. This is a smoke comparison, not a statistical latency guarantee. Authenticated/PWA journeys pass; server SDK stays outside client bundles. |
+| AH. Performance Result | No startup-blocking notification fetch or browser SDK. On-demand list, bounded count reconciliation, partial due index, max eight sends per scheduled invocation. Three warm homepage samples: median headers 85 ms before, 76 ms after; HTML 89,771→91,434 bytes. This is a smoke comparison, not a statistical latency guarantee. Authenticated/PWA journeys pass; server SDK stays outside client bundles. The initial public-script overhead was removed by the PR #78 follow-up documented below. |
 | AI. Existing Positioning Findings | Restrictive homepage trust items, SEO title, manifest and email footer; product guidance matched the same restriction. |
 | AJ. Small-Business String Count | 17 baseline matching lines across sources/docs/tests/one historical preview; six shipped-source lines fixed. Zero restrictive shipped-source matches remain; preserved history classified. |
 | AK. Final Master Positioning | Built for service businesses — from independent operators to growing teams. |
@@ -78,7 +78,7 @@ Status: IMPLEMENTED — DEVICE VERIFICATION PENDING; deployed to Production.
 | BN. Production iOS Push Smoke | Not run. |
 | BO. Sentry Result | Privacy units pass; fixed failure messages and aggregate-only completion logs. Private VAPID/worker values absent from built browser artifacts. Production completion logs verified without notification data; no direct Sentry issue-console verification available. |
 | BP. Cleanup | Existing E2E CI uses the configured Production-backed project despite the intended test-target documentation. Its controlled fixtures use development email. Two verified cancelled-run fixture users/businesses were removed; successful suites perform their own cleanup. No real customer email sent for push testing. One controlled Auth user used for API-boundary verification was removed. Native clusters stopped/removed. Scheduler remains ACTIVE. |
-| BQ. Defects Found | Fixed Next internal-host same-origin rejection, asynchronous checkbox feedback, old unit/E2E no-worker assumptions, test Auth isolation, fixture projection/browser-interception differences, older psql output handling in the concurrency harness, Linux WebKit’s combined eight-viewport test budget, and the scheduler/worker timeout mismatch (202 acknowledgement with retained background work). |
+| BQ. Defects Found | Fixed Next internal-host same-origin rejection, asynchronous checkbox feedback, old unit/E2E no-worker assumptions, test Auth isolation, fixture projection/browser-interception differences, older psql output handling in the concurrency harness, Linux WebKit’s combined eight-viewport test budget, the scheduler/worker timeout mismatch (202 acknowledgement with retained background work), and unintended dashboard chunks in the public homepage (explicit vendor client entry plus server-only validation). |
 | BR. Remaining Limitations | Physical Android/iOS lock-screen delivery and badging unverified; no real provider subscription on target at release. Existing E2E target isolation needs correction; protected cloud security suite remains skipped. HTTP 202/completion proves server processing, not phone delivery. Current dispatch bound is eight devices/minute. Supabase-owned net grants remain; client Data API isolation and private wakeup ACL were verified instead. |
 | BS. Final Status | PWA NOTIFICATIONS + PRODUCT POSITIONING — IMPLEMENTED — DEVICE VERIFICATION PENDING |
 
@@ -113,9 +113,18 @@ logs confirmed completion, including an overdue processing batch, with no worker
 errors or HTTP 5xx in the inspected release window. Provider/device delivery is
 unverified because no real push subscriptions were registered at release.
 
-The deployment above identifies the verified application release. A subsequent
-documentation-only PR records this evidence; it does not change application
-behavior or scheduler activity.
+The deployment above identifies the verified initial application release.
+[PR #78](https://github.com/davidfrank96/MyKustomers-main-app/pull/78) records this
+evidence and corrects the public-page bundle regression found in the final audit.
+It keeps authentication in the server layout, makes the interactive dashboard
+shell an explicit client entry with minimal display props, and moves Zod request
+validation into a server-only module. Scheduler activity is unchanged.
+
+Decoded homepage JavaScript measured 914,228 bytes before the feature and
+1,072,715 bytes in the initial release. The corrected local Production build is
+909,160 bytes across 15 external scripts (versus 22 in the initial release).
+These are decoded resource sizes, not compressed network transfer or device
+startup measurements. Final deployed verification is recorded in PR #78.
 
 The approved net REVOKE statements did **not** remove Supabase-owned PUBLIC
 grants. Anon and controlled authenticated API probes rejected net/private access

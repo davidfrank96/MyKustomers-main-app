@@ -1,7 +1,5 @@
-import {
-  defaultPreferences,
-  preferencesSchema,
-} from "@/features/notifications/contracts";
+import { preferencesSchema } from "@/features/notifications/validation";
+import { defaultPreferences } from "@/features/notifications/contracts";
 import {
   boundedJson,
   notificationAuth,

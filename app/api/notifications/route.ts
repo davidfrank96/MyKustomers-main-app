@@ -1,4 +1,7 @@
-import { cursorSchema, notificationTypeSchema } from "@/features/notifications/contracts";
+import {
+  cursorSchema,
+  notificationTypeSchema,
+} from "@/features/notifications/validation";
 import {
   notificationAuth,
   notificationResponse,
