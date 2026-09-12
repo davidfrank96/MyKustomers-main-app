@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { getBusinessLogoPublicUrl } from "@/features/businesses/logo-public";
 import { MYKUSTOMERS_BRAND_ASSETS } from "@/lib/brand/assets";
-import { PRIVATE_ROBOTS, SEO_SITE } from "@/lib/seo/site";
+import { PRIVATE_ROBOTS, SEO_SITE, absoluteSeoUrl } from "@/lib/seo/site";
 
 type ConfirmationMetadataInput = {
   businessName?: string | null;
   businessLogoPath?: string | null;
+  previewId?: string | null;
 };
 
 type PublicCapabilityMetadataInput = {
@@ -42,9 +42,7 @@ export function buildPublicCapabilityMetadata({
 export function buildPublicConfirmationMetadata(
   input: ConfirmationMetadataInput = {},
 ): Metadata {
-  const businessName = input.businessName
-    ?.replace(/[\u0000-\u001f\u007f]+/g, " ")
-    .trim();
+  const businessName = input.businessName?.replace(/[\u0000-\u001f\u007f]+/g, " ").trim();
 
   if (!businessName) {
     return buildPublicCapabilityMetadata({
@@ -56,38 +54,40 @@ export function buildPublicConfirmationMetadata(
 
   const title = `Confirm your booking with ${businessName}`;
   const description = `Review and confirm your booking with ${businessName}.`;
-  const businessLogoUrl = getBusinessLogoPublicUrl(input.businessLogoPath);
   const metadata = buildPublicCapabilityMetadata({
     title,
     description,
     imageAlt: `${businessName} business logo`,
   });
 
-  if (!businessLogoUrl) {
+  if (
+    !input.previewId ||
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      input.previewId,
+    )
+  ) {
     return metadata;
   }
 
+  const imageUrl = absoluteSeoUrl(`/social/confirmation/${input.previewId}`);
   return {
     ...metadata,
     openGraph: {
       ...metadata.openGraph,
       images: [
         {
-          url: businessLogoUrl,
-          type: "image/webp",
-          alt: `${businessName} business logo`,
-        },
-        {
-          url: MYKUSTOMERS_BRAND_ASSETS.openGraph,
+          url: imageUrl,
           type: "image/png",
-          alt: "My Kustomers secure booking confirmation",
+          width: 1200,
+          height: 630,
+          alt: `${businessName} business logo`,
         },
       ],
     },
     twitter: {
       ...metadata.twitter,
-      card: "summary",
-      images: [businessLogoUrl],
+      card: "summary_large_image",
+      images: [imageUrl],
     },
   };
 }

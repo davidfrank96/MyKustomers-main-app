@@ -28,6 +28,7 @@ type BusinessWorkspaceProps = {
     logoUrl: string | null;
   };
   isOwner: boolean;
+  initialEditSection?: BusinessEditSection;
   updateAction: (
     previousState: BusinessActionState,
     formData: FormData,
@@ -38,9 +39,10 @@ export function BusinessWorkspace({
   business,
   isOwner,
   updateAction,
+  initialEditSection,
 }: BusinessWorkspaceProps) {
   const [activeEditSection, setActiveEditSection] = useState<BusinessEditSection | null>(
-    null,
+    initialEditSection ?? null,
   );
 
   const openEditSection = useCallback((section: BusinessEditSection) => {

@@ -181,7 +181,7 @@ test.describe("mobile account and dashboard navigation", () => {
 
       await page.setViewportSize({ width: 1440, height: 1000 });
       await page.goto("/business");
-      await page.getByRole("button", { name: /Business information/ }).click();
+      await page.getByRole("link", { name: "Business information", exact: true }).click();
       const pngLogo = await sharp({
         create: {
           width: 900,

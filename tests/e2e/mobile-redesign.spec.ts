@@ -127,9 +127,11 @@ async function waitForRouteContent(page: Page, route: string) {
   }
   if (route === "/business") {
     await expect(
-      page.getByRole("heading", { name: "Business", exact: true }),
+      page.getByRole("heading", { name: "My Profile", exact: true }),
     ).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Current business" })).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: "Business information", exact: true }),
+    ).toBeVisible();
     return;
   }
   if (route === "/business/new") {
@@ -611,14 +613,19 @@ test.describe("approved mobile redesign", () => {
           }
           await expectNoPageOverflow(page, route, width);
           if (route === "/business") {
+            await page
+              .getByRole("link", { name: "Business information", exact: true })
+              .click();
             const information = page.getByRole("button", {
               name: /Business information/,
             });
-            await expect(information).toHaveAttribute("aria-expanded", "false");
-            await information.click();
             await expect(information).toHaveAttribute("aria-expanded", "true");
             await information.click();
             await expect(information).toHaveAttribute("aria-expanded", "false");
+            await information.click();
+            await expect(information).toHaveAttribute("aria-expanded", "true");
+            await page.getByRole("link", { name: "My Profile", exact: true }).click();
+            await waitForRouteContent(page, "/business");
           }
           await hideDevelopmentChrome(page);
           await page.screenshot({
@@ -853,7 +860,7 @@ test.describe("approved mobile redesign", () => {
       await expect(addBusinessLink).toBeVisible();
 
       await page.goto("/business");
-      await page.getByRole("button", { name: /Business information/ }).click();
+      await page.getByRole("link", { name: "Business information", exact: true }).click();
       await expect(
         page.getByRole("region", { name: "Business logo settings" }),
       ).toBeVisible();
@@ -931,11 +938,10 @@ test.describe("approved mobile redesign", () => {
       const businessInformation = page.getByRole("button", {
         name: /Business information/,
       });
-      await expect(businessInformation).toHaveAttribute("aria-expanded", "false");
       await page.screenshot({
-        path: path.join(alignmentScreenshotDirectory, "business-collapsed-390.png"),
+        path: path.join(alignmentScreenshotDirectory, "business-profile-hub-390.png"),
       });
-      await businessInformation.click();
+      await page.getByRole("link", { name: "Business information", exact: true }).click();
       await expect(businessInformation).toHaveAttribute("aria-expanded", "true");
       await page.setViewportSize({ width: 390, height: 1600 });
       await page.screenshot({

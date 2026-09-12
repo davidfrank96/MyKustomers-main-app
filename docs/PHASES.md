@@ -8,6 +8,18 @@
 
 Documentation is not implementation evidence.
 
+The 2026-09-12 **My Profile Phase 2 and social previews** is IMPLEMENTED — RELEASE
+VERIFICATION PENDING. Existing business editing and notification settings are
+wired; missing rows remain static. Confirmation metadata and a read-only PNG
+route preserve booking-owned identity. See [MY_PROFILE_PHASE_2](MY_PROFILE_PHASE_2.md)
+for the feature audit, test matrix and actual release evidence.
+
+Historical Phase 1 snapshot: The 2026-09-12 **My Profile Phase 1** is VERIFIED — LOCAL UI ONLY. It changes
+the Business landing presentation and loading geometry, using existing business
+data. Functionality mapping, Edit wiring, regression of migrated flows, and
+publication belong to a separate Phase 2. Existing features remain in place;
+see [MY_PROFILE_PHASE_1](MY_PROFILE_PHASE_1.md).
+
 The 2026-09-12 positioning expansion is deployed and verified in Production.
 The companion PWA notification phase is IMPLEMENTED — DEVICE VERIFICATION
 PENDING. Both approved migrations are applied; inbox, settings, resolver and

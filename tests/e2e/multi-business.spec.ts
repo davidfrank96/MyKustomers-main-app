@@ -329,7 +329,7 @@ test.describe("multi-business account support", () => {
           .getByText("Current business", { exact: true }),
       ).toBeVisible();
       await page.goto("/business");
-      await page.getByRole("button", { name: /Business information/ }).click();
+      await page.getByRole("link", { name: "Business information", exact: true }).click();
       await expect(page.getByLabel("Business name")).toBeEnabled();
 
       await page.context().addCookies([

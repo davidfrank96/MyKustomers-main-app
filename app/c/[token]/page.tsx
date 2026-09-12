@@ -34,6 +34,7 @@ export async function generateMetadata({
   return buildPublicConfirmationMetadata({
     businessName: business?.businessName,
     businessLogoPath: business?.businessLogoPath,
+    previewId: business?.previewId,
   });
 }
 

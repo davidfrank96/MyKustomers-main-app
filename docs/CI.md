@@ -122,3 +122,12 @@ journeys against a loopback fixture service. It uses no cloud secrets or Docker,
 never applies SQL to Supabase, and removes its disposable database. The fixture
 browser tests prove UI/API integration, not real provider or physical-device
 push delivery. Keep this job green alongside the existing required checks.
+
+## Profile and Social Previews
+
+The independent `Profile and Social Previews` job builds the production Next app
+and tests Chromium/WebKit against loopback fixtures with no cloud credentials.
+It covers the Profile ten-width matrix, actual reused editor/preference flows,
+owner/member context, signed-out denial, business-owned OG PNG rendering, crawler
+headers and zero writes. It changes no existing required check or runtime-security
+guard. Local screenshot baselines are not a cross-OS pixel comparison in CI.

@@ -41,6 +41,11 @@ describe("Sentry privacy boundary", () => {
   it("redacts opaque entity IDs from application URLs", () => {
     expect(
       sanitizeSentryUrl(
+        "https://mykustomers.com/social/confirmation/1b188934-bc24-4dd2-9e38-741fe2d6c448?name=private",
+      ),
+    ).toBe("https://mykustomers.com/social/confirmation/[redacted-id]");
+    expect(
+      sanitizeSentryUrl(
         "https://mykustomers.com/bookings/1b188934-bc24-4dd2-9e38-741fe2d6c448?customer=private",
       ),
     ).toBe("https://mykustomers.com/bookings/[redacted-id]");

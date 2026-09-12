@@ -61,6 +61,7 @@ export async function getPublicConfirmationView(
 }
 
 export type PublicConfirmationMetadata = {
+  previewId: string;
   businessName: string;
   businessLogoPath: string | null;
 };
@@ -73,11 +74,34 @@ export async function getPublicConfirmationMetadata(
   }
 
   const tokenHash = hashConfirmationToken(token);
+  return readPublicConfirmationMetadata("token_hash", tokenHash);
+}
+
+// A preview record ID grants only this minimized, read-only business projection.
+// It is never accepted by the customer view or confirmation mutation boundaries.
+export async function getPublicConfirmationImageMetadata(
+  previewId: string,
+): Promise<PublicConfirmationMetadata | null> {
+  if (
+    !canUseServiceRoleClient() ||
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      previewId,
+    )
+  ) {
+    return null;
+  }
+  return readPublicConfirmationMetadata("id", previewId);
+}
+
+async function readPublicConfirmationMetadata(
+  column: "token_hash" | "id",
+  value: string,
+): Promise<PublicConfirmationMetadata | null> {
   const supabase = createServiceRoleClient();
   const { data: link, error: linkError } = await supabase
     .from("confirmation_links")
-    .select("business_id, booking_id, expires_at, revoked_at, used_at")
-    .eq("token_hash", tokenHash)
+    .select("id, business_id, booking_id, expires_at, revoked_at, used_at")
+    .eq(column, value)
     .maybeSingle();
 
   if (
@@ -112,8 +136,10 @@ export async function getPublicConfirmationMetadata(
   }
 
   return {
+    previewId: link.id,
     businessName: business.name,
-    businessLogoPath: business.logo_path,
+    businessLogoPath:
+      business.logo_path === `${link.business_id}/logo.webp` ? business.logo_path : null,
   };
 }
 

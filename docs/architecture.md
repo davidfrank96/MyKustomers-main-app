@@ -1,5 +1,20 @@
 # Architecture
 
+## Profile hub and confirmation social images — 2026-09-12
+
+The server-rendered hub fetches only current business identity. Its semantic links
+expose the existing BusinessWorkspace through a thin section-selecting route and
+NotificationSettings through the existing Settings anchor. Actions, validators and
+tenant guards remain single authoritative implementations.
+
+`/social/confirmation/[previewId]` is a force-dynamic Node route. Its existing
+confirmation record UUID selects only a public business identity after the same
+link-state and exact booking/business checks as token-based metadata. UUIDs grant
+no booking-view or mutation authority. The route emits one bounded 1200×630 PNG
+via native ImageResponse and existing Sharp; it has no database/network writes.
+No-store/no-referrer/noindex apply to successful and failed image responses.
+Root metadata and /a, /x, /f metadata builders remain unchanged.
+
 ## Vendor notifications — 2026-09-12
 
 The implemented path is authoritative database event → durable user inbox and

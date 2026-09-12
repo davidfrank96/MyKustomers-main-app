@@ -884,19 +884,15 @@ test.describe("booking engine", () => {
     expect(previewResponse.ok()).toBe(true);
     const previewHtml = await previewResponse.text();
     expect(previewHtml).toContain("Secure order confirmation");
-    expect(previewHtml).toContain(
-      "Confirm your booking with Phase 5 E2E Business",
-    );
-    expect(previewHtml).toContain(
-      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/business-logos/${logoPath}`,
-    );
+    expect(previewHtml).toContain("Confirm your booking with Phase 5 E2E Business");
+    expect(previewHtml).toContain("https://mykustomers.com/social/confirmation/");
     expect(previewHtml).not.toContain(customerName);
     expect(previewHtml).not.toContain(updatedTitle);
     expect(previewHtml).not.toContain("₦45,000");
     expect(previewHtml).not.toContain("Updated private E2E note.");
     const { data: linkAfterCrawler } = await admin
       .from("confirmation_links")
-      .select("first_opened_at")
+      .select("id, first_opened_at")
       .eq(
         "token_hash",
         hashConfirmationToken(new URL(confirmationUrl).pathname.split("/").at(-1) ?? ""),
@@ -982,14 +978,21 @@ test.describe("booking engine", () => {
       "My Kustomers",
     );
     const openGraphImages = customerPage.locator('meta[property="og:image"]');
-    await expect(openGraphImages.first()).toHaveAttribute(
+    await expect(openGraphImages).toHaveCount(1);
+    await expect(openGraphImages).toHaveAttribute(
       "content",
-      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/business-logos/${logoPath}`,
+      `https://mykustomers.com/social/confirmation/${linkAfterCrawler!.id}`,
     );
-    await expect(openGraphImages.nth(1)).toHaveAttribute(
+    await expect(customerPage.locator('meta[property="og:image:type"]')).toHaveAttribute(
       "content",
-      "https://mykustomers.com/brand/mykustomers/v1/social/mykustomers-open-graph-1200x630.png",
+      "image/png",
     );
+    const vendorPreview = await page.request.get(
+      `/social/confirmation/${linkAfterCrawler!.id}`,
+    );
+    expect(vendorPreview.ok()).toBe(true);
+    expect(vendorPreview.headers()["content-type"]).toBe("image/png");
+    expect(vendorPreview.headers()["cache-control"]).toContain("no-store");
     await expect(
       customerPage.getByText("Phase 5 E2E Business", { exact: true }),
     ).toBeVisible();

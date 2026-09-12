@@ -1,5 +1,31 @@
 # Testing
 
+## My Profile Phase 2 and social previews
+
+Run `npx playwright test --config playwright.profile-ui.config.ts`. It builds and
+starts the production application on 3420 plus an in-memory loopback Auth/REST/
+Storage fixture on 55441. Every configuration value is an explicit dummy or blank;
+email uses development and no cloud data is read or written. Production rendering
+is necessary to verify real no-store headers; Next dev overrides page cache headers.
+The 23 cases cover Chromium and emulated iPhone WebKit, ten exact widths, semantic
+hub links, static missing rows, active-business isolation, member read-only and
+signed-out denial, all three reused form saves/failure recovery, notification
+preferences/reload/rollback, keyboard/Back/reload and global/public responsiveness.
+Social cases verify blocking head metadata for five crawler signatures, two
+businesses, exact PNG dimensions and aspect-preserving rendering, long/no-logo
+states, caller-substitution rejection, invalid/expired/revoked/tenant mismatch,
+privacy headers and zero crawler writes. Fixture tests prove application routing
+and renderer behavior, not real RLS or physical app preview selection.
+
+Local Phase 1 geometry files are compared exactly when available. Phase 2 adds
+1280/1440 widths and destination screenshots. Phase 1's historical seven-case
+report is retained in [MY_PROFILE_PHASE_1](MY_PROFILE_PHASE_1.md); current results,
+failures corrected during development, cloud E2E and release limits are in
+[MY_PROFILE_PHASE_2](MY_PROFILE_PHASE_2.md). Existing cloud journeys now enter the
+same authoritative business editor through the hub link. Their functional and
+security assertions remain; OG assertions require the single new PNG. No tests
+were skipped to accommodate the change.
+
 The notification release follow-up also verifies the explicit client boundary of
 the vendor shell: authentication remains in its server layout, while the public
 homepage no longer references dashboard chunks. Compare decoded JavaScript sizes

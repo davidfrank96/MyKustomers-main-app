@@ -1,5 +1,22 @@
 # Master Plan
 
+## My Profile Phase 2 and social previews — 2026-09-12
+
+IMPLEMENTED — RELEASE VERIFICATION PENDING. The approved hub reuses the existing
+BusinessWorkspace and NotificationSettings destinations. A minimal /business/edit
+wrapper opens each current form section; unavailable features remain static.
+Confirmation OG uses one PNG resolved from the exact booking business, while
+apex/www metadata retains platform branding. See [MY_PROFILE_PHASE_2](MY_PROFILE_PHASE_2.md).
+The Phase 1 section below is historical local verification.
+
+## My Profile Phase 1 — 2026-09-12
+
+VERIFIED — LOCAL UI ONLY. The existing Business landing page presents the
+approved My Profile summary and three settings groups. All nine rows are static;
+Edit awaits Phase 2. Existing features, actions, routes and shell remain intact.
+Phase 2 must audit and map functionality before wiring and release. See
+[MY_PROFILE_PHASE_1](MY_PROFILE_PHASE_1.md) for the bounded verification evidence.
+
 ## PWA notifications and positioning — 2026-09-12
 
 IMPLEMENTED — DEVICE VERIFICATION PENDING. Both approved migrations are

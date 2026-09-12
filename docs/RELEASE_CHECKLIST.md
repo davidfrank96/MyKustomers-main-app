@@ -1,5 +1,15 @@
 # Release Checklist
 
+## My Profile Phase 2 release gate — 2026-09-12
+
+The existing-feature audit and implementation are complete. Local production
+rendering, responsive/route/security checks, GitHub CI, Vercel Preview, exact-SHA
+Production deployment and physical-client limitations must be recorded separately
+in [MY_PROFILE_PHASE_2](MY_PROFILE_PHASE_2.md). No runtime secrets exist in Preview;
+a healthy build alone cannot verify authenticated Profile/vendor-image journeys.
+Do not mark that missing runtime verification as passed or silently copy Production
+credentials into Preview. The scheduler remains active.
+
 ## Money, Completion Feedback, And Sender Avatar Release Gate
 
 - [x] One shared amount control covers booking, edit, amendment, add-on, and payment entry.

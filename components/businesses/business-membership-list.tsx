@@ -50,9 +50,9 @@ export function BusinessMembershipList({
           return (
             <li
               key={business.id}
-              className="flex min-w-0 items-center gap-3 py-3.5 first:pt-0"
+              className="flex min-w-0 items-center gap-3 py-3.5 first:pt-0 max-[374px]:flex-wrap"
             >
-              <div className="flex min-w-0 flex-1 items-start gap-3">
+              <div className="flex min-w-0 flex-1 items-start gap-3 max-[374px]:basis-full">
                 <BusinessLogo
                   name={business.name}
                   url={getBusinessLogoPublicUrl(business.logoPath)}

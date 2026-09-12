@@ -353,6 +353,7 @@ test.describe("authenticated PWA reliability", () => {
       await expect(page.locator("[data-pwa-reliability-status]")).toHaveCount(0);
 
       await page.goto("/business");
+      await page.getByRole("link", { name: "Business information", exact: true }).click();
       const businessInformation = page.getByRole("button", {
         name: /Business information/,
       });

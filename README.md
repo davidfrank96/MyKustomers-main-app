@@ -1,5 +1,13 @@
 # My Kustomers
 
+My Profile Phase 2 is implemented; release verification is in progress. The
+approved hub links to the existing business editors and notification preferences.
+Five missing settings features remain static. Confirmation previews now use one
+booking-owned 1200×630 PNG; general URLs retain platform branding. No database,
+environment, provider, dependency or scheduler changes are included. See the
+[Phase 2 report](docs/MY_PROFILE_PHASE_2.md) for exact gates and release status;
+[Phase 1](docs/MY_PROFILE_PHASE_1.md) records the approved original presentation.
+
 The 2026-09-12 positioning sweep is deployed to Production: **Built for service
 businesses — from independent operators to growing teams.** Homepage, SEO,
 manifest and email-footer copy follow this direction without enterprise claims.
