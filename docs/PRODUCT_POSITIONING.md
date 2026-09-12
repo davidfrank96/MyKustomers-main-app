@@ -1,6 +1,6 @@
 # Product positioning
 
-Status: IMPLEMENTED locally; release verification pending. Updated 2026-09-12.
+Status: DEPLOYED AND VERIFIED IN PRODUCTION. Updated 2026-09-12.
 
 Canonical audience statement:
 

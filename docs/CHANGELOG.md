@@ -8,8 +8,9 @@
   lifetime overdue dedupe, independent device leases and bounded retry/retention.
 - Added a push-only service worker and server-only standard Web Push/VAPID sender;
   generic lock-screen payloads contain no customer details or capability links.
-- Configured Production VAPID/worker secrets. The separately approved scheduler
-  activates only after the authenticated Production worker is verified.
+- Configured Production VAPID/worker secrets and the explicitly approved Vault
+  copy. Applied the separate scheduler migration after Production verification;
+  its minute job is active and worker completion is verified.
 - Broadened homepage, SEO title, manifest description, email footer and guidance
   to service businesses and growing teams, retaining Nigeria context.
 - Added isolated native PostgreSQL and credential-free browser CI coverage.

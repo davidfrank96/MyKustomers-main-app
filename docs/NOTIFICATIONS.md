@@ -1,6 +1,6 @@
 # Notifications
 
-Status: IMPLEMENTED — RELEASE AND DEVICE VERIFICATION PENDING. Updated 2026-09-12.
+Status: IMPLEMENTED — DEVICE VERIFICATION PENDING; deployed to Production. Updated 2026-09-12.
 
 The user approved both complete SQL proposals after the historical
 [approval report](NOTIFICATIONS_APPROVAL_REPORT.md). The exact
@@ -9,8 +9,10 @@ is now applied to My Kustomers after local PostgreSQL tests and a complete
 rollback-only compile against the actual schema. Live RLS/ACL/catalog checks pass.
 The separately approved
 [`scheduler SQL`](../supabase/migrations/20260912002523_pwa_notification_scheduler_activation.sql)
-remains gated on the deployed/authenticated receiver. Production VAPID and worker
-credentials are configured. See [the release report](NOTIFICATIONS_RELEASE_REPORT.md)
+is applied after deployed receiver verification. The minute job is active, with
+successful scheduled HTTP 202 acknowledgements and completed worker runs.
+Production VAPID and worker credentials, including the explicitly approved
+Vault copy, are configured. See [the release report](NOTIFICATIONS_RELEASE_REPORT.md)
 for final release, verification and physical-device limits.
 
 ## Permanent invariants
@@ -285,8 +287,26 @@ select cron.schedule(
 `private.invoke_notification_worker()` must have an empty search path and no
 public/anon/authenticated execution rights. It reads only a named Vault secret,
 uses `net.http_post` to the fixed URL, a 10-second timeout and an empty JSON body;
-never places the bearer secret in `cron.job.command`. Verify `net` schema ACLs
-so transient request headers and response data cannot be read by ordinary roles.
+never places the bearer secret in `cron.job.command`.
+
+Live activation found a managed-platform limitation: `supabase_admin` owns the
+`net` schema/tables/functions and their PUBLIC grants. The tenant `postgres`
+role's approved REVOKE statements produced warnings and did not change those
+ACLs. Do not report `has_schema_privilege` or `has_table_privilege` as false.
+Supabase documents that [these grants are isolated from clients](https://supabase.com/docs/guides/database/extensions/pg_net#permissions)
+because `net` is not exposed through the Data API and API roles cannot log in to
+PostgreSQL. Release verification confirmed anon and a controlled authenticated
+user receive HTTP 406 / PGRST106 for both net tables, `net.http_post`, and the
+private worker RPC. The controlled user was removed without email. GraphQL
+reports its extension disabled. No public/graphql_public SECURITY DEFINER
+function references net or Vault, and ordinary roles cannot execute
+`private.invoke_notification_worker()`.
+
+Keep net/private out of exposed schemas and never add a general SQL or net/Vault
+wrapper callable by client roles. Actual owner-level ACL revocation requires
+Supabase-managed privileges; it is an outstanding defense-in-depth limitation,
+not a verified ACL restriction. Recheck catalog and API boundaries after schema,
+extension or API configuration changes.
 Supabase documents this [Cron + pg_net + Vault pattern](https://supabase.com/docs/guides/functions/schedule-functions).
 Activation follows authenticated receiver verification. Daily polling is not
 equivalent to this approved cadence.

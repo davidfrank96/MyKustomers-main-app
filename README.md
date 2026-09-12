@@ -1,11 +1,11 @@
 # My Kustomers
 
-The 2026-09-12 positioning sweep is implemented locally: **Built for service
+The 2026-09-12 positioning sweep is deployed to Production: **Built for service
 businesses — from independent operators to growing teams.** Homepage, SEO,
 manifest and email-footer copy follow this direction without enterprise claims.
 Vendor notifications are implemented with an authenticated inbox and optional
-Web Push. The approved database foundation is applied; Production receiver and
-scheduler verification follow release. Architecture and device limitations are in
+Web Push. Both approved migrations are applied. The authenticated Production receiver is
+verified and the minute scheduler is active. Architecture and device limitations are in
 [docs/NOTIFICATIONS.md](docs/NOTIFICATIONS.md) and the
 [release report](docs/NOTIFICATIONS_RELEASE_REPORT.md).
 

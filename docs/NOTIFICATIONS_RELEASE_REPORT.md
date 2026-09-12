@@ -4,7 +4,7 @@ Date: 2026-09-12. User approved the complete foundation and separate scheduler
 proposals with “yes procced”. Approval hashes and historical starting-state
 verification are preserved in [the approval report](NOTIFICATIONS_APPROVAL_REPORT.md).
 
-Status: IMPLEMENTED — RELEASE AND DEVICE VERIFICATION PENDING.
+Status: IMPLEMENTED — DEVICE VERIFICATION PENDING; deployed to Production.
 
 ## Requested A–BS report
 
@@ -15,10 +15,10 @@ Status: IMPLEMENTED — RELEASE AND DEVICE VERIFICATION PENDING.
 | C. Existing Service Worker | ABSENT; no private cache or registration. |
 | D. Existing Push Support | ABSENT. |
 | E. Notification Data Model Existing State | ABSENT in both repository and configured live catalog. Existing email outbox remains independent. |
-| F. Migration Required | YES. Both exact SQL proposals approved by the user; foundation applied transactionally and live catalog checked. Scheduler waits for deployed receiver. |
+| F. Migration Required | YES. Both exact SQL proposals approved and applied transactionally. Foundation catalog and active minute scheduler verified. |
 | G. Final Notification Architecture | Implemented durable per-user inbox, optional standard Web Push, authoritative event triggers, bounded server worker. |
 | H. Push Subscription Architecture | Implemented account devices, 20-device quota, global endpoint ownership, generation-safe revocation and column-restricted keys. |
-| I. VAPID Architecture | Generated standard VAPID pair; public browser key and private Production secret. Separate random worker credential; explicitly approved Vault copy stored and verified. No private values in reports. |
+| I. VAPID Architecture | Standard VAPID pair configured in Production. Separate random worker credential stored in Vercel and, after explicit user approval, existing My Kustomers Vault. No private values in reports. |
 | J. Permission UX | Explicit Enable action invokes permission before awaited I/O. Not now, denied, unsupported, failure and enabled states. Browser fixture journeys pass. |
 | K. iOS Install/Permission UX | Home Screen guidance for iOS/iPadOS; feature detection plus standalone checks. Emulated WebKit passes; physical delivery unverified. |
 | L. Android Permission UX | Supported Android browser/PWA paths do not require installation. Explicit permission flow tested with mocked native APIs. |
@@ -43,7 +43,7 @@ Status: IMPLEMENTED — RELEASE AND DEVICE VERIFICATION PENDING.
 | AE. Real Android Result | NOT VERIFIED; no physical-device test. |
 | AF. Real iOS Result | NOT VERIFIED; no physical Home Screen push test. |
 | AG. PWA Result | Manifest identity unchanged; registration only from vendor shell. Existing resume coordinator/file-picker logic retained. No physical installed-device proof. |
-| AH. Performance Result | No startup-blocking notification fetch or browser SDK. On-demand list, bounded count reconciliation, partial due index, max eight sends per scheduled invocation. Full production latency comparison remains a manual follow-up. |
+| AH. Performance Result | No startup-blocking notification fetch or browser SDK. On-demand list, bounded count reconciliation, partial due index, max eight sends per scheduled invocation. Three warm homepage samples: median headers 85 ms before, 76 ms after; HTML 89,771→91,434 bytes. This is a smoke comparison, not a statistical latency guarantee. Authenticated/PWA journeys pass; server SDK stays outside client bundles. |
 | AI. Existing Positioning Findings | Restrictive homepage trust items, SEO title, manifest and email footer; product guidance matched the same restriction. |
 | AJ. Small-Business String Count | 17 baseline matching lines across sources/docs/tests/one historical preview; six shipped-source lines fixed. Zero restrictive shipped-source matches remain; preserved history classified. |
 | AK. Final Master Positioning | Built for service businesses — from independent operators to growing teams. |
@@ -52,8 +52,8 @@ Status: IMPLEMENTED — RELEASE AND DEVICE VERIFICATION PENDING.
 | AN. PWA Manifest Result | Description broadened only; identity, start URL, display, names and icons preserved. |
 | AO. Nigeria Positioning Result | Retained once as explicit hero audience strength, with “and beyond”; repeated audience-heading geography removed. |
 | AP. Enterprise-Claim Audit | No unsupported enterprise claim added. |
-| AQ. Database Changes | Foundation applied after approval, local PostgreSQL and actual-schema rollback compile. Five RLS tables/six triggers; live function/column grants verified. Scheduler not yet activated at this checkpoint. |
-| AR. Environment Changes | Four notification variables configured in Production only. VAPID private key and worker secret sensitive; local copy gitignored. Preview gets no Production credentials. |
+| AQ. Database Changes | Both approved migrations applied. Five RLS tables/six triggers, service-only delivery RPCs, pg_cron 1.6.4, pg_net 0.20.4. One ACTIVE minute job; private invoke access denied; net is excluded from the Data API. |
+| AR. Environment Changes | Four notification variables in Production only; private key and worker secret sensitive. Vault contains the dedicated worker credential. Preview has no Production credentials. |
 | AS. Dependencies Added | web-push 3.6.7 and dev-only @types/web-push 3.6.4. npm audit zero known vulnerabilities at install. |
 | AT. Files Changed | Notification contracts/API/worker/UI/resolver/logout; push-only service worker and headers; typed DB contracts; SQL; positioning; unit/browser/database tests; CI and governance documentation. |
 | AU. Tests Added | SQL runtime/concurrent worker runner, static SQL security, payload/transport/privacy/HTTP/resolver/logout units, credential-free Chromium/WebKit notification journeys. |
@@ -63,24 +63,24 @@ Status: IMPLEMENTED — RELEASE AND DEVICE VERIFICATION PENDING.
 | AY. Alignment/Polish Pass | Inspected compact header, long context, settings, denied/install states, dialog and mobile navigation. Checkbox updates immediately with rollback on failure. |
 | AZ. Lint | Passed. |
 | BA. Typecheck | Passed. |
-| BB. Unit/Integration | Final full run: 942 passed, 24 skipped; 155 test files passed and 21 protected/optional suites skipped. |
+| BB. Unit/Integration | Final CI: 945 passed, 24 skipped; 156 test files passed and 21 protected/optional suites skipped. |
 | BC. Runtime Security | 21 tests skipped through the protected-target guard. Not live security evidence. |
-| BD. E2E | 12/12 notification fixture browser journeys passed; the final enabled-device logout extension also passed in both browsers. Previous public positioning and SEO checks retained; final release checks recorded below. |
+| BD. E2E | Full release CI: 69 passed, 19 skipped. Notification fixture browser journeys: 12/12 in Chromium/WebKit; native PostgreSQL runtime and concurrent lease checks pass. |
 | BE. Build | Passed; network access required for the existing Google font dependency. Typecheck then passed sequentially. |
 | BF. Dependency Audit | Final npm audit: zero known vulnerabilities. |
 | BG. Diff Check | Passed before release commit. |
 | BH. PR Number | [PR #77](https://github.com/davidfrank96/MyKustomers-main-app/pull/77). |
-| BI. CI Result | Pending PR checks, including added Notification Contracts job. |
-| BJ. Preview Result | READY Preview `dpl_FHQ36tewc6BhAPV9BrAfviC5ZHJx` at source `5ba3b8038a9ebe06f16863c6f21ffaa950fb08e1`; deployed homepage positioning verified. No Production runtime credentials. |
-| BK. Merge SHA | Not merged yet. |
-| BL. Production Deployment | Starting deployment unchanged at this checkpoint. Release follows required CI. |
+| BI. CI Result | All required jobs plus Notification Contracts passed in [run 34666183030](https://github.com/davidfrank96/MyKustomers-main-app/actions/runs/34666183030). Runtime Security intentionally skipped by its existing guard. |
+| BJ. Preview Result | READY `dpl_HgWdi3uop9DKh12Ez5j1nRyydbaR`, source `72cb0d16025bee531f4a1728f86f709ebafb7e16`. Public positioning, manifest, worker headers, private 401s and relative login redirect verified. |
+| BK. Merge SHA | PR #77 merged as `12d97c8d2bbe37928311a288aa6e9063416c8eb3`. |
+| BL. Production Deployment | READY `dpl_8kGuqrffhgQBuaXEUaDaFu9otEDP` at the PR #77 merge SHA; [mykustomers.com](https://mykustomers.com). Public routes, private boundaries, authenticated 202 receiver and scheduled completion verified. |
 | BM. Production Android Push Smoke | Not run. |
 | BN. Production iOS Push Smoke | Not run. |
-| BO. Sentry Result | Privacy unit tests pass; worker captures fixed messages only. Private VAPID and worker values are absent from all 136 built browser artifacts. No Production log/issue scan yet. |
-| BP. Cleanup | Existing E2E CI reaches the Production-backed project; controlled fixture email uses development delivery. Two verified cancelled-run fixture users/businesses removed. Local SQL fixtures rolled back/disposable clusters removed; initial server stopped. No real customer email sent for push testing. |
+| BO. Sentry Result | Privacy units pass; fixed failure messages and aggregate-only completion logs. Private VAPID/worker values absent from built browser artifacts. Production completion logs verified without notification data; no direct Sentry issue-console verification available. |
+| BP. Cleanup | Existing E2E CI uses the configured Production-backed project despite the intended test-target documentation. Its controlled fixtures use development email. Two verified cancelled-run fixture users/businesses were removed; successful suites perform their own cleanup. No real customer email sent for push testing. One controlled Auth user used for API-boundary verification was removed. Native clusters stopped/removed. Scheduler remains ACTIVE. |
 | BQ. Defects Found | Fixed Next internal-host same-origin rejection, asynchronous checkbox feedback, old unit/E2E no-worker assumptions, test Auth isolation, fixture projection/browser-interception differences, older psql output handling in the concurrency harness, Linux WebKit’s combined eight-viewport test budget, and the scheduler/worker timeout mismatch (202 acknowledgement with retained background work). |
-| BR. Remaining Limitations | Physical Android/iOS lock-screen delivery/badging unavailable. Protected cloud security suite remains skipped. PR/CI/Preview/Production and scheduler activation still pending at this checkpoint. |
-| BS. Final Status | PWA NOTIFICATIONS + PRODUCT POSITIONING — RELEASE VERIFICATION PENDING |
+| BR. Remaining Limitations | Physical Android/iOS lock-screen delivery and badging unverified; no real provider subscription on target at release. Existing E2E target isolation needs correction; protected cloud security suite remains skipped. HTTP 202/completion proves server processing, not phone delivery. Current dispatch bound is eight devices/minute. Supabase-owned net grants remain; client Data API isolation and private wakeup ACL were verified instead. |
+| BS. Final Status | PWA NOTIFICATIONS + PRODUCT POSITIONING — IMPLEMENTED — DEVICE VERIFICATION PENDING |
 
 ## Verification boundary
 
@@ -104,3 +104,22 @@ lock-screen notification, tap through to the correct business/booking, mark read
 and verify badge clearing. Repeat with two controlled devices and revoke one.
 Do not send customer email solely for push testing. Record OS/browser versions,
 permission/install state and actual outcomes; never substitute emulator results.
+
+## Scheduler verification — 2026-09-12 UTC
+
+Job `myk-notifications` is ACTIVE at one-minute cadence. The 02:11, 02:12 and
+02:13 runs succeeded and each pg_net response was 202 with no timeout. Runtime
+logs confirmed completion, including an overdue processing batch, with no worker
+errors or HTTP 5xx in the inspected release window. Provider/device delivery is
+unverified because no real push subscriptions were registered at release.
+
+The deployment above identifies the verified application release. A subsequent
+documentation-only PR records this evidence; it does not change application
+behavior or scheduler activity.
+
+The approved net REVOKE statements did **not** remove Supabase-owned PUBLIC
+grants. Anon and controlled authenticated API probes rejected net/private access
+with 406/PGRST106; API roles cannot log in to PostgreSQL; GraphQL is disabled;
+no exposed definer wrapper references net/Vault; private wakeup execution is
+denied. This follows [Supabase's documented boundary](https://supabase.com/docs/guides/database/extensions/pg_net#permissions),
+with owner-level ACL hardening remaining unavailable to the tenant role.

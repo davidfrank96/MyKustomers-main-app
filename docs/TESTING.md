@@ -17,6 +17,11 @@ The notification suite has three independent layers:
   keyboard focus, install guidance and explicitly mocked permission/subscription
   APIs. These mocks are not proof of real Supabase Auth or physical push delivery.
 
+Release CI passed 945 unit/integration/security tests (24 skipped), all 12
+notification browser journeys and the native PostgreSQL suite. Production worker
+authentication, scheduled 202 acknowledgements and completion counters were
+verified; see the release report for deployment evidence.
+
 The existing homepage/SEO suite checks the broader positioning. Static SQL tests
 remain useful contracts, not substitutes for database execution. The protected
 cloud runtime-security suite retains its existing safe-target guard. The release
