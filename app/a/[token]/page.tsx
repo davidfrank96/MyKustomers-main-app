@@ -21,6 +21,8 @@ import { buildPublicAmendmentMetadata } from "@/features/amendments/metadata";
 import type { AmendmentTerms, PublicAmendment } from "@/features/amendments/public-types";
 import { isSocialPreviewCrawler } from "@/features/confirmation-links/crawlers";
 
+import { getPublicAmendmentMetadata } from "@/features/amendments/social";
+
 export const dynamic = "force-dynamic";
 
 type AmendmentPageProps = {
@@ -28,7 +30,12 @@ type AmendmentPageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 };
 
-export const metadata: Metadata = buildPublicAmendmentMetadata();
+export async function generateMetadata({
+  params,
+}: AmendmentPageProps): Promise<Metadata> {
+  const { token } = await params;
+  return buildPublicAmendmentMetadata((await getPublicAmendmentMetadata(token)) ?? {});
+}
 
 function formatDate(value: string | null) {
   if (!value) return "Not scheduled";

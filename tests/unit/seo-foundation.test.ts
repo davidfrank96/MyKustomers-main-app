@@ -90,7 +90,7 @@ describe("SEO Phase 1 foundation", () => {
 
     expect(serialized).not.toContain("secret-capability-token");
     expect(JSON.stringify(capabilityMetadata)).not.toContain("Private Tenant Ltd");
-    expect(JSON.stringify(confirmationMetadata)).toContain("Private Tenant Ltd");
+    expect(JSON.stringify(confirmationMetadata)).not.toContain("Private Tenant Ltd");
     expect(serialized).not.toContain("private/logo.webp");
     expect(serialized).not.toMatch(/\/c\/|\/a\/|\/x\/|\/f\//);
     for (const entry of [confirmationMetadata, ...capabilityMetadata]) {

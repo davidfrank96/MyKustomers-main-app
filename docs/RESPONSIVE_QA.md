@@ -1,5 +1,9 @@
 # Responsive QA
 
+## Vendor social and email alignment
+
+The vendor pass tests a central 304px/280px social logo, three-line bounded names, full/scaled/square crops, and nine email types at 320/360/390/430/600/700px with fixed 52px identity and wrapping business names. Browser emulation and physical clients are distinct evidence. See [VENDOR_TRUST_BRANDING](VENDOR_TRUST_BRANDING.md).
+
 ## My Profile Phase 2 — 2026-09-12
 
 The approved hub geometry remains unchanged after semantic link integration.

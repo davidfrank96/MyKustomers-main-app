@@ -82,42 +82,10 @@ export async function getPublicAmendmentView(
   return error ? { status: "unavailable" } : parseView(data);
 }
 
-export async function getPublicAmendmentMetadata(token: string) {
-  if (
-    !canUseServiceRoleClient() ||
-    !isPlausibleAmendmentToken(token)
-  ) {
-    return null;
-  }
-  const tokenHash = hashAmendmentToken(token);
-  if (!(await consumeAmendmentRateLimit("amendment_metadata", tokenHash))) return null;
-  const supabase = createServiceRoleClient();
-  const { data: amendment } = await supabase
-    .from("booking_amendments")
-    .select("business_id, status, expires_at")
-    .eq("token_hash", tokenHash)
-    .maybeSingle();
-  if (
-    !amendment ||
-    amendment.status === "REVOKED" ||
-    (amendment.status === "PENDING_CUSTOMER" &&
-      new Date(amendment.expires_at).getTime() <= Date.now())
-  ) {
-    return null;
-  }
-  const { data: business } = await supabase
-    .from("businesses")
-    .select("name, logo_path")
-    .eq("id", amendment.business_id)
-    .maybeSingle();
-  return business ?? null;
-}
+export { getPublicAmendmentMetadata } from "./social";
 
 export async function recordPublicAmendmentOpen(token: string) {
-  if (
-    !canUseServiceRoleClient() ||
-    !isPlausibleAmendmentToken(token)
-  ) {
+  if (!canUseServiceRoleClient() || !isPlausibleAmendmentToken(token)) {
     return;
   }
   const tokenHash = hashAmendmentToken(token);

@@ -131,3 +131,9 @@ It covers the Profile ten-width matrix, actual reused editor/preference flows,
 owner/member context, signed-out denial, business-owned OG PNG rendering, crawler
 headers and zero writes. It changes no existing required check or runtime-security
 guard. Local screenshot baselines are not a cross-OS pixel comparison in CI.
+
+The vendor trust pass extends that same Profile and Social Previews job with
+feedback/amendment/add-on ownership, full/cropped social images, and all nine
+transactional email renders at mobile/desktop widths. The existing job and
+required-check policy remain unchanged. Physical mail/social apps and controlled
+Production delivery are separate release evidence.

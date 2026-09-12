@@ -9,6 +9,7 @@ type BookingDeliveredEmailInput = {
   emailEventId: string;
   recipientEmail: string;
   businessName: string;
+  businessLogoPath?: string | null;
   bookingTitle: string;
   bookingReference: string;
   scheduledFor: string | null;
@@ -57,6 +58,7 @@ export function bookingDeliveredEmail(
     html: renderTransactionalEmailHtml({
       contextLabel: "Delivery update",
       businessName: input.businessName,
+      businessLogoPath: input.businessLogoPath,
       heading: "Your booking has been marked as delivered",
       introduction: [`${input.businessName} has marked this booking as delivered.`],
       sections: [

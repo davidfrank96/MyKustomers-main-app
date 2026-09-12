@@ -1,5 +1,14 @@
 # Feedback Feature
 
+## Vendor trust branding
+
+Valid customer social metadata now uses the exact capability-owning vendor and
+one shared 1200×630 PNG (304px frame /280px artwork). The existing record UUID
+projects only business identity, with state/tenant checks on every uncached
+request. Invalid/revoked capabilities stay generic; crawler reads never invoke
+domain mutations. See `docs/VENDOR_TRUST_BRANDING.md` for exact family policies,
+email parity and verification status.
+
 Phase 8 implements private customer feedback and internal operational booking
 issues.
 

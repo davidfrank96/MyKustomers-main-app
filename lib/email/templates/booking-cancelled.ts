@@ -10,6 +10,7 @@ type BookingCancelledEmailInput = {
   emailEventId: string;
   recipientEmail: string;
   businessName: string;
+  businessLogoPath?: string | null;
   bookingTitle: string;
   bookingReference: string;
   scheduledFor: string | null;
@@ -68,6 +69,7 @@ export function bookingCancelledEmail(
     html: renderTransactionalEmailHtml({
       contextLabel: "Cancellation notice",
       businessName: input.businessName,
+      businessLogoPath: input.businessLogoPath,
       heading: "Your booking has been cancelled",
       introduction: [contactGuidance],
       sections: [

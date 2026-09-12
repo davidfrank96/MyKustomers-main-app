@@ -9,6 +9,7 @@ type BookingConfirmationRequestedEmailInput = {
   emailEventId: string;
   recipientEmail: string;
   businessName: string;
+  businessLogoPath?: string | null;
   bookingTitle: string;
   bookingReference: string;
   scheduledFor: string | null;
@@ -42,6 +43,7 @@ export function bookingConfirmationRequestedEmail(
     html: renderTransactionalEmailHtml({
       contextLabel: "Confirmation request",
       businessName: input.businessName,
+      businessLogoPath: input.businessLogoPath,
       heading: "Please review your booking",
       introduction: [
         `${input.businessName} has asked you to review and confirm this booking.`,

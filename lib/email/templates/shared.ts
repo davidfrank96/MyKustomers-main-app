@@ -1,3 +1,4 @@
+import { getBusinessEmailLogoUrl } from "@/features/businesses/email-logo";
 import { publicEnv } from "@/lib/config/public-env";
 import { MYKUSTOMERS_BRAND_ASSETS } from "@/lib/brand/assets";
 
@@ -69,6 +70,7 @@ export type TransactionalEmailSection = {
 type TransactionalEmailHtmlInput = {
   contextLabel: string;
   businessName: string;
+  businessLogoPath?: string | null;
   heading: string;
   introduction: string[];
   sections: TransactionalEmailSection[];
@@ -116,6 +118,10 @@ function renderEmailSection(section: TransactionalEmailSection) {
 export function renderTransactionalEmailHtml(input: TransactionalEmailHtmlInput) {
   const platformUrl = getTransactionalEmailPlatformUrl();
   const logoUrl = getTransactionalEmailLogoUrl();
+  const businessLogoUrl = getBusinessEmailLogoUrl(input.businessLogoPath);
+  const businessAvatar = businessLogoUrl
+    ? `<img class="vendor-logo" src="${escapeEmailHtml(businessLogoUrl)}" width="52" height="52" alt="${escapeEmailHtml(input.businessName)}" style="display:block;width:52px;height:52px;border:0;border-radius:9px;background:#ffffff;object-fit:contain;vertical-align:middle;">`
+    : `<span class="vendor-initial" style="display:block;width:52px;height:52px;border-radius:9px;background:#145c49;color:#ffffff;font-size:24px;font-weight:700;line-height:52px;text-align:center;">${escapeEmailHtml(emailBusinessInitial(input.businessName))}</span>`;
   const tone = input.tone ?? "neutral";
   const heroBackground =
     tone === "success" ? "#f0f8f3" : tone === "warning" ? "#fff8ed" : "#f4f7f5";
@@ -125,7 +131,7 @@ export function renderTransactionalEmailHtml(input: TransactionalEmailHtmlInput)
   const introduction = input.introduction
     .map(
       (paragraph) =>
-        `<p style="margin:8px 0 0;color:#52605a;font-size:15px;line-height:1.55;">${escapeEmailHtml(paragraph)}</p>`,
+        `<p style="margin:8px 0 0;overflow-wrap:anywhere;word-break:break-word;color:#52605a;font-size:15px;line-height:1.55;">${escapeEmailHtml(paragraph)}</p>`,
     )
     .join("");
   const sections = input.sections.map(renderEmailSection).join("");
@@ -155,6 +161,7 @@ export function renderTransactionalEmailHtml(input: TransactionalEmailHtmlInput)
         .email-gutter { padding: 12px !important; }
         .email-card { width: 100% !important; }
         .email-content { padding: 20px 16px !important; }
+        .vendor-identity-content { padding-top: 0 !important; padding-bottom: 0 !important; }
         .brand-context { display: block !important; width: 100% !important; padding-top: 8px !important; text-align: left !important; }
         .detail-label, .detail-value { display: block !important; width: auto !important; text-align: left !important; }
         .detail-label { padding-bottom: 3px !important; }
@@ -172,7 +179,7 @@ export function renderTransactionalEmailHtml(input: TransactionalEmailHtmlInput)
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;background:#f1f5f2;">
       <tr>
         <td class="email-gutter" align="center" style="padding:24px 12px;">
-          <table role="presentation" width="600" cellpadding="0" cellspacing="0" class="email-card" style="width:100%;max-width:600px;border:1px solid #d7e1db;border-collapse:separate;border-spacing:0;border-radius:10px;overflow:hidden;background:#ffffff;">
+          <table role="presentation" width="600" cellpadding="0" cellspacing="0" class="email-card" style="width:100%;max-width:600px;table-layout:fixed;border:1px solid #d7e1db;border-collapse:separate;border-spacing:0;border-radius:10px;overflow:hidden;background:#ffffff;">
             <tr><td style="height:4px;background:#176c56;font-size:0;line-height:0;">&nbsp;</td></tr>
             <tr>
               <td class="email-content" style="padding:22px 24px 0;">
@@ -185,13 +192,11 @@ export function renderTransactionalEmailHtml(input: TransactionalEmailHtmlInput)
               </td>
             </tr>
             <tr>
-              <td class="email-content" style="padding:18px 24px 0;">
-                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #dfe7e2;">
+              <td class="email-content vendor-identity-content" style="padding:18px 24px 0;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;table-layout:fixed;border-top:1px solid #dfe7e2;">
                   <tr>
-                    <td style="padding:18px 0 0;vertical-align:middle;">
-                      <span style="display:inline-block;width:42px;height:42px;border-radius:8px;background:#145c49;color:#ffffff;font-size:20px;font-weight:700;line-height:42px;text-align:center;vertical-align:middle;">${escapeEmailHtml(emailBusinessInitial(input.businessName))}</span>
-                      <span class="email-copy" style="display:inline-block;max-width:475px;margin-left:12px;color:#17201c;font-size:16px;font-weight:700;line-height:1.4;vertical-align:middle;overflow-wrap:anywhere;">${escapeEmailHtml(input.businessName)}</span>
-                    </td>
+                    <td width="64" style="width:64px;padding:18px 0 0;vertical-align:middle;">${businessAvatar}</td>
+                    <td class="email-copy vendor-name" style="padding:18px 0 0;color:#17201c;font-size:16px;font-weight:700;line-height:1.4;vertical-align:middle;overflow-wrap:anywhere;word-break:break-word;">${escapeEmailHtml(input.businessName)}</td>
                   </tr>
                 </table>
               </td>

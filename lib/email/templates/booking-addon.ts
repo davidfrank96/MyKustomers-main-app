@@ -11,6 +11,7 @@ type AddonBaseInput = {
   emailEventId: string;
   recipientEmail: string;
   businessName: string;
+  businessLogoPath?: string | null;
   bookingReference: string;
 };
 
@@ -37,6 +38,7 @@ export function bookingAddonRequestedEmail(
     html: renderTransactionalEmailHtml({
       contextLabel: "Booking addition",
       businessName: input.businessName,
+      businessLogoPath: input.businessLogoPath,
       heading: "Review an addition to your booking",
       introduction: [
         `${input.businessName} has added something to your booking for review.`,
@@ -111,6 +113,7 @@ export function bookingAddonConfirmedEmail(
     html: renderTransactionalEmailHtml({
       contextLabel: "Booking addition confirmed",
       businessName: input.businessName,
+      businessLogoPath: input.businessLogoPath,
       heading: "Booking addition confirmed",
       introduction: [
         "The additional scope is now part of your current booking agreement.",

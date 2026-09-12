@@ -1,4 +1,5 @@
 import "server-only";
+import { getEventBusinessLogoPath } from "@/features/businesses/email-brand";
 import { z } from "zod";
 import { bookingCurrencies } from "@/features/bookings/money";
 import { deriveEffectiveBookingTotals } from "@/features/addons/totals";
@@ -334,6 +335,8 @@ export async function deliverClaimedEmailEvent({
       ...failure,
     });
 
+  // The claimed event's tenant is authoritative; browser business state is absent.
+  const businessLogoPath = await getEventBusinessLogoPath(event.business_id);
   let message: TransactionalEmailMessage;
   let threadContext: BookingThreadContext | null = null;
 
@@ -405,6 +408,7 @@ export async function deliverClaimedEmailEvent({
     message = bookingConfirmationRequestedEmail({
       emailEventId: event.id,
       recipientEmail: event.recipient_email,
+      businessLogoPath,
       businessName: business.name,
       bookingTitle: requestBooking.title,
       bookingReference: requestBooking.reference,
@@ -443,6 +447,7 @@ export async function deliverClaimedEmailEvent({
     const baseInput = {
       emailEventId: event.id,
       recipientEmail: event.recipient_email,
+      businessLogoPath,
       businessName: snapshot.business_name,
       bookingReference: snapshot.booking_reference,
     };
@@ -538,6 +543,7 @@ export async function deliverClaimedEmailEvent({
     const input = {
       emailEventId: event.id,
       recipientEmail: event.recipient_email,
+      businessLogoPath,
       businessName: parsed.data.old_terms.business_name,
       bookingReference: parsed.data.old_terms.booking_reference,
       reason: parsed.data.reason,
@@ -650,6 +656,7 @@ export async function deliverClaimedEmailEvent({
     message = bookingRescheduledEmail({
       emailEventId: event.id,
       recipientEmail: authoritativeRecipient,
+      businessLogoPath,
       businessName: snapshot.data.business_name,
       bookingTitle: snapshot.data.title,
       bookingReference: snapshot.data.booking_reference,
@@ -694,6 +701,7 @@ export async function deliverClaimedEmailEvent({
       message = bookingConfirmedEmail({
         emailEventId: event.id,
         recipientEmail: event.recipient_email,
+        businessLogoPath,
         businessName: snapshot.data.business_name,
         bookingTitle: snapshot.data.title,
         bookingReference: snapshot.data.booking_reference,
@@ -745,6 +753,7 @@ export async function deliverClaimedEmailEvent({
       message = bookingCancelledEmail({
         emailEventId: event.id,
         recipientEmail: authoritativeRecipient,
+        businessLogoPath,
         businessName: cancellationSnapshot.business_name,
         bookingTitle: cancellationSnapshot.title,
         bookingReference: cancellationSnapshot.booking_reference,
@@ -838,6 +847,7 @@ export async function deliverClaimedEmailEvent({
       message = bookingDeliveredEmail({
         emailEventId: event.id,
         recipientEmail: authoritativeRecipient,
+        businessLogoPath,
         businessName: deliverySnapshot.business_name,
         bookingTitle: deliverySnapshot.title,
         bookingReference: deliverySnapshot.booking_reference,
