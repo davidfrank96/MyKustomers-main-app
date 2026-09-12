@@ -18,7 +18,7 @@ Status: IMPLEMENTED — RELEASE AND DEVICE VERIFICATION PENDING.
 | F. Migration Required | YES. Both exact SQL proposals approved by the user; foundation applied transactionally and live catalog checked. Scheduler waits for deployed receiver. |
 | G. Final Notification Architecture | Implemented durable per-user inbox, optional standard Web Push, authoritative event triggers, bounded server worker. |
 | H. Push Subscription Architecture | Implemented account devices, 20-device quota, global endpoint ownership, generation-safe revocation and column-restricted keys. |
-| I. VAPID Architecture | Generated standard VAPID pair; public browser key and private Production secret. Separate random worker credential. No private values in reports. |
+| I. VAPID Architecture | Generated standard VAPID pair; public browser key and private Production secret. Separate random worker credential; explicitly approved Vault copy stored and verified. No private values in reports. |
 | J. Permission UX | Explicit Enable action invokes permission before awaited I/O. Not now, denied, unsupported, failure and enabled states. Browser fixture journeys pass. |
 | K. iOS Install/Permission UX | Home Screen guidance for iOS/iPadOS; feature detection plus standalone checks. Emulated WebKit passes; physical delivery unverified. |
 | L. Android Permission UX | Supported Android browser/PWA paths do not require installation. Explicit permission flow tested with mocked native APIs. |
@@ -78,7 +78,7 @@ Status: IMPLEMENTED — RELEASE AND DEVICE VERIFICATION PENDING.
 | BN. Production iOS Push Smoke | Not run. |
 | BO. Sentry Result | Privacy unit tests pass; worker captures fixed messages only. Private VAPID and worker values are absent from all 136 built browser artifacts. No Production log/issue scan yet. |
 | BP. Cleanup | No cloud test users/businesses/customer emails created. Local SQL fixtures are rolled back or disposable clusters removed. Initial local cluster will be stopped after verification. |
-| BQ. Defects Found | Fixed Next internal-host same-origin rejection, asynchronous checkbox feedback, old no-worker test assumption, test Auth isolation, fixture projection/browser-interception differences, and older psql output handling in the concurrency harness. |
+| BQ. Defects Found | Fixed Next internal-host same-origin rejection, asynchronous checkbox feedback, old no-worker test assumption, test Auth isolation, fixture projection/browser-interception differences, older psql output handling in the concurrency harness, Linux WebKit’s combined eight-viewport test budget, and the scheduler/worker timeout mismatch (202 acknowledgement with retained background work). |
 | BR. Remaining Limitations | Physical Android/iOS lock-screen delivery/badging unavailable. Protected cloud security suite remains skipped. PR/CI/Preview/Production and scheduler activation still pending at this checkpoint. |
 | BS. Final Status | PWA NOTIFICATIONS + PRODUCT POSITIONING — RELEASE VERIFICATION PENDING |
 

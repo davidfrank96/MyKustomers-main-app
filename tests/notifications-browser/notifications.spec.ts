@@ -17,6 +17,9 @@ test.beforeEach(async ({ context, request }) => {
 test("notification center, settings and long business names fit the responsive matrix", async ({
   page,
 }, testInfo) => {
+  // Eight viewport transitions and twelve screenshots share this test budget.
+  // Linux WebKit needs longer than a single-viewport journey on CI.
+  test.setTimeout(90_000);
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("/settings");

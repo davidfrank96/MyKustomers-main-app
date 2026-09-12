@@ -1,4 +1,5 @@
 import * as Sentry from "@sentry/nextjs";
+import { after } from "next/server";
 import { validWorkerAuthorization } from "@/features/notifications/delivery";
 import {
   boundedJson,
@@ -26,7 +27,19 @@ export async function POST(request: Request) {
       Object.keys(body).length
     )
       throw new NotificationHttpError(400);
-    return notificationResponse(await processNotifications());
+    // pg_net waits 10 seconds; provider retries can take longer. Next keeps
+    // this bounded task alive after the acknowledgement, within maxDuration.
+    after(async () => {
+      try {
+        await processNotifications();
+      } catch {
+        Sentry.captureMessage("Notification worker unavailable", {
+          level: "error",
+          tags: { notification_stage: "worker" },
+        });
+      }
+    });
+    return notificationResponse({ accepted: true }, 202);
   } catch (error) {
     if (!(error instanceof NotificationHttpError))
       Sentry.captureMessage("Notification worker unavailable", {
