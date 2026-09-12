@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabasePublicEnvConfigured } from "@/lib/config/public-env";
@@ -8,7 +7,7 @@ import {
   notificationTypeSchema,
 } from "@/features/notifications/contracts";
 export async function GET(
-  request: Request,
+  _request: Request,
   context: { params: Promise<{ notificationId: string }> },
 ) {
   const { notificationId } = await context.params;
@@ -23,13 +22,13 @@ export async function GET(
       { status: 404, headers },
     );
   if (!z.string().uuid().safeParse(notificationId).success) return unavailable();
+  // Relative Location headers stay on the browser's origin, including behind
+  // proxies whose internal request URL differs from the public hostname.
+  const redirectTo = (path: string) =>
+    new Response(null, { status: 307, headers: { ...headers, Location: path } });
   const login = () =>
-    NextResponse.redirect(
-      new URL(
-        `/login?next=${encodeURIComponent(`/notifications/open/${notificationId}`)}`,
-        request.url,
-      ),
-      { headers },
+    redirectTo(
+      `/login?next=${encodeURIComponent(`/notifications/open/${notificationId}`)}`,
     );
   if (!isSupabasePublicEnvConfigured()) return login();
   try {
@@ -68,12 +67,8 @@ export async function GET(
       if (read.error || !read.data?.length) return unavailable();
     }
     await setSelectedBusinessId(data.business_id);
-    return NextResponse.redirect(
-      new URL(
-        `/bookings/${data.booking_id}${notificationCopy[type.data].anchor}`,
-        request.url,
-      ),
-      { headers },
+    return redirectTo(
+      `/bookings/${data.booking_id}${notificationCopy[type.data].anchor}`,
     );
   } catch {
     return new Response("Notifications are temporarily unavailable. Please try again.", {

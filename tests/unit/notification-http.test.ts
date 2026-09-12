@@ -99,7 +99,10 @@ describe("notification request boundaries", () => {
       new Request(`https://mykustomers.com/notifications/open/${id}`),
       { params: Promise.resolve({ notificationId: id }) },
     );
-    const location = new URL(response.headers.get("location")!);
+    const location = new URL(
+      response.headers.get("location")!,
+      "https://mykustomers.com",
+    );
     expect(location.pathname).toBe("/login");
     expect(location.searchParams.get("next")).toBe(`/notifications/open/${id}`);
     expect(mocks.selectBusiness).not.toHaveBeenCalled();
@@ -123,9 +126,7 @@ describe("notification request boundaries", () => {
       { params: Promise.resolve({ notificationId: id }) },
     );
     expect(mocks.selectBusiness).toHaveBeenCalledWith(biz);
-    expect(response.headers.get("location")).toBe(
-      `https://mykustomers.com/bookings/${id}#private-feedback`,
-    );
+    expect(response.headers.get("location")).toBe(`/bookings/${id}#private-feedback`);
     expect(response.headers.get("cache-control")).toContain("no-store");
   });
   it("does not restore revoked or missing notification authority", async () => {

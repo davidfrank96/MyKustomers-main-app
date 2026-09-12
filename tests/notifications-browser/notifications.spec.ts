@@ -95,7 +95,7 @@ test("pagination, preferences, mark-all-read and safe resolver work through the 
     { maxRedirects: 0 },
   );
   expect(resolved.status()).toBe(307);
-  expect(resolved.headers().location).toContain(
+  expect(resolved.headers().location).toBe(
     `/bookings/${fixture.bookingId}#customer-confirmation`,
   );
   expect(
