@@ -1,5 +1,18 @@
 # Design System
 
+## Secure sharing dialogs
+
+Feedback and customer confirmation opt into one presentation-only dialog body.
+Keep the existing Radix modal conventions, a 640px maximum width, 12px minimum
+outer gutters with dynamic-viewport/safe-area bounds, 44px close/copy targets,
+16px editable/read-only fields, the existing 1200-character limit and a real
+counter. Use one modal scroll region, a pale-green link card, equal action tiles,
+and a quiet full-width Close action. Five supported actions use five columns
+from 390px and a centered 3 + 2 grid below; native-share-unavailable devices retain
+the existing four fallback actions. Copy, channel composition, message state and
+evidence handlers remain owned by the existing caller. Amendment and add-on
+dialogs retain their previous presentation. Evidence: [SECURE_SHARE_MODAL](SECURE_SHARE_MODAL.md).
+
 ## Vendor social and email identity
 
 Use one 1200×630 social card with a centered 304px rounded-square logo frame,

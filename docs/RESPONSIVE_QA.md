@@ -1,5 +1,17 @@
 # Responsive QA
 
+## Secure-share modal matrix
+
+Feedback and confirmation share dialogs are audited at 320×568, 360×800,
+375×812, 390×844, 414×896, 430×932, 768×1024, 1024×768, 1280×800 and 1440×900.
+Checks require strict document `scrollWidth <= clientWidth`, bounded modal
+geometry, separated heading/X and URL/copy controls, equal readable action tiles,
+44px targets, reachable bottom Close, one modal scroller and locked background.
+Screenshots cover default and edited states at 320/390/430/768/1024, focus and a
+reduced-height keyboard simulation, plus the separate confirmation email panel.
+The shared layout changes no global overflow or dialog rules. Exact browser,
+alignment, polish and screenshot evidence: [SECURE_SHARE_MODAL](SECURE_SHARE_MODAL.md).
+
 ## Vendor social and email alignment
 
 The vendor pass tests a central 304px/280px social logo, three-line bounded names, full/scaled/square crops, and nine email types at 320/360/390/430/600/700px with fixed 52px identity and wrapping business names. Browser emulation and physical clients are distinct evidence. See [VENDOR_TRUST_BRANDING](VENDOR_TRUST_BRANDING.md).

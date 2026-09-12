@@ -1,5 +1,14 @@
 # Feedback Feature
 
+## Vendor share-dialog presentation
+
+The feedback panel opts into `SecureShareContent` after its existing action has
+returned a legitimately shareable raw URL. Feedback title, private message,
+link copy and existing evidence callback remain feedback-specific. The shared
+body receives values/handlers only and does not create, recover, fetch or persist
+capabilities. Existing versioned recovery, hash-only storage, eligibility and
+submitted/revoked states are unchanged. See `docs/SECURE_SHARE_MODAL.md`.
+
 ## Vendor trust branding
 
 Valid customer social metadata now uses the exact capability-owning vendor and

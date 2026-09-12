@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-09-12 — Feedback and confirmation share-modal presentation
+
+Applied the approved sharing layout to private feedback and customer confirmation:
+contextual header, editable message with the existing 1200-character counter,
+read-only link card and integrated copy, responsive channel tiles, and bottom
+Close. Only these two consumers opt into the shared presentation. Existing
+message/channel/clipboard handlers, separate token lifecycles, custom email,
+amendments/add-ons and the active scheduler remain unchanged. Added focused
+cross-context regressions and real booking-journey responsive/accessibility
+audits. Local validation and limitations: [SECURE_SHARE_MODAL](SECURE_SHARE_MODAL.md).
+
 ## 2026-09-12 — Vendor trust branding
 
 Implemented a larger shared vendor social card for confirmation, feedback, amendments and add-ons, retaining per-capability ownership/privacy checks. Shared transactional emails now use event-owned vendor PNG logos, stable 52px identity and initials fallback. Added bounded transparent-margin normalization, cached email-only logo projection, ownership/privacy tests and responsive render coverage. Release/physical-client verification remains pending; see [VENDOR_TRUST_BRANDING](VENDOR_TRUST_BRANDING.md).

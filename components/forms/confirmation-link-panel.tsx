@@ -390,6 +390,9 @@ export function ConfirmationLinkPanel({
             aria-label="Generated confirmation link"
           />
           <CustomerConfirmationShare
+            presentation="confirmation"
+            dialogDescription="Send the customer a secure link to review and confirm the booking details."
+            messageHelp="You can edit this message before sharing. The secure link will be included automatically."
             businessName={businessName}
             customerName={customerName}
             confirmationUrl={generatedUrl}

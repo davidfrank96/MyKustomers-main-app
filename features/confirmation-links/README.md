@@ -1,5 +1,14 @@
 # Confirmation Links Feature
 
+## Vendor share-dialog presentation
+
+The **Share with customer** path opts into `SecureShareContent` with the existing
+confirmation-specific message, transient raw URL and share-evidence callback.
+The body only presents values and calls the unchanged handlers. The surrounding
+Generate → Share → separate **Send confirmation to** custom-email editor →
+Regenerate/Revoke hierarchy remains intact. Reload still removes the raw URL
+and uses the existing regeneration guidance. See `docs/SECURE_SHARE_MODAL.md`.
+
 ## Vendor trust branding
 
 Valid customer social metadata now uses the exact capability-owning vendor and

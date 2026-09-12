@@ -8,6 +8,10 @@ import { hashConfirmationToken } from "../../features/confirmation-links/token";
 import { hashAddonToken } from "../../features/addons/token";
 import { hashFeedbackToken } from "../../features/feedback/token";
 import { normalizeCustomerContactEmail } from "../../features/customers/email";
+import {
+  auditSecureShareModal,
+  captureConfirmationPanel,
+} from "./support/secure-share-audit";
 
 function loadLocalEnv() {
   if (!fs.existsSync(".env")) {
@@ -290,7 +294,14 @@ test.describe("booking engine", () => {
     page,
     context,
   }, testInfo) => {
-    test.setTimeout(testInfo.project.name.includes("webkit") ? 360_000 : 180_000);
+    // Includes both ten-viewport share-dialog audits and their screenshot states.
+    test.setTimeout(testInfo.project.name.includes("webkit") ? 420_000 : 240_000);
+    await context.addInitScript(() => {
+      Object.defineProperty(navigator, "share", {
+        configurable: true,
+        value: async () => undefined,
+      });
+    });
     if (testInfo.project.name.includes("webkit")) {
       await context.addInitScript(() => {
         let clipboardValue = "";
@@ -848,6 +859,8 @@ test.describe("booking engine", () => {
     await expect(page.getByRole("button", { name: "Regenerate link" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Revoke link" })).toBeVisible();
 
+    if (testInfo.project.name === "chromium")
+      await captureConfirmationPanel(page, "before");
     await page.getByRole("button", { name: "Share with customer" }).click();
     await expect(
       page.getByRole("heading", { name: "Share with customer" }),
@@ -858,6 +871,7 @@ test.describe("booking engine", () => {
     await expect(page.getByLabel("Confirmation link", { exact: true })).toHaveValue(
       confirmationUrl,
     );
+    await auditSecureShareModal(page, "confirmation", testInfo.project.name);
     await page.getByLabel("Message").fill("Please review this secure order request.");
     await page.getByRole("button", { name: "Copy message" }).click();
     await expect(page.getByText("Message copied", { exact: true })).toBeVisible();
@@ -869,7 +883,13 @@ test.describe("booking engine", () => {
     expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
       confirmationUrl,
     );
-    await page.getByRole("button", { name: "Close dialog" }).click();
+    await page
+      .getByRole("dialog", { name: "Share with customer" })
+      .getByRole("button", { name: "Close", exact: true })
+      .last()
+      .click();
+    if (testInfo.project.name === "chromium")
+      await captureConfirmationPanel(page, "after");
 
     const previewResponse = await page.request.get(confirmationUrl, {
       headers: {
@@ -2270,12 +2290,17 @@ test.describe("booking engine", () => {
     await expect(page.getByLabel("Feedback link", { exact: true })).toHaveValue(
       feedbackUrl,
     );
+    await auditSecureShareModal(page, "feedback", testInfo.project.name);
     await page.getByRole("button", { name: "Copy message" }).click();
     await expect(page.getByText("Message copied", { exact: true })).toBeVisible();
     expect(await page.evaluate(() => navigator.clipboard.readText())).toContain(
       `\n\n${feedbackUrl}`,
     );
-    await page.getByRole("button", { name: "Close dialog" }).click();
+    await page
+      .getByRole("dialog", { name: "Share feedback request" })
+      .getByRole("button", { name: "Close", exact: true })
+      .last()
+      .click();
 
     const feedbackToken = new URL(feedbackUrl).pathname.split("/").at(-1) ?? "";
     const feedbackPreviewResponse = await page.request.get(feedbackUrl, {
