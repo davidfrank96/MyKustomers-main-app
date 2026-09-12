@@ -77,8 +77,8 @@ Status: IMPLEMENTED — RELEASE AND DEVICE VERIFICATION PENDING.
 | BM. Production Android Push Smoke | Not run. |
 | BN. Production iOS Push Smoke | Not run. |
 | BO. Sentry Result | Privacy unit tests pass; worker captures fixed messages only. Private VAPID and worker values are absent from all 136 built browser artifacts. No Production log/issue scan yet. |
-| BP. Cleanup | No cloud test users/businesses/customer emails created. Local SQL fixtures are rolled back or disposable clusters removed. Initial local cluster will be stopped after verification. |
-| BQ. Defects Found | Fixed Next internal-host same-origin rejection, asynchronous checkbox feedback, old no-worker test assumption, test Auth isolation, fixture projection/browser-interception differences, older psql output handling in the concurrency harness, Linux WebKit’s combined eight-viewport test budget, and the scheduler/worker timeout mismatch (202 acknowledgement with retained background work). |
+| BP. Cleanup | Existing E2E CI reaches the Production-backed project; controlled fixture email uses development delivery. Two verified cancelled-run fixture users/businesses removed. Local SQL fixtures rolled back/disposable clusters removed; initial server stopped. No real customer email sent for push testing. |
+| BQ. Defects Found | Fixed Next internal-host same-origin rejection, asynchronous checkbox feedback, old unit/E2E no-worker assumptions, test Auth isolation, fixture projection/browser-interception differences, older psql output handling in the concurrency harness, Linux WebKit’s combined eight-viewport test budget, and the scheduler/worker timeout mismatch (202 acknowledgement with retained background work). |
 | BR. Remaining Limitations | Physical Android/iOS lock-screen delivery/badging unavailable. Protected cloud security suite remains skipped. PR/CI/Preview/Production and scheduler activation still pending at this checkpoint. |
 | BS. Final Status | PWA NOTIFICATIONS + PRODUCT POSITIONING — RELEASE VERIFICATION PENDING |
 
@@ -88,7 +88,7 @@ The native PostgreSQL suite uses a disposable cluster with minimal domain-table
 dependencies. It verifies real PostgreSQL RLS, grants, triggers, constraints and
 leases, including concurrent sessions. The same complete foundation separately
 compiled against the actual configured Supabase schema in a rollback transaction
-before application. No test fixture data was inserted into Production.
+before application. The isolated notification suites insert no Production fixtures. The existing E2E workflow was found to use the Production-backed project; controlled cancelled-run fixture leftovers were removed.
 
 The browser suite runs real Next routes/components against loopback Auth/REST
 fixtures. Native permission/subscription APIs are explicitly mocked in enable/
