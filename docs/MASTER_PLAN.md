@@ -1,5 +1,9 @@
 # Master Plan
 
+## Vendor trust branding — 2026-09-12
+
+IMPLEMENTED — RELEASE VERIFICATION PENDING. One shared card makes the transaction-owning vendor dominant across all four customer capability families, including required feedback. The shared transactional email identity now projects the approved logo as stable PNG. No infrastructure or lifecycle change. See [VENDOR_TRUST_BRANDING](VENDOR_TRUST_BRANDING.md).
+
 ## My Profile Phase 2 and social previews — 2026-09-12
 
 IMPLEMENTED — RELEASE VERIFICATION PENDING. The approved hub reuses the existing

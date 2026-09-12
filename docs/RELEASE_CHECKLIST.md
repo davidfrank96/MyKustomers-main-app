@@ -1,5 +1,15 @@
 # Release Checklist
 
+## Vendor Trust Branding release gate — 2026-09-12
+
+The shared social card, four capability families and nine transactional email
+events are implemented. Record local and CI results, exact merge/Production SHA,
+fresh controlled confirmation/feedback smoke, and minimum approved-inbox email
+separately in [VENDOR_TRUST_BRANDING](VENDOR_TRUST_BRANDING.md). Metadata/browser
+rendering is not physical messaging/email-client verification. Keep the existing
+Preview credential exception and the notification scheduler active. Do not mark
+controlled email delivery or Sentry inspection passed without direct evidence.
+
 ## My Profile Phase 2 release gate — 2026-09-12
 
 The existing-feature audit and implementation are complete. Local production

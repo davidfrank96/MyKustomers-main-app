@@ -1,5 +1,9 @@
 # Product Specification
 
+## Vendor transaction identity
+
+A valid customer transaction link uses the owning business name/logo and a generic purpose. General public URLs retain My Kustomers branding. The same vendor logo appears inside business-scoped transactional email, with initials when unavailable and visible text when images are blocked. This is independent of sender avatars/BIMI. See [VENDOR_TRUST_BRANDING](VENDOR_TRUST_BRANDING.md).
+
 ## Status
 
 STATUS: PLANNED

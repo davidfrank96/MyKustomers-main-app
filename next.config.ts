@@ -35,7 +35,7 @@ const nextConfig: NextConfig = {
   async headers() {
     const headers = [
       {
-        source: "/social/confirmation/:path*",
+        source: "/social/:path*",
         headers: [
           { key: "Cache-Control", value: "private, no-store, max-age=0" },
           { key: "Referrer-Policy", value: "no-referrer" },

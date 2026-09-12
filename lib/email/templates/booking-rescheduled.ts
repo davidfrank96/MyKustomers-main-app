@@ -9,6 +9,7 @@ type BookingRescheduledEmailInput = {
   emailEventId: string;
   recipientEmail: string;
   businessName: string;
+  businessLogoPath?: string | null;
   bookingTitle: string;
   bookingReference: string;
   previousScheduledFor: string | null;
@@ -45,6 +46,7 @@ export function bookingRescheduledEmail(
     html: renderTransactionalEmailHtml({
       contextLabel: "Schedule update",
       businessName: input.businessName,
+      businessLogoPath: input.businessLogoPath,
       heading: "Your booking schedule has changed",
       introduction: [
         `${input.businessName} has proposed a new delivery schedule for your booking.`,

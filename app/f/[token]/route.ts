@@ -93,6 +93,11 @@ function pageShell({ metadata, body }: { metadata: FeedbackMetadata; body: strin
   <meta property="og:title" content="${escapeHtml(metadata.title)}">
   <meta property="og:description" content="${escapeHtml(metadata.description)}">
   <meta property="og:image" content="${escapeHtml(metadata.imageUrl)}">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="${escapeHtml(metadata.imageAlt)}">
+  <meta name="twitter:image:alt" content="${escapeHtml(metadata.imageAlt)}">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="${escapeHtml(metadata.title)}">
   <meta name="twitter:description" content="${escapeHtml(metadata.description)}">
@@ -217,7 +222,8 @@ function pageShell({ metadata, body }: { metadata: FeedbackMetadata; body: strin
       border: 1px solid var(--border);
       border-radius: .5rem;
       background: var(--primary-soft);
-      object-fit: cover;
+      object-fit: contain;
+      padding: 3px;
     }
     .business-fallback {
       display: grid;
@@ -633,7 +639,9 @@ export async function GET(request: NextRequest, context: FeedbackRouteContext) {
   const userAgent = request.headers.get("user-agent");
 
   if (isSocialPreviewCrawler(userAgent)) {
-    const metadata = buildFeedbackMetadata();
+    const metadata = buildFeedbackMetadata(
+      (await getPublicFeedbackMetadata(token)) ?? {},
+    );
     const body = `<div class="notice">
       <h1>Private feedback request</h1>
       <p>Open this secure link in your browser to share private feedback. No account is required.</p>
@@ -649,7 +657,7 @@ export async function GET(request: NextRequest, context: FeedbackRouteContext) {
   const booking = view.booking;
   const submitted =
     request.nextUrl.searchParams.get("submitted") === "1" || view.status === "submitted";
-  const metadata = buildFeedbackMetadata();
+  const metadata = buildFeedbackMetadata(publicMetadata ?? {});
   const businessLogoUrl = getBusinessLogoPublicUrl(publicMetadata?.businessLogoPath);
 
   if (booking) {

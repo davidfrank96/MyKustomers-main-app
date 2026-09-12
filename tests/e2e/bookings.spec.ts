@@ -112,9 +112,7 @@ async function expectJourneyConnectorAlignment(page: Page) {
         const connector = stage.querySelector<HTMLElement>(
           "[data-booking-journey-connector]",
         );
-        const marker = stage.querySelector<HTMLElement>(
-          "[data-booking-journey-marker]",
-        );
+        const marker = stage.querySelector<HTMLElement>("[data-booking-journey-marker]");
         const nextMarker = stages[index + 1]?.querySelector<HTMLElement>(
           "[data-booking-journey-marker]",
         );
@@ -127,12 +125,9 @@ async function expectJourneyConnectorAlignment(page: Page) {
 
         return {
           centerX: Math.abs(
-            connectorBox.x + connectorBox.width / 2 -
-              (markerBox.x + markerBox.width / 2),
+            connectorBox.x + connectorBox.width / 2 - (markerBox.x + markerBox.width / 2),
           ),
-          startY: Math.abs(
-            connectorBox.y - (markerBox.y + markerBox.height / 2),
-          ),
+          startY: Math.abs(connectorBox.y - (markerBox.y + markerBox.height / 2)),
           endY: Math.abs(
             connectorBox.bottom - (nextMarkerBox.y + nextMarkerBox.height / 2),
           ),
@@ -883,13 +878,17 @@ test.describe("booking engine", () => {
     });
     expect(previewResponse.ok()).toBe(true);
     const previewHtml = await previewResponse.text();
-    expect(previewHtml).toContain("Secure order confirmation");
-    expect(previewHtml).toContain("Confirm your booking with Phase 5 E2E Business");
-    expect(previewHtml).toContain("https://mykustomers.com/social/confirmation/");
-    expect(previewHtml).not.toContain(customerName);
-    expect(previewHtml).not.toContain(updatedTitle);
-    expect(previewHtml).not.toContain("₦45,000");
-    expect(previewHtml).not.toContain("Updated private E2E note.");
+    expect(previewHtml.includes("Secure order confirmation")).toBe(true);
+    expect(previewHtml.includes("Confirm your booking with Phase 5 E2E Business")).toBe(
+      true,
+    );
+    expect(previewHtml.includes("https://mykustomers.com/social/confirmation/")).toBe(
+      true,
+    );
+    expect(previewHtml.includes(customerName)).toBe(false);
+    expect(previewHtml.includes(updatedTitle)).toBe(false);
+    expect(previewHtml.includes("₦45,000")).toBe(false);
+    expect(previewHtml.includes("Updated private E2E note.")).toBe(false);
     const { data: linkAfterCrawler } = await admin
       .from("confirmation_links")
       .select("id, first_opened_at")
@@ -1353,11 +1352,15 @@ test.describe("booking engine", () => {
       },
     });
     const amendmentPreviewHtml = await amendmentPreview.text();
-    expect(amendmentPreviewHtml).toContain("Secure booking update | My Kustomers");
-    expect(amendmentPreviewHtml).not.toContain("Phase 5 E2E Business");
-    expect(amendmentPreviewHtml).not.toContain(customerName);
-    expect(amendmentPreviewHtml).not.toContain(amendedTitle);
-    expect(amendmentPreviewHtml).not.toContain("55000");
+    expect(
+      amendmentPreviewHtml.includes("Review a booking update from Phase 5 E2E Business"),
+    ).toBe(true);
+    expect(
+      amendmentPreviewHtml.includes("https://mykustomers.com/social/amendment/"),
+    ).toBe(true);
+    expect(amendmentPreviewHtml.includes(customerName)).toBe(false);
+    expect(amendmentPreviewHtml.includes(amendedTitle)).toBe(false);
+    expect(amendmentPreviewHtml.includes("55000")).toBe(false);
 
     const originalViewport = page.viewportSize();
     await page.goto(amendmentUrl);
@@ -1549,11 +1552,13 @@ test.describe("booking engine", () => {
     });
     expect(addonPreview.ok()).toBe(true);
     const addonPreviewHtml = await addonPreview.text();
-    expect(addonPreviewHtml).toContain("Secure booking addition | My Kustomers");
-    expect(addonPreviewHtml).not.toContain("Phase 5 E2E Business");
-    expect(addonPreviewHtml).not.toContain(customerName);
-    expect(addonPreviewHtml).not.toContain("24 Cupcakes");
-    expect(addonPreviewHtml).not.toContain("18000");
+    expect(
+      addonPreviewHtml.includes("Review a booking add-on from Phase 5 E2E Business"),
+    ).toBe(true);
+    expect(addonPreviewHtml.includes("https://mykustomers.com/social/addon/")).toBe(true);
+    expect(addonPreviewHtml.includes(customerName)).toBe(false);
+    expect(addonPreviewHtml.includes("24 Cupcakes")).toBe(false);
+    expect(addonPreviewHtml.includes("18000")).toBe(false);
     const { data: addonLinkAfterCrawler } = await admin
       .from("booking_addon_confirmation_links")
       .select("first_opened_at")
@@ -2042,9 +2047,7 @@ test.describe("booking engine", () => {
       page.locator('#operational-progress [data-stage="cancelled"]'),
     ).toHaveAttribute("data-state", "pending");
     await page.reload();
-    await expect(
-      page.getByRole("dialog", { name: "Booking complete" }),
-    ).toHaveCount(0);
+    await expect(page.getByRole("dialog", { name: "Booking complete" })).toHaveCount(0);
     if (testInfo.project.name === "chromium") {
       const progressedViewport = page.viewportSize();
       const progressedScreenshotChrome = await page.addStyleTag({
@@ -2282,14 +2285,18 @@ test.describe("booking engine", () => {
     });
     expect(feedbackPreviewResponse.ok()).toBe(true);
     const feedbackPreviewHtml = await feedbackPreviewResponse.text();
-    expect(feedbackPreviewHtml).toContain("Private customer feedback | My Kustomers");
-    expect(feedbackPreviewHtml).toContain(
-      "Open this private link to share feedback about a completed booking.",
+    expect(feedbackPreviewHtml.includes("Share feedback with Phase 5 E2E Business")).toBe(
+      true,
     );
-    expect(feedbackPreviewHtml).not.toContain("Phase 5 E2E Business");
-    expect(feedbackPreviewHtml).not.toContain(customerName);
-    expect(feedbackPreviewHtml).not.toContain(amendedTitle);
-    expect(feedbackPreviewHtml).not.toContain("MC-");
+    expect(
+      feedbackPreviewHtml.includes("Tell Phase 5 E2E Business about your experience."),
+    ).toBe(true);
+    expect(feedbackPreviewHtml.includes("https://mykustomers.com/social/feedback/")).toBe(
+      true,
+    );
+    expect(feedbackPreviewHtml.includes(customerName)).toBe(false);
+    expect(feedbackPreviewHtml.includes(amendedTitle)).toBe(false);
+    expect(feedbackPreviewHtml.includes("MC-")).toBe(false);
     const { data: feedbackLinkAfterCrawler } = await admin
       .from("feedback_links")
       .select("id, first_opened_at")
@@ -2308,7 +2315,7 @@ test.describe("booking engine", () => {
     ).toBeVisible();
     await expect(feedbackPage.locator('meta[property="og:title"]')).toHaveAttribute(
       "content",
-      "Private customer feedback | My Kustomers",
+      "Share feedback with Phase 5 E2E Business",
     );
     await expect(feedbackPage.getByText(amendedTitle)).toBeVisible();
     await expect(feedbackPage.getByText("Updated private E2E note.")).toHaveCount(0);
@@ -2477,9 +2484,7 @@ test.describe("booking engine", () => {
     await expect(
       page.getByRole("heading", { name: "Feedback received", exact: true }),
     ).toBeVisible();
-    await expect(
-      page.getByRole("dialog", { name: "Booking complete" }),
-    ).toHaveCount(0);
+    await expect(page.getByRole("dialog", { name: "Booking complete" })).toHaveCount(0);
     await expect(page.getByText("The booking journey is complete.")).toBeVisible();
     if (testInfo.project.name === "chromium") {
       await page.setViewportSize({ width: 390, height: 844 });

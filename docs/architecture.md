@@ -1,5 +1,9 @@
 # Architecture
 
+## Shared vendor brand projections
+
+Capability-specific server resolvers expose only record preview ID, business name and owned logo path to a shared social-card renderer. Existing UUIDs are read-only brand locators, never action credentials. Email dispatch resolves optional logo_path from the claimed event tenant and renders a fixed vendor identity through the existing shell. A public PNG projection caches only approved logo artwork for at most one hour; capability cards remain no-store. See [VENDOR_TRUST_BRANDING](VENDOR_TRUST_BRANDING.md).
+
 ## Profile hub and confirmation social images — 2026-09-12
 
 The server-rendered hub fetches only current business identity. Its semantic links

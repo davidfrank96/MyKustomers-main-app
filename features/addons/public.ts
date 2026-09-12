@@ -51,41 +51,10 @@ export async function getPublicAddonView(token: string): Promise<PublicAddonView
   return error ? { status: "unavailable" } : parseView(data);
 }
 
-export async function getPublicAddonMetadata(token: string) {
-  if (
-    !canUseServiceRoleClient() ||
-    !isPlausibleAddonToken(token)
-  ) {
-    return null;
-  }
-  const tokenHash = hashAddonToken(token);
-  if (!(await consumeAddonRateLimit("addon_metadata", tokenHash))) return null;
-  const supabase = createServiceRoleClient();
-  const { data: link } = await supabase
-    .from("booking_addon_confirmation_links")
-    .select("business_id, expires_at, used_at, revoked_at")
-    .eq("token_hash", tokenHash)
-    .maybeSingle();
-  if (
-    !link ||
-    link.revoked_at ||
-    (!link.used_at && new Date(link.expires_at).getTime() <= Date.now())
-  ) {
-    return null;
-  }
-  const { data: business } = await supabase
-    .from("businesses")
-    .select("name, logo_path")
-    .eq("id", link.business_id)
-    .maybeSingle();
-  return business ?? null;
-}
+export { getPublicAddonMetadata } from "./social";
 
 export async function recordPublicAddonOpen(token: string) {
-  if (
-    !canUseServiceRoleClient() ||
-    !isPlausibleAddonToken(token)
-  ) {
+  if (!canUseServiceRoleClient() || !isPlausibleAddonToken(token)) {
     return;
   }
   const tokenHash = hashAddonToken(token);

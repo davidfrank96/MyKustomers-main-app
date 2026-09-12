@@ -1,5 +1,16 @@
 # Design System
 
+## Vendor social and email identity
+
+Use one 1200×630 social card with a centered 304px rounded-square logo frame,
+280px contained artwork, and a 570px text safe region. Business names use
+46/40/32px type and at most three lines with an explicit ellipsis. Preserve
+transparent artwork and vendor initials fallback. All four customer capability
+families share this composition with a restrained purpose label. Email uses
+a fixed 52px rounded-square PNG/initial beside independent wrapping text,
+with table-based alignment and stable blocked-image dimensions. See
+[VENDOR_TRUST_BRANDING](VENDOR_TRUST_BRANDING.md) for the render matrix.
+
 ## My Profile Phase 2 integration
 
 The approved hub's connected rows use a full-row semantic Link inside each list

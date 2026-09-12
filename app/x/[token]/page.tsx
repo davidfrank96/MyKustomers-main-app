@@ -17,6 +17,8 @@ import { buildPublicAddonMetadata } from "@/features/addons/metadata";
 import type { PublicAddon } from "@/features/addons/public-types";
 import { isSocialPreviewCrawler } from "@/features/confirmation-links/crawlers";
 
+import { getPublicAddonMetadata } from "@/features/addons/social";
+
 export const dynamic = "force-dynamic";
 
 type AddonPageProps = {
@@ -24,7 +26,10 @@ type AddonPageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 };
 
-export const metadata: Metadata = buildPublicAddonMetadata();
+export async function generateMetadata({ params }: AddonPageProps): Promise<Metadata> {
+  const { token } = await params;
+  return buildPublicAddonMetadata((await getPublicAddonMetadata(token)) ?? {});
+}
 
 function formatDate(value: string | null) {
   if (!value) return "Not scheduled";

@@ -1,5 +1,9 @@
 # Security
 
+## Vendor branding projection boundary
+
+The four customer capability families now use separate minimal read-only resolvers and one shared social renderer. Feedback metadata no longer consumes a rate-limit bucket; recognized crawlers perform zero writes. State/tenant/purpose checks remain authoritative, no private content is read into branding, and every social image rechecks state without caching. Email logo URLs contain only a public business UUID; a bounded event-tenant lookup validates the exact owned path. Only that public PNG is cached for one hour. No Auth, RLS, capability action, provider or scheduler authority changes. Full policy: [VENDOR_TRUST_BRANDING](VENDOR_TRUST_BRANDING.md).
+
 ## Notification security boundaries — 2026-09-12
 
 The approved foundation is applied. Inbox reads require own user, active business

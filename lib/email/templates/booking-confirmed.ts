@@ -11,6 +11,7 @@ type BookingConfirmedEmailInput = {
   emailEventId: string;
   recipientEmail: string;
   businessName: string;
+  businessLogoPath?: string | null;
   bookingTitle: string;
   bookingReference: string;
   scheduledFor: string | null;
@@ -63,6 +64,7 @@ export function bookingConfirmedEmail(
     html: renderTransactionalEmailHtml({
       contextLabel: "Booking confirmation",
       businessName: input.businessName,
+      businessLogoPath: input.businessLogoPath,
       heading: "Your booking is confirmed",
       introduction: [
         `Thanks for confirming your booking with ${input.businessName}.`,

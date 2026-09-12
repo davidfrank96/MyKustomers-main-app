@@ -136,7 +136,6 @@ describe("Phase 8 feedback domain", () => {
 
   it("builds generic feedback metadata without tenant, booking, or token details", () => {
     const metadata = buildFeedbackMetadata({
-      token: "token with spaces",
       businessName: "Divine Cakes",
     });
 

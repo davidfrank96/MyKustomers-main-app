@@ -37,8 +37,10 @@ All implemented booking lifecycle templates use one structured, email-safe HTML
 shell with a 600px container, conservative inline styles, mobile stacking,
 plain-text equivalents, escaped customer-facing values, and restrained dark-mode
 overrides. The shell presents My Kustomers and business identity consistently.
-Current template inputs do not include an approved public business-logo URL, so
-the identity block uses a business-name initial without adding storage reads.
+Template inputs include the event-owned canonical business-logo path. The shared
+52px identity uses a stable public PNG projection with one-hour caching, or the
+existing business initial when unavailable. A bounded optional tenant lookup
+never changes dispatch authority. See `docs/VENDOR_TRUST_BRANDING.md`.
 Subjects, recipients, idempotency, delivery state, and provider selection remain
 outside the presentation helper.
 

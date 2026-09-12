@@ -1596,3 +1596,22 @@ as valid confirmation metadata and grants no customer view/mutation authority.
 External preview caches remain outside application cache control. The removed
 platform fallback is a proved code path; a physical Android client's prior image
 selection/cache choice cannot be established from source code alone.
+
+## ADR-067 - Shared transaction-owned vendor projections
+
+Status: Accepted within the user-approved vendor trust branding pass
+
+Date: 2026-09-12
+
+Extend ADR-066's read-only confirmation UUID projection to feedback, amendment
+and add-on records with their own purpose/state/tenant checks. Keep one shared
+1200×630 renderer and no competing platform image for valid vendor metadata.
+General public pages remain platform-branded. Pure metadata/image reads perform
+no rate-limit or domain writes; action boundaries are unchanged.
+
+The transactional email shell uses a 52px vendor PNG derived from the claimed
+event's canonical business logo. Its non-expiring canonical URL projects only
+public artwork, cached for one hour; capability images remain no-store. This
+reuses Sharp without duplicate assets, migrations, dependencies or provider/DNS
+changes. No-logo and blocked-image states retain text identity. See
+[VENDOR_TRUST_BRANDING](VENDOR_TRUST_BRANDING.md) for exact verification limits.

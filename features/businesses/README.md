@@ -1,5 +1,14 @@
 # Businesses Feature
 
+## Public vendor brand projections
+
+The existing canonical logo now feeds one shared 1200×630 social card and a
+208px email-safe PNG. Capability resolvers prove their own booking/business
+relationship; email resolves the claimed event's business. Projection inputs are
+bounded and read-only, with no new stored image or schema. See
+[Vendor Trust Branding](../../docs/VENDOR_TRUST_BRANDING.md) for ownership,
+transparent-margin normalization, cache policy and release verification limits.
+
 ## My Profile hub and existing editor — 2026-09-12
 
 `/business` renders MyProfileHub from the unchanged getCurrentBusinessProfile

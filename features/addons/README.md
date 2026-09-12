@@ -1,5 +1,12 @@
 # Booking Add-ons Feature
 
+## Vendor trust branding
+
+Customer social metadata uses the exact link/add-on/booking business and one
+shared 1200×630 PNG. Existing UUIDs are read-only brand locators; state/tenant
+checks and private action boundaries remain authoritative. The shared email
+identity also uses the event-owned vendor logo. See `docs/VENDOR_TRUST_BRANDING.md`.
+
 Phase C owns linked new scope on an existing customer-confirmed booking.
 
 ## Domain Rules

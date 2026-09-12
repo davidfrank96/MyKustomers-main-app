@@ -1,5 +1,9 @@
 # Transactional Email
 
+## Vendor image in message body
+
+Every implemented vendor-scoped template now receives the exact claimed event business logo through the existing shared shell. The 52px identity uses a canonical cached PNG, meaningful alt, visible business text and initials fallback. Brevo/Resend, recipients, event/attempt state, retries, webhook and feedback associations are unchanged; Auth/system mail and BIMI are excluded. See [VENDOR_TRUST_BRANDING](VENDOR_TRUST_BRANDING.md) for the nine-event inventory, PNG strategy and verification.
+
 ## Provider Delivery Evidence
 
 PRODUCTION ACTIVE — CONTROLLED PROVIDER VERIFICATION PENDING. Future Brevo sends include

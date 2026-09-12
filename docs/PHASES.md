@@ -1,5 +1,9 @@
 # Phases
 
+## Vendor trust branding — 2026-09-12
+
+IMPLEMENTED — RELEASE VERIFICATION PENDING. Four capability families and nine existing transactional email events share vendor identity. Final local, CI, Production and physical-client evidence are tracked separately in [VENDOR_TRUST_BRANDING](VENDOR_TRUST_BRANDING.md).
+
 ## Status Labels
 
 - PLANNED: Specified but not yet implemented.

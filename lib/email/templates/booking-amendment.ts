@@ -15,6 +15,7 @@ type AmendmentEmailInput = {
   emailEventId: string;
   recipientEmail: string;
   businessName: string;
+  businessLogoPath?: string | null;
   bookingReference: string;
   reason: string;
   changedFields: AmendableBookingField[];
@@ -86,6 +87,7 @@ export function bookingAmendmentRequestedEmail(
     html: renderTransactionalEmailHtml({
       contextLabel: "Booking update",
       businessName: input.businessName,
+      businessLogoPath: input.businessLogoPath,
       heading: "Review changes to your booking",
       introduction: [
         `${input.businessName} has proposed changes that need your confirmation.`,
@@ -126,6 +128,7 @@ export function bookingAmendmentConfirmedEmail(
     html: renderTransactionalEmailHtml({
       contextLabel: "Booking update confirmed",
       businessName: input.businessName,
+      businessLogoPath: input.businessLogoPath,
       heading: "Booking changes confirmed",
       introduction: [
         "The proposed changes are now part of your current booking agreement.",

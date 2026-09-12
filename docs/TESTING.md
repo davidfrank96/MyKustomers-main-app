@@ -1,5 +1,9 @@
 # Testing
 
+## Vendor trust branding coverage
+
+New resolver, image-boundary, nine-template and outbox-isolation tests cover the shared vendor pass. The existing Profile and Social Previews browser job also covers all capability families, five crawler signatures, square/circular/wide/tall/transparent logos, full and cropped thumbnails, and 320–700px email renders with loaded/blocked images. Existing cloud booking journeys assert vendor metadata while preserving private-data and lifecycle checks. Exact counts and remaining gates: [VENDOR_TRUST_BRANDING](VENDOR_TRUST_BRANDING.md).
+
 ## My Profile Phase 2 and social previews
 
 Run `npx playwright test --config playwright.profile-ui.config.ts`. It builds and

@@ -1,5 +1,9 @@
 # My Kustomers
 
+## Vendor trust branding — 2026-09-12
+
+The approved vendor branding pass is implemented with release verification pending. Customer confirmation, feedback, amendment and add-on previews share a larger business-owned card. All nine existing transactional email types use the vendor logo with initials fallback. See [VENDOR_TRUST_BRANDING](docs/VENDOR_TRUST_BRANDING.md) for scope and evidence.
+
 My Profile Phase 2 is implemented; release verification is in progress. The
 approved hub links to the existing business editors and notification preferences.
 Five missing settings features remain static. Confirmation previews now use one

@@ -22,7 +22,7 @@ const deliveredTemplate = fs.readFileSync(
   "utf8",
 );
 const publicFeedback = fs.readFileSync(
-  path.join(process.cwd(), "features/feedback/public.ts"),
+  path.join(process.cwd(), "features/feedback/social.ts"),
   "utf8",
 );
 

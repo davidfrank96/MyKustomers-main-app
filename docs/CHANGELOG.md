@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-12 — Vendor trust branding
+
+Implemented a larger shared vendor social card for confirmation, feedback, amendments and add-ons, retaining per-capability ownership/privacy checks. Shared transactional emails now use event-owned vendor PNG logos, stable 52px identity and initials fallback. Added bounded transparent-margin normalization, cached email-only logo projection, ownership/privacy tests and responsive render coverage. Release/physical-client verification remains pending; see [VENDOR_TRUST_BRANDING](VENDOR_TRUST_BRANDING.md).
+
 ## 2026-09-12 — My Profile Phase 2 and booking-owned social previews
 
 - Connect the approved Profile hub to the existing business form sections and
