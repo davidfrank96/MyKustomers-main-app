@@ -1557,14 +1557,18 @@ a minute cron, so proposed Supabase pg_cron/pg_net activation is a separate
 approval with disclosed usage, not an implicit paid upgrade.
 
 Consequences: The exact approved foundation has been applied and catalog checked.
-Client/server integration and Production credentials are implemented. Scheduler
-activation follows receiver deployment; physical-device evidence remains pending.
+Client/server integration and Production credentials are deployed. The separate
+scheduler migration is applied and its minute job is active, with scheduled HTTP
+202 responses and completed worker runs verified. Physical-device evidence
+remains pending. Supabase-managed net grants could not be revoked by tenant SQL;
+Data API exclusion, non-login API roles and private wakeup execution boundaries
+were verified instead. See NOTIFICATIONS.md for this platform limitation.
 The approval report is the historical gate record; current results are in
 NOTIFICATIONS_RELEASE_REPORT.md.
 
 ## ADR-065 - Service Businesses And Growing Teams As Master Audience
 
-Status: Accepted; implemented locally, release pending
+Status: Accepted; deployed and verified in Production
 
 Date: 2026-09-12
 

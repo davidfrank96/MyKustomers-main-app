@@ -1,4 +1,5 @@
 // @vitest-environment node
+vi.mock("server-only", () => ({}));
 import fs from "node:fs";
 import vm from "node:vm";
 import { describe, expect, it, vi } from "vitest";
@@ -7,7 +8,7 @@ import {
   retryAfterSeconds,
   validWorkerAuthorization,
 } from "@/features/notifications/delivery";
-import { subscriptionSchema } from "@/features/notifications/contracts";
+import { subscriptionSchema } from "@/features/notifications/validation";
 const id = "11111111-1111-4111-8111-111111111111";
 function worker() {
   const events: Record<string, (event: Record<string, unknown>) => void> = {};

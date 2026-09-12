@@ -9,11 +9,14 @@
   Catalog: five RLS tables, six triggers, own read/read_at grants, no endpoint/key
   SELECT, service-only delivery RPCs, zero backfilled notifications, 21 existing
   overdue receipts. No historical migration or migration ledger was rewritten.
-- `20260912002523_pwa_notification_scheduler_activation.sql`: **APPROVED; ACTIVATION
-  PENDING RECEIVER DEPLOYMENT**. SHA-256:
+- `20260912002523_pwa_notification_scheduler_activation.sql`: **APPLIED; ACTIVE** after
+  authenticated Production receiver verification. pg_cron 1.6.4 and pg_net 0.20.4
+  verified; one active `myk-notifications` job at `* * * * *`, successful scheduled
+  HTTP 202 responses and completed worker logs. Private invoke access denied; Supabase-managed net grants remain, with API isolation verified. SHA-256:
   `e9e01079286cfda24a165c9bebb24d2faf6a507642a826b31f67d09fd291a23f`.
-  Separate transaction: pg_cron/pg_net, restricted net ACLs, Vault-backed wakeup,
-  one minute job. Never batch it with the foundation or apply from PR CI.
+  Separate transaction: pg_cron/pg_net, Vault-backed wakeup and one minute job.
+  The attempted net ACL revocations are no-ops under Supabase ownership;
+  verified protection is Data API schema exclusion and the private function ACL. Never batch it with the foundation or apply from PR CI.
 
 The SQL file comments preserve their original approval-stage wording and hashes;
 this ledger records actual status. See [NOTIFICATIONS](NOTIFICATIONS.md), the

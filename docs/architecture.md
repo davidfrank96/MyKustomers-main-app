@@ -12,6 +12,14 @@ outside current-business layout gating and recheck the user's RLS before selecti
 the target business. No client timer generates events. Existing resume and file
 picker behavior remain intact. See [NOTIFICATIONS](NOTIFICATIONS.md).
 
+The vendor route-group layout still authenticates and resolves the workspace on
+the server. Its interactive `DashboardShell` is an explicit client entry, with
+server-rendered page children passed through and only the displayed account and
+business-switcher fields serialized. This keeps the dashboard's notification and
+menu chunks out of the public homepage's shared Link/Image client references.
+Notification Zod validation lives in a server-only module; browser contracts
+contain only types, constants and display copy.
+
 ## Provider Delivery Evidence Boundary
 
 The durable outbox and append-only provider evidence are independent. A logical
@@ -69,7 +77,11 @@ layout and is not treated as a vendor membership.
 GitHub Actions is the repository CI boundary. Pull requests into and pushes to
 `main` run independent quality, test, build, dependency, and browser jobs with
 read-only repository permission. E2E owns its local Next.js server and may use
-only a dedicated non-production Supabase project. Live runtime security is a
+only a dedicated non-production Supabase project. The 2026-09-12 release audit
+found that the existing E2E credentials actually target the Production-backed
+project; moving those credentials to an isolated project remains an operational
+follow-up. The new notification browser/database suites use local fixtures only.
+Live runtime security is a
 separate protected-environment job. GitHub Actions does not deploy or apply
 database migrations. Separately, Vercel Git integration deploys merged `main`
 commits to canonical `mykustomers.com`; `www` redirects to the apex and the

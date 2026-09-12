@@ -16,6 +16,13 @@ sign-out and offers a visible retry on cleanup failure. Local PostgreSQL tests,
 API tests and browser fixture tests provide separate layers of evidence; physical
 phone delivery is still unverified. See [NOTIFICATIONS](NOTIFICATIONS.md).
 
+The minute scheduler is active and its dedicated Vault-backed worker is private.
+Supabase owns the net objects, so tenant SQL cannot remove their PUBLIC grants.
+Client access is blocked by Data API schema exclusion (anon/authenticated HTTP
+406 verified), non-login API roles, no exposed net/Vault wrapper, and denied
+execution of the private wakeup function. GraphQL is disabled. See the managed
+permission limitation and re-verification requirements in NOTIFICATIONS.md.
+
 ## Email recovery invariants
 
 Email transport does not authorize or invalidate customer confirmation. A valid

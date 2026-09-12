@@ -1,11 +1,9 @@
+import { notificationTypeSchema } from "@/features/notifications/validation";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabasePublicEnvConfigured } from "@/lib/config/public-env";
 import { setSelectedBusinessId } from "@/lib/auth/current-business";
-import {
-  notificationCopy,
-  notificationTypeSchema,
-} from "@/features/notifications/contracts";
+import { notificationCopy } from "@/features/notifications/contracts";
 export async function GET(
   _request: Request,
   context: { params: Promise<{ notificationId: string }> },

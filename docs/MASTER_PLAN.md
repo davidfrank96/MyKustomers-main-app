@@ -2,12 +2,12 @@
 
 ## PWA notifications and positioning — 2026-09-12
 
-IMPLEMENTED — RELEASE AND DEVICE VERIFICATION PENDING. The approved foundation
-is applied to the configured My Kustomers database. The branch contains a durable
+IMPLEMENTED — DEVICE VERIFICATION PENDING. Both approved migrations are
+applied to the configured My Kustomers database. Production contains a durable
 notification inbox, optional Web Push, three preferences, safe business-aware
 booking links, and a push-only service worker. VAPID and worker credentials are
-configured for Production; scheduler activation follows the deployed receiver.
-The broader service-business positioning is implemented in the same branch.
+configured for Production. The minute scheduler is active; HTTP acknowledgements
+and worker completion counters are verified. Broader positioning is also deployed.
 See [NOTIFICATIONS](NOTIFICATIONS.md), [PRODUCT_POSITIONING](PRODUCT_POSITIONING.md)
 and [the release report](NOTIFICATIONS_RELEASE_REPORT.md) for evidence and limits.
 

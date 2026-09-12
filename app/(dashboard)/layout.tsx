@@ -18,7 +18,19 @@ export default async function DashboardLayout({ children }: DashboardLayoutProps
   const { user, businessContext } = await requireVendorWorkspace("/dashboard");
 
   return (
-    <DashboardShell user={user} businessContext={businessContext}>
+    <DashboardShell
+      user={{
+        email: user.email,
+        displayName:
+          typeof user.userMetadata.display_name === "string"
+            ? user.userMetadata.display_name
+            : undefined,
+      }}
+      businessContext={{
+        businesses: businessContext.businesses,
+        currentBusiness: businessContext.currentBusiness,
+      }}
+    >
       {children}
     </DashboardShell>
   );

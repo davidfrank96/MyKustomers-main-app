@@ -1,5 +1,14 @@
 # Testing
 
+The notification release follow-up also verifies the explicit client boundary of
+the vendor shell: authentication remains in its server layout, while the public
+homepage no longer references dashboard chunks. Compare decoded JavaScript sizes
+from each deployment's initial HTML and fetched script responses; do not compare
+compressed transfer bytes with decoded resource bytes. The local optimized build
+loads 15 scripts / 909,160 bytes versus the pre-feature deployment's 15 scripts /
+914,228 bytes. Full units, notification browser journeys and the existing PWA
+reliability journey cover the accompanying validation-module and shell changes.
+
 ## Notification and positioning verification — 2026-09-12
 
 The notification suite has three independent layers:
@@ -16,6 +25,11 @@ The notification suite has three independent layers:
   eight widths, long context, pagination, preferences, read count, empty/errors,
   keyboard focus, install guidance and explicitly mocked permission/subscription
   APIs. These mocks are not proof of real Supabase Auth or physical push delivery.
+
+Release CI passed 945 unit/integration/security tests (24 skipped), all 12
+notification browser journeys and the native PostgreSQL suite. Production worker
+authentication, scheduled 202 acknowledgements and completion counters were
+verified; see the release report for deployment evidence.
 
 The existing homepage/SEO suite checks the broader positioning. Static SQL tests
 remain useful contracts, not substitutes for database execution. The protected
