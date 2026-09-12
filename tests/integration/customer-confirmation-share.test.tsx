@@ -9,6 +9,7 @@ function renderShare(recordShare = vi.fn(async () => undefined)) {
   render(
     <ToastProvider>
       <CustomerConfirmationShare
+        presentation="confirmation"
         businessName="Bella Cakes"
         customerName="David Okafor"
         confirmationUrl={confirmationUrl}

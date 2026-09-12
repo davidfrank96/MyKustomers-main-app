@@ -240,6 +240,7 @@ export function FeedbackLinkPanel({
             aria-label="Generated feedback link"
           />
           <CustomerConfirmationShare
+            presentation="feedback"
             businessName={businessName}
             customerName={customerName}
             confirmationUrl={generatedUrl}
@@ -250,7 +251,7 @@ export function FeedbackLinkPanel({
             dialogTitle="Share feedback request"
             dialogDescription="Send a private feedback request with a secure link that does not require an account."
             linkLabel="Feedback link"
-            messageHelp="You can edit this message before sharing. The secure feedback link will be included automatically."
+            messageHelp="You can edit this message before sharing. The secure link will be included automatically."
             idPrefix="feedback"
             triggerClassName="h-11 w-full min-w-0 gap-2 whitespace-nowrap px-3 text-sm sm:w-full"
           />

@@ -11,6 +11,7 @@ const feedbackUrl = "https://app.example.com/f/controlled-feedback-token";
 function renderFeedbackShare(recordShare = vi.fn(async () => undefined)) {
   render(
     <CustomerConfirmationShare
+      presentation="feedback"
       businessName="Bella Cakes"
       customerName="David Okafor"
       confirmationUrl={feedbackUrl}

@@ -28,6 +28,7 @@ import {
   type ConfirmationShareMethod,
 } from "@/features/confirmation-links/share";
 import { cn } from "@/lib/utils/cn";
+import { SecureShareContent, type SecureSharePresentation } from "./secure-share-content";
 
 type CustomerConfirmationShareProps = {
   businessName: string;
@@ -43,6 +44,7 @@ type CustomerConfirmationShareProps = {
   messageHelp?: string;
   idPrefix?: string;
   triggerClassName?: string;
+  presentation?: SecureSharePresentation;
 };
 
 async function writeToClipboard(value: string) {
@@ -93,6 +95,7 @@ export function CustomerConfirmationShare({
   messageHelp = "You can edit this message before sharing. The secure confirmation link will be included automatically.",
   idPrefix = "confirmation",
   triggerClassName,
+  presentation,
 }: CustomerConfirmationShareProps) {
   const initialMessage =
     initialMessageOverride ??
@@ -190,86 +193,117 @@ export function CustomerConfirmationShare({
             {triggerLabel}
           </Button>
         </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{dialogTitle}</DialogTitle>
-            <DialogDescription>{dialogDescription}</DialogDescription>
-          </DialogHeader>
+        {presentation ? (
+          <SecureShareContent
+            variant={presentation}
+            title={dialogTitle}
+            description={dialogDescription}
+            message={message}
+            messageHelp={messageHelp}
+            maxMessageLength={1200}
+            linkLabel={linkLabel}
+            secureUrl={confirmationUrl}
+            idPrefix={idPrefix}
+            nativeShareAvailable={nativeShareAvailable}
+            onMessageChange={setMessage}
+            onWhatsApp={() =>
+              openShareDestination(
+                "whatsapp",
+                buildWhatsAppShareUrl(message, confirmationUrl),
+              )
+            }
+            onTelegram={() =>
+              openShareDestination(
+                "telegram",
+                buildTelegramShareUrl(message, confirmationUrl),
+              )
+            }
+            onNativeShare={shareNatively}
+            onCopyMessage={copyMessage}
+            onCopyLink={copyLink}
+          />
+        ) : (
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{dialogTitle}</DialogTitle>
+              <DialogDescription>{dialogDescription}</DialogDescription>
+            </DialogHeader>
 
-          <div className="mt-5 space-y-5">
-            <div className="space-y-2">
-              <label
-                htmlFor={`${idPrefix}-share-message`}
-                className="text-sm font-medium"
-              >
-                Message
-              </label>
-              <Textarea
-                id={`${idPrefix}-share-message`}
-                value={message}
-                maxLength={1200}
-                onChange={(event) => setMessage(event.target.value)}
-                className="min-h-36 resize-y"
-              />
-              <p className="text-xs leading-5 text-muted-foreground">{messageHelp}</p>
-            </div>
+            <div className="mt-5 space-y-5">
+              <div className="space-y-2">
+                <label
+                  htmlFor={`${idPrefix}-share-message`}
+                  className="text-sm font-medium"
+                >
+                  Message
+                </label>
+                <Textarea
+                  id={`${idPrefix}-share-message`}
+                  value={message}
+                  maxLength={1200}
+                  onChange={(event) => setMessage(event.target.value)}
+                  className="min-h-36 resize-y"
+                />
+                <p className="text-xs leading-5 text-muted-foreground">{messageHelp}</p>
+              </div>
 
-            <div className="space-y-2">
-              <label htmlFor={`${idPrefix}-share-link`} className="text-sm font-medium">
-                {linkLabel}
-              </label>
-              <input
-                id={`${idPrefix}-share-link`}
-                readOnly
-                value={confirmationUrl}
-                className="min-h-11 w-full min-w-0 rounded-md border border-input bg-muted px-3 py-2 text-sm text-muted-foreground"
-              />
-            </div>
+              <div className="space-y-2">
+                <label htmlFor={`${idPrefix}-share-link`} className="text-sm font-medium">
+                  {linkLabel}
+                </label>
+                <input
+                  id={`${idPrefix}-share-link`}
+                  readOnly
+                  value={confirmationUrl}
+                  className="min-h-11 w-full min-w-0 rounded-md border border-input bg-muted px-3 py-2 text-sm text-muted-foreground"
+                />
+              </div>
 
-            <div className="grid gap-2 sm:grid-cols-2">
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() =>
-                  openShareDestination(
-                    "whatsapp",
-                    buildWhatsAppShareUrl(message, confirmationUrl),
-                  )
-                }
-              >
-                <MessageCircle className="size-4" aria-hidden="true" />
-                WhatsApp
-              </Button>
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() =>
-                  openShareDestination(
-                    "telegram",
-                    buildTelegramShareUrl(message, confirmationUrl),
-                  )
-                }
-              >
-                <Send className="size-4" aria-hidden="true" />
-                Telegram
-              </Button>
-              {nativeShareAvailable ? (
-                <Button type="button" variant="secondary" onClick={shareNatively}>
-                  <ExternalLink className="size-4" aria-hidden="true" />
-                  Share...
+              <div className="grid gap-2 sm:grid-cols-2">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() =>
+                    openShareDestination(
+                      "whatsapp",
+                      buildWhatsAppShareUrl(message, confirmationUrl),
+                    )
+                  }
+                >
+                  <MessageCircle className="size-4" aria-hidden="true" />
+                  WhatsApp
                 </Button>
-              ) : null}
-              <Button type="button" variant="secondary" onClick={copyMessage}>
-                <Copy className="size-4" aria-hidden="true" />
-                Copy message
-              </Button>
-              <Button type="button" variant="ghost" onClick={copyLink}>
-                <Check className="size-4" aria-hidden="true" />
-                Copy link
-              </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() =>
+                    openShareDestination(
+                      "telegram",
+                      buildTelegramShareUrl(message, confirmationUrl),
+                    )
+                  }
+                >
+                  <Send className="size-4" aria-hidden="true" />
+                  Telegram
+                </Button>
+                {nativeShareAvailable ? (
+                  <Button type="button" variant="secondary" onClick={shareNatively}>
+                    <ExternalLink className="size-4" aria-hidden="true" />
+                    Share...
+                  </Button>
+                ) : null}
+                <Button type="button" variant="secondary" onClick={copyMessage}>
+                  <Copy className="size-4" aria-hidden="true" />
+                  Copy message
+                </Button>
+                <Button type="button" variant="ghost" onClick={copyLink}>
+                  <Check className="size-4" aria-hidden="true" />
+                  Copy link
+                </Button>
+              </div>
             </div>
-          </div>
-        </DialogContent>
+          </DialogContent>
+        )}
       </Dialog>
 
       <ToastRoot

@@ -1,5 +1,22 @@
 # Testing
 
+## Secure-share modal coverage
+
+The canonical booking journey includes both dialogs at ten exact widths, actual
+generated links, modal geometry/scroll/body-lock checks, focus trapping/return,
+both Close controls, Escape/backdrop, unchanged drafts and URL values, and
+redacted screenshots. It retains the existing custom-email, reload, regeneration,
+revocation, first-open and customer-submission assertions. Run the normal
+`tests/e2e/bookings.spec.ts` projects. The optional WebKit diagnostic and its
+reconfirmation-stage limitation are recorded in the report; it is not a new CI gate. Native share is stubbed to
+inspect its supported layout without sending a message. Unit/integration tests
+verify exact encoded channel content, clipboard fallback/failures, unsupported
+native share and cancellation, two business/customer contexts and both URL
+families. Screenshot masking is capture-only; raw capability values are never
+written to the new screenshots. A reduced viewport simulates keyboard layout;
+physical mobile keyboards and messaging apps remain separate evidence.
+Exact results: [SECURE_SHARE_MODAL](SECURE_SHARE_MODAL.md).
+
 ## Vendor trust branding coverage
 
 New resolver, image-boundary, nine-template and outbox-isolation tests cover the shared vendor pass. The existing Profile and Social Previews browser job also covers all capability families, five crawler signatures, square/circular/wide/tall/transparent logos, full and cropped thumbnails, and 320–700px email renders with loaded/blocked images. Existing cloud booking journeys assert vendor metadata while preserving private-data and lifecycle checks. Exact counts and remaining gates: [VENDOR_TRUST_BRANDING](VENDOR_TRUST_BRANDING.md).
