@@ -243,7 +243,9 @@ The authenticated receiver returns HTTP 202 after validating the bounded empty
 JSON body, then uses Next `after` to retain the worker within its 60-second
 function lifetime. This keeps the scheduler’s 10-second HTTP timeout independent
 of slower provider attempts. HTTP 202 acknowledges scheduling only; delivery
-rows and fixed Sentry failure messages describe processing outcomes.
+rows and fixed Sentry failure messages describe processing outcomes. Runtime
+logs record only completion counters (overdue, processed, accepted, unknown)
+or a fixed failure message, never user IDs, endpoints, keys or payloads.
 
 Provider 2xx means accepted handoff, **not proven device delivery**. 404/410
 revokes the matching subscription generation. Only explicit 429/5xx responses

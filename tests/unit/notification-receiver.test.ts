@@ -21,8 +21,14 @@ const request = (body = "{}", authorization = `Bearer ${secret}`) =>
 beforeEach(() => {
   vi.resetAllMocks();
   vi.stubEnv("NOTIFICATION_WORKER_SECRET", secret);
+  mocks.process.mockResolvedValue({ overdue: 0, processed: 0, accepted: 0, unknown: 0 });
+  vi.spyOn(console, "info").mockImplementation(() => {});
+  vi.spyOn(console, "error").mockImplementation(() => {});
 });
-afterEach(() => vi.unstubAllEnvs());
+afterEach(() => {
+  vi.unstubAllEnvs();
+  vi.restoreAllMocks();
+});
 it("rejects unauthorized and malformed jobs without scheduling work", async () => {
   expect((await POST(request("{}", "Bearer wrong"))).status).toBe(401);
   expect((await POST(request('{"extra":true}'))).status).toBe(400);
@@ -39,11 +45,18 @@ it("acknowledges promptly and runs the worker in Next's retained lifetime", asyn
   expect(mocks.after).toHaveBeenCalledTimes(1);
   await mocks.after.mock.calls[0][0]();
   expect(mocks.process).toHaveBeenCalledTimes(1);
+  expect(console.info).toHaveBeenCalledWith("Notification worker completed", {
+    overdue: 0,
+    processed: 0,
+    accepted: 0,
+    unknown: 0,
+  });
 });
 it("records a fixed failure message without leaking provider errors", async () => {
   mocks.process.mockRejectedValue(new Error("sensitive endpoint and key"));
   await POST(request());
   await expect(mocks.after.mock.calls[0][0]()).resolves.toBeUndefined();
+  expect(console.error).toHaveBeenCalledWith("Notification worker unavailable");
   expect(mocks.capture).toHaveBeenCalledWith("Notification worker unavailable", {
     level: "error",
     tags: { notification_stage: "worker" },

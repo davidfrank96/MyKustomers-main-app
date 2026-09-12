@@ -31,8 +31,15 @@ export async function POST(request: Request) {
     // this bounded task alive after the acknowledgement, within maxDuration.
     after(async () => {
       try {
-        await processNotifications();
+        const { overdue, processed, accepted, unknown } = await processNotifications();
+        console.info("Notification worker completed", {
+          overdue,
+          processed,
+          accepted,
+          unknown,
+        });
       } catch {
+        console.error("Notification worker unavailable");
         Sentry.captureMessage("Notification worker unavailable", {
           level: "error",
           tags: { notification_stage: "worker" },
