@@ -1,5 +1,17 @@
 # Architecture
 
+## Vendor notifications — 2026-09-12
+
+The implemented path is authoritative database event → durable user inbox and
+per-device queue → authenticated bounded worker → optional standards-based Web
+Push. The worker uses the audited `web-push` SDK for encryption/VAPID and bounded
+native fetch with redirects disabled. No network runs inside a domain transaction.
+`/sw.js` only handles push/click/install/activate; it has no fetch handler or cache.
+The header bell and Settings reuse existing components. Notification links resolve
+outside current-business layout gating and recheck the user's RLS before selecting
+the target business. No client timer generates events. Existing resume and file
+picker behavior remain intact. See [NOTIFICATIONS](NOTIFICATIONS.md).
+
 ## Provider Delivery Evidence Boundary
 
 The durable outbox and append-only provider evidence are independent. A logical

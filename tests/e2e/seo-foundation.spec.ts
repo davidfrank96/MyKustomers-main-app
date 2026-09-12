@@ -22,8 +22,8 @@ test.describe("SEO Phase 1 foundation", () => {
     });
     expect(response.status()).toBe(200);
     const html = await response.text();
-    expect(html).toContain("Booking &amp; Customer Management for Small Businesses");
-    expect(html).toContain("Built for Nigerian service businesses");
+    expect(html).toContain("Booking &amp; Customer Management for Service Businesses");
+    expect(html).toContain("Built for service businesses in Nigeria and beyond.");
     expect(html).toContain('type="application/ld+json"');
     expect(html).not.toMatch(/mycustomers\.com/i);
 
@@ -48,7 +48,7 @@ test.describe("SEO Phase 1 foundation", () => {
     await expect(page.getByRole("heading", { name: "How it works" })).toBeVisible();
     await expect(
       page.getByRole("heading", {
-        name: "Built for growing service businesses in Nigeria",
+        name: "Built for growing service businesses",
       }),
     ).toBeVisible();
 

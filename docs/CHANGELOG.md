@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-09-12 — Vendor notifications and service-business positioning
+
+- Added a durable cross-business inbox, unread bell, three push preferences,
+  explicit device enable/disable, safe booking links and logout device cleanup.
+- Applied the explicitly approved five-table foundation with RLS, event triggers,
+  lifetime overdue dedupe, independent device leases and bounded retry/retention.
+- Added a push-only service worker and server-only standard Web Push/VAPID sender;
+  generic lock-screen payloads contain no customer details or capability links.
+- Configured Production VAPID/worker secrets. The separately approved scheduler
+  activates only after the authenticated Production worker is verified.
+- Broadened homepage, SEO title, manifest description, email footer and guidance
+  to service businesses and growing teams, retaining Nigeria context.
+- Added isolated native PostgreSQL and credential-free browser CI coverage.
+  Physical iOS/Android delivery remains unverified; see NOTIFICATIONS_RELEASE_REPORT.
+
 ## 2026-09-08 — Capability Metadata Privacy Hardening
 
 Removed Sentry dynamic-sampling `baggage` from rendered App Router metadata while

@@ -98,10 +98,7 @@ async function cleanupControlledFixture(
 
 async function meaningfulResume(page: import("@playwright/test").Page) {
   const coordinator = page.locator("[data-pwa-reliability-coordinator]");
-  await expect(coordinator).toHaveAttribute(
-    "data-ready",
-    "true",
-  );
+  await expect(coordinator).toHaveAttribute("data-ready", "true");
   await expect(coordinator).toHaveAttribute(
     "data-reconcile-path",
     new URL(page.url()).pathname,
@@ -220,7 +217,24 @@ test.describe("authenticated PWA reliability", () => {
       await page.getByRole("button", { name: "Log in" }).click();
       await expect(page).toHaveURL(/\/dashboard$/);
       await expect(page.getByRole("heading", { name: "Welcome back" })).toBeVisible();
-      expect(context.serviceWorkers()).toHaveLength(0);
+      await expect
+        .poll(() =>
+          page.evaluate(async () =>
+            (await navigator.serviceWorker.getRegistrations()).map((registration) =>
+              registration.active
+                ? new URL(registration.active.scriptURL).pathname
+                : null,
+            ),
+          ),
+        )
+        .toEqual(["/sw.js"]);
+      const pushWorker = await page.request.get("/sw.js");
+      expect(pushWorker.headers()["cache-control"]).toContain("no-store");
+      const workerSource = await pushWorker.text();
+      expect(workerSource).toContain('addEventListener("push"');
+      expect(workerSource).not.toMatch(/addEventListener\(["']fetch["']/);
+      expect(workerSource).not.toMatch(/respondWith|caches\./);
+      expect(await page.evaluate(() => caches.keys())).toEqual([]);
 
       const switcher = page.getByRole("button", {
         name: /Switch business\. Current business:/,
@@ -380,6 +394,7 @@ test.describe("authenticated PWA reliability", () => {
       }
 
       await page.goto("/dashboard");
+      expect(await page.evaluate(() => caches.keys())).toEqual([]);
       await context.clearCookies();
       await meaningfulResume(page);
       await expect(page).toHaveURL(/\/login\?next=/);

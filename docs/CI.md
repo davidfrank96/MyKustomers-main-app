@@ -6,6 +6,18 @@ GitHub Actions workflow `.github/workflows/ci.yml` validates pull requests into
 `main` and pushes to `main`. It does not deploy the application or apply any
 database migration.
 
+## Current E2E target finding — 2026-09-12
+
+The intended non-production target described below is not the observed current
+configuration: release verification found the existing E2E workflow creating its
+recognizable synthetic fixtures in the Production-backed My Kustomers project.
+Transactional email is set to development in CI. Two fixture users/businesses
+left by cancelled notification-release runs were positively identified and
+removed; successful suites retain their normal cleanup. Moving existing E2E
+credentials to a dedicated project remains an operational follow-up. The new
+Notification Contracts job is isolated to disposable native PostgreSQL and
+loopback Auth/REST fixtures and reads no cloud credentials.
+
 ## Core Jobs
 
 | Check name          | Commands and purpose                                                                                                                          |
@@ -101,3 +113,12 @@ does not weaken the merge policy: required CI must pass and the pull request mus
 be conflict-free before merge. Preview receives no current runtime secrets, and
 Vercel builds never apply migrations. The operational process and rollback
 boundary are documented in `docs/DEPLOYMENT.md`.
+
+## Notification Contracts
+
+The independent `Notification Contracts` job compiles and tests the notification
+foundation in a new native PostgreSQL cluster, then runs Chromium/WebKit UI
+journeys against a loopback fixture service. It uses no cloud secrets or Docker,
+never applies SQL to Supabase, and removes its disposable database. The fixture
+browser tests prove UI/API integration, not real provider or physical-device
+push delivery. Keep this job green alongside the existing required checks.

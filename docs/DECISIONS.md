@@ -1537,3 +1537,39 @@ or asset is published until DMARC enforcement is approved and an authentic SVG
 Tiny P/S master can be produced without materially redrawing the approved raster
 logo. Supabase Auth and application email remain operationally independent but
 must be assessed against the same visible From-domain alignment.
+
+## ADR-064 - Durable Vendor Notifications With Optional Web Push
+
+Status: Accepted — user approved both proposals on 2026-09-12
+
+Date: 2026-09-12
+
+Context: Current PWA has a manifest/resume coordinator but no service worker,
+notification storage or scheduled overdue processing. Customers can confirm
+bookings and respond through existing private-feedback/amendment/add-on flows.
+
+Decision: Keep one authenticated, business-scoped notification per
+recipient/event; treat standards-based Web Push as optional best-effort delivery.
+Use no private offline cache. Keep generic lock-screen copy, current membership
+checks, three preferences, bounded independent device retries and overdue
+receipts that outlive the 90-day notification history. Vercel Hobby cannot host
+a minute cron, so proposed Supabase pg_cron/pg_net activation is a separate
+approval with disclosed usage, not an implicit paid upgrade.
+
+Consequences: The exact approved foundation has been applied and catalog checked.
+Client/server integration and Production credentials are implemented. Scheduler
+activation follows receiver deployment; physical-device evidence remains pending.
+The approval report is the historical gate record; current results are in
+NOTIFICATIONS_RELEASE_REPORT.md.
+
+## ADR-065 - Service Businesses And Growing Teams As Master Audience
+
+Status: Accepted; implemented locally, release pending
+
+Date: 2026-09-12
+
+Decision: Use “Built for service businesses — from independent operators to
+growing teams.” Use “Built for service businesses in Nigeria and beyond.” where
+geographic context helps. Broaden restrictive master positioning without
+unsupported enterprise claims. Historical audience/test notes remain historical,
+including ADR-002; see PRODUCT_POSITIONING.md for the classified string audit.

@@ -1,5 +1,28 @@
 # Testing
 
+## Notification and positioning verification — 2026-09-12
+
+The notification suite has three independent layers:
+
+- `npm run test:notifications:database` starts a disposable native PostgreSQL
+  cluster, compiles the exact approved migration, verifies event/RLS/ACL/dedupe/
+  preference/lease/retry/retention behavior, and runs two concurrent workers.
+  It never reads a database URL and never uses Docker. Set `PG_BIN` if needed.
+- Unit/security tests exercise payload validation, endpoint restrictions, safe
+  worker clicks, real SDK encryption with stubbed transport, timeout handling,
+  Sentry privacy, bounded bodies, CSRF, fresh Auth, logout cleanup and tenant links.
+- `npm run test:e2e:notifications` runs the real Next UI and API routes against a
+  loopback fixture service, in Chromium and emulated iPhone WebKit. It covers all
+  eight widths, long context, pagination, preferences, read count, empty/errors,
+  keyboard focus, install guidance and explicitly mocked permission/subscription
+  APIs. These mocks are not proof of real Supabase Auth or physical push delivery.
+
+The existing homepage/SEO suite checks the broader positioning. Static SQL tests
+remain useful contracts, not substitutes for database execution. The protected
+cloud runtime-security suite retains its existing safe-target guard. The release
+report records final counts and skips. REAL IOS PUSH and REAL ANDROID PUSH remain
+NOT VERIFIED until controlled physical devices are available.
+
 ## Vendor Confirmation Email Presentation
 
 Focused presentation-model and panel tests cover no-address, request-only,

@@ -4,6 +4,62 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      notifications: {
+        Row: {
+          id: string;
+          user_id: string;
+          business_id: string;
+          booking_id: string;
+          notification_type: string;
+          event_id: string;
+          dedupe_key: string;
+          created_at: string;
+          read_at: string | null;
+        };
+        Insert: never;
+        Update: { read_at?: string | null };
+        Relationships: [];
+      };
+      notification_preferences: {
+        Row: {
+          user_id: string;
+          customer_confirmations: boolean;
+          customer_feedback: boolean;
+          overdue_bookings: boolean;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          customer_confirmations?: boolean;
+          customer_feedback?: boolean;
+          overdue_bookings?: boolean;
+        };
+        Update: {
+          customer_confirmations?: boolean;
+          customer_feedback?: boolean;
+          overdue_bookings?: boolean;
+        };
+        Relationships: [];
+      };
+      push_subscriptions: {
+        Row: {
+          id: string;
+          user_id: string;
+          endpoint: string;
+          endpoint_hash: string;
+          p256dh: string;
+          auth_key: string;
+          generation: string;
+          platform: string;
+          created_at: string;
+          last_seen_at: string;
+          revoked_at: string | null;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+
       platform_admins: {
         Row: {
           user_id: string;
@@ -810,6 +866,46 @@ export type Database = {
     };
     Views: Record<string, never>;
     Functions: {
+      register_push_subscription: {
+        Args: {
+          p_endpoint: string;
+          p_p256dh: string;
+          p_auth_key: string;
+          p_platform?: string;
+        };
+        Returns: string;
+      };
+      remove_push_subscription: {
+        Args: { p_subscription_id: string };
+        Returns: undefined;
+      };
+      process_overdue_notifications: { Args: { p_limit?: number }; Returns: number };
+      claim_notification_push: {
+        Args: { p_limit?: number };
+        Returns: {
+          delivery_id: string;
+          lease_token: string;
+          notification_id: string;
+          notification_type: string;
+          business_id: string;
+          booking_id: string;
+          endpoint: string;
+          p256dh: string;
+          auth_key: string;
+          unread_count: number;
+        }[];
+      };
+      finish_notification_push: {
+        Args: {
+          p_delivery_id: string;
+          p_lease_token: string;
+          p_http_status?: number | null;
+          p_retry_after_seconds?: number | null;
+        };
+        Returns: boolean;
+      };
+      maintain_notifications: { Args: { p_limit?: number }; Returns: undefined };
+
       delete_customer_if_eligible: {
         Args: { p_customer_id: string };
         Returns: {

@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Mobile-first SaaS foundation for small-business customer and booking operations.",
+  "description": "Mobile-first SaaS for service businesses managing customers and bookings.",
   "scripts": {
     "dev": "next dev",
     "build": "next build --webpack",
@@ -13,7 +13,9 @@
     "test": "vitest run",
     "test:security:runtime": "vitest run --no-file-parallelism tests/security/*runtime*.test.ts",
     "test:watch": "vitest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:e2e:notifications": "playwright test --config playwright.notifications.config.ts",
+    "test:notifications:database": "node scripts/test-notification-database.mjs"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.1.10",
@@ -36,6 +38,7 @@
     "server-only": "^0.0.1",
     "sharp": "0.35.4",
     "tailwind-merge": "^2.6.0",
+    "web-push": "3.6.7",
     "zod": "^3.24.1"
   },
   "devDependencies": {
@@ -46,6 +49,7 @@
     "@types/node": "^22.10.2",
     "@types/react": "^19.0.1",
     "@types/react-dom": "^19.0.2",
+    "@types/web-push": "3.6.4",
     "eslint": "^9.17.0",
     "eslint-config-next": "^16.0.0",
     "jsdom": "^25.0.1",

@@ -5,7 +5,7 @@ export const SEO_SITE = {
   name: "My Kustomers",
   alternateName: "MyKustomers",
   origin: "https://mykustomers.com",
-  title: "My Kustomers — Booking & Customer Management for Small Businesses",
+  title: "My Kustomers — Booking & Customer Management for Service Businesses",
   description:
     "Manage customers, bookings, confirmations, payments, delivery and feedback in one clear workspace built for growing service businesses.",
 } as const;

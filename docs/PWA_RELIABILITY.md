@@ -83,13 +83,13 @@ cleanup now deletes dependencies in order and fails closed on any cleanup error.
 
 ## Service Worker And Push Decision
 
-Decision: **NO NEW SERVICE WORKER**. Private authenticated booking, customer,
-payment, admin, or capability-route content is not cached for offline use.
-Application reliability comes from bounded server reconciliation.
-
-Push notifications remain a **SEPARATE FUTURE PHASE**. They require their own
-permission UX, subscription/revocation model, tenant privacy analysis, service
-worker scope, and delivery semantics.
+2026-09-12 update: the separately approved notification phase adds one push-only
+service worker. This supersedes the earlier “no service worker” decision only for
+push/click handling. There is still no fetch interception, offline private-data
+cache, background sync, or booking mutation from the worker. Private booking,
+customer, payment, admin and capability content remains uncached. Existing
+bounded server reconciliation, dirty-form/dialog deferral and file-picker rules
+are unchanged. See [NOTIFICATIONS](NOTIFICATIONS.md) and the release report.
 
 ## File And Media Handling
 

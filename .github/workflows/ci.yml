@@ -177,3 +177,20 @@ jobs:
         run: npm ci
       - name: Run live Supabase security regression
         run: npm run test:security:runtime
+
+  notification-contracts:
+    name: Notification Contracts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Verify notification SQL in a disposable native PostgreSQL cluster
+        run: npm run test:notifications:database
+      - name: Install browser engines
+        run: npx playwright install --with-deps chromium webkit
+      - name: Verify notification UI using local fixtures without cloud credentials
+        run: npm run test:e2e:notifications

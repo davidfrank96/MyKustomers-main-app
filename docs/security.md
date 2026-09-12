@@ -1,5 +1,21 @@
 # Security
 
+## Notification security boundaries — 2026-09-12
+
+The approved foundation is applied. Inbox reads require own user, active business
+membership, completed onboarding and a non-banned/non-deleted account. Device
+endpoints/keys are unavailable to normal SELECT; self-scoped RPCs own registration
+and removal. Mutations require a fresh Auth user, same-origin Host/Origin checks,
+bounded JSON and a per-user rate limit. The worker requires a separate constant-time
+checked bearer secret. Endpoint allowlisting, no redirects, eight-second total
+provider timeouts, generation-safe 404/410 invalidation and terminal ambiguous
+sends bound delivery risk. Push payloads contain only type, notification UUID,
+version and bounded count. Sentry redacts push endpoint paths and key fields;
+provider errors/bodies are never captured. Logout disconnects this device before
+sign-out and offers a visible retry on cleanup failure. Local PostgreSQL tests,
+API tests and browser fixture tests provide separate layers of evidence; physical
+phone delivery is still unverified. See [NOTIFICATIONS](NOTIFICATIONS.md).
+
 ## Email recovery invariants
 
 Email transport does not authorize or invalidate customer confirmation. A valid

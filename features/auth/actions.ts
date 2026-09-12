@@ -1,5 +1,7 @@
 "use server";
 
+import { disconnectNotificationDevice } from "@/features/notifications/logout";
+
 import { redirect } from "next/navigation";
 import type { Route } from "next";
 import { publicEnv, isSupabasePublicEnvConfigured } from "@/lib/config/public-env";
@@ -239,6 +241,8 @@ export async function logoutAction() {
 
   if (isSupabasePublicEnvConfigured()) {
     const supabase = await createClient();
+    if (!(await disconnectNotificationDevice()))
+      redirect("/logout?notification-error=1" as Route);
     await supabase.auth.signOut();
   }
 

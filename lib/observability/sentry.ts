@@ -24,7 +24,7 @@ const SENSITIVE_VALUE_PATTERN =
   /\b(authorization|cookie|password|passcode|secret|access[_-]?token|refresh[_-]?token|id[_-]?token|auth[_-]?token|authorization[_-]?code|totp|otp|email|phone|recipient)\s*[:=]\s*(?:"[^"]*"|'[^']*'|[^\s,;]+)/gi;
 
 const SENSITIVE_KEY_PATTERN =
-  /(^|_)(authorization|cookie|set_cookie|password|passcode|secret|access_token|refresh_token|id_token|auth_token|authorization_code|totp|otp|email|phone|recipient|customer|booking|business|feedback|search|query|request_body|response_body|body|content|internal_notes?|capability)(_|$)/i;
+  /(^|_)(authorization|cookie|set_cookie|password|passcode|secret|access_token|refresh_token|id_token|auth_token|authorization_code|totp|otp|email|phone|recipient|customer|booking|business|feedback|search|query|request_body|response_body|body|content|internal_notes?|capability|endpoint|p256dh|auth_key|vapid|subscription)(_|$)/i;
 
 const SAFE_CONTEXT_KEYS = new Set(["browser", "device", "os", "runtime", "trace"]);
 
@@ -75,6 +75,12 @@ export function sanitizeSentryUrl(value: string): string {
 
   try {
     const url = new URL(value, "https://mykustomers.invalid");
+    if (
+      /^(?:fcm\.googleapis\.com|updates\.push\.services\.mozilla\.com|(?:[a-z0-9-]+\.)*push\.apple\.com)$/.test(
+        url.hostname,
+      )
+    )
+      return `${url.origin}/[redacted-push-endpoint]`;
     const pathname = redactPath(url.pathname);
 
     if (url.origin === "https://mykustomers.invalid") {

@@ -9,6 +9,10 @@ const mocks = vi.hoisted(() => ({
   redirect: vi.fn(),
 }));
 
+vi.mock("@/features/notifications/logout", () => ({
+  disconnectNotificationDevice: vi.fn(async () => true),
+}));
+
 vi.mock("next/navigation", () => ({ redirect: mocks.redirect }));
 vi.mock("@/lib/config/public-env", () => ({
   isSupabasePublicEnvConfigured: vi.fn(() => true),

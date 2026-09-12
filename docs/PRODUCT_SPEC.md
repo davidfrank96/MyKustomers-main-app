@@ -42,7 +42,17 @@ apply independently to every batch.
 
 ## Product Summary
 
-My Kustomers helps small businesses turn informal customer conversations into organised business records.
+Canonical audience: **Built for service businesses — from independent operators
+to growing teams.** Where geography matters: **Built for service businesses in
+Nigeria and beyond.** See [PRODUCT_POSITIONING](PRODUCT_POSITIONING.md).
+
+Vendor notifications cover customer
+confirmation, private feedback, one first-overdue event and confirmed amendment/
+add-on responses. Optional device push supplements durable authenticated
+notifications; vendor self-actions stay quiet. Preferences affect push, not
+in-app history. See [NOTIFICATIONS](NOTIFICATIONS.md) for exact event, device and authorization contracts.
+
+My Kustomers helps service businesses turn informal customer conversations into organised business records.
 
 The platform is not replacing WhatsApp, Instagram, phone calls, or direct messages. It captures the structured agreement after the vendor and customer have reached an agreement externally.
 

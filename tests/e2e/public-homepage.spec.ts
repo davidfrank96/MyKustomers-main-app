@@ -46,7 +46,7 @@ test.describe("public homepage", () => {
     await page.goto("/");
 
     await expect(page).toHaveTitle(
-      "My Kustomers — Booking & Customer Management for Small Businesses",
+      "My Kustomers — Booking & Customer Management for Service Businesses",
     );
     await expect(page.getByRole("banner")).toBeVisible();
     await expect(page.getByRole("main")).toBeVisible();
@@ -125,8 +125,11 @@ test.describe("public homepage", () => {
       ).toBeVisible();
       await expect(
         page.getByText(
-          "Manage customers and bookings, track confirmations and payments, coordinate delivery, and collect private feedback in one clear workspace.",
+          "Manage customers, bookings, confirmations, payments, delivery and feedback in one clear workspace.",
         ),
+      ).toBeVisible();
+      await expect(
+        page.getByText("Built for service businesses — from independent operators to growing teams."),
       ).toBeVisible();
       for (const [title, description] of [
         ["Customers", "Keep customer details organized and easy to access."],
@@ -149,7 +152,7 @@ test.describe("public homepage", () => {
         await expect(page.getByRole("heading", { name: "How it works" })).toBeVisible();
         await expect(
           page.getByRole("heading", {
-            name: "Built for growing service businesses in Nigeria",
+            name: "Built for growing service businesses",
           }),
         ).toBeVisible();
       }
@@ -163,6 +166,7 @@ test.describe("public homepage", () => {
 
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/");
+    await expect(page.getByText("Built for service businesses — from independent operators to growing teams.")).toBeVisible();
     await hideDevelopmentChrome(page);
     await page.screenshot({
       path: path.join(screenshotDirectory, "homepage-hero-mobile-390.png"),
@@ -184,6 +188,7 @@ test.describe("public homepage", () => {
 
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/");
+    await expect(page.getByText("Built for service businesses — from independent operators to growing teams.")).toBeVisible();
     await hideDevelopmentChrome(page);
     await page.screenshot({
       path: path.join(screenshotDirectory, "homepage-hero-desktop-1440.png"),
