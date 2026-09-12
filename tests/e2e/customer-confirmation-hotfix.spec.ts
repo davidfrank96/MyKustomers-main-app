@@ -153,7 +153,9 @@ test.describe("customer confirmation trust and success hotfix", () => {
       const crawlerHtml = await crawlerResponse.text();
       const crawlerHead = crawlerHtml.match(/<head>[\s\S]*?<\/head>/)?.[0] ?? "";
       expect(crawlerHtml).toContain(`Confirm your booking with ${businessName}`);
-      expect(crawlerHtml).toContain(`/business-logos/${logoPath}`);
+      expect(crawlerHead).toContain("https://mykustomers.com/social/confirmation/");
+      expect(crawlerHead).toContain('property="og:image:type" content="image/png"');
+      expect(crawlerHead.match(/property="og:image"/g)).toHaveLength(1);
       expect(crawlerHtml).not.toContain(`Private Customer ${fixture}`);
       expect(crawlerHtml).not.toContain(`Private Booking ${fixture}`);
       expect(crawlerHtml).not.toContain("Never expose this note");

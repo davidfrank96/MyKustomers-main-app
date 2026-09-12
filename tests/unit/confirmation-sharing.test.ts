@@ -75,6 +75,7 @@ describe("trusted confirmation sharing", () => {
     const metadata = buildPublicConfirmationMetadata({
       businessName: "Bella Cakes",
       businessLogoPath: logoPath,
+      previewId: "11111111-1111-4111-8111-111111111112",
     });
     const serialized = JSON.stringify(metadata);
 
@@ -90,15 +91,16 @@ describe("trusted confirmation sharing", () => {
       siteName: "My Kustomers",
       type: "website",
     });
-    expect(metadata.twitter).toMatchObject({ card: "summary" });
+    expect(metadata.twitter).toMatchObject({ card: "summary_large_image" });
     expect(metadata.openGraph).toMatchObject({
       images: [
         expect.objectContaining({
-          url: expect.stringContaining(`/business-logos/${logoPath}`),
-          type: "image/webp",
+          url: "https://mykustomers.com/social/confirmation/11111111-1111-4111-8111-111111111112",
+          type: "image/png",
+          width: 1200,
+          height: 630,
           alt: "Bella Cakes business logo",
         }),
-        expect.objectContaining({ type: "image/png" }),
       ],
     });
     expect(serialized).not.toContain("David Okafor");
@@ -130,10 +132,12 @@ describe("trusted confirmation sharing", () => {
     const businessA = buildPublicConfirmationMetadata({
       businessName: "Business A",
       businessLogoPath: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/logo.webp",
+      previewId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
     });
     const businessB = buildPublicConfirmationMetadata({
       businessName: "Business B",
       businessLogoPath: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/logo.webp",
+      previewId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
     });
     const serializedA = JSON.stringify(businessA);
     const serializedB = JSON.stringify(businessB);

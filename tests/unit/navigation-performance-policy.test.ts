@@ -100,7 +100,7 @@ describe("authenticated navigation performance policy", () => {
       ["app/(dashboard)/bookings/loading.tsx", "Bookings"],
       ["app/(dashboard)/customers/loading.tsx", "Customers"],
       ["app/(dashboard)/insights/loading.tsx", "Insights"],
-      ["app/(dashboard)/business/loading.tsx", "Business"],
+      ["app/(dashboard)/business/loading.tsx", "My Profile"],
       ["app/(dashboard)/bookings/[bookingId]/loading.tsx", "Booking details"],
       ["app/(dashboard)/customers/[customerId]/loading.tsx", "Customer details"],
     ]) {

@@ -446,7 +446,17 @@ business member data, token hashes, tenant IDs, and service-role-only data.
 Dynamic social metadata uses a separate minimum-data lookup limited to valid
 link state, public business name, and approved public logo path. It never
 receives customer identity, contact, address, value, schedule, booking details,
-notes, internal IDs, or full confirmation payloads. Protected confirmation data
+notes, booking/customer IDs, or full confirmation payloads. The image URL contains
+only the existing confirmation record UUID as a read-only preview identifier;
+it cannot be used as a customer token. The image lookup rechecks link validity,
+exact booking/business ownership and the authoritative `{businessId}/logo.webp`
+path, ignores caller identity/image overrides, and fails closed with 404. Logos
+are fetched without credentials or redirects, bounded to 200 KiB and 512×512
+input pixels, decoded to PNG with existing Sharp, and embedded in a 1200×630
+ImageResponse. Missing/invalid logos retain the business initials. Image responses
+are private no-store, no-referrer and noindex even on errors. Existing Sentry UUID
+redaction covers this route; raw capability routes are also excluded from dev
+incoming request logs. Protected confirmation data
 remains dynamically rendered and uncached.
 Known messaging/social preview user agents receive a generic server-rendered
 confirmation shell; that request never calls the full booking-view RPC. This is
@@ -462,6 +472,9 @@ messaging clients, and scanners can fetch URLs automatically. Phase 6 consumes a
 link only during the POST-backed confirmation action.
 
 Social metadata requests also do not create `CONFIRMATION_OPENED` evidence.
+Recognized crawler POSTs return 204 before parsing or calling the shared open
+callback. Applebot/Apple preview signatures are included; ordinary Safari remains
+a normal browser. Classification is attribution minimization, not authorization.
 First-open recording is triggered after browser hydration, is idempotent at the
 database row, and is callable only through the server's service-role boundary.
 It proves a valid confirmation page opened, not that a message was delivered or

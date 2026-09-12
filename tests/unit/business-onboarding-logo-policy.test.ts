@@ -47,7 +47,8 @@ describe("new-business logo policy", () => {
     expect(logoForm).toContain("prepareBusinessLogoForUpload");
     expect(onboardingForm).not.toContain('name="logo"');
     expect(onboardingForm).toContain("<BusinessLogoForm");
-    expect(businessPage).toContain("<BusinessWorkspace");
+    expect(businessPage).toContain("<MyProfileHub");
+    expect(businessPage).toContain("getCurrentBusinessProfile()");
     expect(businessWorkspace).toContain("<BusinessOnboardingForm");
     expect(logoRoute).toContain('requireBusinessRole(parsedBusinessId.data, ["owner"]');
     expect(logoRoute).toContain("optimizeBusinessLogo({");

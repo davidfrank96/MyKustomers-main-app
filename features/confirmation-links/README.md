@@ -24,11 +24,17 @@ does not write the saved customer profile email.
 ## Customer Confirmation Trust Hotfix
 
 Valid `/c/[token]` pages resolve the booking-owned business through a read-only,
-server-authoritative metadata lookup. Open Graph and X metadata use the current
-business name and public business logo first, with the platform PNG only as a
-compatibility or no-logo fallback. Capability URLs remain absent from canonical,
+server-authoritative metadata lookup. Open Graph and X metadata use the booking-owned
+business name and one absolute PNG at `/social/confirmation/[previewId]`.
+The existing confirmation record UUID is a read-only preview identifier, never
+customer capability authority. The image route rechecks link state and booking
+ownership and renders 1200×630 with the exact business logo; missing/failed logos
+use business initials. The stored WebP is decoded through existing Sharp with
+bounded bytes/pixels, no credentials and no redirects. Invalid link states retain
+a safe generic page preview and return 404 from the image route. Capability URLs remain absent from canonical,
 Open Graph URL, structured data, and telemetry fields; preview-crawler rendering
-does not record a customer open.
+does not record a customer open. Recognized crawler POSTs also return without
+recording open evidence; Applebot/Apple preview signatures join the existing list.
 
 After the atomic confirmation returns success, the server action returns the
 persisted booking contact to a terminal accessible success dialog instead of

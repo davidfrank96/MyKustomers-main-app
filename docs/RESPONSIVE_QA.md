@@ -1,8 +1,40 @@
 # Responsive QA
 
+## My Profile Phase 2 — 2026-09-12
+
+The approved hub geometry remains unchanged after semantic link integration.
+Verification covers hub, information/contact/address editor sections and existing
+notification settings at 320×568, 360×800, 375×812, 390×844, 414×896, 430×932,
+768×1024, 1024×768, 1280×800 and 1440×900 in Chromium and emulated iPhone WebKit.
+Local screenshots/geometry live in `output/playwright/my-profile-phase-2`.
+The existing Settings membership row now wraps its badge/control below the name
+only below 375px to avoid the observed narrow name column at 320px.
+The exact gate and release status are in [MY_PROFILE_PHASE_2](MY_PROFILE_PHASE_2.md).
+The Phase 1 evidence below remains a historical baseline.
+
 STATUS: VERIFIED FOR THE DEPLOYED BASELINE; BRANCH RELEASE MATRIX VERIFIED
 
 Audit date: 2026-08-31.
+
+## 2026-09-12 My Profile Phase 1 — local UI
+
+Chromium and WebKit emulation pass 320x568, 360x800, 375x812, 390x844, 414x896,
+430x932, 768x1024 and 1024x768. The strict document scrollWidth <= clientWidth
+check passes for normal and long/unbroken identities. Geometry checks cover
+square logos, identity/badge/Edit non-overlap, consistent icon/chevron columns,
+existing header heights, Business navigation state and bottom-content clearance.
+Existing header markup matches the captured baseline after generated accessibility
+IDs are normalized. Existing public/auth responsiveness also passes unchanged.
+
+The manual screenshot review covers full pages and top, Account, Billing & Legal
+details at 320, 360, 390, 430, 768 and 1024px, plus WebKit full pages and missing/
+long-data cases. Full-page captures expand only capture height to place the fixed
+nav at the page edge; the exact requested device heights are checked separately.
+Section captures scroll below the fixed header to avoid cropped navigation
+overlays. Hydration and fonts finish before capture; only Next's development
+toolbar is hidden in screenshots. No product CSS is altered for capture.
+Paths and review outcomes: [MY_PROFILE_PHASE_1](MY_PROFILE_PHASE_1.md).
+This is local browser evidence, not physical-device or Production verification.
 
 ## 2026-09-06 Master Alignment Pass
 

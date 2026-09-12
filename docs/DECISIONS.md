@@ -1577,3 +1577,22 @@ growing teams.” Use “Built for service businesses in Nigeria and beyond.” 
 geographic context helps. Broaden restrictive master positioning without
 unsupported enterprise claims. Historical audience/test notes remain historical,
 including ADR-002; see PRODUCT_POSITIONING.md for the classified string audit.
+
+## ADR-066 - Booking-owned read-only confirmation PNG previews
+
+Status: Accepted within the user-approved Phase 2 social-preview scope
+
+Date: 2026-09-12
+
+Decision: Offer one business-first PNG instead of competing vendor-WebP and
+platform-PNG metadata. Reuse the existing confirmation record UUID as a narrow
+public image identifier; recheck link state and booking/business ownership on
+each request. Never expose the raw capability or stored hash in the image URL.
+No DB field, secret, provider or dependency is added. Missing/failed logos use
+business initials, and general public URLs retain platform branding.
+
+Consequences: The image identifier exposes only the same public business identity
+as valid confirmation metadata and grants no customer view/mutation authority.
+External preview caches remain outside application cache control. The removed
+platform fallback is a proved code path; a physical Android client's prior image
+selection/cache choice cannot be established from source code alone.

@@ -194,3 +194,18 @@ jobs:
         run: npx playwright install --with-deps chromium webkit
       - name: Verify notification UI using local fixtures without cloud credentials
         run: npm run test:e2e:notifications
+
+  profile-social-previews:
+    name: Profile and Social Previews
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Install browser engines
+        run: npx playwright install --with-deps chromium webkit
+      - name: Verify production rendering against isolated loopback fixtures
+        run: npx playwright test --config playwright.profile-ui.config.ts

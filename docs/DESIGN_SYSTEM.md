@@ -1,5 +1,34 @@
 # Design System
 
+## My Profile Phase 2 integration
+
+The approved hub's connected rows use a full-row semantic Link inside each list
+item; only real existing destinations receive links. Keep the outer 64px minimum
+including its divider, preserve icon/chevron alignment and match the original
+Edit control's computed typography. Missing rows stay static. Existing editors
+and notification settings retain their designs. The thin editor wrapper provides
+one visible My Profile back link at every width. Dynamic confirmation images use
+a centered, aspect-preserved vendor logo or initials, business name and Booking
+confirmation on a calm background at 1200×630; platform imagery is reserved for
+general public URLs and invalid-capability generic metadata.
+
+## My Profile Phase 1 (local)
+
+The Profile hub reuses WorkspacePage, the current font, Card, Button, Badge,
+BusinessLogo and Lucide icons. It is a constrained single column (`max-w-3xl`)
+with normal document scrolling. Page title is 28px below 375px and 30px above;
+identity is 18px/20px, section headings 16px, row titles 15px and descriptions
+13px. Each row has a neutral 36px icon tile, 20px icon, 18px trailing chevron,
+64px minimum height, shared padding, and internal dividers only. Text wraps.
+The summary image is square at 64px/80px. Below 375px Edit sits beneath the
+identity; otherwise it occupies a separate column. The larger layout removes
+the narrow layout's second grid row so it leaves no empty vertical gap.
+
+All nine rows are semantic list items with decorative icons, not interactive
+controls. Edit is natively disabled pending Phase 2. Global tokens, navigation,
+safe areas, shared primitives and existing feature forms are unchanged.
+See [MY_PROFILE_PHASE_1](MY_PROFILE_PHASE_1.md) for alignment evidence.
+
 ## Email Operations Presentation
 
 Email Operations reuses the shared admin shell. Configuration cards stack below

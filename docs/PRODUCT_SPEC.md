@@ -6,6 +6,25 @@ STATUS: PLANNED
 
 This document describes product intent and domain concepts. It is not implementation evidence.
 
+My Profile UI phase rule: the existing **Business** destination keeps its name
+while its landing page displays **My Profile**, a current-business summary, and
+Business, Account, and Billing & Legal groups. Phase 1 contains exactly nine
+non-interactive rows and a disabled Edit control; existing features are retained
+for separate mapping. No destination or functionality is implied by a chevron.
+The summary uses business creation time when available, labelled **Created**;
+it must not imply a membership-start date. Local evidence and all row labels are
+in [MY_PROFILE_PHASE_1](MY_PROFILE_PHASE_1.md).
+
+Phase 2 connects Edit (owners), Business information, Contact information and
+Business address to the existing editor through `/business/edit?section=...`.
+Notifications connects to existing `/settings#notifications`. Account details,
+Privacy & security, Billing & subscriptions, Terms & conditions and About remain
+static because their complete destinations do not exist. No missing feature is
+manufactured. A valid confirmation preview contains the exact booking business's
+name and logo in one PNG; no-logo/fetch failures use its initials. General public
+URLs keep the existing My Kustomers image. Physical social-client verification
+is separate from server metadata verification.
+
 Delivery-to-feedback rule: marking a ready booking delivered must create or
 recover exactly one private feedback request in the same transaction as the
 delivery event. The delivery email may include that exact request for up to 48

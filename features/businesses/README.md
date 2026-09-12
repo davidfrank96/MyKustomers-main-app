@@ -1,5 +1,17 @@
 # Businesses Feature
 
+## My Profile hub and existing editor — 2026-09-12
+
+`/business` renders MyProfileHub from the unchanged getCurrentBusinessProfile
+query. Name, category, current logo, Active presentation and valid creation date
+retain the approved Phase 1 layout. Owner Edit and the three business rows open
+`/business/edit?section=information|contact|address`. This minimal wrapper reuses
+BusinessWorkspace, BusinessOnboardingForm, BusinessLogoForm and the unchanged
+updateBusinessProfileAction, validation and owner checks. Members can view fields
+but cannot save. Existing routes and the shell business switcher remain intact.
+Notifications links to existing `/settings#notifications`; five missing features
+remain static. See [the Phase 2 report](../../docs/MY_PROFILE_PHASE_2.md).
+
 Phase 2 implements the initial business tenancy model and membership foundation.
 Phase 3 implements business onboarding, profile fields, contact details, owner
 membership creation, and owner-editable profile settings. Cross-phase business

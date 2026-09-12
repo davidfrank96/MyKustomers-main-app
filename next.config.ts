@@ -29,11 +29,19 @@ const nextConfig: NextConfig = {
   typedRoutes: true,
   logging: {
     incomingRequests: {
-      ignore: [/\/auth\/callback(?:\?|$)/],
+      ignore: [/\/auth\/callback(?:\?|$)/, /\/(?:c|a|x|f)\/[^/]+/],
     },
   },
   async headers() {
     const headers = [
+      {
+        source: "/social/confirmation/:path*",
+        headers: [
+          { key: "Cache-Control", value: "private, no-store, max-age=0" },
+          { key: "Referrer-Policy", value: "no-referrer" },
+          privateRobotsHeader,
+        ],
+      },
       {
         source: "/sw.js",
         headers: [

@@ -1,9 +1,16 @@
 import "server-only";
+import { isSocialPreviewCrawler } from "@/features/confirmation-links/crawlers";
 
 export async function handlePublicCapabilityOpen(
   request: Request,
   recordOpen: (token: string) => Promise<void>,
 ) {
+  if (isSocialPreviewCrawler(request.headers.get("user-agent"))) {
+    return new Response(null, {
+      status: 204,
+      headers: { "Cache-Control": "no-store, max-age=0" },
+    });
+  }
   const body = await request.json().catch(() => null);
   const token =
     body && typeof body === "object" && "token" in body && typeof body.token === "string"

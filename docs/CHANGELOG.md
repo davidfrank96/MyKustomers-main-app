@@ -1,5 +1,34 @@
 # Changelog
 
+## 2026-09-12 — My Profile Phase 2 and booking-owned social previews
+
+- Connect the approved Profile hub to the existing business form sections and
+  notification preferences; keep the five unavailable features static.
+- Reuse one BusinessWorkspace route wrapper with unchanged queries, validation,
+  owner actions and tenant context. Preserve Phase 1 geometry and shell. Wrap the
+  existing Settings membership badge below the name at widths below 375px.
+- Replace the competing vendor WebP/platform PNG confirmation metadata with one
+  booking-owned 1200×630 PNG using native ImageResponse and existing Sharp.
+  Keep vendor initials when a logo is missing or unavailable.
+- Keep preview resolution read-only, fail closed for invalid ownership/link state,
+  guard crawler open POSTs, recognize Apple preview signatures, retain privacy
+  headers and redact capability request logs. Root/www and /a /x /f metadata stay
+  unchanged.
+- Extend focused tests and existing E2E journeys and add isolated production-build
+  browser coverage to CI. No schema, RLS, Auth, provider, environment, dependency or
+  scheduler change. Release evidence: [MY_PROFILE_PHASE_2](MY_PROFILE_PHASE_2.md).
+
+## 2026-09-12 — My Profile Phase 1 (local UI only)
+
+- Replaced only the Business landing presentation with the approved My Profile
+  heading, current-business summary and three grouped cards containing nine rows.
+- Reused existing name, category, logo and creation time; retained the existing
+  Active presentation. No membership date or state logic is fabricated.
+- Kept rows static and Edit disabled for Phase 2; retained existing forms,
+  feature components, routes, actions, shell and all backend behavior.
+- Matched route-loading geometry and added isolated responsive/semantic coverage.
+  See [MY_PROFILE_PHASE_1](MY_PROFILE_PHASE_1.md). No publication in this phase.
+
 ## 2026-09-12 — Vendor notifications and service-business positioning
 
 - Added a durable cross-business inbox, unread bell, three push preferences,
