@@ -20,8 +20,8 @@ export async function notificationRequest<T>(
     );
   return response.json() as Promise<T>;
 }
-export function notificationsChanged() {
-  window.dispatchEvent(new Event(NOTIFICATIONS_CHANGED));
+export function notificationsChanged(unreadCount?: number) {
+  window.dispatchEvent(new CustomEvent(NOTIFICATIONS_CHANGED, { detail: unreadCount }));
 }
 export async function updateAppBadge(count: number) {
   const badgeNavigator = navigator as Navigator & {

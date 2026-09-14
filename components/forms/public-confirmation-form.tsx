@@ -7,6 +7,7 @@ import {
   useEffect,
   useRef,
   useState,
+  useSyncExternalStore,
 } from "react";
 import {
   ArrowLeft,
@@ -44,10 +45,27 @@ type ContactFieldErrors = NonNullable<
   Extract<PublicConfirmationActionState, { status: "error" }>["fieldErrors"]
 >;
 
+const subscribeToHydration = () => () => undefined;
+const hydratedSnapshot = () => true;
+const serverSnapshot = () => false;
+
 export function PublicConfirmationForm({
   action,
   businessName,
 }: PublicConfirmationFormProps) {
+  // Do not accept input before React can retain it. On a cold WebKit load an
+  // enabled server-rendered field can otherwise lose typing during hydration.
+  const interactive = useSyncExternalStore(
+    subscribeToHydration,
+    hydratedSnapshot,
+    serverSnapshot,
+  );
+  const [finished, setFinished] = useState(false);
+  const finishedRef = useRef(false);
+  const terminalHeadingRef = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    if (finished) terminalHeadingRef.current?.focus();
+  }, [finished]);
   const finalSubmissionStartedRef = useRef(false);
   const runConfirmationAction = useCallback(
     async (previousState: PublicConfirmationActionState, formData: FormData) => {
@@ -133,12 +151,7 @@ export function PublicConfirmationForm({
   };
 
   return (
-    <form
-      action={formAction}
-      className="mt-7"
-      noValidate
-      onSubmit={guardFinalSubmission}
-    >
+    <form action={formAction} className="mt-7" noValidate onSubmit={guardFinalSubmission}>
       {isReviewing ? (
         <section
           aria-labelledby="confirm-email-heading"
@@ -170,8 +183,8 @@ export function PublicConfirmationForm({
                 Please make sure this address is correct.
               </p>
               <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                This checks the address format only, not whether the mailbox exists or
-                can receive email.
+                This checks the address format only, not whether the mailbox exists or can
+                receive email.
               </p>
             </div>
           </div>
@@ -238,6 +251,7 @@ export function PublicConfirmationForm({
                     autoComplete="email"
                     placeholder="you@example.com"
                     required
+                    disabled={!interactive}
                     value={email}
                     onChange={(event) => {
                       setEmail(event.target.value);
@@ -259,8 +273,8 @@ export function PublicConfirmationForm({
                   id="contact-email-help"
                   className="text-xs leading-5 text-muted-foreground"
                 >
-                  Please enter a valid email address where we can send updates about
-                  this booking.
+                  Please enter a valid email address where we can send updates about this
+                  booking.
                 </p>
                 {visibleFieldErrors.contactEmail?.[0] ? (
                   <p id="contact-email-error" className="text-sm text-destructive">
@@ -282,6 +296,7 @@ export function PublicConfirmationForm({
                     name="contact_phone"
                     type="tel"
                     autoComplete="tel"
+                    disabled={!interactive}
                     placeholder="e.g. 0803 123 4567"
                     value={phone}
                     onChange={(event) => {
@@ -294,9 +309,7 @@ export function PublicConfirmationForm({
                     className="h-12 pl-11"
                     aria-invalid={Boolean(visibleFieldErrors.contactPhone)}
                     aria-describedby={
-                      visibleFieldErrors.contactPhone
-                        ? "contact-phone-error"
-                        : undefined
+                      visibleFieldErrors.contactPhone ? "contact-phone-error" : undefined
                     }
                   />
                 </div>
@@ -330,6 +343,7 @@ export function PublicConfirmationForm({
               size="lg"
               className="h-13 w-full text-base shadow-sm"
               onClick={reviewContactDetails}
+              disabled={!interactive}
             >
               Review and confirm
               <ArrowRight className="size-5" aria-hidden="true" />
@@ -351,11 +365,15 @@ export function PublicConfirmationForm({
                 <CheckCircle2 className="size-6" aria-hidden="true" />
               </span>
               <DialogHeader className="min-w-0 flex-1 pr-0">
-                <DialogTitle>Booking confirmed</DialogTitle>
+                <DialogTitle asChild>
+                  <h2 ref={terminalHeadingRef} tabIndex={-1}>
+                    {finished ? "You're all set" : "Booking confirmed"}
+                  </h2>
+                </DialogTitle>
                 <DialogDescription>
                   {state.alreadyConfirmed
                     ? "Thank you. This booking has already been confirmed."
-                    : state.businessName ?? businessName
+                    : (state.businessName ?? businessName)
                       ? `Thank you. Your confirmation has been sent to ${state.businessName ?? businessName}.`
                       : "Thank you. Your confirmation has been sent to the business."}
                 </DialogDescription>
@@ -377,18 +395,27 @@ export function PublicConfirmationForm({
             <p className="mt-4 text-sm leading-6 text-muted-foreground">
               No further action is required. You can close this page now.
             </p>
-            <Button
-              type="button"
-              size="lg"
-              className="mt-5 h-12 w-full"
-              onClick={() => {
-                if (window.opener && !window.opener.closed) {
-                  window.close();
-                }
-              }}
-            >
-              Done
-            </Button>
+            {!finished ? (
+              <Button
+                type="button"
+                size="lg"
+                className="mt-5 h-12 w-full"
+                onClick={() => {
+                  if (finishedRef.current) return;
+                  finishedRef.current = true;
+                  try {
+                    // Keep the close attempt in the trusted click. Browsers own
+                    // whether this tab may close; a refusal still has a terminal UI.
+                    window.close();
+                  } catch {
+                    // Embedded browsers may throw instead of ignoring close().
+                  }
+                  setFinished(true);
+                }}
+              >
+                Done
+              </Button>
+            ) : null}
           </DialogContent>
         </Dialog>
       ) : null}

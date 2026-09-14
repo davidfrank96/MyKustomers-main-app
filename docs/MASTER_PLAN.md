@@ -1,5 +1,9 @@
 # Master Plan
 
+## Golden Stability — 2026-09-14
+
+Golden Stability work preserves the current design. Notification history containment and 72-hour read filtering, confirmation Done fallback, and the reproduced WebKit hydration/input correction are implemented locally. The approved retention SQL is applied and verified. Application release and physical-device evidence remain pending; see [GOLDEN_STABILITY_PASS](GOLDEN_STABILITY_PASS.md).
+
 ## Vendor trust branding — 2026-09-12
 
 IMPLEMENTED — RELEASE VERIFICATION PENDING. One shared card makes the transaction-owning vendor dominant across all four customer capability families, including required feedback. The shared transactional email identity now projects the approved logo as stable PNG. No infrastructure or lifecycle change. See [VENDOR_TRUST_BRANDING](VENDOR_TRUST_BRANDING.md).

@@ -1,5 +1,9 @@
 # Confirmation Links Feature
 
+## Golden Stability — 2026-09-14
+
+The Golden Stability change keeps the existing confirmation transaction and refresh state. Done now closes eligible windows or focuses a terminal acknowledgement without a repeat button. Contact fields wait for hydration to retain early typing. [Verification and release status](../../docs/GOLDEN_STABILITY_PASS.md).
+
 ## Vendor share-dialog presentation
 
 The **Share with customer** path opts into `SecureShareContent` with the existing

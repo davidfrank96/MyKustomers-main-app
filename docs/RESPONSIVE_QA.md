@@ -1,5 +1,9 @@
 # Responsive QA
 
+## Golden Stability — 2026-09-14
+
+The Golden Stability matrix adds 1366×768 and five short-height cases plus 844×390 landscape. Ten vendor routes, notifications and confirmation terminal pass strict document width/nav containment in Chromium/WebKit. Physical bottom-nav drift remains unreproduced; no shell CSS patch is claimed. See [GOLDEN_STABILITY_PASS](GOLDEN_STABILITY_PASS.md) for each viewport and scope limits.
+
 ## Secure-share modal matrix
 
 Feedback and confirmation share dialogs are audited at 320×568, 360×800,

@@ -8,6 +8,7 @@ import {
 } from "@/features/notifications/validation";
 import { notificationTopic, retryAfterSeconds } from "@/features/notifications/delivery";
 import type { Database } from "@/types/database";
+import { isNotificationMaintenanceMinute } from "@/features/notifications/retention";
 
 type Delivery =
   Database["public"]["Functions"]["claim_notification_push"]["Returns"][number];
@@ -113,8 +114,10 @@ export async function processNotifications() {
       }),
     );
   }
-  const maintained = await supabase.rpc("maintain_notifications", { p_limit: 1000 });
-  if (maintained.error) throw new Error("notification_maintenance_failed");
+  if (isNotificationMaintenanceMinute()) {
+    const maintained = await supabase.rpc("maintain_notifications", { p_limit: 1000 });
+    if (maintained.error) throw new Error("notification_maintenance_failed");
+  }
   if (unknown)
     Sentry.captureMessage("Notification provider outcome unknown", {
       level: "warning",

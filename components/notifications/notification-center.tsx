@@ -24,7 +24,7 @@ import {
   updateAppBadge,
 } from "@/features/notifications/client";
 
-export function NotificationListView() {
+export function NotificationListView({ onNavigate }: { onNavigate?: () => void }) {
   const [data, setData] = useState<NotificationList | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -50,6 +50,7 @@ export function NotificationListView() {
               ]
             : next.items,
       }));
+      notificationsChanged(next.unreadCount);
       await updateAppBadge(next.unreadCount);
     } catch (caught) {
       setError(
@@ -76,7 +77,6 @@ export function NotificationListView() {
         method: "POST",
         body: JSON.stringify({ all: true, before: loadedBefore.current }),
       });
-      notificationsChanged();
       await load();
     } catch (caught) {
       setError(
@@ -88,8 +88,8 @@ export function NotificationListView() {
     }
   }
   return (
-    <div className="min-w-0 space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-3">
+    <div className="flex max-h-[min(44rem,65dvh)] min-h-0 min-w-0 flex-col gap-4">
+      <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-border pb-3">
         <Button
           variant="ghost"
           size="sm"
@@ -100,85 +100,92 @@ export function NotificationListView() {
           Mark all read
         </Button>
         <Button asChild variant="ghost" size="sm">
-          <Link href={"/settings#notifications" as Route}>
+          <Link href={"/settings#notifications" as Route} onNavigate={onNavigate}>
             <Settings className="size-4" aria-hidden="true" />
             Preferences
           </Link>
         </Button>
       </div>
-      {error ? (
-        <div role="alert" className="space-y-2 text-sm">
-          <p>{error}</p>
+      <div
+        role="region"
+        aria-label="Notification history"
+        tabIndex={0}
+        className="min-h-0 overflow-y-auto overscroll-contain"
+      >
+        {error ? (
+          <div role="alert" className="space-y-2 text-sm">
+            <p>{error}</p>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => void load()}
+              disabled={busy}
+            >
+              Try again
+            </Button>
+          </div>
+        ) : null}
+        {!data && busy ? (
+          <p role="status" className="py-8 text-center text-sm text-muted-foreground">
+            Loading notifications…
+          </p>
+        ) : null}
+        {data?.items.length === 0 ? (
+          <div className="py-10 text-center">
+            <Bell
+              className="mx-auto mb-3 size-6 text-muted-foreground"
+              aria-hidden="true"
+            />
+            <p className="font-medium">You’re all caught up.</p>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">
+              Booking updates will appear here.
+            </p>
+          </div>
+        ) : null}
+        <ul className="divide-y divide-border">
+          {data?.items.map((item) => (
+            <li key={item.id}>
+              {/* A normal document navigation lets the resolver switch the business cookie. No prefetch can mark a notification read. */}
+              <a
+                href={`/notifications/open/${item.id}`}
+                className="flex min-h-20 gap-3 rounded-md px-2 py-4 outline-offset-2 hover:bg-muted/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring"
+              >
+                <span
+                  className={`mt-2 size-2 shrink-0 rounded-full ${item.read_at ? "bg-transparent" : "bg-primary"}`}
+                  aria-hidden="true"
+                />
+                <span className="min-w-0 flex-1 space-y-1">
+                  <span className="block break-words text-sm font-medium leading-6">
+                    {notificationCopy[item.notification_type].title}
+                  </span>
+                  <span className="block break-words text-sm leading-5 text-muted-foreground">
+                    {item.businessName} · {item.bookingReference}
+                  </span>
+                  <span className="flex flex-wrap gap-x-2 text-xs leading-5 text-muted-foreground">
+                    <time dateTime={item.created_at}>
+                      {new Date(item.created_at).toLocaleString(undefined, {
+                        dateStyle: "medium",
+                        timeStyle: "short",
+                      })}
+                    </time>
+                    <span>{item.read_at ? "Read" : "Unread"}</span>
+                  </span>
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+        {data?.nextCursor ? (
           <Button
             variant="secondary"
-            size="sm"
-            onClick={() => void load()}
+            className="w-full"
             disabled={busy}
+            onClick={() => void load(data.nextCursor)}
           >
-            Try again
+            {busy ? "Loading…" : "Load more"}
           </Button>
-        </div>
-      ) : null}
-      {!data && busy ? (
-        <p role="status" className="py-8 text-center text-sm text-muted-foreground">
-          Loading notifications…
-        </p>
-      ) : null}
-      {data?.items.length === 0 ? (
-        <div className="py-10 text-center">
-          <Bell
-            className="mx-auto mb-3 size-6 text-muted-foreground"
-            aria-hidden="true"
-          />
-          <p className="font-medium">You’re all caught up.</p>
-          <p className="mt-1 text-sm leading-6 text-muted-foreground">
-            Booking updates will appear here.
-          </p>
-        </div>
-      ) : null}
-      <ul className="divide-y divide-border">
-        {data?.items.map((item) => (
-          <li key={item.id}>
-            {/* A normal document navigation lets the resolver switch the business cookie. No prefetch can mark a notification read. */}
-            <a
-              href={`/notifications/open/${item.id}`}
-              className="flex min-h-20 gap-3 rounded-md px-2 py-4 outline-offset-2 hover:bg-muted/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring"
-            >
-              <span
-                className={`mt-2 size-2 shrink-0 rounded-full ${item.read_at ? "bg-transparent" : "bg-primary"}`}
-                aria-hidden="true"
-              />
-              <span className="min-w-0 flex-1 space-y-1">
-                <span className="block break-words text-sm font-medium leading-6">
-                  {notificationCopy[item.notification_type].title}
-                </span>
-                <span className="block break-words text-sm leading-5 text-muted-foreground">
-                  {item.businessName} · {item.bookingReference}
-                </span>
-                <span className="flex flex-wrap gap-x-2 text-xs leading-5 text-muted-foreground">
-                  <time dateTime={item.created_at}>
-                    {new Date(item.created_at).toLocaleString(undefined, {
-                      dateStyle: "medium",
-                      timeStyle: "short",
-                    })}
-                  </time>
-                  <span>{item.read_at ? "Read" : "Unread"}</span>
-                </span>
-              </span>
-            </a>
-          </li>
-        ))}
-      </ul>
-      {data?.nextCursor ? (
-        <Button
-          variant="secondary"
-          className="w-full"
-          disabled={busy}
-          onClick={() => void load(data.nextCursor)}
-        >
-          {busy ? "Loading…" : "Load more"}
-        </Button>
-      ) : null}
+        ) : null}
+      </div>
     </div>
   );
 }
@@ -212,8 +219,12 @@ export function NotificationBell() {
     const reconcile = () => {
       void refresh();
     };
-    const changed = () => {
-      void refresh(true);
+    const changed = (event: Event) => {
+      const count = event instanceof CustomEvent ? event.detail : undefined;
+      if (Number.isSafeInteger(count) && count >= 0) {
+        setCount(count);
+        lastRefresh.current = Date.now();
+      } else void refresh(true);
     };
     const message = (event: MessageEvent) => {
       if (event.data?.type === "MYK_NOTIFICATION_RECEIVED") void refresh(true);
@@ -239,7 +250,6 @@ export function NotificationBell() {
       open={open}
       onOpenChange={(value) => {
         setOpen(value);
-        void refresh(true);
       }}
     >
       <DialogTrigger asChild>
@@ -260,13 +270,13 @@ export function NotificationBell() {
           ) : null}
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="flex flex-col overflow-hidden">
         <DialogHeader>
           <DialogTitle>Notifications</DialogTitle>
           <DialogDescription>Updates across your businesses.</DialogDescription>
         </DialogHeader>
-        <div className="mt-4">
-          <NotificationListView />
+        <div className="mt-4 min-h-0">
+          <NotificationListView onNavigate={() => setOpen(false)} />
         </div>
       </DialogContent>
     </Dialog>

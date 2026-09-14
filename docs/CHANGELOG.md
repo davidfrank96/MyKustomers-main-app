@@ -1,5 +1,9 @@
 # Changelog
 
+## Golden Stability — 2026-09-14
+
+Implemented locally: bounded notification history and first-read 72-hour API filtering; removal of duplicate bell-count requests; functional confirmation Done terminal fallback; prevention of reproduced pre-hydration input loss in WebKit. Added browser/SQL/component regressions. Explicitly approved retention migration `20260914020434_notification_read_retention.sql` is applied and verified. Application release gates are in progress. Scheduler remains active/every minute. [Evidence](GOLDEN_STABILITY_PASS.md).
+
 ## 2026-09-12 — Feedback and confirmation share-modal presentation
 
 Applied the approved sharing layout to private feedback and customer confirmation:
