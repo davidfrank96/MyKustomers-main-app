@@ -87,7 +87,7 @@ test("golden shell: ordinary and notification navigation stay anchored through s
   const errors: string[] = [];
   const failedRequests: { url: string; error: string | undefined }[] = [];
   const measurements = [];
-  page.on("pageerror", (error) => errors.push(error.message));
+  page.on("pageerror", (error) => errors.push(error.stack || error.message));
   page.on("requestfailed", (request) =>
     failedRequests.push({ url: request.url(), error: request.failure()?.errorText }),
   );

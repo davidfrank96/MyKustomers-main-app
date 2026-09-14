@@ -54,10 +54,8 @@ try {
     "supabase/migrations/20260912001130_pwa_notifications_foundation.sql",
   ]);
   console.log(run("psql", [...psql, "-f", "tests/database/notifications/verify.sql"]));
-  if (process.argv.includes("--retention-proposal")) {
-    run("psql", [...psql, "-f", "docs/proposals/notification-read-retention.sql"]);
-    console.log(run("psql", [...psql, "-f", "tests/database/notifications/read-retention.sql"]));
-  }
+  run("psql", [...psql, "-f", "supabase/migrations/20260914020434_notification_read_retention.sql"]);
+  console.log(run("psql", [...psql, "-f", "tests/database/notifications/read-retention.sql"]));
   run("psql", [...psql, "-f", "tests/database/notifications/concurrency.sql"]);
   const claim = () =>
     new Promise((resolve, reject) => {

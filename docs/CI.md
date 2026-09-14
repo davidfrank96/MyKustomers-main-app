@@ -149,8 +149,10 @@ This mode uses an ephemeral loopback HTTPS proxy (existing OpenSSL) so WebKit ca
 retain Production Secure cookies. Certificate exceptions are limited to the test
 process, including Chromium service workers; no trust store or app cookie change.
 
-The proposed retention SQL is checked only by the explicit disposable-database
-command `npm run test:notifications:database -- --retention-proposal`. It is not an
-approved/applied migration and is never applied to Supabase or from PR CI.
-See [the release evidence](GOLDEN_STABILITY_PASS.md) for the intermittent optimized
-WebKit prefetch result and migration approval gate.
+The approved retention migration and deterministic 72-hour boundary tests now run
+by default in `npm run test:notifications:database`, including Notification Contracts
+CI. CI uses only the disposable cluster; the explicitly approved live application
+was a separate guarded transaction. PR CI never applies SQL to Supabase.
+The optimized WebKit fetch error also reproduces on an isolated unchanged main
+build; it is a pre-existing framework-path limitation, not a newly introduced
+regression. See [the release evidence](GOLDEN_STABILITY_PASS.md).

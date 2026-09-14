@@ -2,7 +2,7 @@
 
 ## Golden Stability — 2026-09-14
 
-Golden Stability work preserves the current design. Notification history containment and 72-hour read filtering, confirmation Done fallback, and the reproduced WebKit hydration/input correction are implemented locally. Retention SQL approval, release and physical-device evidence remain pending; see [GOLDEN_STABILITY_PASS](GOLDEN_STABILITY_PASS.md).
+Golden Stability work preserves the current design. Notification history containment and 72-hour read filtering, confirmation Done fallback, and the reproduced WebKit hydration/input correction are implemented locally. The approved retention SQL is applied and verified. Application release and physical-device evidence remain pending; see [GOLDEN_STABILITY_PASS](GOLDEN_STABILITY_PASS.md).
 
 ## Vendor trust branding — 2026-09-12
 

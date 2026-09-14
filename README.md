@@ -2,7 +2,7 @@
 
 ## Golden Stability — 2026-09-14
 
-The Golden Stability pass is implemented locally with release verification and a small retention-function/index migration approval pending. The live notification scheduler remains ACTIVE every minute. See [GOLDEN_STABILITY_PASS](docs/GOLDEN_STABILITY_PASS.md) for evidence and limitations.
+The Golden Stability pass is implemented; the explicitly approved retention-function/index migration is applied and verified. Application release verification is in progress. The live notification scheduler remains ACTIVE every minute. See [GOLDEN_STABILITY_PASS](docs/GOLDEN_STABILITY_PASS.md) for evidence and limitations.
 
 ## Vendor trust branding — 2026-09-12
 

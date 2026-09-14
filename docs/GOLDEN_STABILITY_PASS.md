@@ -1,11 +1,10 @@
 # Golden stability pass — 2026-09-14
 
-Status: IMPLEMENTED LOCALLY — MIGRATION APPROVAL REQUIRED. Not merged or deployed.
+Status: IMPLEMENTED — APPROVED RETENTION MIGRATION APPLIED; APPLICATION RELEASE IN PROGRESS.
 The PR and its live checks are the current release record; this report records local evidence.
 
 The current Production scheduler was read directly: `myk-notifications`, ACTIVE,
-`* * * * *`. No scheduler mutation has occurred. The retention correction cannot
-be released as complete without the [locally tested database proposal](proposals/NOTIFICATION_RETENTION_APPROVAL.md).
+`* * * * *`. No scheduler mutation has occurred. The [approved database proposal](proposals/NOTIFICATION_RETENTION_APPROVAL.md) has now been applied as migration `20260914020434_notification_read_retention.sql`; application rollout is separate.
 
 ## A. Starting repository and Production
 
@@ -85,7 +84,7 @@ first-open resolver and selected-business checks stay in place.
 
 Implemented API filter: unread OR read at/after server time minus 72 elapsed
 hours. Exactly 72h stays visible; older read history is omitted. No created_at
-or updated_at approximation. Physical retention change is awaiting approval.
+or updated_at approximation. The explicitly approved physical-retention migration is applied and catalog-verified.
 
 ## L. Physical cleanup
 
@@ -93,7 +92,7 @@ Proposed replacement of the existing service-only maintenance function uses
 `read_at < now() - interval '72 hours'` and ordered bounded deletion. A partial
 `(read_at,id)` index avoids scanning old unread history. All private delivery,
 device, revoked-authority cleanup and overdue dedupe receipts are preserved.
-Local PostgreSQL tests pass; Production SQL has not been applied.
+Local PostgreSQL tests pass. Approved migration `20260914020434_notification_read_retention.sql` applied in one transaction after exact function-drift checks. Index validity/readiness, postgres ownership, empty search path, service-only execution and absent direct DELETE grants are verified.
 
 ## M. Scheduler
 
@@ -101,7 +100,7 @@ ACTIVE, every minute, verified from the live catalog. No cadence or scheduler
 configuration change. The application worker's maintenance stage is limited to
 UTC minutes 0,15,30,45 after overdue generation and push processing, capped at
 1,000 rows per existing category. Normal generation/delivery remain every minute.
-This application change is not deployed while the SQL proposal is pending.
+The database prerequisite is applied; this application scheduling gate awaits the PR rollout. The SQL application does not change the cron job or invoke a manual history cleanup.
 
 ## N. Panel performance
 
@@ -224,7 +223,7 @@ All 12 impacted browser cases have passed against the optimized build, including
 
 ## AD. WebKit
 
-All 12 impacted browser cases have passed against the optimized build. The shell case also produced intermittent prefetch errors in two HTTPS runs; a trace-enabled diagnostic run passed unchanged, so this remains unresolved verification instability, not a proven application fix. Cold-input regression resolved. This does not claim physical iPhone/browser-chrome verification.
+All 12 impacted browser cases have passed against the optimized build. The shell case also produces intermittent fetch errors. The identical errors were reproduced against an isolated unchanged `20066c2` main build, at the same Next.js `createFetch` implementation: this predates the patch. The underlying framework/browser cancellation issue remains open; no error was filtered or assertion weakened. Cold-input regression resolved. This does not claim physical iPhone/browser-chrome verification.
 
 ## AE. Physical iOS
 
@@ -251,11 +250,11 @@ numbers. Optimized HTTPS route response observations were 6–14ms in WebKit on 
 
 ## AI. Client bundle
 
-No new dependency or server-to-client logic migration. Changes add a small terminal state/hydration guard and reuse the existing list response for the badge. Optimized resource timings are saved in `output/playwright/golden-stability/production/<engine>/baseline.json`, but warm-cache zero-byte entries prevent an accurate before/after bundle-size delta. No numeric bundle reduction is claimed.
+No new dependency or server-to-client logic migration. Comparing all 135 emitted client `.js` assets against the isolated unchanged main build: 2,298,732 → 2,300,002 raw bytes (+1,270); 730,707 → 730,869 independently gzipped bytes (+162). This is total emitted assets, not a single-route transfer estimate. Both builds use the same installed dependencies and fixture configuration; their loopback app URL differs only by HTTP/HTTPS. Evidence: `output/playwright/golden-stability/bundle-comparison.json`.
 
 ## AJ. Console/runtime
 
-No page errors in the development-mode vendor walkthrough. Optimized HTTPS WebKit reported two RSC prefetch “access control checks” errors during rapid document navigation in two runs. The diagnostic trace passed unchanged and showed successful same-origin 200 responses for those resources; a cause is not established. Keep this as a verification limitation, with no error filtering or speculative app change. Node NO_COLOR/FORCE_COLOR warnings are from the harness. The broad E2E logged a Next dev aborted response stream during recovery navigation; no corresponding client failure was demonstrated.
+No page errors in the development-mode vendor walkthrough. Optimized HTTPS WebKit reported two RSC prefetch “access control checks” errors during rapid document navigation in two runs. A comparison against unchanged main reproduced the same errors in Next.js createFetch. This is a pre-existing optimized WebKit limitation, not an introduced regression; no framework/dependency workaround, error filtering or assertion weakening is included. Preview’s separate errors were traced to the injected Vercel feedback toolbar. Node NO_COLOR/FORCE_COLOR warnings are from the harness. The broad E2E logged a Next dev aborted response stream during recovery navigation; no corresponding client failure was demonstrated.
 
 ## AK. Accessibility
 
@@ -265,9 +264,7 @@ button removal are checked. No new hidden interactive destinations.
 
 ## AL. Database changes
 
-NONE APPLIED. A function/index migration is unexpectedly required despite the
-existing timestamp; complete reviewed proposal and passing local tests are linked
-above. This is explicitly awaiting user approval under the brief's migration rule.
+APPROVED AND APPLIED: `20260914020434_notification_read_retention.sql`, SHA-256 `cc3a4d7e45dc265c6666a42b5bf10db60ef063eec332ff2bf5b2ed5c43e33d99`. One additive partial index and existing function predicate correction. No new column, table, grants or RLS changes. Live verification confirms the old creation-age deletion is absent; scheduler remains active.
 
 ## AM. Scheduler/configuration changes
 
@@ -295,7 +292,7 @@ stage, new retention clock helper, notification center and public confirmation
 form. Tests: existing fixture server/browser suite, permanent stability suite,
 confirmation component/cloud E2E tests, retention clock/SQL tests and optional
 local proposal runner. Documentation: this report and affected feature/testing/
-roadmap/data/security notes; proposal SQL is not an applied migration.
+roadmap/data/security notes; the reviewed proposal is preserved alongside its immutable approved/applied migration.
 
 ## AR. Tests
 
@@ -339,7 +336,7 @@ PASS: zero vulnerabilities at the moderate threshold.
 
 ## BA. Diff integrity
 
-PASS: final `git diff --check`; no migration, scheduler object, provider, dependency, secret or generated screenshot is included in the executable change.
+PASS: final `git diff --check`; only the explicitly approved migration is added; no scheduler object, provider, dependency, secret or generated screenshot change.
 
 ## BB. Bottom-nav stability gate
 
@@ -347,8 +344,7 @@ BOTTOM NAV STABILITY: FAIL — physical report remains unreproduced; local matri
 
 ## BC. Notification gate
 
-NOTIFICATION RETENTION + PANEL STABILITY: FAIL — panel/API/local SQL tests pass,
-but the physical-retention migration is unapproved and unapplied.
+NOTIFICATION RETENTION + PANEL STABILITY: PASS — panel/API/local SQL tests pass and the explicitly approved physical-retention migration is applied and verified. Application Production smoke follows the PR rollout.
 
 ## BD. Confirmation gate
 
@@ -362,11 +358,11 @@ and physical-device coverage are incomplete. No broad verification claim.
 
 ## BF. PR
 
-PENDING; no merge permitted while migration/release gates remain open.
+PR #82: https://github.com/davidfrank96/MyKustomers-main-app/pull/82. The user approved the complete migration and release continuation. Await exact updated-commit CI before merge.
 
 ## BG. CI
 
-PENDING. No check, skip, guard or branch protection is weakened.
+Initial PR commit `d34c090` passed all seven executable jobs; CI E2E had 69 passed and 19 existing skipped. The approved migration/default SQL tests require a fresh exact-head CI run. Runtime Security stays guarded/skipped; no check or branch protection is weakened.
 
 ## BH. Merge SHA
 
@@ -393,7 +389,7 @@ that is removed by the runner. A read-only audit found zero remaining recognizab
 
 ## BM. Remaining defects
 
-Physical bottom-nav drift lacks a reproducible cause. Database correction requires approval. Optimized WebKit prefetch verification remains intermittent (AJ). The transient cloud Auth fixture failure passed its unchanged targeted recheck (AX).
+Physical bottom-nav drift lacks a reproducible cause. The approved database correction is applied. Optimized WebKit fetch errors reproduce on unchanged main and remain a pre-existing framework/browser issue (AJ). The transient cloud Auth fixture failure passed its unchanged targeted recheck (AX).
 
 ## BN. Limits
 
@@ -404,6 +400,6 @@ claim that every implemented/admin/customer route passed every viewport.
 
 ## BO. Overall status
 
-MY KUSTOMERS GOLDEN STABILITY PASS — MIGRATION APPROVAL REQUIRED
+MY KUSTOMERS GOLDEN STABILITY PASS — IMPLEMENTED — DEVICE VERIFICATION PENDING
 
-Merge and Production verification remain on hold pending approval of the complete SQL proposal and resolution of the remaining release gates. All limitations above remain explicit; no Production stability claim is made.
+Migration approval is resolved and the transaction is applied. Merge awaits fresh exact-head CI; application Production verification follows deployment. All limitations above remain explicit; no Production stability claim is made.

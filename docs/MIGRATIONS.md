@@ -1,5 +1,20 @@
 # Migrations
 
+## Approved read-notification retention — 2026-09-14
+
+`20260914020434_notification_read_retention.sql`: **APPLIED**, after explicit user
+approval and disposable PostgreSQL retention/ACL/idempotency/concurrency tests.
+SHA-256: `cc3a4d7e45dc265c6666a42b5bf10db60ef063eec332ff2bf5b2ed5c43e33d99`.
+The guarded transaction checked exact existing function drift, added one partial
+`(read_at,id)` index and replaced only the existing maintenance history predicate
+with `read_at < now() - interval '72 hours'`, retaining bounded limits and other
+cleanup. Catalog checks verified index validity/readiness, postgres ownership,
+empty search path, service-only execution and absent direct DELETE permission.
+No grants, columns, RLS, scheduler objects, cadence, providers or migration ledger
+were rewritten. Scheduler remained ACTIVE/every minute; 15/15 recent invocations
+succeeded. Do not roll back to creation-age deletion: it removes unread history.
+
+
 ## Approved notification migrations — 2026-09-12
 
 - `20260912001130_pwa_notifications_foundation.sql`: **APPLIED** transactionally

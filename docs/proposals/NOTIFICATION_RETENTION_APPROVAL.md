@@ -1,6 +1,9 @@
-# Notification retention correction — approval requested
+# Notification retention correction — approved and applied
 
-Status: PROPOSED, locally verified; no Production migration applied.
+Status: APPROVED AND APPLIED on 2026-09-14 after the user’s explicit “yes proceed”.
+Migration: `20260914020434_notification_read_retention.sql`; SHA-256:
+`cc3a4d7e45dc265c6666a42b5bf10db60ef063eec332ff2bf5b2ed5c43e33d99`.
+The text below preserves the reviewed proposal and approval rationale.
 
 The live catalog on 2026-09-14 confirms `read_at timestamptz` exists. However,
 `maintain_notifications(integer)` currently deletes every notification older than
@@ -35,7 +38,7 @@ batch bound, repeated cleanup, first-read preservation, mark-all user isolation,
 unchanged denied direct-delete and anonymous function access, plus the existing
 foundation and concurrent lease tests. No cloud fixture or notification was used.
 
-Approval is required because the user brief explicitly requires no unapproved
+Approval was required because the user brief explicitly requires no unapproved
 migration and expected zero database changes with an existing `read_at`. This
 unexpected existing cleanup function makes that expectation incompatible with
 the requested unread-retention guarantee. Upon approval, create the migration
@@ -43,6 +46,6 @@ with the repository's Supabase CLI workflow, validate exact catalog drift and
 row/index size, apply only this transaction, and verify catalog and scheduler
 state. Never restore the old age-only deletion rule as an application rollback.
 
-Production release remains pending this decision and the other release gates.
+The approved migration applied in one guarded transaction after exact function drift checks. Post-apply: valid/ready partial index, postgres ownership, empty search path, service-only execution, no direct delete grant; scheduler ACTIVE/every minute and 15/15 recent scheduler invocations succeeded. No manual cleanup of legitimate history was used. Application release is tracked in the Golden Stability report.
 
-Read-only pre-application sizing: notification heap 8,192 bytes, estimated 14 rows. Scheduler rechecked ACTIVE/every minute after the full local E2E run. No Production SQL applied.
+Read-only pre-application sizing: notification heap 8,192 bytes, estimated 14 rows. Scheduler rechecked ACTIVE/every minute after the full local E2E run. The approved transaction is now applied; this sizing was the pre-application snapshot.

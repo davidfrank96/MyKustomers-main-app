@@ -2,7 +2,7 @@
 
 ## Golden Stability — 2026-09-14
 
-Golden Stability preserves Auth, RLS, recipient context, grants, capability/booking/email transactions and worker authorization. New history filtering is server-owned. The retention-function/index proposal remains unapproved and grants no direct table access; local PostgreSQL tests cover retained unread, bounded deletion and role/tenant isolation. Evidence: [GOLDEN_STABILITY_PASS](GOLDEN_STABILITY_PASS.md).
+Golden Stability preserves Auth, RLS, recipient context, grants, capability/booking/email transactions and worker authorization. New history filtering is server-owned. The approved retention-function/index migration is applied, preserves service-only execution and grants no direct table access; local PostgreSQL tests cover retained unread, bounded deletion and role/tenant isolation. Evidence: [GOLDEN_STABILITY_PASS](GOLDEN_STABILITY_PASS.md).
 
 ## Vendor branding projection boundary
 
