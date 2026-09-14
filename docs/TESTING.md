@@ -1,5 +1,9 @@
 # Testing
 
+## Golden Stability — 2026-09-14
+
+Run the existing notification browser command for the new permanent Chromium/WebKit stability matrix (set `NOTIFICATIONS_PRODUCTION_BUILD=1` to build/start the optimized app against the same loopback fixtures), real script-opened close, refused-close terminal focus, history scroll, first-read semantics, business resolver and existing-worker resume checks. `npm run test:notifications:database -- --retention-proposal` verifies the unapproved SQL exclusively in a disposable local cluster. The normal cloud confirmation hotfix journey now clicks Done before checking single immutable confirmation/email evidence. Results and exact limits: [GOLDEN_STABILITY_PASS](GOLDEN_STABILITY_PASS.md).
+
 ## Secure-share modal coverage
 
 The canonical booking journey includes both dialogs at ten exact widths, actual

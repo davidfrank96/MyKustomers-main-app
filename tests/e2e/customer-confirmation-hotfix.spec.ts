@@ -58,12 +58,11 @@ test.describe("customer confirmation trust and success hotfix", () => {
     let logoPath: string | null = null;
 
     try {
-      const { data: userData, error: userError } =
-        await admin.auth.admin.createUser({
-          email,
-          password: `Confirmation-${randomUUID()}-A1`,
-          email_confirm: true,
-        });
+      const { data: userData, error: userError } = await admin.auth.admin.createUser({
+        email,
+        password: `Confirmation-${randomUUID()}-A1`,
+        email_confirm: true,
+      });
       expect(userError).toBeNull();
       userId = userData.user!.id;
 
@@ -207,6 +206,14 @@ test.describe("customer confirmation trust and success hotfix", () => {
         expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth + 1);
         await expect(page.getByRole("button", { name: "Done" })).toBeVisible();
       }
+
+      // A refused close must still finish, without another confirmation/email.
+      await page.evaluate(() => {
+        window.close = () => undefined;
+      });
+      await page.getByRole("button", { name: "Done" }).click();
+      await expect(page.getByRole("heading", { name: "You're all set" })).toBeFocused();
+      await expect(page.getByRole("button", { name: "Done" })).toHaveCount(0);
 
       const [{ data: confirmationRows }, { data: emailEvents }, { data: profile }] =
         await Promise.all([

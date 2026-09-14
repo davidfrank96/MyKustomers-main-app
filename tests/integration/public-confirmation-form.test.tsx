@@ -98,9 +98,7 @@ describe("public confirmation email review", () => {
     const email = screen.getByLabelText("Email address");
     expect(email).toHaveFocus();
     expect(email).toHaveValue("wrong@example.ie");
-    expect(screen.getByLabelText("Phone number (optional)")).toHaveValue(
-      "0803 123 4567",
-    );
+    expect(screen.getByLabelText("Phone number (optional)")).toHaveValue("0803 123 4567");
 
     fireEvent.change(email, { target: { value: "corrected@EXAMPLE.CO.UK" } });
     fireEvent.click(screen.getByRole("button", { name: "Review and confirm" }));
@@ -142,6 +140,7 @@ describe("public confirmation email review", () => {
   });
 
   it("renders a stable accessible success acknowledgement with the confirmed email", async () => {
+    const close = vi.spyOn(window, "close").mockImplementation(() => undefined);
     const action = vi.fn(async () => ({
       status: "success" as const,
       businessName: "Bella Cakes",
@@ -167,5 +166,38 @@ describe("public confirmation email review", () => {
     );
     expect(screen.getByRole("button", { name: "Done" })).toBeVisible();
     expect(screen.queryByLabelText("Close dialog")).toBeNull();
+    const done = screen.getByRole("button", { name: "Done" });
+    fireEvent.click(done);
+    fireEvent.click(done);
+    expect(close).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("heading", { name: "You're all set" })).toHaveFocus();
+    expect(screen.queryByRole("button", { name: "Done" })).toBeNull();
+    expect(screen.getByTestId("confirmed-email")).toHaveTextContent(
+      "David.Frank@hotmail.com",
+    );
+    expect(action).toHaveBeenCalledTimes(1);
+    close.mockRestore();
+  });
+
+  it("keeps the terminal state when an embedded browser throws on close", async () => {
+    const close = vi.spyOn(window, "close").mockImplementation(() => {
+      throw new Error("Close refused");
+    });
+    const action = vi.fn(async () => ({
+      status: "success" as const,
+      alreadyConfirmed: true,
+      businessName: null,
+      contactEmail: null,
+    }));
+    render(<PublicConfirmationForm action={action} businessName="Bella Cakes" />);
+    fireEvent.change(screen.getByLabelText("Email address"), {
+      target: { value: "customer@example.invalid" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Review and confirm" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirm booking" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Done" }));
+    expect(screen.getByRole("heading", { name: "You're all set" })).toHaveFocus();
+    expect(screen.queryByRole("button", { name: "Done" })).toBeNull();
+    close.mockRestore();
   });
 });

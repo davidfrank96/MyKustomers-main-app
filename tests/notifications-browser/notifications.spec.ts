@@ -1,14 +1,14 @@
 import { test, expect } from "@playwright/test";
 import fs from "node:fs/promises";
 const fixtureOrigin = "http://127.0.0.1:55440";
-test.beforeEach(async ({ context, request }) => {
+test.beforeEach(async ({ context, request, baseURL }) => {
   await request.post(`${fixtureOrigin}/fixture/reset`);
   const fixture = await (await request.get(`${fixtureOrigin}/fixture/session`)).json();
   await context.addCookies([
     {
       name: "sb-127-auth-token",
       value: fixture.cookie,
-      url: "http://127.0.0.1:3418",
+      url: baseURL!,
       httpOnly: false,
       sameSite: "Lax",
     },

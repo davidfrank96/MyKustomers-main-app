@@ -1,5 +1,9 @@
 # Product Specification
 
+## Golden Stability — 2026-09-14
+
+Read notifications remain in normal history for 72 elapsed hours from first read; unread notifications do not expire by age. Done on successful customer confirmation attempts a safe close and otherwise shows a focused terminal acknowledgement without a repeat button. Implementation/release status: [GOLDEN_STABILITY_PASS](GOLDEN_STABILITY_PASS.md).
+
 ## Vendor transaction identity
 
 A valid customer transaction link uses the owning business name/logo and a generic purpose. General public URLs retain My Kustomers branding. The same vendor logo appears inside business-scoped transactional email, with initials when unavailable and visible text when images are blocked. This is independent of sender avatars/BIMI. See [VENDOR_TRUST_BRANDING](VENDOR_TRUST_BRANDING.md).

@@ -1,10 +1,49 @@
 // Local UI fixtures, never an authentication or RLS substitute. Database contracts
 // run independently in PostgreSQL; this server binds only to loopback.
 import { createServer } from "node:http";
+import { createHash } from "node:crypto";
 const userId = "10000000-0000-4000-8000-000000000001";
 const businessId = "20000000-0000-4000-8000-000000000001";
 const otherBusinessId = "20000000-0000-4000-8000-000000000002";
 const bookingId = "30000000-0000-4000-8000-000000000001";
+const customerId = "60000000-0000-4000-8000-000000000001";
+const confirmationToken = "G".repeat(43);
+const customer = {
+  id: customerId,
+  business_id: otherBusinessId,
+  name: "Golden fixture customer",
+  email: null,
+  phone: null,
+  archived_at: null,
+  created_at: "2026-01-01T00:00:00Z",
+  updated_at: "2026-01-01T00:00:00Z",
+};
+const booking = {
+  id: bookingId,
+  business_id: otherBusinessId,
+  customer_id: customerId,
+  reference: "MK-2026-0001",
+  title: "Golden stability booking",
+  description: "Review the agreed service and delivery details.",
+  currency: "EUR",
+  total_amount_minor: 42000,
+  deposit_amount_minor: 10000,
+  scheduled_for: "2099-01-01T12:00:00Z",
+  status: "AWAITING_CUSTOMER",
+  created_at: "2026-01-01T00:00:00Z",
+  updated_at: "2026-01-01T00:00:00Z",
+  internal_notes: null,
+  customer_confirmed_at: null,
+  started_at: null,
+  ready_at: null,
+  delivered_at: null,
+  completed_at: null,
+  cancelled_at: null,
+  customers: customer,
+};
+let confirmedEmail = null;
+let confirmationCalls = 0;
+let queries = [];
 const user = {
   id: userId,
   email: "fixture@example.invalid",
@@ -61,6 +100,9 @@ let failPreferences = false;
 let preferences;
 let subscribed = false;
 function reset() {
+  confirmedEmail = null;
+  confirmationCalls = 0;
+  queries = [];
   failPreferences = false;
   subscribed = false;
   preferences = {
@@ -98,6 +140,8 @@ createServer(async (req, res) => {
   for await (const chunk of req) chunks.push(chunk);
   const body = chunks.length ? JSON.parse(Buffer.concat(chunks)) : null;
   if (path === "/health") return send({ ok: true });
+  if (path === "/fixture/state")
+    return send({ notifications, confirmationCalls, queries });
   if (path === "/fixture/reset") {
     reset();
     return send({ ok: true });
@@ -110,6 +154,18 @@ createServer(async (req, res) => {
     notifications = [];
     return send({ ok: true });
   }
+  if (path === "/fixture/retention") {
+    const now = Date.now();
+    notifications = notifications
+      .slice(0, 5)
+      .map((n, i) => ({
+        ...n,
+        created_at: new Date(now - 120 * 86400000 - i * 1000).toISOString(),
+        read_at:
+          i < 2 ? null : new Date(now - [0, 0, 71, 73, 74][i] * 3600000).toISOString(),
+      }));
+    return send({ ok: true });
+  }
   if (path === "/fixture/session")
     return send({
       cookie: "base64-" + base64(session),
@@ -118,6 +174,8 @@ createServer(async (req, res) => {
       otherBusinessId,
       bookingId,
       notificationId: notifications[0].id,
+      customerId,
+      confirmationToken,
     });
   if (path === "/auth/v1/user")
     return req.headers.authorization === `Bearer ${accessToken}`
@@ -126,6 +184,55 @@ createServer(async (req, res) => {
   if (path === "/auth/v1/logout") return send({});
   if (path.startsWith("/rest/v1/rpc/")) {
     const rpc = path.split("/").at(-1);
+    queries.push(rpc);
+    if (rpc === "get_confirmation_public_view")
+      return send({
+        status: confirmedEmail ? "already_confirmed" : "valid",
+        booking: {
+          business_name: businesses[1].name,
+          business_logo_path: null,
+          business_website: null,
+          business_instagram: null,
+          business_phone: null,
+          business_email: null,
+          customer_name: customer.name,
+          booking_reference: booking.reference,
+          booking_title: booking.title,
+          booking_description: booking.description,
+          scheduled_for: booking.scheduled_for,
+          currency: booking.currency,
+          total_amount_minor: 42000,
+          deposit_amount_minor: 10000,
+          balance_amount_minor: 32000,
+          status: confirmedEmail ? "CONFIRMED" : "AWAITING_CUSTOMER",
+          expires_at: "2099-01-01T00:00:00Z",
+          confirmed_at: confirmedEmail ? new Date().toISOString() : null,
+          terms_hash: "fixture",
+          contact_email_masked: confirmedEmail ? "C***@example.invalid" : null,
+        },
+      });
+    if (rpc === "confirm_booking_by_token_hash") {
+      confirmationCalls++;
+      if (confirmedEmail) return send({ status: "already_confirmed" });
+      confirmedEmail = body.p_contact_email;
+      return send({
+        status: "confirmed",
+        business_id: otherBusinessId,
+        booking_id: bookingId,
+      });
+    }
+    if (rpc === "get_booking_payment_summary")
+      return send([
+        {
+          currency: "EUR",
+          effective_total_amount_minor: 42000,
+          initial_deposit_amount_minor: 10000,
+          confirmed_addon_deposit_amount_minor: 0,
+          subsequent_payment_amount_minor: 0,
+          recorded_paid_amount_minor: 10000,
+          outstanding_amount_minor: 32000,
+        },
+      ]);
     if (rpc === "consume_application_rate_limit")
       return send([
         { allowed: true, remaining_requests: 89, retry_after_seconds: 0, reset_at: null },
@@ -141,6 +248,7 @@ createServer(async (req, res) => {
     return send(null);
   }
   const table = path.split("/").at(-1);
+  queries.push(table);
   let rows = [];
   if (table === "business_members")
     rows = businesses.map((b) => ({
@@ -151,8 +259,30 @@ createServer(async (req, res) => {
       businesses: b,
     }));
   if (table === "businesses") rows = businesses;
-  if (table === "bookings")
-    rows = [{ id: bookingId, business_id: otherBusinessId, reference: "MK-2026-0001" }];
+  if (table === "bookings") rows = [booking];
+  if (table === "customers") rows = [customer];
+  if (table === "confirmation_links")
+    rows = [
+      {
+        id: "70000000-0000-4000-8000-000000000001",
+        business_id: otherBusinessId,
+        booking_id: bookingId,
+        token_hash: createHash("sha256").update(confirmationToken).digest("hex"),
+        expires_at: "2099-01-01T00:00:00Z",
+        created_at: "2026-01-01T00:00:00Z",
+        used_at: confirmedEmail ? new Date().toISOString() : null,
+        revoked_at: null,
+      },
+    ];
+  if (table === "booking_confirmations" && confirmedEmail)
+    rows = [
+      {
+        business_id: otherBusinessId,
+        booking_id: bookingId,
+        contact_email: confirmedEmail,
+        confirmed_at: new Date().toISOString(),
+      },
+    ];
   if (table === "notification_preferences") {
     if (failPreferences && req.method !== "GET")
       return send({ message: "fixture storage unavailable" }, 503);
@@ -177,8 +307,10 @@ createServer(async (req, res) => {
       rows = rows.filter((n) => n.read_at === null);
     if (params.get("created_at")?.startsWith("lte."))
       rows = rows.filter((n) => n.created_at <= params.get("created_at").slice(4));
-    if (params.get("or")) {
-      const cursor = params.get("or").match(/created_at\.lt\.([^,]+)/)?.[1];
+    for (const filter of params.getAll("or")) {
+      const cutoff = filter.match(/read_at\.gte\.([^,)]+)/)?.[1];
+      if (cutoff) rows = rows.filter((n) => !n.read_at || n.read_at >= cutoff);
+      const cursor = filter.match(/created_at\.lt\.([^,]+)/)?.[1];
       if (cursor) rows = rows.filter((n) => n.created_at < cursor);
     }
   }

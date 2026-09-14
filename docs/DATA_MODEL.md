@@ -1,5 +1,9 @@
 # Data Model
 
+## Golden Stability — 2026-09-14
+
+The Golden Stability live audit confirms `read_at` already exists but the old privileged cleanup deletes unread rows after 90 days. A new function/index proposal is locally tested and NOT APPLIED; no new column/table/grant is needed. See [the proposal](proposals/NOTIFICATION_RETENTION_APPROVAL.md) and [release evidence](GOLDEN_STABILITY_PASS.md).
+
 ## Notification foundation — 2026-09-12
 
 APPLIED after explicit user approval. `notifications`, `notification_preferences`

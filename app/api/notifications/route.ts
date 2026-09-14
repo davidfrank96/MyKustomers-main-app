@@ -8,6 +8,7 @@ import {
   notificationError,
   NotificationHttpError,
 } from "@/features/notifications/http";
+import { notificationReadCutoff } from "@/features/notifications/retention";
 
 export async function GET(request: Request) {
   try {
@@ -27,6 +28,7 @@ export async function GET(request: Request) {
       .from("notifications")
       .select("id,business_id,booking_id,notification_type,created_at,read_at")
       .eq("user_id", user.id)
+      .or(`read_at.is.null,read_at.gte.${notificationReadCutoff()}`)
       .order("created_at", { ascending: false })
       .order("id", { ascending: false })
       .limit(26);

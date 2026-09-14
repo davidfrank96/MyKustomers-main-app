@@ -1,5 +1,9 @@
 # Notifications
 
+## Golden Stability — 2026-09-14
+
+A new local stability pass filters stale read history by first-read time and bounds the shared history region; list count updates avoid duplicate bell requests. Production still has the old 90-day database cleanup until the [function/index proposal](proposals/NOTIFICATION_RETENTION_APPROVAL.md) is approved and applied. The scheduler is ACTIVE every minute, freshly verified 2026-09-14. See [GOLDEN_STABILITY_PASS](GOLDEN_STABILITY_PASS.md).
+
 Status: IMPLEMENTED — DEVICE VERIFICATION PENDING; deployed to Production. Updated 2026-09-12.
 
 The user approved both complete SQL proposals after the historical

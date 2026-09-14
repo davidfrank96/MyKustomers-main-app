@@ -137,3 +137,20 @@ feedback/amendment/add-on ownership, full/cropped social images, and all nine
 transactional email renders at mobile/desktop widths. The existing job and
 required-check policy remain unchanged. Physical mail/social apps and controlled
 Production delivery are separate release evidence.
+
+## Golden stability verification
+
+The Notification Contracts browser job now includes permanent shell geometry,
+notification history, Preferences dismissal and confirmation terminal regressions.
+Its normal development fixture mode remains unchanged. Optional local optimized
+verification uses `NOTIFICATIONS_PRODUCTION_BUILD=1 npm run test:e2e:notifications`;
+`NOTIFICATIONS_REUSE_BUILD=1` reuses a build produced with the same fixture values.
+This mode uses an ephemeral loopback HTTPS proxy (existing OpenSSL) so WebKit can
+retain Production Secure cookies. Certificate exceptions are limited to the test
+process, including Chromium service workers; no trust store or app cookie change.
+
+The proposed retention SQL is checked only by the explicit disposable-database
+command `npm run test:notifications:database -- --retention-proposal`. It is not an
+approved/applied migration and is never applied to Supabase or from PR CI.
+See [the release evidence](GOLDEN_STABILITY_PASS.md) for the intermittent optimized
+WebKit prefetch result and migration approval gate.
