@@ -61,6 +61,21 @@ test.describe("public homepage", () => {
       await expect(hero.getByRole("link", { name: "See how it works" })).toBeInViewport({
         ratio: 1,
       });
+      if (viewport.width < 375) {
+        const replay = hero.getByRole("button", { name: "Replay demo" });
+        const delivery = hero
+          .getByRole("list", { name: "Illustrative customer updates" })
+          .getByRole("listitem")
+          .filter({ hasText: "Out for delivery" });
+        await expect(delivery).toBeVisible();
+        const controlBounds = await replay.boundingBox();
+        const cardBounds = await delivery.boundingBox();
+        expect(controlBounds).not.toBeNull();
+        expect(cardBounds).not.toBeNull();
+        expect(cardBounds!.y).toBeGreaterThanOrEqual(
+          controlBounds!.y + controlBounds!.height,
+        );
+      }
       for (const link of await page
         .getByRole("navigation", { name: "Footer navigation" })
         .getByRole("link")

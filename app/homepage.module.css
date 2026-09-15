@@ -148,6 +148,12 @@
   padding-top: 22px;
   scroll-margin-top: 20px;
 }
+@media (width < 375px) {
+  .showcase > [data-homepage-motion="hero"] {
+    /* The wrapped delivery message needs clearance below the demo controls. */
+    padding-bottom: 114px;
+  }
+}
 .journey {
   padding: 24px 12px;
   border-radius: 14px;

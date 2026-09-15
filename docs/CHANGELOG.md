@@ -2,7 +2,7 @@
 
 ## 2026-09-15 — Homepage golden alignment and polish
 
-Preserved the current branch design and all approved animation files. Align hero copy at the top on short desktop viewports, enlarge mobile footer text, and give public plain links comfortable targets and visible keyboard focus. Added short-height CTA/target/overflow coverage and the 1366px matrix case. Both browser visual gates and local engineering/regression gates pass. Updated stale SEO/social-crawler test literals to the already-approved homepage positioning. CI/hosted release verification is in progress. No shared app, schema, environment, provider, dependency or scheduler changes. [Evidence](HOMEPAGE_GOLDEN_POLISH.md).
+Preserved the current branch design and all approved animation files. Reserve external container clearance for a wrapped delivery signal below 375px, align hero copy at the top on short desktop viewports, enlarge mobile footer text, and give public plain links comfortable targets and visible keyboard focus. Added short-height CTA/target/overflow coverage and the 1366px matrix case. Both browser visual gates and local engineering/regression gates pass. Updated stale SEO/social-crawler test literals to the already-approved homepage positioning. CI/hosted release verification is in progress. No shared app, schema, environment, provider, dependency or scheduler changes. [Evidence](HOMEPAGE_GOLDEN_POLISH.md).
 
 ## 2026-09-15 — Homepage supporting motion (local review)
 

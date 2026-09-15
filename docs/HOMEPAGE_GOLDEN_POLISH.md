@@ -8,7 +8,7 @@ This finalization pass changes only `app/homepage.module.css`, focused public/SE
 
 **HOMEPAGE ANIMATION CONTENT: UNCHANGED**
 
-SHA-256 comparison with snapshots taken before edits confirms that `app/page.tsx` and all five homepage demo/motion component and stylesheet files are byte-for-byte unchanged by golden finalization. No animation-container correction was necessary.
+SHA-256 comparison with snapshots taken before edits confirms that `app/page.tsx` and all five homepage demo/motion component and stylesheet files are byte-for-byte unchanged by golden finalization. A hosted 320px review subsequently proved a 20px overlap between the wrapped delivery signal and Replay. The external homepage container reserves 32px more bottom space below the existing 375px breakpoint; animation component/style files remain unchanged.
 
 ## D–N. Baseline findings and corrections
 
@@ -20,11 +20,11 @@ SHA-256 comparison with snapshots taken before edits confirms that `app/page.tsx
 | G. Containers | Preserve the common 1220px cap, 16px mobile gutters and 24px tablet gutters. All sections retain their common axis. |
 | H. Typography | Increase mobile footer navigation from 10.5px to 12px. Brand font, hero scale and approved copy unchanged. |
 | I. Rhythm | Preserve section spacing. Footer grows only as required by readable text and targets; it wraps naturally at narrow widths. |
-| J. Cards/grids | Preserve approved preview, five-node journey and three-card loyalty layout. No content, geometry or animation change. |
+| J. Cards/grids | Preserve approved preview, five-node journey and three-card loyalty layout. No card content, styling or animation change; the external small-phone surround reserves clearance for the wrapped delivery card. |
 | K. Images/media | Preserve official dimensioned logos and existing HTML/SVG visuals. No additional assets, fonts, libraries or media. |
 | L. CTAs | Preserve signup, login and responsive See how it works destinations. Short-screen CTAs are fully in the initial viewport. |
 | M. Footer | At least 44×44px link targets, legible mobile text, explicit keyboard outline; same content and layout concept. |
-| N. Overflow | No offending component found. No root overflow masking added. |
+| N. Overflow | No horizontal overflow found. Hosted 320px control/card overlap corrected with external container clearance; no root overflow masking added. |
 
 Actual rendered section inventory, in order:
 
@@ -110,7 +110,7 @@ AK. Dependency changes: NONE.
 
 AL. Golden code changes: `app/homepage.module.css`, `tests/e2e/public-homepage.spec.ts`, `tests/e2e/seo-foundation.spec.ts`, `tests/profile-ui/social-previews.spec.ts`. Documentation: this report, README, changelog, testing, responsive QA, design-system and current positioning/motion status references. Approved earlier branch files are included in the eventual release diff; see its PR for the complete immutable file list.
 
-AM. Added one behavior-focused browser regression covering short-screen CTA visibility, footer target sizes, visible keyboard focus and overflow. Added 1366×768 to the permanent homepage matrix. Existing motion behavior tests are preserved. The full gates uncovered old homepage copy/title expectations in SEO and social-crawler tests; only those literals/headings were updated to the already-approved positioning. Privacy, canonical, metadata, schema and crawler assertions remain intact.
+AM. Added one behavior-focused browser regression covering short-screen CTA visibility, footer target sizes, visible keyboard focus, narrow-phone delivery/Replay clearance and overflow. Added 1366×768 to the permanent homepage matrix. Existing motion behavior tests are preserved. The full gates uncovered old homepage copy/title expectations in SEO and social-crawler tests; only those literals/headings were updated to the already-approved positioning. Privacy, canonical, metadata, schema and crawler assertions remain intact.
 
 ## AN–AV. Engineering evidence
 
