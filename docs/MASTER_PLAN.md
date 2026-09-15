@@ -1,5 +1,11 @@
 # Master Plan
 
+Current homepage finalization: preserved the approved design/motion, corrected short desktop hero alignment and public link targets, and enlarged mobile footer text. Visual gates pass; release verification is pending. See [golden polish evidence](HOMEPAGE_GOLDEN_POLISH.md). Earlier local-review status statements below describe their original passes.
+
+## Public homepage motion — 2026-09-15
+
+IMPLEMENTED — LOCAL, MANUAL REVIEW PENDING. The existing approved demo remains byte-for-byte unchanged. CSS/SVG supporting signals and a lower loyalty sequence extend its story without product, backend or scheduler changes. See [HOMEPAGE_MOTION](HOMEPAGE_MOTION.md) for gates and local evidence.
+
 ## Public homepage positioning — 2026-09-15
 
 IMPLEMENTED — LOCAL, MANUAL REVIEW PENDING. A homepage-only presentation pass follows the supplied desktop and mobile references: outcome-first hero, preserved animated product showcase, five-step journey and final CTA. No product phase, backend, Auth, scheduler, provider or database change. Merge and Production deployment are explicitly outside this task. See [PUBLIC_HOMEPAGE_POSITIONING](PUBLIC_HOMEPAGE_POSITIONING.md).

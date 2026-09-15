@@ -22,8 +22,12 @@ test.describe("SEO Phase 1 foundation", () => {
     });
     expect(response.status()).toBe(200);
     const html = await response.text();
-    expect(html).toContain("Booking &amp; Customer Management for Service Businesses");
-    expect(html).toContain("Built for service businesses in Nigeria and beyond.");
+    expect(html).toContain(
+      "Keep Customers Informed from Order to Delivery | MyKustomers",
+    );
+    expect(html).toContain(
+      "For businesses that manage customer work from order to delivery",
+    );
     expect(html).toContain('type="application/ld+json"');
     expect(html).not.toMatch(/mycustomers\.com/i);
 
@@ -39,20 +43,22 @@ test.describe("SEO Phase 1 foundation", () => {
     );
     await expect(page.locator('meta[property="og:site_name"]')).toHaveAttribute(
       "content",
-      "My Kustomers",
+      "MyKustomers",
     );
     await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute(
       "content",
       "summary_large_image",
     );
-    await expect(page.getByRole("heading", { name: "How it works" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "One clear journey" })).toBeVisible();
     await expect(
       page.getByRole("heading", {
-        name: "Built for growing service businesses",
+        name: "Turn updates into loyal customers.",
       }),
     ).toBeVisible();
 
-    const schemas = await page.locator('script[type="application/ld+json"]').allTextContents();
+    const schemas = await page
+      .locator('script[type="application/ld+json"]')
+      .allTextContents();
     expect(schemas.join(" ")).toContain('"@type":"Organization"');
     expect(schemas.join(" ")).toContain('"@type":"WebSite"');
     expect(schemas.join(" ")).toContain('"@type":"WebApplication"');
@@ -125,13 +131,15 @@ test.describe("SEO Phase 1 foundation", () => {
     expect(await response.text()).toContain('content="noindex');
   });
 
-  test("keeps the expanded public content responsive", async ({ page }, testInfo) => {
+  test("keeps the approved public content responsive", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "chromium", "Chromium owns the width gate.");
 
     for (const width of [320, 360, 390, 430, 768, 1024, 1440]) {
       await page.setViewportSize({ width, height: width <= 430 ? 844 : 900 });
       await page.goto("/");
-      await expect(page.getByRole("heading", { name: "How it works" })).toBeVisible();
+      await expect(
+        page.getByRole("heading", { name: "One clear journey" }),
+      ).toBeVisible();
       await expectNoHorizontalOverflow(page, `homepage at ${width}px`);
     }
   });

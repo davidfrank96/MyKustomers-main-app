@@ -1,5 +1,9 @@
 # Product positioning
 
+## Homepage loyalty story — 2026-09-15
+
+The supporting motion pass uses “Turn updates into loyal customers.” above the existing professional-experience copy and signup CTA. Its signals illustrate confirmation, delivery and private feedback; they add no new functional promise, real customer identity or public-review claim. See [HOMEPAGE_MOTION](HOMEPAGE_MOTION.md).
+
 Status: Homepage update IMPLEMENTED — LOCAL, MANUAL REVIEW PENDING (2026-09-15). The broader 2026-09-12 positioning remains the deployed baseline.
 
 ## Approved homepage direction — 2026-09-15

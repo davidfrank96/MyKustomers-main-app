@@ -12,6 +12,7 @@ const homepageViewports = [
   { width: 768, height: 1024 },
   { width: 1024, height: 768 },
   { width: 1280, height: 800 },
+  { width: 1366, height: 768 },
   { width: 1440, height: 900 },
   { width: 1600, height: 900 },
 ] as const;
@@ -38,6 +39,44 @@ async function hideDevelopmentChrome(page: Page) {
 }
 
 test.describe("public homepage", () => {
+  test("keeps short-screen hero actions reachable and footer links comfortably tappable", async ({
+    page,
+  }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    for (const viewport of [
+      { width: 320, height: 568 },
+      { width: 360, height: 640 },
+      { width: 390, height: 600 },
+      { width: 430, height: 650 },
+      { width: 1024, height: 600 },
+      { width: 1366, height: 650 },
+    ]) {
+      await page.setViewportSize(viewport);
+      await page.goto("/");
+      await expect(page.getByRole("heading", { name: headline, level: 1 })).toBeVisible();
+      const hero = page.locator('section[aria-labelledby="homepage-heading"]');
+      await expect(hero.getByRole("link", { name: "Get started" })).toBeInViewport({
+        ratio: 1,
+      });
+      await expect(hero.getByRole("link", { name: "See how it works" })).toBeInViewport({
+        ratio: 1,
+      });
+      for (const link of await page
+        .getByRole("navigation", { name: "Footer navigation" })
+        .getByRole("link")
+        .all()) {
+        await link.scrollIntoViewIfNeeded();
+        const bounds = await link.boundingBox();
+        expect(bounds?.height).toBeGreaterThanOrEqual(44);
+        expect(bounds?.width).toBeGreaterThanOrEqual(44);
+        await link.focus();
+        await expect(link).toBeFocused();
+        await expect(link).toHaveCSS("outline-style", "solid");
+      }
+      await expectNoPageOverflow(page, viewport.width);
+    }
+  });
+
   test("uses approved branding, metadata, landmarks and existing CTA destinations", async ({
     page,
   }) => {
@@ -167,7 +206,7 @@ test.describe("public homepage", () => {
       await expect(demo.getByTestId("demo-feedback-status")).toHaveText("5 ★");
       await expect(demo.getByRole("button", { name: "Replay demo" })).toBeVisible();
       await expect(
-        page.getByRole("heading", { name: "Good work deserves good communication." }),
+        page.getByRole("heading", { name: "Turn updates into loyal customers." }),
       ).toBeVisible();
       await expectNoPageOverflow(page, viewport.width);
       await hideDevelopmentChrome(page);

@@ -1,5 +1,11 @@
 # Public homepage positioning — 2026-09-15
 
+Current homepage finalization: preserved the approved design/motion, corrected short desktop hero alignment and public link targets, and enlarged mobile footer text. Visual gates pass; release verification is pending. See [golden polish evidence](HOMEPAGE_GOLDEN_POLISH.md). Earlier local-review status statements below describe their original passes.
+
+## Subsequent motion pass
+
+This document records the earlier positioning baseline, now committed at `6571836`. The subsequent local motion pass preserves that demo exactly and replaces the green final CTA with the approved loyalty story. Current evidence and review status: [HOMEPAGE_MOTION](HOMEPAGE_MOTION.md).
+
 Status: IMPLEMENTED — VERIFIED LOCALLY — MANUAL REVIEW PENDING.
 
 Local branch: `chore/public-homepage-positioning`, based on main merge `a2b1605a5e15c4f49e3d9ae5a70663bdbcd923f5`. No push, merge or Production deployment was performed.

@@ -1,5 +1,11 @@
 # My Kustomers
 
+Current homepage finalization: preserved the approved design/motion, corrected short desktop hero alignment and public link targets, and enlarged mobile footer text. Visual gates pass; release verification is pending. See [golden polish evidence](docs/HOMEPAGE_GOLDEN_POLISH.md). Earlier local-review status statements below describe their original passes.
+
+## Public homepage motion — 2026-09-15
+
+The local homepage now adds customer status signals around the preserved demo and a connected loyalty story. Motion, responsive and accessibility verification is recorded in [HOMEPAGE_MOTION](docs/HOMEPAGE_MOTION.md). Manual review is required before any push, merge or deployment. The scheduler is unchanged.
+
 ## Public homepage — 2026-09-15
 
 IMPLEMENTED — LOCAL, MANUAL REVIEW PENDING. The homepage now leads with “Keep every customer in the loop.” and uses the approved desktop/laptop and mobile/phone presentation around the existing animated demo. The five-step journey and final CTA replace the longer marketing blocks. Homepage metadata follows the new positioning; authenticated functionality and shared app defaults are unchanged. Nothing is merged or deployed. [Implementation and review evidence](docs/PUBLIC_HOMEPAGE_POSITIONING.md).

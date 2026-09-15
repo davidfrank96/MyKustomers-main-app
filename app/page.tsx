@@ -10,6 +10,12 @@ import {
   Truck,
 } from "lucide-react";
 import { HomepageProductDemo } from "@/components/homepage/homepage-product-demo";
+import {
+  HomepageHeroSignals,
+  HomepageLoyaltyVisual,
+} from "@/components/homepage/homepage-motion";
+import { HomepageMotionController } from "@/components/homepage/homepage-motion-controller";
+import motion from "@/components/homepage/homepage-motion.module.css";
 import { BrandLogo } from "@/components/shared/brand-logo";
 import { Button } from "@/components/ui/button";
 import { MYKUSTOMERS_BRAND_ASSETS } from "@/lib/brand/assets";
@@ -134,25 +140,36 @@ export default function HomePage() {
             </div>
           </div>
           <div id="features" className={styles.showcase}>
-            <HomepageProductDemo />
+            <div
+              className={`${motion.region} ${motion.heroVisual}`}
+              data-homepage-motion="hero"
+            >
+              <HomepageProductDemo />
+              <HomepageHeroSignals />
+            </div>
+            <HomepageMotionController />
           </div>
         </section>
 
         <section
           id="how-it-works"
           aria-labelledby="how-it-works-heading"
-          className={styles.journey}
+          className={`${styles.journey} ${motion.region}`}
+          data-homepage-motion="journey"
         >
           <h2 id="how-it-works-heading">One clear journey</h2>
           <ol className={styles.journeySteps}>
             {journey.map(({ label, icon: Icon }, index) => (
-              <li key={label} className={styles.journeyStep}>
+              <li key={label} className={`${styles.journeyStep} ${motion.journeyNode}`}>
                 <span className={styles.journeyIcon}>
                   <Icon aria-hidden="true" />
                 </span>
                 <span>{label}</span>
                 {index < journey.length - 1 && (
-                  <ArrowRight className={styles.journeyArrow} aria-hidden="true" />
+                  <ArrowRight
+                    className={`${styles.journeyArrow} ${motion.journeyConnection}`}
+                    aria-hidden="true"
+                  />
                 )}
               </li>
             ))}
@@ -161,18 +178,23 @@ export default function HomePage() {
 
         <section
           id="for-businesses"
-          className={styles.finalCta}
+          className={`${motion.loyalty} ${motion.region}`}
+          data-homepage-motion="loyalty"
           aria-labelledby="final-cta-heading"
         >
-          <div>
-            <h2 id="final-cta-heading">Good work deserves good communication.</h2>
-            <p>Give your customers a professional experience from start to finish.</p>
+          <div className={motion.loyaltyCopy}>
+            <p className={motion.loyaltyEyebrow}>MORE THAN A TOOL</p>
+            <h2 id="final-cta-heading">Turn updates into loyal customers.</h2>
+            <p className={motion.loyaltyDescription}>
+              Give your customers a professional experience from start to finish.
+            </p>
+            <Button asChild size="lg" className={motion.loyaltyButton}>
+              <Link href="/signup">
+                Get started <ArrowRight aria-hidden="true" />
+              </Link>
+            </Button>
           </div>
-          <Button asChild size="lg" variant="secondary" className={styles.finalButton}>
-            <Link href="/signup">
-              Get started <ArrowRight aria-hidden="true" />
-            </Link>
-          </Button>
+          <HomepageLoyaltyVisual />
         </section>
       </main>
 

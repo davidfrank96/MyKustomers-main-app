@@ -1,5 +1,11 @@
 # Phases
 
+Current homepage finalization: preserved the approved design/motion, corrected short desktop hero alignment and public link targets, and enlarged mobile footer text. Visual gates pass; release verification is pending. See [golden polish evidence](HOMEPAGE_GOLDEN_POLISH.md). Earlier local-review status statements below describe their original passes.
+
+## Public homepage motion — 2026-09-15
+
+IMPLEMENTED — LOCAL, MANUAL REVIEW PENDING. This extends the approved homepage animation without introducing a product phase. The demo component/styles are unchanged; only homepage supporting presentation, focused tests and documentation change. Local gates and release boundary: [HOMEPAGE_MOTION](HOMEPAGE_MOTION.md).
+
 ## Public homepage positioning — 2026-09-15
 
 IMPLEMENTED — LOCAL, MANUAL REVIEW PENDING. This is a bounded public homepage update, not a new feature phase. Existing demo sequencing, controls and visibility pausing are retained; an observed reduced-motion race now consistently renders the completed preview. Responsive and regression evidence is in [PUBLIC_HOMEPAGE_POSITIONING](PUBLIC_HOMEPAGE_POSITIONING.md). No push, merge or Production deployment is included.

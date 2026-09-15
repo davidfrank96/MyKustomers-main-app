@@ -1,5 +1,13 @@
 # Testing
 
+Current homepage finalization: preserved the approved design/motion, corrected short desktop hero alignment and public link targets, and enlarged mobile footer text. Visual gates pass; release verification is pending. See [golden polish evidence](HOMEPAGE_GOLDEN_POLISH.md). Earlier local-review status statements below describe their original passes.
+
+## Homepage motion verification — 2026-09-15
+
+Golden finalization adds a short-height CTA/44px target/focus case and the 1366px viewport, and updates stale SEO/social-crawler homepage literals while preserving the privacy and metadata assertions. Exact full-suite, guarded-skip and targeted-recheck counts are in [HOMEPAGE_GOLDEN_POLISH](HOMEPAGE_GOLDEN_POLISH.md).
+
+Eight new integration tests cover the shared observer, independent section activation, media preferences, document visibility, user pause, responsive SVG selection, static semantics and cleanup/fallback. Six browser cases cover every mobile cycle boundary, offscreen CSS/SMIL pausing, reduced motion, keyboard and accessibility-tree behavior, no-JavaScript rendering and the preserved demo controls. Existing public homepage and anonymous entry tests remain, including the eleven-width matrix. Chromium and WebKit visual evidence and exact final counts are in [HOMEPAGE_MOTION](HOMEPAGE_MOTION.md). No live data writes are needed.
+
 ## Public homepage positioning — 2026-09-15
 
 The existing homepage E2E now checks the approved copy, one five-step journey, existing signup/login and hash destinations, canonical URL, homepage title/description/OG/X/JSON-LD, completed reduced-motion demo and strict horizontal containment. Its permanent Chromium matrix retains 320, 360, 375, 390, 414, 430, 768, 1024, 1280, 1440 and 1600px. A local Chromium/WebKit walkthrough additionally captures the eight requested widths and tests real pause/resume/replay controls. Demo component tests retain sequence, offscreen/hidden pause, replay, timer cleanup and reduced-motion coverage, with a new mid-playback reduced-motion case. No live data mutation is required. Results and screenshot paths: [PUBLIC_HOMEPAGE_POSITIONING](PUBLIC_HOMEPAGE_POSITIONING.md).

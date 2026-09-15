@@ -1,5 +1,11 @@
 # Product Specification
 
+Current homepage finalization: preserved the approved design/motion, corrected short desktop hero alignment and public link targets, and enlarged mobile footer text. Visual gates pass; release verification is pending. See [golden polish evidence](HOMEPAGE_GOLDEN_POLISH.md). Earlier local-review status statements below describe their original passes.
+
+## Public homepage supporting motion
+
+The homepage supplements its current animated demo with three illustrative customer messages (at most two visible below 1024px), two decorative annotations and the lower “Turn updates into loyal customers.” section. Three readable HTML update cards connect through an inline SVG wire. Reduced motion, user pause and no scripting reveal a static story. Existing CTAs, metadata, fixtures and product routes retain their current behavior. Local evidence: [HOMEPAGE_MOTION](HOMEPAGE_MOTION.md).
+
 ## Public homepage presentation — 2026-09-15
 
 The approved homepage leads with “Keep every customer in the loop.” for businesses managing customer work from order to delivery. Its story is Request → Confirmation → Updates → Delivery → Feedback. Desktop shows the existing animated demo in laptop framing; mobile uses phone framing. Signup and login retain their existing routes. Homepage copy and metadata use MyKustomers / MyKustomers.com; private app, capability, manifest and email defaults are not part of this presentation pass. Local implementation awaits manual review: [PUBLIC_HOMEPAGE_POSITIONING](PUBLIC_HOMEPAGE_POSITIONING.md).
