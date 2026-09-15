@@ -1,5 +1,13 @@
 # Release Checklist
 
+## Secure social-preview manual review — 2026-09-15
+
+Review both rendered variants, concise outgoing messages, crawler/no-write
+regressions and local engineering results in [SECURE_SOCIAL_PREVIEWS](SECURE_SOCIAL_PREVIEWS.md).
+This task stops before push, merge or deployment. Physical messaging-client card
+selection and third-party cache freshness are not certified by local metadata
+checks. Keep the existing scheduler unchanged.
+
 ## Vendor Trust Branding release gate — 2026-09-12
 
 The shared social card, four capability families and nine transactional email

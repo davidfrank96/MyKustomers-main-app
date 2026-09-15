@@ -6,6 +6,7 @@ const state = vi.hoisted(() => ({
   rows: {} as Record<string, Record<string, unknown>[]>,
   reads: [] as { table: string; columns: string; filters: Record<string, unknown> }[],
   configured: true,
+  failReads: false,
   consume: vi.fn(),
   rpc: vi.fn(),
 }));
@@ -30,6 +31,7 @@ vi.mock("@/lib/supabase/admin", () => ({
         },
         async maybeSingle() {
           state.reads.push(read);
+          if (state.failReads) throw new Error("Private backend error");
           const row = (state.rows[table] ?? []).find((candidate) =>
             Object.entries(read.filters).every(
               ([key, value]) => candidate[key] === value,
@@ -60,6 +62,7 @@ const previewB = "44444444-4444-4444-8444-444444444444";
 beforeEach(() => {
   vi.clearAllMocks();
   state.configured = true;
+  state.failReads = false;
   state.reads = [];
   state.rows = {
     confirmation_links: [
@@ -151,7 +154,7 @@ describe("confirmation preview resolution", () => {
           type: "image/png",
           width: 1200,
           height: 630,
-          alt: "Cedar Workshop business logo",
+          alt: "Cedar Workshop — booking confirmation",
         },
       ],
     });
@@ -240,4 +243,17 @@ describe("social crawler open attribution", () => {
     );
     expect(record).toHaveBeenCalledExactlyOnceWith(tokenA);
   });
+});
+
+it("falls back to generic metadata if the read-only backend fails", async () => {
+  state.failReads = true;
+  expect(await getPublicConfirmationMetadata(tokenA)).toBeNull();
+  expect(await getPublicConfirmationImageMetadata(previewA)).toBeNull();
+  const metadata = buildPublicConfirmationMetadata();
+  expect(JSON.stringify(metadata)).toContain(
+    "https://mykustomers.com/social/confirmation",
+  );
+  expect(JSON.stringify(metadata)).not.toMatch(/Private backend error|Cedar Workshop/);
+  expect(state.consume).not.toHaveBeenCalled();
+  expect(state.rpc).not.toHaveBeenCalled();
 });

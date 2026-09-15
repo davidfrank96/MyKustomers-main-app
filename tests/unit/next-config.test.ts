@@ -1,8 +1,33 @@
 import { afterEach, describe, expect, it } from "vitest";
 import nextConfig from "../../next.config";
 import fs from "node:fs";
+import { HTML_LIMITED_BOT_UA_RE } from "next/dist/shared/lib/router/utils/html-bots";
+import { SOCIAL_PREVIEW_CRAWLER_PATTERN } from "@/features/confirmation-links/crawlers";
 
 const originalVercelEnvironment = process.env.VERCEL_ENV;
+
+it("blocks metadata for every read-only social crawler while retaining Next's default bots", () => {
+  expect(nextConfig.htmlLimitedBots?.source).toContain(HTML_LIMITED_BOT_UA_RE.source);
+  expect(nextConfig.htmlLimitedBots?.source).toContain(
+    SOCIAL_PREVIEW_CRAWLER_PATTERN.source,
+  );
+  for (const userAgent of [
+    "TelegramBot",
+    "Apple-PubSub",
+    "iMessage",
+    "Facebot",
+    "WhatsApp",
+    "Slackbot",
+    "Discordbot",
+    "LinkedInBot",
+    "Twitterbot",
+    "Bingbot",
+    "Chrome-Lighthouse",
+  ]) {
+    expect(nextConfig.htmlLimitedBots?.test(userAgent)).toBe(true);
+  }
+  expect(nextConfig.htmlLimitedBots?.test("Mozilla/5.0 Safari/605.1.15")).toBe(false);
+});
 
 afterEach(() => {
   if (originalVercelEnvironment === undefined) {
@@ -64,8 +89,15 @@ describe("private capability cache headers", () => {
   it("adds explicit noindex headers to auth and private workspace routes", async () => {
     const headers = await nextConfig.headers?.();
 
-    for (const source of ["/login", "/onboarding/:path*", "/dashboard/:path*", "/admin/:path*"]) {
-      expect(headers?.find((candidate) => candidate.source === source)?.headers).toContainEqual({
+    for (const source of [
+      "/login",
+      "/onboarding/:path*",
+      "/dashboard/:path*",
+      "/admin/:path*",
+    ]) {
+      expect(
+        headers?.find((candidate) => candidate.source === source)?.headers,
+      ).toContainEqual({
         key: "X-Robots-Tag",
         value: "noindex, nofollow, noarchive, nosnippet, noimageindex",
       });
@@ -74,15 +106,16 @@ describe("private capability cache headers", () => {
 
   it("adds a deployment-wide noindex header outside Production only", async () => {
     process.env.VERCEL_ENV = "preview";
-    expect((await nextConfig.headers?.())?.find((rule) => rule.source === "/:path*"))
-      .toMatchObject({
-        headers: [
-          {
-            key: "X-Robots-Tag",
-            value: "noindex, nofollow, noarchive, nosnippet, noimageindex",
-          },
-        ],
-      });
+    expect(
+      (await nextConfig.headers?.())?.find((rule) => rule.source === "/:path*"),
+    ).toMatchObject({
+      headers: [
+        {
+          key: "X-Robots-Tag",
+          value: "noindex, nofollow, noarchive, nosnippet, noimageindex",
+        },
+      ],
+    });
 
     process.env.VERCEL_ENV = "production";
     expect(

@@ -1,5 +1,21 @@
 # Testing
 
+## Secure social-preview verification — 2026-09-15
+
+`tests/profile-ui/secure-social-previews.spec.ts` uses the real optimized Next
+server against isolated loopback fixtures: nine crawler signatures for both
+capabilities, unchanged first-view/use/revoke/expiry/share snapshots, zero RPC or
+table writes/lifecycle events, followed by exactly one ordinary-browser open RPC.
+It renders both variants with seven logo shapes, no logo, two long-name cases,
+failed-logo initials and generic fallbacks, at 1200×630 / 600×315 / 300×158.
+The original centered-logo checks continue on amendment; the new geometry checks
+cover confirmation and feedback. Renderer unit tests compare actual PNG bytes
+with/without extraneous private fields and force a render failure. Backend-error
+and additive blocking-crawler config tests supplement existing tenant, token,
+share-channel and public-route coverage. Exact counts and limits are in
+[SECURE_SOCIAL_PREVIEWS](SECURE_SOCIAL_PREVIEWS.md). Live database runtime checks
+remain guarded; local fixtures are not live RLS verification.
+
 Current homepage finalization: preserved the approved design/motion, corrected short desktop hero alignment and public link targets, and enlarged mobile footer text. Visual gates pass; release verification is pending. See [golden polish evidence](HOMEPAGE_GOLDEN_POLISH.md). Earlier local-review status statements below describe their original passes.
 
 ## Homepage motion verification — 2026-09-15

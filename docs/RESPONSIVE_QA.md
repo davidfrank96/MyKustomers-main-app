@@ -1,5 +1,14 @@
 # Responsive QA
 
+## Fixed social-image reduction — 2026-09-15
+
+Confirmation and private feedback emit 1200×630 PNGs; inspect their actual output
+at 600×315 and 300×158. The approved layout places vendor identity at top-left,
+action text below, illustration at right and attribution in the footer. Ordinary,
+missing-logo and long-name samples and the alignment gate are recorded in
+[SECURE_SOCIAL_PREVIEWS](SECURE_SOCIAL_PREVIEWS.md). This supersedes the centered
+confirmation/feedback layout only; amendment/add-on square-crop coverage remains.
+
 Current homepage finalization: preserved the approved design/motion, corrected short desktop hero alignment and public link targets, and enlarged mobile footer text. Visual gates pass; release verification is pending. See [golden polish evidence](HOMEPAGE_GOLDEN_POLISH.md). Earlier local-review status statements below describe their original passes.
 
 ## Homepage motion — 2026-09-15

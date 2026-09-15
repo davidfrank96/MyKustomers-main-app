@@ -104,7 +104,7 @@ describe("secure-share presentation regression", () => {
 
       fireEvent.click(dialog.getByRole("button", { name: "Share..." }));
       expect(nativeShare).toHaveBeenLastCalledWith({
-        title: props.shareTitle ?? `Review your order with ${props.businessName}`,
+        title: props.shareTitle ?? `Review your booking with ${props.businessName}`,
         text: message.trim(),
         url: props.confirmationUrl,
       });

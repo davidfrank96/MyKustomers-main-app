@@ -33,7 +33,7 @@ describe("CustomerConfirmationShare", () => {
 
     const message = screen.getByLabelText("Message");
     const link = screen.getByLabelText("Confirmation link");
-    expect((message as HTMLTextAreaElement).value).toContain("Hi David, Bella Cakes");
+    expect((message as HTMLTextAreaElement).value).toContain("Hi David 👋\n\nYour booking with Bella Cakes");
     fireEvent.change(message, { target: { value: "Please review this order." } });
     expect(message).toHaveValue("Please review this order.");
     expect(link).toHaveValue(confirmationUrl);
@@ -89,8 +89,8 @@ describe("CustomerConfirmationShare", () => {
 
     await waitFor(() =>
       expect(nativeShare).toHaveBeenCalledWith({
-        title: "Review your order with Bella Cakes",
-        text: expect.stringContaining("Hi David, Bella Cakes"),
+        title: "Review your booking with Bella Cakes",
+        text: expect.stringContaining("Hi David 👋\n\nYour booking with Bella Cakes"),
         url: confirmationUrl,
       }),
     );

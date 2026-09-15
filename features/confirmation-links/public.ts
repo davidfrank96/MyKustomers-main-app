@@ -74,7 +74,7 @@ export async function getPublicConfirmationMetadata(
   }
 
   const tokenHash = hashConfirmationToken(token);
-  return readPublicConfirmationMetadata("token_hash", tokenHash);
+  return readPublicConfirmationMetadata("token_hash", tokenHash).catch(() => null);
 }
 
 // A preview record ID grants only this minimized, read-only business projection.
@@ -90,7 +90,7 @@ export async function getPublicConfirmationImageMetadata(
   ) {
     return null;
   }
-  return readPublicConfirmationMetadata("id", previewId);
+  return readPublicConfirmationMetadata("id", previewId).catch(() => null);
 }
 
 async function readPublicConfirmationMetadata(

@@ -9,12 +9,12 @@ import { hashFeedbackToken, isPlausibleFeedbackToken } from "./token";
 
 export async function getPublicFeedbackMetadata(token: string) {
   if (!canUseServiceRoleClient() || !isPlausibleFeedbackToken(token)) return null;
-  return readFeedbackBrand("token_hash", hashFeedbackToken(token));
+  return readFeedbackBrand("token_hash", hashFeedbackToken(token)).catch(() => null);
 }
 
 export async function getPublicFeedbackImageMetadata(previewId: string) {
   if (!canUseServiceRoleClient() || !BRAND_PREVIEW_ID.test(previewId)) return null;
-  return readFeedbackBrand("id", previewId);
+  return readFeedbackBrand("id", previewId).catch(() => null);
 }
 
 async function readFeedbackBrand(

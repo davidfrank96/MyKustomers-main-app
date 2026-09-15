@@ -26,7 +26,7 @@ describe("trusted confirmation sharing", () => {
         confirmationUrl,
       }),
     ).toBe(
-      `Hi David, Bella Cakes has sent you your order details for confirmation. Please review the details and confirm that everything is correct using the secure link below.\n\n${confirmationUrl}`,
+      `Hi David 👋\n\nYour booking with Bella Cakes is ready for review.\n\nReview and confirm your details here:\n\n${confirmationUrl}`,
     );
   });
 
@@ -36,7 +36,7 @@ describe("trusted confirmation sharing", () => {
         customerName: null,
         businessName: "Bella Cakes",
       }),
-    ).toMatch(/^Hi, Bella Cakes has sent you/);
+    ).toMatch(/^Hi 👋\n\nYour booking with Bella Cakes/);
   });
 
   it("includes only the approved contextual inputs and confirmation URL", () => {
@@ -80,14 +80,14 @@ describe("trusted confirmation sharing", () => {
     const serialized = JSON.stringify(metadata);
 
     expect(metadata.title).toEqual({
-      absolute: "Confirm your booking with Bella Cakes",
+      absolute: "Review your booking with Bella Cakes",
     });
     expect(metadata.description).toBe(
-      "Review and confirm your booking with Bella Cakes.",
+      "Bella Cakes has sent you booking details for secure confirmation.",
     );
     expect(metadata.openGraph).toMatchObject({
-      title: "Confirm your booking with Bella Cakes",
-      description: "Review and confirm your booking with Bella Cakes.",
+      title: "Review your booking with Bella Cakes",
+      description: "Bella Cakes has sent you booking details for secure confirmation.",
       siteName: "My Kustomers",
       type: "website",
     });
@@ -99,7 +99,7 @@ describe("trusted confirmation sharing", () => {
           type: "image/png",
           width: 1200,
           height: 630,
-          alt: "Bella Cakes business logo",
+          alt: "Bella Cakes — booking confirmation",
         }),
       ],
     });
@@ -120,9 +120,7 @@ describe("trusted confirmation sharing", () => {
     expect(metadata.openGraph).toMatchObject({
       images: [
         expect.objectContaining({
-          url: expect.stringContaining(
-            "/brand/mykustomers/v1/social/mykustomers-open-graph-1200x630.png",
-          ),
+          url: expect.stringContaining("/social/confirmation"),
         }),
       ],
     });

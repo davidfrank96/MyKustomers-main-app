@@ -22,9 +22,9 @@ export function buildFeedbackShareMessage({
   businessName: string;
 }) {
   const firstName = cleanName(customerName, "").split(/\s+/)[0];
-  const greeting = firstName ? `Hi ${firstName},` : "Hi,";
+  const greeting = firstName ? `Hi ${firstName} 👋` : "Hi 👋";
 
-  return `${greeting} thank you for choosing ${cleanName(businessName, "our business")}. We'd appreciate your private feedback about your experience. No account is required. You can share it securely using the link below.`;
+  return `${greeting}\n\n${cleanName(businessName, "The business")} would appreciate your private feedback about your experience.\n\nShare your feedback here:`;
 }
 
 export function buildFeedbackShareTitle(businessName: string) {

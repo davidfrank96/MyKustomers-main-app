@@ -1,5 +1,13 @@
 # Vendor Trust Branding — Social Links and Emails
 
+## Subsequent secure-preview update — 2026-09-15
+
+The confirmation and feedback composition/copy below describes the original
+2026-09-12 pass. It is superseded for those two variants only by
+[SECURE_SOCIAL_PREVIEWS](SECURE_SOCIAL_PREVIEWS.md). The owning-business resolvers,
+state/tenant/purpose policy, logo safety, amendment/add-on card layout and email
+architecture remain authoritative and unchanged.
+
 STATUS: IMPLEMENTED — RELEASE VERIFICATION PENDING
 
 ## Scope and capability inventory

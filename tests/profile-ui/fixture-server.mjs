@@ -77,6 +77,9 @@ const originalLinks = [
     expires_at: "2099-01-01T00:00:00Z",
     used_at: null,
     revoked_at: null,
+    first_viewed_at: null,
+    last_shared_at: null,
+    share_count: 0,
   },
   {
     id: previewB,
@@ -146,6 +149,8 @@ const brandCapabilities = Object.fromEntries(
   ]),
 );
 let capabilityOverrides = {};
+let feedbackLinks = brandCapabilities.feedback.map((link) => ({ ...link }));
+let lifecycleEvents = [];
 let bookingOverrides = {};
 let logoShape = null;
 async function fixtureLogo(shape) {
@@ -190,12 +195,37 @@ createServer(async (req, res) => {
       capabilities: brandCapabilities,
     });
   if (url.pathname === "/fixture/state")
-    return send({ writes, business, otherBusiness, preferences });
+    return send({
+      writes,
+      business,
+      otherBusiness,
+      preferences,
+      lifecycleEvents,
+      // Evidence snapshots intentionally omit even the synthetic tokens/hashes.
+      capabilityState: Object.fromEntries(
+        Object.entries({ confirmation: links, feedback: feedbackLinks }).map(
+          ([kind, records]) => [
+            kind,
+            records.map((record) => ({
+              id: record.id,
+              first_viewed_at: record.first_viewed_at ?? null,
+              used_at: record.used_at,
+              revoked_at: record.revoked_at,
+              expires_at: record.expires_at,
+              last_shared_at: record.last_shared_at ?? null,
+              share_count: record.share_count ?? 0,
+            })),
+          ],
+        ),
+      ),
+    });
   if (url.pathname === "/fixture/reset") {
     business = { ...originalBusiness };
     otherBusiness = { ...originalOtherBusiness };
     logoFailure = false;
     capabilityOverrides = {};
+    feedbackLinks = brandCapabilities.feedback.map((link) => ({ ...link }));
+    lifecycleEvents = [];
     bookingOverrides = {};
     logoShape = null;
     memberRole = "owner";
@@ -252,6 +282,52 @@ createServer(async (req, res) => {
       ]);
     if (url.pathname.endsWith("/rpc/record_audit_event")) return send(null);
     if (failWrites) return send({ message: "Local fixture write unavailable" }, 503);
+    const rpc = url.pathname.split("/").at(-1);
+    if (
+      [
+        "get_confirmation_public_view",
+        "get_feedback_public_view",
+        "record_confirmation_link_open",
+        "record_feedback_link_open",
+      ].includes(rpc)
+    ) {
+      const feedback = rpc.includes("feedback");
+      const record = (feedback ? feedbackLinks : links).find(
+        (link) => link.token_hash === body?.p_token_hash,
+      );
+      if (!record || record.revoked_at || Date.parse(record.expires_at) <= Date.now())
+        return send({ status: "unavailable" });
+      if (rpc.startsWith("record_")) {
+        record.first_viewed_at ??= new Date().toISOString();
+        return send(null);
+      }
+      const owner = record.business_id === businessId ? business : otherBusiness;
+      return send({
+        status: "valid",
+        booking: {
+          business_name: owner.name,
+          business_logo_path: owner.logo_path,
+          business_website: null,
+          business_instagram: null,
+          business_phone: null,
+          business_email: null,
+          customer_name: "Private Customer",
+          booking_reference: "PRIVATE-REFERENCE",
+          booking_title: "Private booking details",
+          booking_description: "Private description",
+          scheduled_for: null,
+          completed_at: "2026-01-15T12:00:00Z",
+          currency: "EUR",
+          total_amount_minor: 45900,
+          deposit_amount_minor: 5900,
+          balance_amount_minor: 40000,
+          status: feedback ? "DELIVERED" : "AWAITING_CUSTOMER",
+          expires_at: record.expires_at,
+          confirmed_at: null,
+          terms_hash: "fixture-terms",
+        },
+      });
+    }
   }
   const businesses = [business, otherBusiness];
   const table = url.pathname.split("/").at(-1);
@@ -269,10 +345,12 @@ createServer(async (req, res) => {
   if (table === "confirmation_links") rows = links;
   for (const [kind, config] of Object.entries(families)) {
     if (table === config.table)
-      rows = brandCapabilities[kind].map((row, i) => ({
-        ...row,
-        ...(i === 0 ? capabilityOverrides[kind] : {}),
-      }));
+      rows = (kind === "feedback" ? feedbackLinks : brandCapabilities[kind]).map(
+        (row, i) => ({
+          ...row,
+          ...(i === 0 ? capabilityOverrides[kind] : {}),
+        }),
+      );
   }
   if (table === "booking_addons")
     rows = brandCapabilities.addon.map((row) => ({

@@ -42,7 +42,7 @@ describe("feedback sharing", () => {
     renderFeedbackShare();
 
     expect((screen.getByLabelText("Message") as HTMLTextAreaElement).value).toMatch(
-      /Hi David,.+private feedback.+No account is required/s,
+      /Hi David 👋\n\nBella Cakes would appreciate your private feedback about your experience.\n\nShare your feedback here:/,
     );
     expect(screen.getByLabelText("Feedback link")).toHaveValue(feedbackUrl);
     expect(screen.queryByRole("button", { name: "Share..." })).not.toBeInTheDocument();
