@@ -3,6 +3,7 @@ import { ImageResponse } from "next/og";
 import { cleanBusinessBrandName, type BusinessBrandProjection } from "./brand-projection";
 import { readBusinessLogoPng } from "./logo-projection";
 import { capabilityBrandCopy, type CapabilityBrandKind } from "./social-metadata";
+import { renderSecureSocialImage } from "./secure-social-image";
 
 export const businessSocialImageHeaders = {
   "Cache-Control": "private, no-store, max-age=0",
@@ -26,6 +27,8 @@ export async function renderBusinessSocialImage(
       .join("")
       .toUpperCase() || "B";
   const logo = await readBusinessLogoPng(business.businessLogoPath);
+  if (kind === "confirmation" || kind === "feedback")
+    return renderSecureSocialImage(kind, { businessName: name, logo });
   return new ImageResponse(
     <div
       style={{

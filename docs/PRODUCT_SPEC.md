@@ -1,5 +1,12 @@
 # Product Specification
 
+## Secure-link social previews — 2026-09-15
+
+IMPLEMENTED — LOCAL, MANUAL REVIEW PENDING. Confirmation and private feedback
+now use the approved vendor-first card family and concise editable share text.
+Crawler reads remain separate from customer-view evidence. No merge, deployment,
+or scheduler change is included. See [implementation and evidence](SECURE_SOCIAL_PREVIEWS.md).
+
 Current homepage finalization: preserved the approved design/motion, corrected short desktop hero alignment and public link targets, and enlarged mobile footer text. Visual gates pass; release verification is pending. See [golden polish evidence](HOMEPAGE_GOLDEN_POLISH.md). Earlier local-review status statements below describe their original passes.
 
 ## Public homepage supporting motion

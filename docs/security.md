@@ -1,5 +1,17 @@
 # Security
 
+## Secure-preview crawler/evidence boundary — 2026-09-15
+
+Confirmation and feedback retain their dedicated minimal read-only lookups. The
+new renderer receives only business display name and bounded PNG bytes; it has
+no token, preview ID, customer, booking or capability object. Metadata-read errors
+fall back to generic metadata without logging the exception; anonymous generic
+image routes make no data lookup. Invalid dynamic image IDs/states still return
+404. Existing token validation and used-link policies are unchanged. Next's
+blocking-metadata bot list is extended with the existing safe-shell crawler list;
+ordinary browsers still reach the existing view/open handlers. No auth, RLS,
+storage-access, lifecycle or scheduler change. [Evidence](SECURE_SOCIAL_PREVIEWS.md).
+
 ## Golden Stability — 2026-09-14
 
 Golden Stability preserves Auth, RLS, recipient context, grants, capability/booking/email transactions and worker authorization. New history filtering is server-owned. The approved retention-function/index migration is applied, preserves service-only execution and grants no direct table access; local PostgreSQL tests cover retained unread, bounded deletion and role/tenant isolation. Evidence: [GOLDEN_STABILITY_PASS](GOLDEN_STABILITY_PASS.md).

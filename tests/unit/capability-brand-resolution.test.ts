@@ -6,6 +6,7 @@ const state = vi.hoisted(() => ({
   rows: {} as Record<string, Record<string, unknown>[]>,
   reads: [] as { table: string; columns: string; filters: Record<string, unknown> }[],
   configured: true,
+  failReads: false,
   consume: vi.fn(),
   rpc: vi.fn(),
 }));
@@ -33,6 +34,7 @@ vi.mock("@/lib/supabase/admin", () => ({
         },
         async maybeSingle() {
           state.reads.push(read);
+          if (state.failReads) throw new Error("Private backend error");
           const row = (state.rows[table] ?? []).find((candidate) =>
             Object.entries(read.filters).every(
               ([key, value]) => candidate[key] === value,
@@ -102,6 +104,7 @@ for (const c of cases)
     beforeEach(() => {
       vi.clearAllMocks();
       state.configured = true;
+      state.failReads = false;
       state.reads = [];
       state.rows = {
         [c.table]: [
@@ -139,7 +142,7 @@ for (const c of cases)
             status: c.status,
             confirmation_terms_hash: "terms",
             description: "Private booking",
-            feedback: "Private feedback",
+            feedback: "Confidential feedback answer",
             total: 591234,
             email: "private@example.invalid",
           },
@@ -187,7 +190,7 @@ for (const c of cases)
         );
         expect(result).toContain(`/social/${c.kind}/${id}`);
         expect(result).not.toMatch(
-          /Private booking|Private feedback|591234|private@example.invalid|token_hash|terms_hash/,
+          /Private booking|Confidential feedback answer|591234|private@example.invalid|token_hash|terms_hash/,
         );
         expect(result).not.toContain(token);
         expect(result).not.toContain(hash(token));
@@ -259,3 +262,16 @@ for (const c of cases)
       expect(await c.lookup(tokenA)).toBeNull();
     });
   });
+
+it("feedback falls back to generic metadata if the read-only backend fails", async () => {
+  vi.clearAllMocks();
+  state.configured = true;
+  state.failReads = true;
+  expect(await getPublicFeedbackMetadata(tokenA)).toBeNull();
+  expect(await getPublicFeedbackImageMetadata(previewA)).toBeNull();
+  const metadata = buildBusinessCapabilityMetadata("feedback");
+  expect(JSON.stringify(metadata)).toContain("https://mykustomers.com/social/feedback");
+  expect(JSON.stringify(metadata)).not.toMatch(/Private backend error|Cedar Studio/);
+  expect(state.consume).not.toHaveBeenCalled();
+  expect(state.rpc).not.toHaveBeenCalled();
+});

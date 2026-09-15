@@ -104,14 +104,14 @@ describe("Phase 8 feedback domain", () => {
     expect(confirmationToken).not.toBe(feedbackToken);
   });
 
-  it("builds a private, no-account feedback request with safe contextual names", () => {
+  it("builds a concise private feedback request with safe contextual names", () => {
     const message = buildFeedbackShareMessage({
       customerName: "Sarah Jones",
       businessName: "Divine\u0000 Cakes",
     });
 
     expect(message).toBe(
-      "Hi Sarah, thank you for choosing Divine Cakes. We'd appreciate your private feedback about your experience. No account is required. You can share it securely using the link below.",
+      "Hi Sarah 👋\n\nDivine Cakes would appreciate your private feedback about your experience.\n\nShare your feedback here:",
     );
     expect(message).not.toMatch(/publish|public review/i);
     expect(buildFeedbackShareTitle("Divine Cakes")).toBe(
