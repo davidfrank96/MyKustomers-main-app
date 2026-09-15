@@ -1,5 +1,9 @@
 # Master Plan
 
+## Public homepage positioning — 2026-09-15
+
+IMPLEMENTED — LOCAL, MANUAL REVIEW PENDING. A homepage-only presentation pass follows the supplied desktop and mobile references: outcome-first hero, preserved animated product showcase, five-step journey and final CTA. No product phase, backend, Auth, scheduler, provider or database change. Merge and Production deployment are explicitly outside this task. See [PUBLIC_HOMEPAGE_POSITIONING](PUBLIC_HOMEPAGE_POSITIONING.md).
+
 ## Golden Stability — 2026-09-14
 
 Golden Stability work preserves the current design. Notification history containment and 72-hour read filtering, confirmation Done fallback, and the reproduced WebKit hydration/input correction are implemented locally. The approved retention SQL is applied and verified. Application release and physical-device evidence remain pending; see [GOLDEN_STABILITY_PASS](GOLDEN_STABILITY_PASS.md).

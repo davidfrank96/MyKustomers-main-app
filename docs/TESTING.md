@@ -1,5 +1,9 @@
 # Testing
 
+## Public homepage positioning — 2026-09-15
+
+The existing homepage E2E now checks the approved copy, one five-step journey, existing signup/login and hash destinations, canonical URL, homepage title/description/OG/X/JSON-LD, completed reduced-motion demo and strict horizontal containment. Its permanent Chromium matrix retains 320, 360, 375, 390, 414, 430, 768, 1024, 1280, 1440 and 1600px. A local Chromium/WebKit walkthrough additionally captures the eight requested widths and tests real pause/resume/replay controls. Demo component tests retain sequence, offscreen/hidden pause, replay, timer cleanup and reduced-motion coverage, with a new mid-playback reduced-motion case. No live data mutation is required. Results and screenshot paths: [PUBLIC_HOMEPAGE_POSITIONING](PUBLIC_HOMEPAGE_POSITIONING.md).
+
 ## Golden Stability — 2026-09-14
 
 Run the existing notification browser command for the new permanent Chromium/WebKit stability matrix (set `NOTIFICATIONS_PRODUCTION_BUILD=1` to build/start the optimized app against the same loopback fixtures), real script-opened close, refused-close terminal focus, history scroll, first-read semantics, business resolver and existing-worker resume checks. `npm run test:notifications:database` now verifies the approved retention migration and boundary cases in its disposable local cluster, including CI. The normal cloud confirmation hotfix journey now clicks Done before checking single immutable confirmation/email evidence. Results and exact limits: [GOLDEN_STABILITY_PASS](GOLDEN_STABILITY_PASS.md).

@@ -1,5 +1,9 @@
 # Responsive QA
 
+## Public homepage — 2026-09-15
+
+The homepage uses centered phone framing below 1024px and a split hero/laptop presentation from 1024px. Chromium/WebKit checks cover 320, 375, 390, 430, 768, 1024, 1280 and 1440px with strict document width, correctly ordered hero/demo geometry and working demo controls. The existing Chromium E2E includes 360, 414 and 1600px as well. The initial rotated decorative shape caused 6px overflow at 320px; its rotation was removed at the source without suppressing document overflow. Screenshot review and local verification are recorded in [PUBLIC_HOMEPAGE_POSITIONING](PUBLIC_HOMEPAGE_POSITIONING.md).
+
 ## Golden Stability — 2026-09-14
 
 The Golden Stability matrix adds 1366×768 and five short-height cases plus 844×390 landscape. Ten vendor routes, notifications and confirmation terminal pass strict document width/nav containment in Chromium/WebKit. Physical bottom-nav drift remains unreproduced; no shell CSS patch is claimed. See [GOLDEN_STABILITY_PASS](GOLDEN_STABILITY_PASS.md) for each viewport and scope limits.

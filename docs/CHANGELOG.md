@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-15 — Public homepage positioning (local review)
+
+Reworked only the public homepage into the approved outcome-first hero, responsive laptop/phone demo framing, five-step journey and concise final CTA/footer. Preserved the existing animated fixture sequence, pause/replay controls, visibility handling, signup/login and hash destinations. Corrected a reproduced reduced-motion timing race so the completed preview remains authoritative. Homepage metadata and structured data use the new MyKustomers positioning through a separate homepage constant; shared app/capability defaults stay unchanged. Added scoped CSS modules and updated affected public tests and documentation. Build/local verification only; no merge or Production deployment. [Evidence](PUBLIC_HOMEPAGE_POSITIONING.md).
+
 ## Golden Stability — 2026-09-14
 
 Implemented locally: bounded notification history and first-read 72-hour API filtering; removal of duplicate bell-count requests; functional confirmation Done terminal fallback; prevention of reproduced pre-hydration input loss in WebKit. Added browser/SQL/component regressions. Explicitly approved retention migration `20260914020434_notification_read_retention.sql` is applied and verified. Application release gates are in progress. Scheduler remains active/every minute. [Evidence](GOLDEN_STABILITY_PASS.md).

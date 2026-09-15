@@ -1,5 +1,9 @@
 # Phases
 
+## Public homepage positioning — 2026-09-15
+
+IMPLEMENTED — LOCAL, MANUAL REVIEW PENDING. This is a bounded public homepage update, not a new feature phase. Existing demo sequencing, controls and visibility pausing are retained; an observed reduced-motion race now consistently renders the completed preview. Responsive and regression evidence is in [PUBLIC_HOMEPAGE_POSITIONING](PUBLIC_HOMEPAGE_POSITIONING.md). No push, merge or Production deployment is included.
+
 ## Golden Stability — 2026-09-14
 
 Golden Stability: IMPLEMENTED — RETENTION MIGRATION APPLIED; RELEASE VERIFICATION IN PROGRESS. No new product phase. The existing scheduler remains active at the same cadence. Exact local and release gates: [GOLDEN_STABILITY_PASS](GOLDEN_STABILITY_PASS.md).

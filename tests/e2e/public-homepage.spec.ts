@@ -17,78 +17,97 @@ const homepageViewports = [
 ] as const;
 
 const screenshotDirectory = path.resolve("test-results/public-homepage");
+const headline = "Keep every customer in the loop.";
+const title = "Keep Customers Informed from Order to Delivery | MyKustomers";
+const description =
+  "MyKustomers helps businesses confirm orders, keep customers updated, manage changes, deliver professionally, and collect feedback — all in one clear customer journey.";
 
 async function expectNoPageOverflow(page: Page, width: number) {
   const dimensions = await page.evaluate(() => ({
     clientWidth: document.documentElement.clientWidth,
     scrollWidth: document.documentElement.scrollWidth,
   }));
-
   expect(
     dimensions.scrollWidth,
     `public homepage overflowed at ${width}px`,
-  ).toBeLessThanOrEqual(dimensions.clientWidth + 1);
+  ).toBeLessThanOrEqual(dimensions.clientWidth);
 }
 
 async function hideDevelopmentChrome(page: Page) {
-  await page.evaluate(() => {
-    document.querySelectorAll("nextjs-portal").forEach((element) => {
-      element.parentNode?.removeChild(element);
-    });
-  });
+  await page.addStyleTag({ content: "nextjs-portal { visibility: hidden !important; }" });
 }
 
 test.describe("public homepage", () => {
-  test("uses approved branding, landmarks, routes, and section navigation", async ({
+  test("uses approved branding, metadata, landmarks and existing CTA destinations", async ({
     page,
   }) => {
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto("/");
-
-    await expect(page).toHaveTitle(
-      "My Kustomers — Booking & Customer Management for Service Businesses",
+    await expect(page).toHaveTitle(title);
+    for (const selector of [
+      'meta[name="description"]',
+      'meta[property="og:description"]',
+      'meta[name="twitter:description"]',
+    ]) {
+      await expect(page.locator(selector)).toHaveAttribute("content", description);
+    }
+    await expect(page.locator('meta[property="og:title"]')).toHaveAttribute(
+      "content",
+      title,
     );
-    await expect(page.getByRole("banner")).toBeVisible();
-    await expect(page.getByRole("main")).toBeVisible();
-    await expect(page.getByRole("contentinfo")).toBeVisible();
+    await expect(page.locator('meta[name="twitter:title"]')).toHaveAttribute(
+      "content",
+      title,
+    );
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+      "href",
+      "https://mykustomers.com",
+    );
+    const structuredData = JSON.parse(
+      await page.locator('script[type="application/ld+json"]').innerText(),
+    );
+    expect(structuredData["@graph"].map((entry: { name: string }) => entry.name)).toEqual(
+      ["MyKustomers", "MyKustomers", "MyKustomers"],
+    );
+    expect(structuredData["@graph"][2].description).toBe(description);
+
+    for (const landmark of ["banner", "main", "contentinfo"] as const)
+      await expect(page.getByRole(landmark)).toBeVisible();
     await expect(page.getByRole("link", { name: "MyKustomers.com home" })).toBeVisible();
     await expect(page.getByText("My Customers", { exact: true })).toHaveCount(0);
-
     const header = page.getByRole("banner");
     await expect(header.getByRole("link", { name: "Log in" })).toHaveAttribute(
       "href",
       "/login",
     );
-    for (const signupLink of await page
-      .getByRole("link", { name: "Get started" })
-      .all()) {
-      await expect(signupLink).toHaveAttribute("href", "/signup");
+    for (const link of await page.getByRole("link", { name: "Get started" }).all())
+      await expect(link).toHaveAttribute("href", "/signup");
+    const navigation = page.getByRole("navigation", { name: "Public homepage sections" });
+    for (const [name, href] of [
+      ["Features", "#features"],
+      ["How it works", "#how-it-works"],
+      ["For businesses", "#for-businesses"],
+    ]) {
+      await expect(navigation.getByRole("link", { name })).toHaveAttribute("href", href);
+      await expect(page.locator(href)).toHaveCount(1);
     }
-
-    const publicNavigation = page.getByRole("navigation", {
-      name: "Public homepage sections",
-    });
-    await expect(
-      publicNavigation.getByRole("link", { name: "Features" }),
-    ).toHaveAttribute("href", "#features");
-    await expect(
-      publicNavigation.getByRole("link", { name: "How it works" }),
-    ).toHaveAttribute("href", "#how-it-works");
-    await expect(
-      publicNavigation.getByRole("link", { name: "For businesses" }),
-    ).toHaveAttribute("href", "#for-businesses");
-    await expect(publicNavigation.getByText("Pricing", { exact: true })).toHaveCount(0);
-
+    await expect(navigation.getByText("Pricing", { exact: true })).toHaveCount(0);
     await page.getByRole("link", { name: "See how it works" }).click();
     await expect(page).toHaveURL(/#how-it-works$/);
-    await expect(page.getByRole("heading", { name: "How it works" })).toBeInViewport();
-
+    await expect(
+      page.getByRole("heading", { name: "One clear journey" }),
+    ).toBeInViewport();
     await header.getByRole("link", { name: "Log in" }).click();
     await expect(page).toHaveURL(/\/login$/);
     await expect(page.getByRole("heading", { name: "Log in" })).toBeVisible();
 
-    await page.goto("/");
     await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/");
+    await page.getByRole("link", { name: "See how it works" }).click();
+    await expect(page).toHaveURL(/#features$/);
+    await expect(
+      page.getByRole("region", { name: "Illustrative MyKustomers workspace preview" }),
+    ).toBeInViewport();
     await page
       .locator("main > section")
       .first()
@@ -105,57 +124,51 @@ test.describe("public homepage", () => {
   }, testInfo) => {
     test.skip(
       testInfo.project.name !== "chromium",
-      "One browser covers the explicit public homepage viewport matrix.",
+      "One browser covers the permanent public homepage viewport matrix.",
     );
-
     await page.emulateMedia({ reducedMotion: "reduce" });
-
     fs.mkdirSync(screenshotDirectory, { recursive: true });
-
     for (const viewport of homepageViewports) {
       await page.setViewportSize(viewport);
       await page.goto("/");
-      await expect(
-        page.getByRole("link", { name: "MyKustomers.com home" }),
-      ).toBeVisible();
-      await expect(
-        page.getByRole("heading", {
-          name: "From customer request to confirmation, delivery, and feedback — one clear journey.",
-        }),
-      ).toBeVisible();
+      await expect(page.getByRole("heading", { name: headline, level: 1 })).toBeVisible();
       await expect(
         page.getByText(
-          "Manage customers, bookings, confirmations, payments, delivery and feedback in one clear workspace.",
+          "For businesses that manage customer work from order to delivery",
+          { exact: true },
         ),
       ).toBeVisible();
       await expect(
-        page.getByText("Built for service businesses — from independent operators to growing teams."),
+        page.getByText(
+          "From confirmation to delivery and feedback, MyKustomers helps businesses give customers a clear, professional experience.",
+          { exact: true },
+        ),
       ).toBeVisible();
-      for (const [title, description] of [
-        ["Customers", "Keep customer details organized and easy to access."],
-        ["Bookings", "Create, manage, and track every booking with ease."],
-        ["Digital receipts", "Send digital receipts and customer updates automatically."],
-        ["Feedback", "Collect private feedback and respond quickly."],
-        ["Insights", "See what's working and grow with confidence."],
-      ] as const) {
-        const featureCard = page
-          .getByRole("heading", { name: title, exact: true })
-          .locator("xpath=ancestor::article[1]");
-        await expect(featureCard).toContainText(description);
-      }
       await expect(
-        page.getByLabel("Illustrative My Kustomers workspace preview"),
+        page.getByText(
+          "Confirm what was agreed. Keep customers updated. Manage changes. Deliver professionally.",
+          { exact: true },
+        ),
       ).toBeVisible();
-      await expect(page.locator("#how-it-works-heading")).toBeAttached();
-      await expect(page.locator("#for-businesses-heading")).toBeAttached();
-      if (viewport.width >= 768) {
-        await expect(page.getByRole("heading", { name: "How it works" })).toBeVisible();
-        await expect(
-          page.getByRole("heading", {
-            name: "Built for growing service businesses",
-          }),
-        ).toBeVisible();
-      }
+      await expect(page.locator("#how-it-works li")).toHaveText([
+        "Request",
+        "Confirmation",
+        "Updates",
+        "Delivery",
+        "Feedback",
+      ]);
+      const demo = page.getByRole("region", {
+        name: "Illustrative MyKustomers workspace preview",
+      });
+      await expect(demo).toBeVisible();
+      await expect(demo.getByTestId("demo-booking-status")).toHaveText("Confirmed");
+      await expect(demo.getByTestId("demo-email-status")).toHaveText("Sent");
+      await expect(demo.getByTestId("demo-work-status")).toHaveText("In progress");
+      await expect(demo.getByTestId("demo-feedback-status")).toHaveText("5 ★");
+      await expect(demo.getByRole("button", { name: "Replay demo" })).toBeVisible();
+      await expect(
+        page.getByRole("heading", { name: "Good work deserves good communication." }),
+      ).toBeVisible();
       await expectNoPageOverflow(page, viewport.width);
       await hideDevelopmentChrome(page);
       await page.screenshot({
@@ -163,53 +176,5 @@ test.describe("public homepage", () => {
         fullPage: true,
       });
     }
-
-    await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto("/");
-    await expect(page.getByText("Built for service businesses — from independent operators to growing teams.")).toBeVisible();
-    await hideDevelopmentChrome(page);
-    await page.screenshot({
-      path: path.join(screenshotDirectory, "homepage-hero-mobile-390.png"),
-    });
-    await page.getByLabel("Illustrative My Kustomers workspace preview").screenshot({
-      path: path.join(screenshotDirectory, "homepage-product-preview-mobile-390.png"),
-    });
-    await page.getByLabel("Illustrative My Kustomers workspace preview").screenshot({
-      path: path.join(screenshotDirectory, "homepage-product-demo-completed-390.png"),
-    });
-
-    const mobileFinalCta = page.getByRole("heading", {
-      name: "Run your business. We'll handle the rest.",
-    });
-    await mobileFinalCta.scrollIntoViewIfNeeded();
-    await mobileFinalCta.locator("xpath=ancestor::section[1]").screenshot({
-      path: path.join(screenshotDirectory, "homepage-final-cta-mobile-390.png"),
-    });
-
-    await page.setViewportSize({ width: 1440, height: 900 });
-    await page.goto("/");
-    await expect(page.getByText("Built for service businesses — from independent operators to growing teams.")).toBeVisible();
-    await hideDevelopmentChrome(page);
-    await page.screenshot({
-      path: path.join(screenshotDirectory, "homepage-hero-desktop-1440.png"),
-    });
-
-    for (const [name, selector] of [
-      ["features", "#features"],
-      ["how-it-works", "#how-it-works"],
-      ["for-businesses", "#for-businesses"],
-    ] as const) {
-      await page.locator(selector).screenshot({
-        path: path.join(screenshotDirectory, `homepage-section-${name}-1440.png`),
-      });
-    }
-
-    const finalCta = page.getByRole("heading", {
-      name: "Run your business. We'll handle the rest.",
-    });
-    await finalCta.scrollIntoViewIfNeeded();
-    await finalCta.locator("xpath=ancestor::section[1]").screenshot({
-      path: path.join(screenshotDirectory, "homepage-final-cta-1440.png"),
-    });
   });
 });

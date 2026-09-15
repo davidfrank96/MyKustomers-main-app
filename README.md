@@ -1,5 +1,9 @@
 # My Kustomers
 
+## Public homepage — 2026-09-15
+
+IMPLEMENTED — LOCAL, MANUAL REVIEW PENDING. The homepage now leads with “Keep every customer in the loop.” and uses the approved desktop/laptop and mobile/phone presentation around the existing animated demo. The five-step journey and final CTA replace the longer marketing blocks. Homepage metadata follows the new positioning; authenticated functionality and shared app defaults are unchanged. Nothing is merged or deployed. [Implementation and review evidence](docs/PUBLIC_HOMEPAGE_POSITIONING.md).
+
 ## Golden Stability — 2026-09-14
 
 The Golden Stability pass is implemented; the explicitly approved retention-function/index migration is applied and verified. Application release verification is in progress. The live notification scheduler remains ACTIVE every minute. See [GOLDEN_STABILITY_PASS](docs/GOLDEN_STABILITY_PASS.md) for evidence and limitations.

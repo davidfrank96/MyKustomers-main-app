@@ -1,5 +1,9 @@
 # Product Specification
 
+## Public homepage presentation — 2026-09-15
+
+The approved homepage leads with “Keep every customer in the loop.” for businesses managing customer work from order to delivery. Its story is Request → Confirmation → Updates → Delivery → Feedback. Desktop shows the existing animated demo in laptop framing; mobile uses phone framing. Signup and login retain their existing routes. Homepage copy and metadata use MyKustomers / MyKustomers.com; private app, capability, manifest and email defaults are not part of this presentation pass. Local implementation awaits manual review: [PUBLIC_HOMEPAGE_POSITIONING](PUBLIC_HOMEPAGE_POSITIONING.md).
+
 ## Golden Stability — 2026-09-14
 
 Read notifications remain in normal history for 72 elapsed hours from first read; unread notifications do not expire by age. Done on successful customer confirmation attempts a safe close and otherwise shows a focused terminal acknowledgement without a repeat button. Implementation/release status: [GOLDEN_STABILITY_PASS](GOLDEN_STABILITY_PASS.md).

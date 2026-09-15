@@ -74,7 +74,7 @@ test.describe("MyKustomers.com brand rollout", () => {
     await page.goto("/");
     await expect(
       page.getByRole("heading", {
-        name: "From customer request to confirmation, delivery, and feedback — one clear journey.",
+        name: "Keep every customer in the loop.",
       }),
     ).toBeVisible();
     await expect(page.locator('link[rel="manifest"]')).toHaveAttribute(
@@ -152,7 +152,7 @@ test.describe("MyKustomers.com brand rollout", () => {
       if (route === "/") {
         await expect(
           page.getByRole("heading", {
-            name: "From customer request to confirmation, delivery, and feedback — one clear journey.",
+            name: "Keep every customer in the loop.",
           }),
         ).toBeVisible();
       } else if (route === "/login") {
