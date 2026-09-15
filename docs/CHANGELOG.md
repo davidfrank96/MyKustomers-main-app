@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-09-15 — Homepage golden alignment and polish
+
+Preserved the current branch design and all approved animation files. Reserve external container clearance for a wrapped delivery signal below 375px, align hero copy at the top on short desktop viewports, enlarge mobile footer text, and give public plain links comfortable targets and visible keyboard focus. Added short-height CTA/target/overflow coverage and the 1366px matrix case. Both browser visual gates and local engineering/regression gates pass. Updated stale SEO/social-crawler test literals to the already-approved homepage positioning. CI/hosted release verification is in progress. No shared app, schema, environment, provider, dependency or scheduler changes. [Evidence](HOMEPAGE_GOLDEN_POLISH.md).
+
+## 2026-09-15 — Homepage supporting motion (local review)
+
+Added restrained floating customer signals, one-time journey entrances and a lower loyalty story with three HTML cards, inline SVG wire and traveling pulse. Mobile cycles through pairs, with reduced annotations at 320/360px. One shared controller pauses new motion offscreen/hidden; user pause and reduced-motion settings provide static fallbacks. A homepage-scoped no-scripting rule exposes its completed streamed HTML instead of the inherited loading skeleton. Existing demo code/styles, app shell, routes, dependencies and scheduler are unchanged. Added focused motion and browser regression coverage; see [HOMEPAGE_MOTION](HOMEPAGE_MOTION.md). No push, merge or deployment.
+
+## 2026-09-15 — Public homepage positioning (local review)
+
+Reworked only the public homepage into the approved outcome-first hero, responsive laptop/phone demo framing, five-step journey and concise final CTA/footer. Preserved the existing animated fixture sequence, pause/replay controls, visibility handling, signup/login and hash destinations. Corrected a reproduced reduced-motion timing race so the completed preview remains authoritative. Homepage metadata and structured data use the new MyKustomers positioning through a separate homepage constant; shared app/capability defaults stay unchanged. Added scoped CSS modules and updated affected public tests and documentation. Build/local verification only; no merge or Production deployment. [Evidence](PUBLIC_HOMEPAGE_POSITIONING.md).
+
 ## Golden Stability — 2026-09-14
 
 Implemented locally: bounded notification history and first-read 72-hour API filtering; removal of duplicate bell-count requests; functional confirmation Done terminal fallback; prevention of reproduced pre-hydration input loss in WebKit. Added browser/SQL/component regressions. Explicitly approved retention migration `20260914020434_notification_read_retention.sql` is applied and verified. Application release gates are in progress. Scheduler remains active/every minute. [Evidence](GOLDEN_STABILITY_PASS.md).

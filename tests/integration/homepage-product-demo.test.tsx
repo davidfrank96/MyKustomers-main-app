@@ -83,15 +83,11 @@ describe("HomepageProductDemo", () => {
 
     expect(
       screen.getByRole("region", {
-        name: "Illustrative My Kustomers workspace preview",
+        name: "Illustrative MyKustomers workspace preview",
       }),
     ).toHaveAccessibleDescription(/customer booking being confirmed/i);
-    expect(
-      screen.getByRole("button", { name: "Pause" }),
-    ).toBeVisible();
-    expect(
-      screen.getByRole("button", { name: "Replay demo" }),
-    ).toBeVisible();
+    expect(screen.getByRole("button", { name: "Pause" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Replay demo" })).toBeVisible();
     expect(screen.getByRole("status")).toHaveAttribute("aria-live", "polite");
     expect(screen.getByRole("img", { name: "Bookings trend increased" })).toBeVisible();
   });
@@ -130,23 +126,17 @@ describe("HomepageProductDemo", () => {
     render(<HomepageProductDemo />);
     showDemo();
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "Pause" }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: "Pause" }));
     act(() => vi.advanceTimersByTime(10_000));
     expect(screen.getByTestId("demo-booking")).toHaveAttribute("aria-hidden", "true");
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "Resume" }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: "Resume" }));
     advanceStep();
     expect(screen.getByTestId("demo-booking-status")).toHaveTextContent("Created");
 
     advanceStep();
     expect(screen.getByTestId("demo-booking-status")).toHaveTextContent("Confirmed");
-    fireEvent.click(
-      screen.getByRole("button", { name: "Replay demo" }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: "Replay demo" }));
     expect(screen.getByTestId("demo-booking")).toHaveAttribute("aria-hidden", "true");
     advanceStep();
     expect(screen.getByTestId("demo-booking-status")).toHaveTextContent("Created");
@@ -177,6 +167,28 @@ describe("HomepageProductDemo", () => {
     showDemo();
     advanceStep();
     expect(screen.getByTestId("demo-booking-status")).toHaveTextContent("Created");
+  });
+
+  it("finishes the preview when reduced motion is enabled during playback", () => {
+    render(<HomepageProductDemo />);
+    showDemo();
+    advanceStep();
+    expect(screen.getByTestId("demo-booking-status")).toHaveTextContent("Created");
+
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const onChange = vi.mocked(media.addEventListener).mock.calls[0][1] as () => void;
+    Object.defineProperty(media, "matches", { value: true });
+    act(onChange);
+    showDemo(false);
+    act(() => vi.advanceTimersByTime(10_000));
+
+    expect(screen.getByTestId("demo-booking-status")).toHaveTextContent("Confirmed");
+    expect(screen.getByTestId("demo-email-status")).toHaveTextContent("Sent");
+    expect(screen.getByTestId("demo-feedback-status")).toHaveTextContent("5 ★");
+    expect(screen.getByTestId("demo-insights")).toHaveTextContent(
+      "Bookings up 18% vs last week",
+    );
+    expect(vi.getTimerCount()).toBe(0);
   });
 
   it("pauses while the page is hidden and resumes when visibility returns", () => {

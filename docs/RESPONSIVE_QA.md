@@ -1,5 +1,15 @@
 # Responsive QA
 
+Current homepage finalization: preserved the approved design/motion, corrected short desktop hero alignment and public link targets, and enlarged mobile footer text. Visual gates pass; release verification is pending. See [golden polish evidence](HOMEPAGE_GOLDEN_POLISH.md). Earlier local-review status statements below describe their original passes.
+
+## Homepage motion — 2026-09-15
+
+The complete 320×568, 360×800, 375×812, 390×844, 414×896, 430×932, 768×1024, 1024×768, 1280×800, 1440×900 and 1600×900 matrix passes in Chromium and WebKit. Checks include strict document containment, no floating-card/device collisions, non-overlapping lower cards and a contained visible wire. Small screens reserve space around the unchanged phone and stack readable loyalty cards. See [HOMEPAGE_MOTION](HOMEPAGE_MOTION.md) for screenshots and exact breakpoint differences. These are browser viewports, not physical-device certification.
+
+## Public homepage — 2026-09-15
+
+The homepage uses centered phone framing below 1024px and a split hero/laptop presentation from 1024px. Chromium/WebKit checks cover 320, 375, 390, 430, 768, 1024, 1280 and 1440px with strict document width, correctly ordered hero/demo geometry and working demo controls. The existing Chromium E2E includes 360, 414 and 1600px as well. The initial rotated decorative shape caused 6px overflow at 320px; its rotation was removed at the source without suppressing document overflow. Screenshot review and local verification are recorded in [PUBLIC_HOMEPAGE_POSITIONING](PUBLIC_HOMEPAGE_POSITIONING.md).
+
 ## Golden Stability — 2026-09-14
 
 The Golden Stability matrix adds 1366×768 and five short-height cases plus 844×390 landscape. Ten vendor routes, notifications and confirmation terminal pass strict document width/nav containment in Chromium/WebKit. Physical bottom-nav drift remains unreproduced; no shell CSS patch is claimed. See [GOLDEN_STABILITY_PASS](GOLDEN_STABILITY_PASS.md) for each viewport and scope limits.

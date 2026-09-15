@@ -1,5 +1,11 @@
 # Design System
 
+Current homepage finalization: preserved the approved design/motion, corrected short desktop hero alignment and public link targets, and enlarged mobile footer text. Visual gates pass; release verification is pending. See [golden polish evidence](HOMEPAGE_GOLDEN_POLISH.md). Earlier local-review status statements below describe their original passes.
+
+## Public homepage motion scope
+
+The public homepage uses scoped CSS/SVG motion with one supporting visibility controller. Entrances settle once; slow loops pause offscreen and while the document is hidden. A supporting-motion pause button reserves its layout space. Reduced-motion users receive immediate static content. These rules do not retime or restyle the existing product demo and do not establish animated defaults for authenticated application components. Implementation and review: [HOMEPAGE_MOTION](HOMEPAGE_MOTION.md).
+
 ## Secure sharing dialogs
 
 Feedback and customer confirmation opt into one presentation-only dialog body.

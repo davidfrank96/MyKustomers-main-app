@@ -1,6 +1,18 @@
 # Product positioning
 
-Status: DEPLOYED AND VERIFIED IN PRODUCTION. Updated 2026-09-12.
+## Homepage loyalty story — 2026-09-15
+
+The supporting motion pass uses “Turn updates into loyal customers.” above the existing professional-experience copy and signup CTA. Its signals illustrate confirmation, delivery and private feedback; they add no new functional promise, real customer identity or public-review claim. See [HOMEPAGE_MOTION](HOMEPAGE_MOTION.md).
+
+Status: Homepage update IMPLEMENTED — LOCAL, MANUAL REVIEW PENDING (2026-09-15). The broader 2026-09-12 positioning remains the deployed baseline.
+
+## Approved homepage direction — 2026-09-15
+
+The homepage now leads with **Keep every customer in the loop.** Its audience label is **For businesses that manage customer work from order to delivery**. Supporting copy connects confirmation, updates, changes, professional delivery and feedback in one clear journey. Visible homepage branding and homepage-specific SEO use **MyKustomers** / **MyKustomers.com**. This supersedes the older homepage presentation described below; it does not broaden the implementation into shared app, manifest, email or private-capability copy.
+
+The existing animated product demo is retained with responsive phone/laptop framing. Detailed verification and the supplied-reference scope are in [PUBLIC_HOMEPAGE_POSITIONING](PUBLIC_HOMEPAGE_POSITIONING.md). This local work is not merged or deployed.
+
+## Existing general product position — 2026-09-12
 
 Canonical audience statement:
 

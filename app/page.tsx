@@ -1,40 +1,42 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import type { ComponentType } from "react";
 import {
   ArrowRight,
-  BarChart3,
-  BriefcaseBusiness,
-  CalendarDays,
-  LockKeyhole,
+  Bell,
+  ClipboardList,
   Mail,
   MessageCircle,
-  Rocket,
-  ShieldCheck,
   Store,
   Truck,
-  Users,
 } from "lucide-react";
-import { AppFrame } from "@/components/layout/app-frame";
 import { HomepageProductDemo } from "@/components/homepage/homepage-product-demo";
+import {
+  HomepageHeroSignals,
+  HomepageLoyaltyVisual,
+} from "@/components/homepage/homepage-motion";
+import { HomepageMotionController } from "@/components/homepage/homepage-motion-controller";
+import motion from "@/components/homepage/homepage-motion.module.css";
 import { BrandLogo } from "@/components/shared/brand-logo";
 import { Button } from "@/components/ui/button";
 import { MYKUSTOMERS_BRAND_ASSETS } from "@/lib/brand/assets";
 import {
+  HOMEPAGE_SEO,
   SEO_SITE,
   buildHomepageStructuredData,
   serializeStructuredData,
 } from "@/lib/seo/site";
+import styles from "./homepage.module.css";
 
 export const metadata: Metadata = {
-  title: { absolute: SEO_SITE.title },
-  description: SEO_SITE.description,
+  title: { absolute: HOMEPAGE_SEO.title },
+  description: HOMEPAGE_SEO.description,
+  applicationName: HOMEPAGE_SEO.name,
   alternates: { canonical: "/" },
   openGraph: {
-    title: SEO_SITE.title,
-    description: SEO_SITE.description,
+    title: HOMEPAGE_SEO.title,
+    description: HOMEPAGE_SEO.description,
     url: SEO_SITE.origin,
-    siteName: SEO_SITE.name,
+    siteName: HOMEPAGE_SEO.name,
     type: "website",
     locale: "en_NG",
     images: [
@@ -42,204 +44,88 @@ export const metadata: Metadata = {
         url: MYKUSTOMERS_BRAND_ASSETS.openGraph,
         width: 1200,
         height: 630,
-        alt: "My Kustomers booking and customer management platform",
+        alt: "MyKustomers.com",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: SEO_SITE.title,
-    description: SEO_SITE.description,
+    title: HOMEPAGE_SEO.title,
+    description: HOMEPAGE_SEO.description,
     images: [MYKUSTOMERS_BRAND_ASSETS.openGraph],
   },
 };
 
-type IconComponent = ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
-
-const features: Array<{
-  title: string;
-  description: string;
-  icon: IconComponent;
-}> = [
-  {
-    title: "Customers",
-    description: "Keep customer details organized and easy to access.",
-    icon: Users,
-  },
-  {
-    title: "Bookings",
-    description: "Create, manage, and track every booking with ease.",
-    icon: CalendarDays,
-  },
-  {
-    title: "Digital receipts",
-    description: "Send digital receipts and customer updates automatically.",
-    icon: Mail,
-  },
-  {
-    title: "Feedback",
-    description: "Collect private feedback and respond quickly.",
-    icon: MessageCircle,
-  },
-  {
-    title: "Insights",
-    description: "See what's working and grow with confidence.",
-    icon: BarChart3,
-  },
-];
-
-const workflow: Array<{
-  title: string;
-  description: string;
-  icon: IconComponent;
-}> = [
-  {
-    title: "Create booking",
-    description: "Add customer details, date, time, and job information.",
-    icon: CalendarDays,
-  },
-  {
-    title: "Send confirmation",
-    description: "Send a secure request so the customer can review and confirm.",
-    icon: Mail,
-  },
-  {
-    title: "Track payment and fulfilment",
-    description: "Record payments, manage the work, and keep delivery moving.",
-    icon: Truck,
-  },
-  {
-    title: "Collect feedback & get insights",
-    description: "Private feedback and insights help you improve and grow.",
-    icon: MessageCircle,
-  },
-];
-
-const businessTypes: Array<{
-  title: string;
-  description: string;
-  icon: IconComponent;
-}> = [
-  {
-    title: "Food and event vendors",
-    description: "Cake vendors, caterers and decorators managing custom orders and events.",
-    icon: CalendarDays,
-  },
-  {
-    title: "Fashion and beauty businesses",
-    description:
-      "Keep appointments, customer requests, payments and delivery details together.",
-    icon: Truck,
-  },
-  {
-    title: "Creative service professionals",
-    description: "Photographers and other service businesses coordinating client work.",
-    icon: BriefcaseBusiness,
-  },
-];
-
-function Brand() {
-  return (
-    <Link
-      href="/"
-      className="flex min-w-0 items-center"
-      aria-label="MyKustomers.com home"
-    >
-      <BrandLogo
-        variant="horizontal"
-        className="h-10 w-[7.5rem] sm:w-[8.75rem]"
-        decorative
-        priority
-      />
-    </Link>
-  );
-}
-
-function TrustItem({ icon: Icon, children }: { icon: IconComponent; children: string }) {
-  return (
-    <span className="flex items-center justify-center gap-2 text-xs font-medium text-muted-foreground sm:text-sm">
-      <Icon className="size-4 shrink-0 text-primary" aria-hidden={true} />
-      <span>{children}</span>
-    </span>
-  );
-}
+const journey = [
+  { label: "Request", icon: ClipboardList },
+  { label: "Confirmation", icon: Mail },
+  { label: "Updates", icon: Bell },
+  { label: "Delivery", icon: Truck },
+  { label: "Feedback", icon: MessageCircle },
+] as const;
 
 export default function HomePage() {
-  const structuredData = buildHomepageStructuredData();
-
   return (
-    <AppFrame>
+    <div className={styles.page}>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: serializeStructuredData(structuredData) }}
+        dangerouslySetInnerHTML={{
+          __html: serializeStructuredData(buildHomepageStructuredData()),
+        }}
       />
-      <header className="border-b border-border bg-card">
-        <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-          <Brand />
-
-          <nav
-            aria-label="Public homepage sections"
-            className="hidden items-center gap-7 text-sm font-medium text-muted-foreground md:flex"
-          >
-            <a href="#features" className="hover:text-primary">
-              Features
-            </a>
-            <a href="#how-it-works" className="hover:text-primary">
-              How it works
-            </a>
-            <a href="#for-businesses" className="hover:text-primary">
-              For businesses
-            </a>
-          </nav>
-
-          <div className="flex shrink-0 items-center gap-3">
-            <Button
-              asChild
-              variant="secondary"
-              className="border-primary px-4 text-primary hover:bg-primary/5"
-            >
-              <Link href="/login">Log in</Link>
-            </Button>
-            <Button asChild className="hidden px-5 sm:inline-flex">
-              <Link href="/signup">Get started</Link>
-            </Button>
-          </div>
+      <header className={styles.header}>
+        <Link href="/" className={styles.brand} aria-label="MyKustomers.com home">
+          <BrandLogo variant="horizontal" decorative priority />
+        </Link>
+        <nav aria-label="Public homepage sections" className={styles.navigation}>
+          <a href="#features">Features</a>
+          <a href="#how-it-works">How it works</a>
+          <a href="#for-businesses">For businesses</a>
+        </nav>
+        <div className={styles.headerActions}>
+          <Button asChild variant="secondary" className={styles.login}>
+            <Link href="/login">Log in</Link>
+          </Button>
+          <Button asChild className={styles.headerSignup}>
+            <Link href="/signup">
+              Get started <ArrowRight className="size-4" aria-hidden="true" />
+            </Link>
+          </Button>
         </div>
       </header>
 
-      <main>
-        <section className="mx-auto grid w-full max-w-7xl gap-7 px-4 py-8 sm:gap-9 sm:px-6 sm:py-14 lg:grid-cols-[0.92fr_1.08fr] lg:items-center lg:gap-10 lg:px-8 lg:py-12">
-          <div className="min-w-0">
-            <p className="inline-flex items-center gap-2 rounded-full bg-primary/5 px-3 py-1.5 text-sm font-medium text-primary">
-              <Store className="size-4" aria-hidden="true" />
-              Built for service businesses in Nigeria and beyond.
+      <main className={styles.main}>
+        <section className={styles.hero} aria-labelledby="homepage-heading">
+          <div className={styles.heroCopy}>
+            <p className={styles.eyebrow}>
+              <Store aria-hidden="true" />
+              <span>For businesses that manage customer work from order to delivery</span>
             </p>
-            <h1 className="mt-5 max-w-2xl text-[1.875rem] font-semibold leading-[1.08] sm:mt-6 sm:text-5xl lg:text-[2.75rem] xl:text-[3.35rem]">
-              <span className="block">From customer request to</span>
-              <span className="mt-1 block">confirmation, delivery, and feedback —</span>
-              <span className="mt-1 block text-primary">one clear journey.</span>
+            <h1 id="homepage-heading" className={styles.headline}>
+              <span>Keep every</span>{" "}
+              <span>
+                customer in the loop<span className={styles.period}>.</span>
+              </span>
             </h1>
-            <p className="mt-5 max-w-xl text-[0.9375rem] leading-6 text-muted-foreground sm:mt-6 sm:text-lg sm:leading-8">
-              Manage customers, bookings, confirmations, payments, delivery and
-              feedback in one clear workspace.
+            <p className={styles.description}>
+              From confirmation to delivery and feedback, MyKustomers helps businesses
+              give customers a clear, professional experience.
             </p>
-            <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground">
-              Built for service businesses — from independent operators to growing teams.
+            <p className={styles.support}>
+              Confirm what was agreed. Keep customers updated. Manage changes. Deliver
+              professionally.
             </p>
-
-            <div className="mt-6 grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 sm:mt-7 sm:flex sm:flex-wrap">
-              <Button asChild size="lg" className="h-14 min-w-0 px-4 sm:px-6">
+            <div className={styles.heroActions}>
+              <Button asChild size="lg" className={styles.primaryCta}>
                 <Link href="/signup">
-                  <span className="lg:hidden">Get started</span>
-                  <span className="hidden lg:inline">Get started</span>
-                  <ArrowRight className="size-4" aria-hidden="true" />
+                  Get started <ArrowRight aria-hidden="true" />
                 </Link>
               </Button>
               <Button
                 asChild
                 size="lg"
                 variant="secondary"
-                className="h-14 min-w-0 border-primary px-4 text-primary sm:px-6 lg:hidden"
+                className={`${styles.secondaryCta} ${styles.mobileDemoLink}`}
               >
                 <a href="#features">See how it works</a>
               </Button>
@@ -247,194 +133,79 @@ export default function HomePage() {
                 asChild
                 size="lg"
                 variant="secondary"
-                className="hidden h-14 min-w-0 border-primary px-6 text-primary lg:inline-flex"
+                className={`${styles.secondaryCta} ${styles.desktopJourneyLink}`}
               >
                 <a href="#how-it-works">See how it works</a>
               </Button>
             </div>
-
-            <div className="mt-7 hidden flex-wrap gap-x-6 gap-y-3 lg:flex">
-              <TrustItem icon={LockKeyhole}>Secure by design</TrustItem>
-              <TrustItem icon={ShieldCheck}>Private & confidential</TrustItem>
-              <TrustItem icon={Store}>For growing service businesses</TrustItem>
-            </div>
           </div>
-
-          <HomepageProductDemo />
-        </section>
-
-        <section
-          id="features"
-          aria-labelledby="features-heading"
-          className="scroll-mt-6 border-y border-border bg-card"
-        >
-          <div className="mx-auto w-full max-w-7xl px-4 py-7 sm:px-6 sm:py-9 lg:px-8 lg:py-10">
-            <h2 id="features-heading" className="sr-only">
-              Features
-            </h2>
-            <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
-              {features.map((feature, index) => {
-                const Icon = feature.icon;
-                return (
-                  <article
-                    key={feature.title}
-                    className={
-                      index === features.length - 1
-                        ? "col-span-2 rounded-lg border border-border bg-card p-3 text-center shadow-[0_1px_3px_rgba(23,33,29,0.04)] sm:p-4 lg:col-span-1 lg:p-5"
-                        : "rounded-lg border border-border bg-card p-3 text-center shadow-[0_1px_3px_rgba(23,33,29,0.04)] sm:p-4 lg:p-5"
-                    }
-                  >
-                    <span className="mx-auto grid size-9 place-items-center rounded-lg bg-primary/5 text-primary sm:size-10 lg:size-11">
-                      <Icon className="size-5 lg:size-6" aria-hidden={true} />
-                    </span>
-                    <h3 className="mt-2 text-sm font-semibold sm:text-base">
-                      {feature.title}
-                    </h3>
-                    <p className="mt-1.5 text-xs leading-[1.125rem] text-muted-foreground sm:mt-2 sm:text-sm sm:leading-5">
-                      {feature.description}
-                    </p>
-                  </article>
-                );
-              })}
+          <div id="features" className={styles.showcase}>
+            <div
+              className={`${motion.region} ${motion.heroVisual}`}
+              data-homepage-motion="hero"
+            >
+              <HomepageProductDemo />
+              <HomepageHeroSignals />
             </div>
+            <HomepageMotionController />
           </div>
         </section>
 
         <section
           id="how-it-works"
           aria-labelledby="how-it-works-heading"
-          className="scroll-mt-6"
+          className={`${styles.journey} ${motion.region}`}
+          data-homepage-motion="journey"
         >
-          <div className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-11">
-            <h2 id="how-it-works-heading" className="text-center text-2xl font-semibold">
-              How it works
-            </h2>
-            <div className="mt-8 grid gap-7 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
-              {workflow.map((step, index) => {
-                const Icon = step.icon;
-                return (
-                  <article key={step.title} className="relative flex gap-4 lg:block">
-                    <div className="relative w-fit shrink-0">
-                      <span className="grid size-14 place-items-center rounded-full bg-primary/5 text-primary">
-                        <Icon className="size-6" aria-hidden={true} />
-                      </span>
-                      <span className="absolute -bottom-1 -right-1 grid size-6 place-items-center rounded-full bg-primary text-xs font-semibold text-white">
-                        {index + 1}
-                      </span>
-                    </div>
-                    <div className="min-w-0 lg:mt-4">
-                      <h3 className="font-semibold">{step.title}</h3>
-                      <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                        {step.description}
-                      </p>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          </div>
+          <h2 id="how-it-works-heading">One clear journey</h2>
+          <ol className={styles.journeySteps}>
+            {journey.map(({ label, icon: Icon }, index) => (
+              <li key={label} className={`${styles.journeyStep} ${motion.journeyNode}`}>
+                <span className={styles.journeyIcon}>
+                  <Icon aria-hidden="true" />
+                </span>
+                <span>{label}</span>
+                {index < journey.length - 1 && (
+                  <ArrowRight
+                    className={`${styles.journeyArrow} ${motion.journeyConnection}`}
+                    aria-hidden="true"
+                  />
+                )}
+              </li>
+            ))}
+          </ol>
         </section>
 
         <section
           id="for-businesses"
-          aria-labelledby="for-businesses-heading"
-          className="scroll-mt-6 border-y border-border bg-card"
+          className={`${motion.loyalty} ${motion.region}`}
+          data-homepage-motion="loyalty"
+          aria-labelledby="final-cta-heading"
         >
-          <div className="mx-auto w-full max-w-7xl px-4 py-9 sm:px-6 lg:px-8">
-            <h2
-              id="for-businesses-heading"
-              className="text-center text-2xl font-semibold"
-            >
-              Built for growing service businesses
-            </h2>
-            <div className="mt-8 grid gap-7 md:grid-cols-3 md:gap-0">
-              {businessTypes.map((business, index) => {
-                const Icon = business.icon;
-                return (
-                  <article
-                    key={business.title}
-                    className={`flex gap-4 md:px-7 ${index > 0 ? "md:border-l md:border-border" : ""}`}
-                  >
-                    <span className="grid size-12 shrink-0 place-items-center rounded-full bg-primary/5 text-primary">
-                      <Icon className="size-5" aria-hidden={true} />
-                    </span>
-                    <div className="min-w-0">
-                      <h3 className="font-semibold">{business.title}</h3>
-                      <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                        {business.description}
-                      </p>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-
-        <section className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
-          <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3 gap-y-4 rounded-lg bg-primary p-4 text-white min-[430px]:grid-cols-[auto_minmax(0,1fr)_auto] min-[430px]:gap-3 lg:px-8 lg:py-6">
-            <div className="contents">
-              <span className="grid size-11 shrink-0 place-items-center rounded-full bg-white/10 lg:size-14">
-                <Rocket className="size-5 lg:size-7" aria-hidden="true" />
-              </span>
-              <div className="min-w-0">
-                <h2 className="text-base font-semibold lg:text-xl">
-                  {"Run your business. We'll handle the rest."}
-                </h2>
-                <p className="mt-1 text-xs leading-5 text-white/80 lg:text-base lg:leading-6">
-                  Save time, look professional, and give your customers the experience
-                  they deserve.
-                </p>
-              </div>
-            </div>
-            <Button
-              asChild
-              size="lg"
-              variant="secondary"
-              className="col-span-2 h-11 w-full shrink-0 border-white bg-white px-4 text-primary hover:bg-[#f2f5f2] min-[430px]:col-span-1 min-[430px]:w-auto lg:h-12 lg:px-6"
-            >
+          <div className={motion.loyaltyCopy}>
+            <p className={motion.loyaltyEyebrow}>MORE THAN A TOOL</p>
+            <h2 id="final-cta-heading">Turn updates into loyal customers.</h2>
+            <p className={motion.loyaltyDescription}>
+              Give your customers a professional experience from start to finish.
+            </p>
+            <Button asChild size="lg" className={motion.loyaltyButton}>
               <Link href="/signup">
-                Get started
-                <ArrowRight className="size-4" aria-hidden="true" />
+                Get started <ArrowRight aria-hidden="true" />
               </Link>
             </Button>
           </div>
+          <HomepageLoyaltyVisual />
         </section>
       </main>
 
-      <footer className="border-t border-border bg-card">
-        <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-          <div className="grid gap-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
-            <div className="max-w-lg">
-              <BrandLogo variant="horizontal" className="h-9 w-32" decorative />
-              <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                Booking and customer management for growing service businesses.
-              </p>
-              <a
-                href={SEO_SITE.origin}
-                className="mt-2 inline-flex text-sm font-medium text-primary underline-offset-4 hover:underline"
-              >
-                mykustomers.com
-              </a>
-            </div>
-            <nav
-              aria-label="Footer navigation"
-              className="flex flex-wrap gap-x-5 gap-y-3 text-sm font-medium"
-            >
-              <a href="#features">Features</a>
-              <a href="#how-it-works">How it works</a>
-              <a href="#for-businesses">For businesses</a>
-              <Link href="/login">Log in</Link>
-              <Link href="/signup">Get started</Link>
-            </nav>
-          </div>
-          <div className="mt-6 grid grid-cols-1 gap-2.5 border-t border-border pt-4 sm:grid-cols-3 sm:gap-3">
-            <TrustItem icon={LockKeyhole}>Secure by design</TrustItem>
-            <TrustItem icon={ShieldCheck}>Private & confidential</TrustItem>
-            <TrustItem icon={Store}>For growing service businesses</TrustItem>
-          </div>
-        </div>
+      <footer className={styles.footer}>
+        <BrandLogo variant="horizontal" className={styles.footerBrand} />
+        <nav aria-label="Footer navigation">
+          <a href="#features">Features</a>
+          <a href="#how-it-works">How it works</a>
+          <Link href="/login">Log in</Link>
+        </nav>
       </footer>
-    </AppFrame>
+    </div>
   );
 }

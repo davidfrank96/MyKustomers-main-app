@@ -1,0 +1,733 @@
+.region {
+  --motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --float-y: -4px;
+  --float-rotation: 0.25deg;
+  --motion-play-state: paused;
+}
+.region[data-motion-running="true"] {
+  --motion-play-state: running;
+}
+.heroVisual {
+  position: relative;
+  isolation: isolate;
+  padding: 86px 0 82px;
+}
+.ambient {
+  position: absolute;
+  inset: 16% 3% 13%;
+  z-index: -1;
+  border-radius: 48% 52% 46% 54%;
+  background: #eaf6ef;
+  pointer-events: none;
+}
+.signals,
+.loyaltyCards {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.signal {
+  position: absolute;
+  z-index: 2;
+  width: clamp(130px, 43%, 170px);
+  --entry-delay: 250ms;
+  --float-duration: 6.5s;
+}
+.confirmation {
+  top: 10px;
+  right: 5px;
+}
+.reaction {
+  top: 10px;
+  left: 5px;
+  --entry-delay: 600ms;
+  --float-duration: 8s;
+}
+.delivery {
+  bottom: 14px;
+  right: 5px;
+  --entry-delay: 950ms;
+  --float-duration: 9.5s;
+}
+.signalCard {
+  display: flex;
+  align-items: center;
+  min-height: 64px;
+  gap: 7px;
+  padding: 11px 10px;
+  border: 1px solid #edf3ef;
+  border-radius: 12px;
+  background: #fffffff5;
+  box-shadow: 0 10px 25px -12px #275d4830;
+  font-size: 11px;
+  line-height: 1.4;
+}
+.signalCard strong {
+  display: block;
+  font-weight: 600;
+}
+.signalCard div > span {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted-foreground);
+}
+.signalIcon,
+.updateIcon {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  color: #10644f;
+  background: #e8f5ed;
+}
+.signalIcon svg {
+  width: 17px;
+  height: 17px;
+  stroke-width: 1.8;
+}
+.confirmIcon {
+  color: white;
+  background: #16824e;
+}
+.annotation {
+  position: absolute;
+  pointer-events: none;
+  color: #176652;
+  font-family: "Bradley Hand", "Segoe Print", "Comic Sans MS", cursive;
+  font-style: italic;
+  font-size: 15px;
+  line-height: 1.25;
+  letter-spacing: 0.01em;
+  --entry-delay: 1350ms;
+}
+.annotation svg {
+  display: block;
+  width: 48px;
+  height: 38px;
+}
+.annotation path {
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.orders {
+  left: 8%;
+  bottom: 12px;
+  transform: rotate(-7deg);
+}
+.orders svg {
+  position: absolute;
+  left: 69px;
+  bottom: -3px;
+  transform: rotate(-28deg);
+  width: 34px;
+}
+.happier {
+  display: none;
+}
+.motionControls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  margin: -10px 0 12px;
+}
+.motionControl {
+  margin: 0;
+  padding: 6px 10px;
+  display: block;
+  min-height: 32px;
+  border-radius: 6px;
+  color: #58675f;
+  font-size: 11px;
+  text-decoration: underline;
+  text-decoration-color: #b4c6bb;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.motionControl[hidden] {
+  display: none;
+}
+.motionControl:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
+.loyalty {
+  display: grid;
+  min-width: 0;
+  gap: 10px;
+  margin-top: 20px;
+  padding: 26px 18px 12px;
+  border-radius: 14px;
+  background: #f7f8f5;
+  scroll-margin-top: 24px;
+}
+.loyaltyCopy {
+  position: relative;
+  z-index: 1;
+}
+.loyaltyEyebrow {
+  margin-bottom: 10px;
+  font-size: 10px;
+  letter-spacing: 0.17em;
+  color: #237764;
+}
+.loyalty h2 {
+  max-width: 370px;
+  font-size: clamp(27px, 6.5vw, 38px);
+  line-height: 1.1;
+  font-weight: 600;
+  letter-spacing: -0.045em;
+  text-wrap: pretty;
+}
+.loyaltyDescription {
+  max-width: 375px;
+  margin-top: 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+.loyaltyButton {
+  margin-top: 18px;
+  gap: 12px;
+  min-width: 165px;
+}
+.loyaltyButton svg {
+  width: 18px;
+  height: 18px;
+}
+.loyaltyVisual {
+  position: relative;
+  isolation: isolate;
+  height: 430px;
+  min-width: 0;
+}
+.loyaltyVisual::before {
+  content: "";
+  position: absolute;
+  inset: 6% 0 3%;
+  z-index: -1;
+  border-radius: 48% 52% 42% 58%;
+  background: #eaf5ed;
+}
+.wireDrift {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.wire {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.desktopWire {
+  display: none;
+}
+.wirePath {
+  stroke: #297960;
+  stroke-width: 1.25;
+  vector-effect: non-scaling-stroke;
+}
+.pulse {
+  display: none;
+}
+.loyaltyCard {
+  position: absolute;
+  width: 82%;
+  max-width: 258px;
+  --entry-delay: 250ms;
+  --card-rotation: -1deg;
+  --float-duration: 8s;
+  --float-y: -3px;
+}
+.bookingCard {
+  top: 24px;
+  left: 2%;
+}
+.deliveryCard {
+  top: 144px;
+  right: 1%;
+  --entry-delay: 750ms;
+  --card-rotation: 0.4deg;
+  --float-duration: 9.5s;
+}
+.thanksCard {
+  top: 318px;
+  left: 3%;
+  --entry-delay: 1250ms;
+  --card-rotation: 1deg;
+  --float-duration: 7s;
+}
+.updateCard {
+  display: flex;
+  gap: 10px;
+  min-height: 92px;
+  align-items: flex-start;
+  padding: 14px 12px;
+  border: 1px solid #edf2ed;
+  border-left: 2px solid #36a67b;
+  border-radius: 10px;
+  color: var(--foreground);
+  background: white;
+  box-shadow: 0 12px 30px -18px #275d4833;
+  transform: rotate(var(--card-rotation));
+  font-size: 12px;
+}
+.updateIcon {
+  width: 32px;
+  height: 36px;
+  border-radius: 10px;
+}
+.updateIcon svg {
+  width: 21px;
+  height: 21px;
+  stroke-width: 1.8;
+}
+.updateCard strong {
+  font-weight: 600;
+}
+.updateCard p {
+  margin-top: 5px;
+  font-size: 10px;
+  color: var(--muted-foreground);
+  line-height: 1.4;
+}
+.updateCard div > span {
+  display: block;
+  margin-top: 10px;
+  font-size: 10px;
+  color: #596579;
+}
+.deliveryCard .updateCard {
+  border-left-color: #efb44c;
+}
+.deliveryCard .updateIcon {
+  background: #fff3e3;
+  color: #ce591e;
+}
+.thanksCard .updateCard {
+  border-left-color: #b885eb;
+}
+.thanksCard .updateIcon {
+  background: #f1eafa;
+  color: #8953c3;
+}
+.relationships {
+  right: 2%;
+  top: 255px;
+  font-size: 14px;
+  --entry-delay: 1800ms;
+}
+.relationships svg {
+  width: 38px;
+  height: 30px;
+  transform: scaleX(-1);
+  margin-left: auto;
+}
+
+/* With no JS (or when paused), show a complete, still story. Opacity preserves
+   all three informational messages in the accessibility tree during cycling. */
+@media (max-width: 1023px) {
+  .reaction .signalCycle {
+    opacity: 0;
+  }
+}
+@media (min-width: 375px) and (max-width: 639px) {
+  .heroVisual {
+    padding-top: 96px;
+  }
+  .orders {
+    top: 78px;
+    bottom: auto;
+    left: 4%;
+    font-size: 13px;
+  }
+  .orders br {
+    display: none;
+  }
+  .orders svg {
+    width: 28px;
+    left: 108px;
+    bottom: -8px;
+  }
+  .happier {
+    display: block;
+    bottom: 12px;
+    left: 7%;
+    font-size: 14px;
+  }
+  .happier svg {
+    position: absolute;
+    width: 32px;
+    left: 75px;
+    bottom: -6px;
+  }
+}
+@media (min-width: 640px) {
+  .desktopWire {
+    display: block;
+  }
+  .mobileWire {
+    display: none;
+  }
+  .heroVisual {
+    padding: 82px 0 82px;
+    max-width: 640px;
+    margin-inline: auto;
+  }
+  .signal {
+    width: 178px;
+  }
+  .signalCard {
+    font-size: 12px;
+    padding: 12px;
+  }
+  .confirmation {
+    top: 15px;
+    right: 4%;
+  }
+  .reaction {
+    top: 15px;
+    left: 4%;
+  }
+  .delivery {
+    bottom: 14px;
+    right: 4%;
+  }
+  .annotation {
+    font-size: 17px;
+  }
+  .orders {
+    bottom: 18px;
+    left: 15%;
+  }
+  .loyalty {
+    padding: 30px;
+  }
+  .loyaltyVisual {
+    height: auto;
+    aspect-ratio: 600 / 310;
+  }
+  .loyaltyCard {
+    width: 32%;
+    max-width: none;
+  }
+  .bookingCard {
+    top: 20%;
+    left: 1%;
+  }
+  .deliveryCard {
+    top: 32%;
+    left: 34%;
+    right: auto;
+  }
+  .thanksCard {
+    top: 50%;
+    left: 67%;
+  }
+  .relationships {
+    right: 5%;
+    top: 3%;
+    font-size: 17px;
+  }
+  .relationships svg {
+    width: 55px;
+    height: 44px;
+  }
+  .updateCard {
+    padding: 12px 9px;
+    gap: 7px;
+    font-size: 11px;
+  }
+  .updateIcon {
+    width: 29px;
+  }
+}
+@media (min-width: 1024px) {
+  .heroVisual {
+    padding: 90px 0 84px;
+  }
+  .region {
+    --float-y: -6px;
+    --float-rotation: 0.4deg;
+  }
+  .confirmation {
+    top: 20px;
+    right: 3%;
+  }
+  .reaction {
+    top: auto;
+    bottom: 20px;
+    left: 2%;
+  }
+  .delivery {
+    bottom: 20px;
+    right: 2%;
+  }
+  .orders {
+    top: 18px;
+    bottom: auto;
+    left: 9%;
+  }
+  .orders svg {
+    left: 82px;
+    bottom: -25px;
+    width: 42px;
+  }
+  .happier {
+    display: block;
+    left: 43%;
+    right: auto;
+    top: auto;
+    bottom: 26px;
+    font-size: 14px;
+  }
+  .happier svg {
+    position: absolute;
+    width: 28px;
+    height: 24px;
+    left: 64px;
+    top: 20px;
+  }
+  .loyalty {
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.5fr);
+    align-items: center;
+    gap: 22px;
+    padding: 30px;
+  }
+  .loyaltyDescription {
+    font-size: 16px;
+  }
+  .loyaltyVisual {
+    min-height: 300px;
+  }
+}
+@media (min-width: 1280px) {
+  .signal {
+    width: 186px;
+  }
+  .signalCard {
+    font-size: 12px;
+  }
+  .loyalty {
+    padding: 32px 40px;
+  }
+  .updateCard {
+    min-height: 108px;
+    padding: 14px 10px;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .region[data-motion-ready="true"][data-motion-static="false"]
+    :is(.signal, .annotation, .loyaltyCard, .loyaltyCopy, .journeyNode) {
+    opacity: 0;
+  }
+  .region[data-motion-entered="true"][data-motion-static="false"]
+    :is(.signal, .annotation, .loyaltyCard, .loyaltyCopy, .journeyNode) {
+    animation: enter 450ms var(--motion-ease) var(--entry-delay, 0ms) both;
+  }
+  .region[data-motion-entered="true"][data-motion-static="false"]
+    :is(.signalCard, .updateCard) {
+    animation: float var(--float-duration) ease-in-out calc(var(--entry-delay) + 450ms)
+      infinite;
+  }
+  .region[data-motion-entered="true"][data-motion-static="false"] .annotationDrift {
+    animation: annotation-float 10s ease-in-out calc(var(--entry-delay) + 900ms) infinite;
+  }
+  .region[data-motion-entered="true"][data-motion-static="false"] .annotation path {
+    stroke-dasharray: 1;
+    animation: draw 900ms var(--motion-ease) var(--entry-delay) both;
+  }
+  .region[data-motion-entered="true"][data-motion-static="false"] .ambient {
+    animation: breathe 12s ease-in-out infinite;
+  }
+  .region[data-motion-entered="true"][data-motion-static="false"] .wireDrift {
+    animation: wire-float 10s ease-in-out 1800ms infinite;
+  }
+  .region[data-motion-entered="true"][data-motion-static="false"] .wirePath {
+    stroke-dasharray: 1;
+    animation: draw 1300ms ease-in-out 450ms both;
+  }
+  .region[data-motion-entered="true"][data-motion-static="false"] .pulse {
+    display: inline;
+    animation: pulse-appear 400ms ease 2s both;
+  }
+  .region[data-motion-entered="true"][data-motion-static="false"] .journeyNode {
+    animation-name: journey-enter;
+  }
+  .journeyNode:nth-child(2) {
+    --entry-delay: 120ms;
+  }
+  .journeyNode:nth-child(3) {
+    --entry-delay: 240ms;
+  }
+  .journeyNode:nth-child(4) {
+    --entry-delay: 360ms;
+  }
+  .journeyNode:nth-child(5) {
+    --entry-delay: 480ms;
+  }
+  .region[data-motion-entered="true"][data-motion-static="false"] .journeyConnection {
+    animation: pulse-appear 400ms ease calc(var(--entry-delay, 0ms) + 400ms) both;
+  }
+  /* Only the new motion elements inherit this play state, never the demo. */
+  .region[data-motion-ready="true"][data-motion-running][data-motion-static]
+    :is(
+      .signal,
+      .signalCycle,
+      .signalCard,
+      .annotation,
+      .annotationDrift,
+      .annotation path,
+      .ambient,
+      .loyaltyCard,
+      .updateCard,
+      .loyaltyCopy,
+      .wireDrift,
+      .wirePath,
+      .pulse,
+      .journeyNode,
+      .journeyConnection
+    ) {
+    animation-play-state: var(--motion-play-state);
+  }
+}
+@media (prefers-reduced-motion: no-preference) and (max-width: 1023px) {
+  .region[data-motion-entered="true"][data-motion-static="false"] .signalCycle {
+    animation-duration: 18s;
+    animation-timing-function: linear;
+    animation-delay: 0s;
+    animation-iteration-count: infinite;
+  }
+  .region[data-motion-entered="true"][data-motion-static="false"]
+    .confirmation
+    .signalCycle {
+    animation-name: cycle-confirmation;
+  }
+  .region[data-motion-entered="true"][data-motion-static="false"] .reaction .signalCycle {
+    animation-name: cycle-reaction;
+  }
+  .region[data-motion-entered="true"][data-motion-static="false"] .delivery .signalCycle {
+    animation-name: cycle-delivery;
+  }
+}
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes float {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(var(--card-rotation, 0deg));
+  }
+  35% {
+    transform: translate(2px, var(--float-y))
+      rotate(calc(var(--card-rotation, 0deg) + var(--float-rotation)));
+  }
+  70% {
+    transform: translate(-2px, 2px)
+      rotate(calc(var(--card-rotation, 0deg) - var(--float-rotation)));
+  }
+}
+@keyframes annotation-float {
+  50% {
+    transform: translateY(-3px);
+  }
+}
+@keyframes wire-float {
+  50% {
+    transform: translateY(2px) rotate(0.2deg);
+  }
+}
+@keyframes breathe {
+  0%,
+  100% {
+    opacity: 0.75;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.015);
+  }
+}
+@keyframes draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes pulse-appear {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+/* A departing card reaches zero BEFORE its replacement fades in: never three
+   visible cards, including fractional-opacity frames at pair boundaries. */
+@keyframes cycle-confirmation {
+  0%,
+  29% {
+    opacity: 1;
+  }
+  32%,
+  66% {
+    opacity: 0;
+  }
+  69%,
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes cycle-reaction {
+  0%,
+  62% {
+    opacity: 1;
+  }
+  65%,
+  96% {
+    opacity: 0;
+  }
+  99%,
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes cycle-delivery {
+  0%,
+  33% {
+    opacity: 0;
+  }
+  36%,
+  92% {
+    opacity: 1;
+  }
+  95%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes journey-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

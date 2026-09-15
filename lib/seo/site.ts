@@ -10,6 +10,14 @@ export const SEO_SITE = {
     "Manage customers, bookings, confirmations, payments, delivery and feedback in one clear workspace built for growing service businesses.",
 } as const;
 
+// Homepage positioning is separate from the unchanged app/capability defaults.
+export const HOMEPAGE_SEO = {
+  name: "MyKustomers",
+  title: "Keep Customers Informed from Order to Delivery | MyKustomers",
+  description:
+    "MyKustomers helps businesses confirm orders, keep customers updated, manage changes, deliver professionally, and collect feedback — all in one clear customer journey.",
+} as const;
+
 export const PRIVATE_ROBOTS: Metadata["robots"] = {
   index: false,
   follow: false,
@@ -37,7 +45,7 @@ export function buildHomepageStructuredData() {
       {
         "@type": "Organization",
         "@id": organizationId,
-        name: SEO_SITE.name,
+        name: HOMEPAGE_SEO.name,
         alternateName: SEO_SITE.alternateName,
         url: SEO_SITE.origin,
         logo: absoluteSeoUrl(MYKUSTOMERS_BRAND_ASSETS.pwa.size512),
@@ -45,7 +53,7 @@ export function buildHomepageStructuredData() {
       {
         "@type": "WebSite",
         "@id": websiteId,
-        name: SEO_SITE.name,
+        name: HOMEPAGE_SEO.name,
         alternateName: SEO_SITE.alternateName,
         url: SEO_SITE.origin,
         publisher: { "@id": organizationId },
@@ -53,11 +61,11 @@ export function buildHomepageStructuredData() {
       {
         "@type": "WebApplication",
         "@id": applicationId,
-        name: SEO_SITE.name,
+        name: HOMEPAGE_SEO.name,
         url: SEO_SITE.origin,
         applicationCategory: "BusinessApplication",
         operatingSystem: "Web",
-        description: SEO_SITE.description,
+        description: HOMEPAGE_SEO.description,
         publisher: { "@id": organizationId },
       },
     ],

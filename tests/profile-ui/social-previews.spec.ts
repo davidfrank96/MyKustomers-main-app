@@ -211,7 +211,7 @@ test("the public root preserves platform identity for each social crawler", asyn
     const html = await response.text();
     const head = html.slice(0, html.indexOf("</head>"));
     expect(meta(head, "og:title")).toEqual([
-      "My Kustomers — Booking &amp; Customer Management for Service Businesses",
+      "Keep Customers Informed from Order to Delivery | MyKustomers",
     ]);
     expect(meta(head, "og:url")).toEqual(["https://mykustomers.com"]);
     expect(meta(head, "og:image")).toEqual([

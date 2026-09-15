@@ -2,8 +2,7 @@
 
 ## Canonical identity
 
-The public brand is **My Kustomers**. `MyKustomers` is reserved for compact
-technical identifiers. The one Production SEO origin is
+The homepage uses **MyKustomers** / **MyKustomers.com** under the approved 2026-09-15 positioning. Shared app/manifest defaults remain unchanged in this homepage-only pass. The one Production SEO origin is
 `https://mykustomers.com`; `https://www.mykustomers.com` permanently redirects
 to the apex. Preview, Vercel, `www`, local, and query-string URLs must never
 become canonical. `mycustomers.com` is not a product domain and must not be
@@ -24,14 +23,13 @@ configured.
 | `/_next/*`, `/brand/*`, `/manifest.webmanifest` | Static/runtime asset | No page | No | None | Crawlable when needed to render public content |
 
 There are no separate About, Features, How It Works, Contact, Privacy, or Terms
-routes in Phase 1. The homepage contains real Features, How It Works, and target-
-audience sections. New informational pages remain a controlled later-phase
+routes in Phase 1. The homepage preserves its Features anchor on the demo, How It Works anchor on the five-step journey, and For Businesses anchor on the final CTA. New informational pages remain a controlled later-phase
 decision rather than empty SEO inventory.
 
 ## Metadata architecture
 
 `lib/seo/site.ts` is the sole source for the canonical SEO origin, public site
-name, default positioning, crawler policies, and homepage structured data. The
+name, default positioning, crawler policies, and homepage structured data. Its separate `HOMEPAGE_SEO` constant supplies the new homepage title, description and MyKustomers name without changing `SEO_SITE` defaults used by other routes. The
 root layout uses the canonical origin as `metadataBase`; the homepage owns its
 self-canonical and complete Open Graph/X card. Auth, onboarding, vendor, admin,
 and capability boundaries set explicit noindex metadata and response headers.
@@ -70,14 +68,11 @@ These types describe the page but do not guarantee a Google rich result.
 
 ## Public positioning
 
-The concise product position is **booking and customer management for growing
-service businesses**. Nigeria context appears naturally in visible homepage
-copy. The lifecycle remains customer request, confirmation, payment and
-fulfilment tracking, delivery, and private feedback. The product is not described
-as a payment processor, accounting system, or full CRM.
+The homepage leads with **Keep every customer in the loop.** Its title is **Keep Customers Informed from Order to Delivery | MyKustomers**. Its description is **MyKustomers helps businesses confirm orders, keep customers updated, manage changes, deliver professionally, and collect feedback — all in one clear customer journey.** The same description appears in the homepage Open Graph, X card and WebApplication JSON-LD. The product is not described as a payment processor, accounting system, or full CRM.
 
-The homepage has one H1 and server-rendered text. Its feature, workflow, target-
-audience, CTA, and footer links use normal anchors or Next links. The approved
+This presentation is implemented locally and awaits manual review; no Production SEO deployment is claimed. See [PUBLIC_HOMEPAGE_POSITIONING](PUBLIC_HOMEPAGE_POSITIONING.md).
+
+The homepage has one H1 and server-rendered text. Its demo, journey, CTA, and footer links use normal anchors or Next links. The approved
 1200x630 Open Graph asset, favicon set, Apple touch icon, and PWA assets remain
 the official identity sources.
 
