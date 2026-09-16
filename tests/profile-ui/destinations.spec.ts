@@ -56,9 +56,13 @@ test("all wired destinations preserve deep links, reload, Back and responsive co
   };
   page.on("requestfinished", finishRequest);
   page.on("requestfailed", finishRequest);
-  // Let real background prefetch finish before this matrix immediately unloads it.
-  // WebKit otherwise reports the harness's cancelled RSC requests as page errors.
-  const settlePrefetches = () => expect.poll(() => pendingPrefetches.size).toBe(0);
+  // An empty request set can precede Next's deferred prefetch batch. Wait for
+  // network quiescence as well before this matrix unloads the document; Linux
+  // WebKit reports those cancelled, same-origin RSC requests as page errors.
+  const settlePrefetches = async () => {
+    await page.waitForLoadState("networkidle");
+    await expect.poll(() => pendingPrefetches.size).toBe(0);
+  };
   const evidence = [];
   await page.goto("/business");
   for (const [width, height] of matrix) {

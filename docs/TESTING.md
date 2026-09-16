@@ -1,5 +1,17 @@
 # Testing
 
+## PR #84 CI recovery — 2026-09-16
+
+The Profile destination matrix waits for network quiescence before checking its
+pending RSC set. The previous instantaneous zero-count check could precede Next's
+deferred prefetch batch and unload it during reload. Linux WebKit reproduced the
+same access-control-style cancellation on both current main and the original PR.
+The zero-browser-errors assertion and every navigation check remain unchanged.
+E2E share/metadata expectations now match the approved secure-preview copy,
+including exact default-message equality and the visible no-account assurance.
+No new skips or application/security-policy changes.
+[Comparison and release evidence](PR84_CI_RECOVERY.md).
+
 ## Secure social-preview verification — 2026-09-15
 
 `tests/profile-ui/secure-social-previews.spec.ts` uses the real optimized Next

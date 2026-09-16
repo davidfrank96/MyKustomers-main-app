@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-09-16 — PR #84 CI recovery
+
+Remove one trailing space from the bundled Inter license, align E2E expectations
+with the approved confirmation/feedback copy, and let the Profile navigation
+matrix settle deferred prefetch before unloading. The Linux WebKit cancellation
+reproduces on unchanged main. No browser errors are filtered, no assertions are
+weakened, and no application behavior, dependencies or active scheduler change.
+Release verification is tracked in [PR #84 CI recovery](PR84_CI_RECOVERY.md).
+
 ## 2026-09-15 — Secure confirmation and private-feedback social cards
 
 Implemented locally: one vendor-first 1200×630 `ImageResponse` family with

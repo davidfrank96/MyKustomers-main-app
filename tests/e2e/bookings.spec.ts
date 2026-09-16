@@ -865,8 +865,8 @@ test.describe("booking engine", () => {
     await expect(
       page.getByRole("heading", { name: "Share with customer" }),
     ).toBeVisible();
-    expect(await page.getByLabel("Message").inputValue()).toContain(
-      `Hi ${customerName.split(" ")[0]}, Phase 5 E2E Business`,
+    expect(await page.getByLabel("Message").inputValue()).toBe(
+      `Hi ${customerName.split(" ")[0]} 👋\n\nYour booking with Phase 5 E2E Business is ready for review.\n\nReview and confirm your details here:`,
     );
     await expect(page.getByLabel("Confirmation link", { exact: true })).toHaveValue(
       confirmationUrl,
@@ -899,7 +899,7 @@ test.describe("booking engine", () => {
     expect(previewResponse.ok()).toBe(true);
     const previewHtml = await previewResponse.text();
     expect(previewHtml.includes("Secure order confirmation")).toBe(true);
-    expect(previewHtml.includes("Confirm your booking with Phase 5 E2E Business")).toBe(
+    expect(previewHtml.includes("Review your booking with Phase 5 E2E Business")).toBe(
       true,
     );
     expect(previewHtml.includes("https://mykustomers.com/social/confirmation/")).toBe(
@@ -981,11 +981,11 @@ test.describe("booking engine", () => {
       .toBe(true);
     await expect(customerPage.locator('meta[property="og:title"]')).toHaveAttribute(
       "content",
-      "Confirm your booking with Phase 5 E2E Business",
+      "Review your booking with Phase 5 E2E Business",
     );
     await expect(customerPage.locator('meta[property="og:description"]')).toHaveAttribute(
       "content",
-      "Review and confirm your booking with Phase 5 E2E Business.",
+      "Phase 5 E2E Business has sent you booking details for secure confirmation.",
     );
     await expect(customerPage.locator('meta[property="og:url"]')).toHaveCount(0);
     await expect(customerPage.locator('meta[property="og:type"]')).toHaveAttribute(
@@ -2280,13 +2280,14 @@ test.describe("booking engine", () => {
     await expect(
       page.getByRole("heading", { name: "Share feedback request" }),
     ).toBeVisible();
-    expect(await page.getByLabel("Message").inputValue()).toContain(
-      `Hi ${customerName.split(" ")[0]}, thank you for choosing Phase 5 E2E Business`,
+    expect(await page.getByLabel("Message").inputValue()).toBe(
+      `Hi ${customerName.split(" ")[0]} 👋\n\nPhase 5 E2E Business would appreciate your private feedback about your experience.\n\nShare your feedback here:`,
     );
-    expect(await page.getByLabel("Message").inputValue()).toContain("private feedback");
-    expect(await page.getByLabel("Message").inputValue()).toContain(
-      "No account is required",
-    );
+    await expect(
+      page.getByText("This link is private and does not require an account.", {
+        exact: true,
+      }),
+    ).toBeVisible();
     await expect(page.getByLabel("Feedback link", { exact: true })).toHaveValue(
       feedbackUrl,
     );
@@ -2310,11 +2311,13 @@ test.describe("booking engine", () => {
     });
     expect(feedbackPreviewResponse.ok()).toBe(true);
     const feedbackPreviewHtml = await feedbackPreviewResponse.text();
-    expect(feedbackPreviewHtml.includes("Share feedback with Phase 5 E2E Business")).toBe(
-      true,
-    );
     expect(
-      feedbackPreviewHtml.includes("Tell Phase 5 E2E Business about your experience."),
+      feedbackPreviewHtml.includes("Share private feedback with Phase 5 E2E Business"),
+    ).toBe(true);
+    expect(
+      feedbackPreviewHtml.includes(
+        "Phase 5 E2E Business would appreciate your private feedback about your experience.",
+      ),
     ).toBe(true);
     expect(feedbackPreviewHtml.includes("https://mykustomers.com/social/feedback/")).toBe(
       true,
@@ -2340,7 +2343,7 @@ test.describe("booking engine", () => {
     ).toBeVisible();
     await expect(feedbackPage.locator('meta[property="og:title"]')).toHaveAttribute(
       "content",
-      "Share feedback with Phase 5 E2E Business",
+      "Share private feedback with Phase 5 E2E Business",
     );
     await expect(feedbackPage.getByText(amendedTitle)).toBeVisible();
     await expect(feedbackPage.getByText("Updated private E2E note.")).toHaveCount(0);
