@@ -56,6 +56,9 @@ test("new CSS loops and SVG pulse pause offscreen without resetting their first 
   await page.setViewportSize({ width: 390, height: 568 });
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("/#features");
+  // Establish visibility before testing offscreen playback. Initial fragment
+  // navigation can finish before the streamed homepage target is attached.
+  await page.locator(hero).scrollIntoViewIfNeeded();
   await expect(page.locator(hero)).toHaveAttribute("data-motion-running", "true");
   await page.locator(loyalty).scrollIntoViewIfNeeded();
   await expect(page.locator(hero)).toHaveAttribute("data-motion-running", "false");

@@ -1,5 +1,15 @@
 # Testing
 
+## Homepage headline loop — 2026-09-16
+
+Local Chromium/WebKit probes cover 23 widths, full-cycle icon/text clearance,
+seam continuity, stable layout, pause/resume, reduced motion and no-JavaScript
+fallback. Existing homepage E2E passes 17 cases with its one existing duplicate
+matrix skip; controller/demo integration passes 16 tests. The offscreen test now
+explicitly scrolls its subject into view before testing playback, preserving
+every existing assertion. Build, typecheck and lint evidence and scope limits:
+[HOMEPAGE_HEADLINE_LOOP](HOMEPAGE_HEADLINE_LOOP.md).
+
 ## PR #84 CI recovery — 2026-09-16
 
 The Profile destination matrix waits for network quiescence before checking its

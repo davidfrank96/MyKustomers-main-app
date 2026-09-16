@@ -1,0 +1,98 @@
+.frame {
+  --node-size: 20px;
+  --orbit-radius: 18%;
+  position: relative;
+  margin-top: 22px;
+  padding: 26px 24px;
+}
+.orbit {
+  position: absolute;
+  inset: calc(var(--node-size) / 2 + 1px);
+  pointer-events: none;
+}
+.line {
+  position: absolute;
+  overflow: visible;
+  fill: none;
+  stroke: #bddbcf;
+  stroke-width: 1;
+}
+.line rect {
+  rx: var(--orbit-radius);
+}
+.node {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: var(--node-size);
+  height: var(--node-size);
+  border: 1px solid #e1eee7;
+  border-radius: 50%;
+  background: #f6faf7;
+  box-shadow: 0 2px 8px #235b4210;
+  color: #37745f;
+  /* Same rounded orbit as the SVG, with upright, unscaled icons. */
+  offset-path: inset(0 round var(--orbit-radius) / 44%);
+  offset-distance: var(--position);
+  offset-anchor: 50% 50%;
+  offset-rotate: 0deg;
+}
+.node svg {
+  width: 13px;
+  height: 13px;
+  stroke-width: 1.7;
+}
+@keyframes journey-orbit {
+  from {
+    offset-distance: var(--position);
+  }
+  to {
+    offset-distance: calc(var(--position) + 100%);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .frame[data-motion-ready="true"][data-motion-static="false"] .node {
+    animation: journey-orbit 64s linear infinite;
+    animation-play-state: paused;
+  }
+  .frame[data-motion-ready="true"][data-motion-running="true"] .node {
+    animation-play-state: running;
+  }
+}
+@media (min-width: 440px) {
+  .frame {
+    /* Leave room for the longer lines when the headline wraps less. */
+    --orbit-radius: 4%;
+    padding: 32px 36px;
+  }
+}
+@media (min-width: 640px) {
+  .frame {
+    --node-size: 24px;
+    padding: 36px;
+  }
+  .node svg {
+    width: 15px;
+    height: 15px;
+  }
+}
+@media (min-width: 1024px) {
+  .frame {
+    /* Use the existing hero gutter so the headline keeps its desktop wrap. */
+    margin-inline: -20px;
+    padding: 32px 14px 32px 38px;
+  }
+}
+@media (max-width: 359px) {
+  .frame {
+    --node-size: 16px;
+    padding-block: 19px;
+  }
+  .orbit {
+    inset: calc(var(--node-size) / 2);
+  }
+  .node svg {
+    width: 10px;
+    height: 10px;
+  }
+}

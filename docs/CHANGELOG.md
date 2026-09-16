@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-09-16 — Homepage headline loop (local)
+
+Added only a thin SVG loop and five slowly orbiting journey icons around the
+existing hero headline, with responsive clearance and static reduced-motion
+and no-script fallbacks. Reused the existing visibility/pause controller and
+preserved homepage content, demo, CTAs, metadata and lower sections. Made the
+offscreen test's visible starting state explicit without changing its assertions.
+Local responsive, motion and regression checks pass. No dependency, backend,
+scheduler or deployment changes. [Evidence](HOMEPAGE_HEADLINE_LOOP.md).
+
 ## 2026-09-16 — PR #84 CI recovery
 
 Remove one trailing space from the bundled Inter license, align E2E expectations

@@ -1,5 +1,13 @@
 # Responsive QA
 
+## Headline loop — 2026-09-16
+
+Chromium and WebKit pass 23 widths from 320 to 1600px, including all six required
+phone widths, tablet, desktop and headline-wrapping boundaries. Full-cycle
+sampling finds no icon/text intersections, clipping or horizontal overflow.
+Existing short-height CTA gates pass in desktop and mobile Chromium. Alignment,
+static fallback and playback evidence: [HOMEPAGE_HEADLINE_LOOP](HOMEPAGE_HEADLINE_LOOP.md).
+
 ## Fixed social-image reduction — 2026-09-15
 
 Confirmation and private feedback emit 1200×630 PNGs; inspect their actual output
