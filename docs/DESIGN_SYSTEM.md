@@ -1,5 +1,13 @@
 # Design System
 
+## Homepage headline loop — 2026-09-16
+
+The existing h1 has a thin muted-green rounded orbit with five small, upright
+journey icons. A 64-second CSS cycle reuses the homepage's visibility and pause
+controller; reduced-motion and no-script presentations are static. Reserve
+clearance in the headline wrapper, keep its typography intact, and introduce no
+additional cards or copy. [Implementation and local review](HOMEPAGE_HEADLINE_LOOP.md).
+
 Current homepage finalization: preserved the approved design/motion, corrected short desktop hero alignment and public link targets, and enlarged mobile footer text. Visual gates pass; release verification is pending. See [golden polish evidence](HOMEPAGE_GOLDEN_POLISH.md). Earlier local-review status statements below describe their original passes.
 
 ## Public homepage motion scope

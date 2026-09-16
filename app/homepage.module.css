@@ -86,7 +86,7 @@
   text-wrap: balance;
 }
 .headline {
-  margin: 22px 0 0;
+  margin: 0;
   font-size: clamp(30px, 9vw, 54px);
   font-weight: 650;
   line-height: 1.1;

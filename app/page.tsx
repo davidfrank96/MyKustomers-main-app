@@ -10,6 +10,7 @@ import {
   Truck,
 } from "lucide-react";
 import { HomepageProductDemo } from "@/components/homepage/homepage-product-demo";
+import { HomepageHeadlineLoop } from "@/components/homepage/homepage-headline-loop";
 import {
   HomepageHeroSignals,
   HomepageLoyaltyVisual,
@@ -101,12 +102,14 @@ export default function HomePage() {
               <Store aria-hidden="true" />
               <span>For businesses that manage customer work from order to delivery</span>
             </p>
-            <h1 id="homepage-heading" className={styles.headline}>
-              <span>Keep every</span>{" "}
-              <span>
-                customer in the loop<span className={styles.period}>.</span>
-              </span>
-            </h1>
+            <HomepageHeadlineLoop>
+              <h1 id="homepage-heading" className={styles.headline}>
+                <span>Keep every</span>{" "}
+                <span>
+                  customer in the loop<span className={styles.period}>.</span>
+                </span>
+              </h1>
+            </HomepageHeadlineLoop>
             <p className={styles.description}>
               From confirmation to delivery and feedback, MyKustomers helps businesses
               give customers a clear, professional experience.
