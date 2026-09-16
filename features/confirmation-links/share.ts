@@ -23,16 +23,16 @@ export function buildCustomerConfirmationMessageText({
   customerName,
   businessName,
 }: Omit<ShareMessageInput, "confirmationUrl">) {
-  const safeBusinessName = normalizeHumanName(businessName, "The business");
+  const safeBusinessName = normalizeHumanName(businessName, "the business");
   const safeCustomerName = normalizeHumanName(customerName, "");
   const firstName = safeCustomerName.split(/\s+/)[0];
-  const greeting = firstName ? `Hi ${firstName},` : "Hi,";
+  const greeting = firstName ? `Hi ${firstName} 👋` : "Hi 👋";
 
-  return `${greeting} ${safeBusinessName} has sent you your order details for confirmation. Please review the details and confirm that everything is correct using the secure link below.`;
+  return `${greeting}\n\nYour booking with ${safeBusinessName} is ready for review.\n\nReview and confirm your details here:`;
 }
 
 export function buildCustomerConfirmationShareTitle(businessName: string) {
-  return `Review your order with ${normalizeHumanName(businessName, "your business")}`;
+  return `Review your booking with ${normalizeHumanName(businessName, "your business")}`;
 }
 
 export function composeCustomerConfirmationShareMessage(

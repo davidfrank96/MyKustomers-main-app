@@ -1615,3 +1615,24 @@ public artwork, cached for one hour; capability images remain no-store. This
 reuses Sharp without duplicate assets, migrations, dependencies or provider/DNS
 changes. No-logo and blocked-image states retain text identity. See
 [VENDOR_TRUST_BRANDING](VENDOR_TRUST_BRANDING.md) for exact verification limits.
+
+## ADR-068 - Shared secure-preview variants with read-only generic fallbacks
+
+Status: Accepted within the user-approved social-preview pass; local manual review pending
+
+Date: 2026-09-15
+
+Keep ADR-066/067 capability-specific narrow queries and existing UUID image
+routes. Confirmation and feedback now use a shared action-card renderer accepting
+only safe business name and logo bytes. Missing context advertises anonymous,
+variant-specific generic image routes with no database access; invalid existing
+UUID routes retain their 404 contract. Finish the ImageResponse stream before
+returning it so a renderer failure can degrade to the bundled platform PNG.
+Retain all state, purpose and tenant checks and actual customer-view handling.
+
+Extend the installed Next default blocking-metadata regex with the exact existing
+read-only-shell crawler regex. This closes a tested standalone Telegram gap
+without disabling streaming for ordinary browsers or dropping framework defaults.
+Official Inter 400/700 TTFs are local rendering assets, not a package dependency.
+No customer data, token, hash, capability URL or preview ID reaches the new image
+renderer. See [SECURE_SOCIAL_PREVIEWS](SECURE_SOCIAL_PREVIEWS.md).

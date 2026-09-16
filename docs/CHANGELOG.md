@@ -1,5 +1,27 @@
 # Changelog
 
+## 2026-09-16 — PR #84 CI recovery
+
+Remove one trailing space from the bundled Inter license, align E2E expectations
+with the approved confirmation/feedback copy, and let the Profile navigation
+matrix settle deferred prefetch before unloading. The Linux WebKit cancellation
+reproduces on unchanged main. No browser errors are filtered, no assertions are
+weakened, and no application behavior, dependencies or active scheduler change.
+Release verification is tracked in [PR #84 CI recovery](PR84_CI_RECOVERY.md).
+
+## 2026-09-15 — Secure confirmation and private-feedback social cards
+
+Implemented locally: one vendor-first 1200×630 `ImageResponse` family with
+purpose-specific action/illustration/trust copy, official platform artwork and
+locally bundled Inter 400/700. Added anonymous generic fallback cards, contained
+renderer/backend-read failures, and concise editable share defaults. Extended
+Next's default blocking metadata regex with the existing crawler guard signatures
+so standalone Telegram also receives complete head metadata. Added fresh-state
+crawler/browser, image privacy/failure, logo/thumbnail and channel regressions.
+Token, submission, lifecycle, public customer UI, email, dependencies and active
+scheduler are unchanged. Manual review only; no merge or deployment.
+[Evidence](SECURE_SOCIAL_PREVIEWS.md).
+
 ## 2026-09-15 — Homepage golden alignment and polish
 
 Preserved the current branch design and all approved animation files. Reserve external container clearance for a wrapped delivery signal below 375px, align hero copy at the top on short desktop viewports, enlarge mobile footer text, and give public plain links comfortable targets and visible keyboard focus. Added short-height CTA/target/overflow coverage and the 1366px matrix case. Both browser visual gates and local engineering/regression gates pass. Updated stale SEO/social-crawler test literals to the already-approved homepage positioning. CI/hosted release verification is in progress. No shared app, schema, environment, provider, dependency or scheduler changes. [Evidence](HOMEPAGE_GOLDEN_POLISH.md).

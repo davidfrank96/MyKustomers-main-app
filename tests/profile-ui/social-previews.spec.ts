@@ -52,9 +52,9 @@ test("anonymous crawlers receive one booking-owned PNG in blocking head metadata
       privacy(response);
       const html = await response.text();
       const head = html.slice(0, html.indexOf("</head>"));
-      expect(meta(head, "og:title")).toEqual([`Confirm your booking with ${name}`]);
+      expect(meta(head, "og:title")).toEqual([`Review your booking with ${name}`]);
       expect(meta(head, "og:description")).toEqual([
-        `Review and confirm your booking with ${name}.`,
+        `${name} has sent you booking details for secure confirmation.`,
       ]);
       expect(meta(head, "og:image")).toEqual([
         `https://mykustomers.com/social/confirmation/${previewId}`,

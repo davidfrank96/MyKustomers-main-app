@@ -151,7 +151,7 @@ test.describe("customer confirmation trust and success hotfix", () => {
       expect(crawlerResponse.ok()).toBe(true);
       const crawlerHtml = await crawlerResponse.text();
       const crawlerHead = crawlerHtml.match(/<head>[\s\S]*?<\/head>/)?.[0] ?? "";
-      expect(crawlerHtml).toContain(`Confirm your booking with ${businessName}`);
+      expect(crawlerHtml).toContain(`Review your booking with ${businessName}`);
       expect(crawlerHead).toContain("https://mykustomers.com/social/confirmation/");
       expect(crawlerHead).toContain('property="og:image:type" content="image/png"');
       expect(crawlerHead.match(/property="og:image"/g)).toHaveLength(1);

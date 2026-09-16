@@ -1,5 +1,19 @@
 # Architecture
 
+## Shared secure-preview action cards — 2026-09-15
+
+`/c/[token]` retains `generateMetadata`; `/f/[token]` retains its server HTML
+metadata helper. Both narrow hash lookups advertise `/social/{kind}/{previewId}`.
+Those Node routes resolve the owning public business and pass name plus bounded
+logo PNG to one `ImageResponse` renderer with confirmation/feedback variants.
+No safe identity means generic metadata pointing at `/social/confirmation` or
+`/social/feedback`; these endpoints perform no backend lookup. Invalid existing
+UUID image requests retain 404. Render-stream errors fall back to the bundled
+platform PNG. Local official logo and Inter assets are included in build traces.
+An additive `htmlLimitedBots` extension preserves the installed Next default
+regex and includes every existing read-only-shell crawler. No metadata streaming
+change applies to ordinary browsers. [Details](SECURE_SOCIAL_PREVIEWS.md).
+
 ## Shared vendor brand projections
 
 Capability-specific server resolvers expose only record preview ID, business name and owned logo path to a shared social-card renderer. Existing UUIDs are read-only brand locators, never action credentials. Email dispatch resolves optional logo_path from the claimed event tenant and renders a fixed vendor identity through the existing shell. A public PNG projection caches only approved logo artwork for at most one hour; capability cards remain no-store. See [VENDOR_TRUST_BRANDING](VENDOR_TRUST_BRANDING.md).

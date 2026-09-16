@@ -8,7 +8,7 @@ const fixtureOrigin = "http://127.0.0.1:55441";
 const output = "output/playwright/vendor-trust-branding";
 const families = { feedback: "f", amendment: "a", addon: "x" } as const;
 const titles = {
-  feedback: "Share feedback with",
+  feedback: "Share private feedback with",
   amendment: "Review a booking update from",
   addon: "Review a booking add-on from",
 };
@@ -56,7 +56,9 @@ test("all customer capabilities resolve the same owning business with read-only 
         const imageUrl = `https://mykustomers.com/social/${kind}/${capability.id}`;
         expect(meta(head, "og:image")).toEqual([imageUrl]);
         expect(meta(head, "twitter:image")).toEqual([imageUrl]);
-        expect(meta(head, "og:image:alt")).toEqual([`${name} business logo`]);
+        expect(meta(head, "og:image:alt")).toEqual([
+          kind === "feedback" ? `${name} — private feedback` : `${name} business logo`,
+        ]);
         expect(meta(head, "og:image:width")).toEqual(["1200"]);
         expect(meta(head, "og:image:height")).toEqual(["630"]);
         expect(head).not.toContain(capability.token);
@@ -110,7 +112,9 @@ test("invalid, expired and revoked capabilities do not disclose vendors and UUID
       const head = (await response.text()).split("</head>")[0];
       expect(head).not.toContain("Harbour Studio");
       expect(head).not.toContain("Northside Events");
-      expect(meta(head, "og:image")[0]).toContain("/brand/mykustomers/");
+      expect(meta(head, "og:image")[0]).toContain(
+        kind === "feedback" ? "/social/feedback" : "/brand/mykustomers/",
+      );
       expect((await request.get(`/social/${kind}/${capability.id}`)).status()).toBe(404);
     }
     for (const token of ["invalid", capability.id]) {
@@ -126,7 +130,7 @@ test("invalid, expired and revoked capabilities do not disclose vendors and UUID
   ).toEqual([]);
 });
 
-test("large logos preserve artwork and remain centered in full cards and square thumbnails", async ({
+test("amendment logos preserve artwork and remain centered in full cards and square thumbnails", async ({
   request,
 }, info) => {
   test.setTimeout(120000);
@@ -157,7 +161,9 @@ test("large logos preserve artwork and remain centered in full cards and square 
           : {}),
       },
     });
-    const response = await request.get(`/social/confirmation/${fixture.previewA}`);
+    const response = await request.get(
+      `/social/amendment/${fixture.capabilities.amendment[0].id}`,
+    );
     expect(response.status()).toBe(200);
     const bytes = await response.body();
     expect(bytes.length).toBeLessThan(500000);

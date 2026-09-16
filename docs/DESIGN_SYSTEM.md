@@ -21,11 +21,19 @@ dialogs retain their previous presentation. Evidence: [SECURE_SHARE_MODAL](SECUR
 
 ## Vendor social and email identity
 
-Use one 1200×630 social card with a centered 304px rounded-square logo frame,
+Confirmation and feedback now use the approved 1200×630 action-card family: a
+180px top-left vendor frame with 168px contained artwork, bold Inter identity and
+action heading, pale-green purpose illustration, divider, lock/trust copy and
+secondary official platform artwork. Local Inter 400/700 TTFs supply the existing
+product typeface without runtime font downloads. Names have a two-line clamp;
+long supporting-name repeats are bounded. Inspect both at 1200/600/300px widths.
+See [SECURE_SOCIAL_PREVIEWS](SECURE_SOCIAL_PREVIEWS.md).
+
+Amendment and add-on retain the 1200×630 card with a centered 304px rounded-square logo frame,
 280px contained artwork, and a 570px text safe region. Business names use
 46/40/32px type and at most three lines with an explicit ellipsis. Preserve
-transparent artwork and vendor initials fallback. All four customer capability
-families share this composition with a restrained purpose label. Email uses
+transparent artwork and vendor initials fallback. These two capability
+families retain this composition with a restrained purpose label. Email uses
 a fixed 52px rounded-square PNG/initial beside independent wrapping text,
 with table-based alignment and stable blocked-image dimensions. See
 [VENDOR_TRUST_BRANDING](VENDOR_TRUST_BRANDING.md) for the render matrix.
@@ -37,10 +45,9 @@ item; only real existing destinations receive links. Keep the outer 64px minimum
 including its divider, preserve icon/chevron alignment and match the original
 Edit control's computed typography. Missing rows stay static. Existing editors
 and notification settings retain their designs. The thin editor wrapper provides
-one visible My Profile back link at every width. Dynamic confirmation images use
-a centered, aspect-preserved vendor logo or initials, business name and Booking
-confirmation on a calm background at 1200×630; platform imagery is reserved for
-general public URLs and invalid-capability generic metadata.
+one visible My Profile back link at every width. The original centered confirmation composition has been superseded by the
+2026-09-15 secure-preview system above. General URLs retain their platform image;
+invalid-capability metadata uses the safe purpose-specific generic card.
 
 ## My Profile Phase 1 (local)
 

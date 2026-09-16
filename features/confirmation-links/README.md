@@ -16,11 +16,13 @@ and uses the existing regeneration guidance. See `docs/SECURE_SHARE_MODAL.md`.
 ## Vendor trust branding
 
 Valid customer social metadata now uses the exact capability-owning vendor and
-one shared 1200×630 PNG (304px frame /280px artwork). The existing record UUID
+one shared 1200×630 confirmation/feedback card family: top-left 180px vendor
+frame, action heading, purpose illustration and platform-attributed trust footer. The existing record UUID
 projects only business identity, with state/tenant checks on every uncached
 request. Invalid/revoked capabilities stay generic; crawler reads never invoke
 domain mutations. See `docs/VENDOR_TRUST_BRANDING.md` for exact family policies,
-email parity and verification status.
+email parity and verification status. The 2026-09-15 card/copy refresh and
+generic fallback image routes are documented in `docs/SECURE_SOCIAL_PREVIEWS.md`.
 
 ## Vendor Confirmation Email Presentation
 

@@ -6,15 +6,17 @@ import { BRAND_PREVIEW_ID, cleanBusinessBrandName } from "./brand-projection";
 export const capabilityBrandCopy = {
   confirmation: {
     label: "Booking confirmation",
-    title: (name: string) => `Confirm your booking with ${name}`,
-    description: (name: string) => `Review and confirm your booking with ${name}.`,
+    title: (name: string) => `Review your booking with ${name}`,
+    description: (name: string) =>
+      `${name} has sent you booking details for secure confirmation.`,
     genericTitle: "Secure booking confirmation | My Kustomers",
     genericDescription: "Open this private link to review and confirm a booking request.",
   },
   feedback: {
-    label: "Customer feedback",
-    title: (name: string) => `Share feedback with ${name}`,
-    description: (name: string) => `Tell ${name} about your experience.`,
+    label: "Private feedback",
+    title: (name: string) => `Share private feedback with ${name}`,
+    description: (name: string) =>
+      `${name} would appreciate your private feedback about your experience.`,
     genericTitle: "Private customer feedback | My Kustomers",
     genericDescription:
       "Open this private link to share feedback about a completed booking.",
@@ -49,14 +51,21 @@ export function capabilityBrandMetadata(
   const name = cleanBusinessBrandName(input.businessName ?? "");
   const vendor = name && input.previewId && BRAND_PREVIEW_ID.test(input.previewId);
   const copy = capabilityBrandCopy[kind];
+  const securePreview = kind === "confirmation" || kind === "feedback";
   return {
     title: vendor ? copy.title(name) : copy.genericTitle,
     description: vendor ? copy.description(name) : copy.genericDescription,
     imageUrl: absoluteSeoUrl(
-      vendor ? `/social/${kind}/${input.previewId}` : MYKUSTOMERS_BRAND_ASSETS.openGraph,
+      vendor
+        ? `/social/${kind}/${input.previewId}`
+        : securePreview
+          ? `/social/${kind}`
+          : MYKUSTOMERS_BRAND_ASSETS.openGraph,
     ),
     imageAlt: vendor
-      ? `${name} business logo`
+      ? securePreview
+        ? `${name} — ${copy.label.toLowerCase()}`
+        : `${name} business logo`
       : `My Kustomers ${copy.label.toLowerCase()}`,
   };
 }
