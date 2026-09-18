@@ -389,3 +389,16 @@ presentational feedback for a newly observed authoritative transition into
 existing dialog primitive supplies focus containment, Escape, outside
 dismissal, and focus return. Motion is optional and must have a reduced-motion
 equivalent.
+
+## Booking money entry — 2026-09-18
+
+`CurrencyAmountInput` requires the selected booking/form currency. Its prefix and
+secondary compact helper follow that explicit currency; screen-reader descriptions
+retain validation text and identify the denomination. The helper is absent for
+empty, invalid, or sub-thousand values. It rounds to at most two compact decimals
+(K/M/B/T), never becomes the editable or submitted value, and does not announce
+every keystroke with a live region. Exact grouped inputs and ungrouped decimal
+submission remain authoritative. Receipts, history, emails and balances stay exact.
+
+Grouping-only edits restore the caret even when the display string is unchanged;
+forward deletion can pass a comma rather than getting trapped on it.

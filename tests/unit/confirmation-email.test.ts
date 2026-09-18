@@ -55,6 +55,35 @@ describe("confirmation contact and email", () => {
     expect(email.html).not.toContain("token");
   });
 
+  it.each([
+    ["NGN", "₦"],
+    ["USD", "$"],
+    ["GBP", "£"],
+    ["EUR", "€"],
+  ] as const)(
+    "preserves exact %s confirmation amounts in both email formats",
+    (currency, symbol) => {
+      const email = bookingConfirmedEmail({
+        emailEventId: "currency-test",
+        recipientEmail: "test@example.com",
+        businessName: "Currency fixture",
+        bookingTitle: "Controlled booking",
+        bookingReference: "MC-TEST",
+        scheduledFor: "2030-09-01T10:00:00Z",
+        currency,
+        totalAmountMinor: 500_000_025,
+        depositAmountMinor: 150_000_010,
+        balanceAmountMinor: 350_000_015,
+      });
+      for (const content of [email.text, email.html]) {
+        expect(content).toContain(`${symbol}5,000,000.25`);
+        expect(content).toContain(`${symbol}1,500,000.10`);
+        expect(content).toContain(`${symbol}3,500,000.15`);
+        if (currency !== "NGN") expect(content).not.toContain("₦");
+      }
+    },
+  );
+
   it("maps provider exceptions to a safe failure result", async () => {
     const provider: TransactionalEmailProvider = {
       name: "development",

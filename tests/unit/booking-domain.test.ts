@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   deriveBalanceMinor,
+  formatCompactMoneyMinor,
   formatMoneyMinor,
   moneyCaretAfterFormatting,
   parseMoneyToMinorUnits,
@@ -28,6 +29,30 @@ import {
 } from "@/features/confirmation-links/terms";
 
 describe("booking domain", () => {
+  it.each([
+    ["5000", "5K"],
+    ["1500", "1.5K"],
+    ["10000", "10K"],
+    ["5000000", "5M"],
+    ["1500000", "1.5M"],
+    ["1250000000", "1.25B"],
+    ["999999", "1M"],
+    ["90071992547409.91", "90.07T"],
+  ])("formats %s as a bounded compact reading aid", (input, compact) => {
+    const minor = parseMoneyToMinorUnits(input)!;
+    for (const [currency, symbol] of [
+      ["NGN", "₦"],
+      ["USD", "$"],
+      ["GBP", "£"],
+      ["EUR", "€"],
+    ] as const) {
+      expect(formatCompactMoneyMinor(minor, currency)).toBe(`${symbol}${compact}`);
+    }
+  });
+  it("does not invent compact values for invalid or small amounts", () => {
+    for (const amount of [NaN, Infinity, -1, 0, 99999, 1.2, Number.MAX_SAFE_INTEGER + 1])
+      expect(formatCompactMoneyMinor(amount, "USD")).toBeNull();
+  });
   it("parses user money input into integer minor units", () => {
     expect(parseMoneyToMinorUnits("45,000")).toBe(4_500_000);
     expect(parseMoneyToMinorUnits("45000.50")).toBe(4_500_050);
@@ -60,6 +85,26 @@ describe("booking domain", () => {
     expect(deriveBalanceMinor(4_500_000, 500_000)).toBe(4_000_000);
     expect(formatMoneyMinor(4_500_000, "NGN")).toBe("₦45,000");
   });
+
+  it.each([
+    ["NGN", "₦"],
+    ["USD", "$"],
+    ["GBP", "£"],
+    ["EUR", "€"],
+  ] as const)(
+    "preserves every cent at the safe integer limit in %s evidence",
+    (currency, symbol) => {
+      expect(formatMoneyMinor(Number.MAX_SAFE_INTEGER, currency)).toBe(
+        `${symbol}90,071,992,547,409.91`,
+      );
+      expect(formatMoneyMinor(-Number.MAX_SAFE_INTEGER, currency)).toBe(
+        `-${symbol}90,071,992,547,409.91`,
+      );
+      expect(formatMoneyMinor(-1, currency)).toBe(`-${symbol}0.01`);
+      expect(formatMoneyMinor(101, currency)).toBe(`${symbol}1.01`);
+      expect(formatMoneyMinor(0, currency)).toBe(`${symbol}0`);
+    },
+  );
 
   it("validates positive payment amounts and idempotent operation identifiers", () => {
     const operationId = "00000000-0000-4000-8000-000000000001";

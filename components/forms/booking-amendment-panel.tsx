@@ -31,7 +31,11 @@ import {
   buildAmendmentShareTitle,
 } from "@/features/amendments/share";
 import type { ConfirmationShareMethod } from "@/features/confirmation-links/share";
-import { bookingCurrencies, formatMoneyMinor } from "@/features/bookings/money";
+import {
+  bookingCurrencies,
+  formatMoneyMinor,
+  isBookingCurrency,
+} from "@/features/bookings/money";
 import type { Json } from "@/types/database";
 import { formatDisplayDateTime } from "@/lib/utils/display-date";
 
@@ -99,11 +103,11 @@ function snapshotValue(snapshot: Json, field: AmendableBookingField) {
   if (!snapshot || typeof snapshot !== "object" || Array.isArray(snapshot))
     return "Unavailable";
   const raw = snapshot[field];
-  const currency = typeof snapshot.currency === "string" ? snapshot.currency : "NGN";
+  const currency = snapshot.currency;
   if (field === "scheduled_for") return formatDate(typeof raw === "string" ? raw : null);
   if (field === "total_amount_minor" || field === "deposit_amount_minor") {
-    return typeof raw === "number"
-      ? formatMoneyMinor(raw, currency as (typeof bookingCurrencies)[number])
+    return typeof raw === "number" && isBookingCurrency(currency)
+      ? formatMoneyMinor(raw, currency)
       : "Unavailable";
   }
   if (field === "description")
@@ -127,6 +131,7 @@ export function BookingAmendmentPanel({
   recordShareAction,
 }: BookingAmendmentPanelProps) {
   const [editorOpen, setEditorOpen] = useState(false);
+  const [proposedCurrency, setProposedCurrency] = useState(initialValues.currency);
   const [createState, createFormAction] = useActionState(
     async (previousState: AmendmentActionState, formData: FormData) => {
       const result = await createAction(previousState, formData);
@@ -251,7 +256,13 @@ export function BookingAmendmentPanel({
       ) : null}
 
       {canPropose ? (
-        <Dialog open={editorOpen} onOpenChange={setEditorOpen}>
+        <Dialog
+          open={editorOpen}
+          onOpenChange={(open) => {
+            if (open) setProposedCurrency(initialValues.currency);
+            setEditorOpen(open);
+          }}
+        >
           <DialogTrigger asChild>
             <Button type="button" variant={pending ? "secondary" : "primary"}>
               <FilePenLine className="size-4" aria-hidden="true" />
@@ -306,7 +317,11 @@ export function BookingAmendmentPanel({
                   <select
                     id="amendment-currency"
                     name="currency"
-                    defaultValue={initialValues.currency}
+                    value={proposedCurrency}
+                    onChange={(event) => {
+                      if (isBookingCurrency(event.target.value))
+                        setProposedCurrency(event.target.value);
+                    }}
                     className="min-h-11 w-full rounded-md border border-input bg-background px-3 text-sm"
                   >
                     {bookingCurrencies.map((currency) => (
@@ -333,6 +348,7 @@ export function BookingAmendmentPanel({
                     Current: {initialValues.totalAmount}
                   </p>
                   <CurrencyAmountInput
+                    currency={proposedCurrency}
                     id="amendment-total"
                     name="totalAmount"
                     defaultValue={initialValues.totalAmount}
@@ -346,6 +362,7 @@ export function BookingAmendmentPanel({
                     Current: {initialValues.depositAmount}
                   </p>
                   <CurrencyAmountInput
+                    currency={proposedCurrency}
                     id="amendment-deposit"
                     name="depositAmount"
                     defaultValue={initialValues.depositAmount}

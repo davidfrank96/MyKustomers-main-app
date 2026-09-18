@@ -1926,3 +1926,20 @@ and fixture cleanup passed against merge commit `d2f55fd`.
   production clipboard handling are unchanged.
 - Client-rendered date coverage locks the shared display formatter's punctuation
   so Node and browser engines do not hydrate different timestamp strings.
+
+## Currency, money input and notification cleanup — 2026-09-18
+
+Regression coverage includes all four supported denominations on public receipt
+summaries, payment entry, add-ons and confirmed email HTML/text; canonical input
+values, compact rollover, invalid/empty amounts and missing amendment currency.
+The booking E2E suite adds create → database persistence → direct navigation/reload
+→ confirmation/confirmed receipt → payment → add-on coverage with controlled
+fixtures and its existing cleanup. Use the development email provider locally.
+
+`playwright.notifications.config.ts` checks delayed native notification navigation
+releases the dialog lock before the resolver responds. Its page-side observer
+avoids Playwright's pending-navigation evaluation barrier. The shared input is
+also checked in Chromium/WebKit for currency switching, comma deletion, decimals,
+select-all, narrow layouts and reduced-viewport restoration. Browser emulation is
+not physical iOS keyboard, background-resume or OS push evidence. Results and
+release limitations: [report](BOOKING_CURRENCY_MONEY_PWA.md).

@@ -87,6 +87,7 @@ function PaymentDialog({
           <div className="space-y-2">
             <Label htmlFor="booking-payment-amount">Payment amount</Label>
             <CurrencyAmountInput
+              currency={summary.currency}
               id="booking-payment-amount"
               name="amount"
               placeholder="0.00"

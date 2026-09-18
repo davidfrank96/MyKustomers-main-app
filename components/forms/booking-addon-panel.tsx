@@ -447,6 +447,7 @@ export function BookingAddonPanel({
                   <div className="space-y-2">
                     <Label htmlFor="addon-total">Agreed amount</Label>
                     <CurrencyAmountInput
+                      currency={currency}
                       id="addon-total"
                       name="totalAmount"
                       placeholder="0.00"
@@ -463,6 +464,7 @@ export function BookingAddonPanel({
                   <div className="space-y-2">
                     <Label htmlFor="addon-deposit">Deposit recorded</Label>
                     <CurrencyAmountInput
+                      currency={currency}
                       id="addon-deposit"
                       name="depositAmount"
                       defaultValue="0"

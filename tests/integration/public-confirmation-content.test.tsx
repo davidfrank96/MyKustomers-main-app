@@ -57,6 +57,33 @@ describe("public confirmation presentation", () => {
     expect(screen.getByText("MC-260830-ABC123")).toBeVisible();
   });
 
+  it.each([
+    ["NGN", "₦"],
+    ["USD", "$"],
+    ["GBP", "£"],
+    ["EUR", "€"],
+  ] as const)(
+    "keeps the %s digital receipt exact and denominated",
+    (currency, symbol) => {
+      render(
+        <PublicConfirmationBookingSummary
+          booking={{
+            ...booking,
+            currency,
+            total_amount_minor: 500_000_025,
+            deposit_amount_minor: 150_000_010,
+            balance_amount_minor: 350_000_015,
+          }}
+        />,
+      );
+      for (const amount of ["5,000,000.25", "1,500,000.10", "3,500,000.15"]) {
+        expect(screen.getByText(`${symbol}${amount}`)).toBeVisible();
+      }
+      if (currency !== "NGN") expect(screen.queryByText(/₦/)).toBeNull();
+      expect(screen.queryByText(/5M/)).toBeNull();
+    },
+  );
+
   it("renders both safe vendor links with explicit accessible names", () => {
     render(<PublicConfirmationBusinessIdentity booking={booking} />);
 

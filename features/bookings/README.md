@@ -273,3 +273,21 @@ secondary route to the existing feedback section; it never generates a second
 capability or sends another email. Delivered/completed pending feedback defaults
 open but remains manually collapsible. The independently derived current section
 uses primary-brand emphasis, visible **Current step** text, and `aria-current`.
+
+## Currency and compact-entry audit — 2026-09-18
+
+Booking currency is a persisted, non-null NGN/EUR/GBP/USD enum. Create/edit actions
+validate it; payment summaries read the parent booking currency; add-on creation
+derives it from the parent. Public confirmation and email evidence uses the
+booking or immutable confirmed terms. Insights remains grouped by currency.
+The existing explicit customer-approved amendment workflow is preserved; this
+change does not perform conversion or infer historical denomination.
+
+All total/deposit/payment/amendment inputs now require explicit currency for
+their symbol and optional compact helper. The shared formatter now preserves every cent at the safe-integer limit by
+splitting integer major/minor units before locale formatting; persistence and
+server validation are unchanged. Amendment comparison
+amounts with missing/unsupported snapshot currency show `Unavailable`, never an
+invented NGN denomination. See [verification report](../../docs/BOOKING_CURRENCY_MONEY_PWA.md)
+for the distinction between this confirmed fallback defect and the reported
+receipt issue, whose original affected record has not been identified.
