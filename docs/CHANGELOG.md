@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-09-18 — Auth routing and customer text integrity
+
+IMPLEMENTED — VERIFICATION PENDING. Fix admin-only post-login/onboarding routing, fail safely for unusable pending memberships, preserve the protected internal return path through login, and preserve readable multiline confirmation/amendment/add-on text. Separate field mapping remains unchanged. Signed-in dashboard verification confirms native 24-hour session configuration is blocked by the project's Free plan (Pro or above required). Current policy remains never; provider passkeys are disabled. No settings or paid plan changed. See [audit and release gate](AUTH_SESSION_ROUTING_CONFIRMATION.md).
+
+
 ## 2026-09-16 — Homepage headline loop (local)
 
 Added only a thin SVG loop and five slowly orbiting journey icons around the

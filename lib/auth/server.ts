@@ -9,6 +9,7 @@ import { getSafeRedirectPath } from "@/lib/security/redirects";
 import { createClient } from "@/lib/supabase/server";
 import type { BusinessMemberRole } from "@/types/database";
 import { isBusinessOnboardingPending } from "@/features/businesses/onboarding";
+import { resolveWorkspaceEntry } from "@/lib/auth/workspace-entry";
 import {
   BusinessMembershipLookupError,
   requireBusinessAccessRows,
@@ -285,7 +286,7 @@ export async function requireVendorWorkspace(next = "/dashboard") {
   ]);
 
   if (!context.currentBusiness) {
-    redirect("/onboarding" as Route);
+    redirect((await resolveWorkspaceEntry(user, context)) as Route);
   }
 
   return {

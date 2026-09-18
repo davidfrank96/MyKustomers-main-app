@@ -1,7 +1,13 @@
 import type { NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/proxy";
+import { INTERNAL_REQUEST_PATH_HEADER } from "@/lib/security/redirects";
 
 export async function proxy(request: NextRequest) {
+  // Overwrite any client-supplied value before forwarding to the server layout.
+  request.headers.set(
+    INTERNAL_REQUEST_PATH_HEADER,
+    request.nextUrl.pathname + request.nextUrl.search,
+  );
   const response = await updateSession(request);
 
   if (process.env.VERCEL_ENV !== "production") {

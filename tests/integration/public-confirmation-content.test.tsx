@@ -32,6 +32,61 @@ const booking: PublicConfirmationBooking = {
 afterEach(cleanup);
 
 describe("public confirmation presentation", () => {
+  it("keeps a distinct title and multiline description as independent plain text", () => {
+    const title = "Chocolate Wedding Cake";
+    const description =
+      "Three-tier chocolate cake with gold trim.\n\nDelivery is required by 2:00 PM.\nPlease call the venue coordinator on arrival.\n<script>plain text</script>";
+    const { container } = render(
+      <PublicConfirmationBookingSummary
+        booking={{ ...booking, booking_title: title, booking_description: description }}
+      />,
+    );
+    const titleValue = screen.getByText(title);
+    const descriptionValue = screen.getByText(
+      (_, node) => node?.tagName === "DD" && node.textContent === description,
+    );
+    expect(titleValue).not.toBe(descriptionValue);
+    expect(descriptionValue.textContent).toBe(description);
+    expect(descriptionValue).toHaveClass(
+      "whitespace-pre-wrap",
+      "text-left",
+      "[overflow-wrap:anywhere]",
+    );
+    expect(container.querySelector("script")).toBeNull();
+  });
+
+  it("omits the description row when there is no description", () => {
+    render(
+      <PublicConfirmationBookingSummary
+        booking={{ ...booking, booking_description: null }}
+      />,
+    );
+    expect(screen.queryByText("Details")).not.toBeInTheDocument();
+    expect(screen.getByText(booking.booking_title)).toBeVisible();
+  });
+
+  it.each([
+    ["NGN", "₦"],
+    ["USD", "$"],
+    ["GBP", "£"],
+    ["EUR", "€"],
+  ] as const)("retains %s on every money row", (currency, symbol) => {
+    render(
+      <PublicConfirmationBookingSummary
+        booking={{
+          ...booking,
+          currency,
+          total_amount_minor: 12345,
+          deposit_amount_minor: 2345,
+          balance_amount_minor: 10000,
+        }}
+      />,
+    );
+    expect(screen.getByText(`${symbol}123.45`)).toBeVisible();
+    expect(screen.getByText(`${symbol}23.45`)).toBeVisible();
+    expect(screen.getByText(`${symbol}100`)).toBeVisible();
+  });
+
   it("shows the complete customer-safe booking summary with approved wording", () => {
     render(<PublicConfirmationBookingSummary booking={booking} />);
 

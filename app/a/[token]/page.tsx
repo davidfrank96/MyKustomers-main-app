@@ -96,13 +96,13 @@ function ChangeDiff({ amendment }: { amendment: PublicAmendment }) {
       {amendment.changed_fields.map((field) => (
         <div key={field} className="grid gap-3 py-4 sm:grid-cols-[9rem_1fr_1fr]">
           <dt className="text-sm font-medium">{amendmentFieldLabels[field]}</dt>
-          <dd className="min-w-0 break-words text-sm leading-6">
+          <dd className="min-w-0 whitespace-pre-wrap text-left text-sm leading-6 [overflow-wrap:anywhere] [word-break:normal]">
             <span className="block text-xs font-medium text-muted-foreground">
               Current
             </span>
             {termValue(field, amendment.current_terms)}
           </dd>
-          <dd className="min-w-0 break-words text-sm leading-6">
+          <dd className="min-w-0 whitespace-pre-wrap text-left text-sm leading-6 [overflow-wrap:anywhere] [word-break:normal]">
             <span className="block text-xs font-medium text-muted-foreground">
               Proposed
             </span>

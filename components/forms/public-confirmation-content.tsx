@@ -42,9 +42,10 @@ type DetailRowProps = {
   icon: ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
   label: string;
   value: string;
+  prose?: boolean;
 };
 
-function DetailRow({ icon: Icon, label, value }: DetailRowProps) {
+function DetailRow({ icon: Icon, label, value, prose = false }: DetailRowProps) {
   return (
     <div className="grid grid-cols-[2rem_minmax(0,0.8fr)_minmax(0,1.2fr)] items-start gap-3 border-b border-border py-4 last:border-b-0 sm:grid-cols-[2.25rem_minmax(9rem,0.8fr)_minmax(0,1.2fr)] sm:gap-4">
       <span className="grid size-8 place-items-center text-primary">
@@ -53,7 +54,9 @@ function DetailRow({ icon: Icon, label, value }: DetailRowProps) {
       <dt className="pt-1 text-sm font-medium leading-5 text-muted-foreground">
         {label}
       </dt>
-      <dd className="min-w-0 pt-1 text-right text-sm font-medium leading-5 text-foreground [overflow-wrap:anywhere] sm:text-base">
+      <dd
+        className={`min-w-0 pt-1 text-sm text-foreground [overflow-wrap:anywhere] sm:text-base ${prose ? "col-span-2 col-start-2 whitespace-pre-wrap text-left font-normal leading-6 [word-break:normal]" : "text-right font-medium leading-5"}`}
+      >
         {value}
       </dd>
     </div>
@@ -74,6 +77,7 @@ export function PublicConfirmationBookingSummary({
           icon={MessageSquareText}
           label="Details"
           value={booking.booking_description}
+          prose
         />
       ) : null}
       <DetailRow

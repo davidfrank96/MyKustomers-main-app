@@ -1,5 +1,10 @@
 # Testing
 
+## Auth routing and confirmation text — 2026-09-18
+
+Permanent executable server/component tests cover invalid identity, verified zero memberships, lookup failures, missing business joins, stale/multiple memberships, pending-owner recovery, non-owner safe failure, admin-only destinations, independent onboarding guards and forged return headers. Local production-build Chromium/WebKit tests cover the ten-width Auth/onboarding/confirmation matrix, multiline and unbroken text, empty details and NGN/USD/GBP/EUR. The canonical booking E2E now traces distinct title/description through native form submission, database and customer DOM, accounting for standard CRLF form encoding. Controlled browser fixtures do not establish native provider time-box configuration, physical PWA behavior or real biometric success. See [evidence and remaining gates](AUTH_SESSION_ROUTING_CONFIRMATION.md).
+
+
 ## Homepage headline loop — 2026-09-16
 
 Local Chromium/WebKit probes cover 23 widths, full-cycle icon/text clearance,

@@ -62,7 +62,10 @@ describe("authenticated navigation performance policy", () => {
   });
 
   it("starts layout auth and tenant resolution together while retaining request caching", () => {
-    expect(dashboardLayout).toContain('requireVendorWorkspace("/dashboard")');
+    expect(dashboardLayout).toContain("requireVendorWorkspace(next)");
+    expect(dashboardLayout).toContain(
+      "getSafeRedirectPath(requestHeaders.get(INTERNAL_REQUEST_PATH_HEADER))",
+    );
     expect(fs.readFileSync("lib/auth/server.ts", "utf8")).toContain(
       "const [user, context] = await Promise.all([",
     );

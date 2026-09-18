@@ -1,5 +1,10 @@
 # Security
 
+## Auth routing and requested session time-box — 2026-09-18
+
+The [auth integrity audit](AUTH_SESSION_ROUTING_CONFIRMATION.md) records the requested native 24-hour policy. Dashboard access confirms the Free plan blocks configuration: time-box and inactivity are 0 (never), JWT expiry 3600 seconds, single-session off, refresh-replay protection on, reuse interval 10 seconds, passkeys off. No settings changed. Workspace entry distinguishes verified zero memberships, pending-owner recovery, unusable memberships, and separate active-admin authority. Admin lookup errors cannot become zero-business creation decisions. The proxy overwrites the internal request-path header and the layout sanitizes it for login return routing. JWT/refresh, AAL2, RLS, provider settings and private-cache policies are unchanged.
+
+
 ## Secure-preview crawler/evidence boundary — 2026-09-15
 
 Confirmation and feedback retain their dedicated minimal read-only lookups. The

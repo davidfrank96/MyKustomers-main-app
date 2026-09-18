@@ -11,13 +11,14 @@ import type { BusinessActionState } from "@/features/businesses/action-state";
 import { getBusinessLogoPublicUrl } from "@/features/businesses/logo-public";
 import { getPendingBusinessOnboardingId } from "@/features/businesses/pending-onboarding";
 import { getCurrentBusinessContext, requireUser } from "@/lib/auth/server";
+import { resolveWorkspaceEntry } from "@/lib/auth/workspace-entry";
 
 export const dynamic = "force-dynamic";
 
 export default async function OnboardingPage() {
-  await requireUser("/onboarding");
+  const user = await requireUser("/onboarding");
   const [businessContext, pendingBusinessId] = await Promise.all([
-    getCurrentBusinessContext(),
+    getCurrentBusinessContext(user),
     getPendingBusinessOnboardingId(),
   ]);
   const pendingBusiness =
@@ -25,8 +26,9 @@ export default async function OnboardingPage() {
       (business) => business.id === pendingBusinessId && business.role === "owner",
     ) ?? businessContext.pendingBusinesses.find((business) => business.role === "owner");
 
-  if (businessContext.currentBusiness && !pendingBusiness) {
-    redirect("/dashboard" as Route);
+  if (!pendingBusiness) {
+    const destination = await resolveWorkspaceEntry(user, businessContext);
+    if (destination !== "/onboarding") redirect(destination as Route);
   }
 
   const initialState = pendingBusiness

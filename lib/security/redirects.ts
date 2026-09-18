@@ -1,3 +1,5 @@
+export const INTERNAL_REQUEST_PATH_HEADER = "x-mykustomers-request-path";
+
 export function getSafeRedirectPath(value: FormDataEntryValue | string | null | undefined) {
   if (typeof value !== "string") {
     return "/dashboard";

@@ -1,5 +1,10 @@
 # Confirmation Links Feature
 
+## 2026-09-18 description correctness
+
+Title and description remain separate form/RPC/database/public-view fields. Confirmation Details preserve newlines and wrap left-aligned below the label; empty descriptions omit the row. The canonical booking browser test verifies native form text through storage and public DOM, while synthetic browser coverage checks long and unbroken descriptions and four currencies. No capability, persistence or money authority changes. [Audit](../../docs/AUTH_SESSION_ROUTING_CONFIRMATION.md).
+
+
 ## Golden Stability — 2026-09-14
 
 The Golden Stability change keeps the existing confirmation transaction and refresh state. Done now closes eligible windows or focuses a terminal acknowledgement without a repeat button. Contact fields wait for hydration to retain early typing. [Verification and release status](../../docs/GOLDEN_STABILITY_PASS.md).

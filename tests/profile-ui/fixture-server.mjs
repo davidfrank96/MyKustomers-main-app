@@ -54,6 +54,8 @@ const originalBusiness = {
 let business = { ...originalBusiness };
 let memberRole = "owner";
 let failWrites = false;
+let membershipScenario = "normal";
+let publicBookingOverrides = {};
 let writes = [];
 let preferences = {
   user_id: userId,
@@ -230,6 +232,8 @@ createServer(async (req, res) => {
     logoShape = null;
     memberRole = "owner";
     failWrites = false;
+    membershipScenario = "normal";
+    publicBookingOverrides = {};
     writes = [];
     links = originalLinks.map((link) => ({ ...link }));
     preferences = {
@@ -246,6 +250,8 @@ createServer(async (req, res) => {
     const scenario = JSON.parse(Buffer.concat(chunks));
     if (scenario.kind) capabilityOverrides[scenario.kind] = scenario.record ?? {};
     if (scenario.booking) bookingOverrides = scenario.booking;
+    if (scenario.publicBooking) publicBookingOverrides = scenario.publicBooking;
+    if (scenario.memberships) membershipScenario = scenario.memberships;
     if (scenario.logoShape) logoShape = scenario.logoShape;
     if (scenario.role) memberRole = scenario.role;
     if (scenario.failWrites !== undefined) failWrites = scenario.failWrites;
@@ -283,6 +289,7 @@ createServer(async (req, res) => {
     if (url.pathname.endsWith("/rpc/record_audit_event")) return send(null);
     if (failWrites) return send({ message: "Local fixture write unavailable" }, 503);
     const rpc = url.pathname.split("/").at(-1);
+    if (rpc === "get_my_platform_admin") return send([]);
     if (
       [
         "get_confirmation_public_view",
@@ -325,6 +332,7 @@ createServer(async (req, res) => {
           expires_at: record.expires_at,
           confirmed_at: null,
           terms_hash: "fixture-terms",
+          ...publicBookingOverrides,
         },
       });
     }
@@ -377,7 +385,10 @@ createServer(async (req, res) => {
     if (body) preferences = { ...preferences, ...body };
     rows = [preferences];
   }
-  if (table === "business_members")
+  if (table === "business_members") {
+    if (membershipScenario === "failed")
+      return send({ message: "Fixture membership failure" }, 500);
+    if (membershipScenario === "zero") return send([]);
     rows = businesses.map((b) => ({
       business_id: b.id,
       user_id: userId,
@@ -385,6 +396,7 @@ createServer(async (req, res) => {
       role: memberRole,
       businesses: b,
     }));
+  }
   for (const key of ["id", "user_id", "business_id", "booking_id", "token_hash"])
     if (url.searchParams.get(key)?.startsWith("eq."))
       rows = rows.filter((row) => row[key] === url.searchParams.get(key).slice(3));

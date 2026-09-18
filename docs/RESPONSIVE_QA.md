@@ -1,5 +1,10 @@
 # Responsive QA
 
+## Auth and customer-text pass — 2026-09-18
+
+The Profile UI browser suite includes `auth-confirmation-integrity.spec.ts` for 320, 360, 375, 390, 414, 430, 768, 1024, 1280 and 1440 widths in Chromium and WebKit. It asserts actual document overflow, independent title/detail geometry, computed pre-wrap/left alignment, empty details and all four currencies. Screenshots are local synthetic fixtures. Native iOS/Android passkeys and installed-PWA session time-boxes remain separate device/provider gates. See [audit](AUTH_SESSION_ROUTING_CONFIRMATION.md).
+
+
 ## Headline loop — 2026-09-16
 
 Chromium and WebKit pass 23 widths from 320 to 1600px, including all six required

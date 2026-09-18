@@ -6,6 +6,7 @@ import {
 } from "@/lib/auth/server";
 import { getSafeRedirectPath } from "@/lib/security/redirects";
 import { isVendorWorkspacePath, resolvePostAuthPath } from "@/lib/auth/post-auth-path";
+import { resolveWorkspaceEntry } from "@/lib/auth/workspace-entry";
 
 export async function resolvePostAuthDestination(
   next: FormDataEntryValue | string | null | undefined,
@@ -23,5 +24,6 @@ export async function resolvePostAuthDestination(
   }
 
   const context = await getCurrentBusinessContext(user);
+  if (!context.currentBusiness) return resolveWorkspaceEntry(user, context);
   return resolvePostAuthPath(safeNext, context.currentBusiness !== null);
 }
