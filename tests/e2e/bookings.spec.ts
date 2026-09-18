@@ -290,6 +290,132 @@ test.describe("booking engine", () => {
     }
   });
 
+  test("four currencies persist through creation, confirmation receipts, payments and add-ons", async ({
+    page,
+  }, testInfo) => {
+    test.setTimeout(240_000);
+    const email = testEmail(`${testInfo.project.name}-currencies`);
+    const password = `Currencies-E2E-${randomUUID()}-A1`;
+    const slug = `currency-e2e-${Date.now()}-${randomUUID().slice(0, 8)}`;
+    createdBusinessSlugs.add(slug);
+    const customerName = `Currency Customer ${randomUUID().slice(0, 8)}`;
+    const fixture = await createConfirmedBusinessOwner({
+      email,
+      password,
+      slug,
+      customerName,
+    });
+    const admin = createAdminClient();
+    await page.goto("/login");
+    await page.getByLabel("Email").fill(email);
+    await page.getByLabel("Password", { exact: true }).fill(password);
+    await page.getByRole("button", { name: "Log in" }).click();
+    await expect(page).toHaveURL(/\/dashboard/);
+    for (const [currency, symbol] of [
+      ["NGN", "₦"],
+      ["USD", "$"],
+      ["GBP", "£"],
+      ["EUR", "€"],
+    ] as const) {
+      await page.goto("/bookings/new");
+      await page.locator("#customerId").click();
+      await page.getByRole("option").filter({ hasText: customerName }).click();
+      await page.getByLabel("Booking title").fill(`Currency evidence ${currency}`);
+      await page.getByLabel("Currency", { exact: true }).click();
+      await page.getByRole("option", { name: currency, exact: true }).click();
+      await page.getByLabel("Scheduled delivery date").fill(futureLocalDateTime());
+      await page.getByLabel("Agreed total").fill("500000.25");
+      await page.getByLabel("Deposit recorded").fill("200000.10");
+      await expect(page.locator("[data-money-compact]").first()).toContainText(
+        `${symbol}500K`,
+      );
+      await page.getByRole("button", { name: "Create booking" }).click();
+      await expect(page).toHaveURL(/\/bookings\/[0-9a-f-]+\?created=1/);
+      const bookingId = new URL(page.url()).pathname.split("/").at(-1)!;
+      const detail = `/bookings/${bookingId}`;
+      const { data: saved, error } = await admin
+        .from("bookings")
+        .select("currency,total_amount_minor,deposit_amount_minor")
+        .eq("id", bookingId)
+        .eq("business_id", fixture.businessId)
+        .single();
+      expect(error).toBeNull();
+      expect(saved).toEqual({
+        currency,
+        total_amount_minor: 50_000_025,
+        deposit_amount_minor: 20_000_010,
+      });
+      for (const reload of [false, true]) {
+        if (reload) await page.reload();
+        else await page.goto(detail);
+        await expandBookingSection(page, "booking-payments");
+        await expect(
+          page.getByText(`${symbol}500,000.25`, { exact: true }).first(),
+        ).toBeVisible();
+        if (currency !== "NGN") await expect(page.getByText(/₦/)).toHaveCount(0);
+      }
+      await expandBookingSection(page, "customer-confirmation");
+      await page.getByRole("button", { name: "Generate confirmation link" }).click();
+      const link = page.getByLabel("Generated confirmation link");
+      await expect(link).toBeAttached();
+      const confirmationUrl = await link.inputValue();
+      await page.goto(confirmationUrl);
+      await expect(page.getByText(`${symbol}500,000.25`, { exact: true })).toBeVisible();
+      await expect(page.getByText(`${symbol}200,000.10`, { exact: true })).toBeVisible();
+      await expect(page.getByText(`${symbol}300,000.15`, { exact: true })).toBeVisible();
+      if (currency !== "NGN") await expect(page.getByText(/₦/)).toHaveCount(0);
+      await page
+        .getByLabel("Email address")
+        .fill(`currency-${currency.toLowerCase()}@example.com`);
+      await page.getByRole("button", { name: "Review and confirm" }).click();
+      await page.getByRole("button", { name: "Confirm booking" }).click();
+      await expect(
+        page.getByRole("heading", { name: "Booking confirmed" }),
+      ).toBeVisible();
+      await page.reload();
+      await expect(page.getByText(`${symbol}500,000.25`, { exact: true })).toBeVisible();
+      await page.goto(detail);
+      await expandBookingSection(page, "booking-payments");
+      await page.getByRole("button", { name: "Record payment" }).click();
+      const paymentDialog = page.getByRole("dialog", { name: "Record a payment" });
+      await paymentDialog.getByLabel("Payment amount").fill("100000.05");
+      await expect(paymentDialog.locator("[data-money-compact]")).toContainText(
+        `${symbol}100K`,
+      );
+      await paymentDialog.getByRole("button", { name: "Record payment" }).click();
+      await expect(paymentDialog).toBeHidden();
+      await expect(
+        page.getByText(`${symbol}200,000.10`, { exact: true }).first(),
+      ).toBeVisible();
+      const { data: payments, error: paymentError } = await admin
+        .from("booking_payments")
+        .select("amount_minor")
+        .eq("booking_id", bookingId);
+      expect(paymentError).toBeNull();
+      expect(payments).toEqual([{ amount_minor: 10_000_005 }]);
+      await expandBookingSection(page, "booking-addons");
+      await page.getByRole("button", { name: "Add item" }).click();
+      const addonDialog = page.getByRole("dialog", { name: "Add item" });
+      await addonDialog.getByLabel("Title", { exact: true }).fill(`${currency} extra`);
+      await addonDialog.getByLabel("Agreed amount").fill("1500.25");
+      await addonDialog.getByLabel("Deposit recorded").fill("0");
+      await expect(addonDialog.locator("[data-money-compact]")).toContainText(
+        `${symbol}1.5K`,
+      );
+      await addonDialog
+        .getByRole("button", { name: "Save add-on draft", exact: true })
+        .click();
+      await expect(addonDialog).toBeHidden();
+      const { data: addons, error: addonError } = await admin
+        .from("booking_addons")
+        .select("currency,total_amount_minor")
+        .eq("booking_id", bookingId);
+      expect(addonError).toBeNull();
+      expect(addons).toEqual([{ currency, total_amount_minor: 150_025 }]);
+      if (currency !== "NGN") await expect(page.getByText(/₦/)).toHaveCount(0);
+    }
+  });
+
   test("canonical customer, booking, confirmation, fulfilment, feedback, and insights journey", async ({
     page,
     context,

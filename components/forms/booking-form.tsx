@@ -4,7 +4,6 @@ import { useActionState, useMemo, useState, type ReactNode } from "react";
 import { useFormStatus } from "react-dom";
 import {
   AlertCircle,
-  Banknote,
   CalendarDays,
   CheckCircle2,
   Coins,
@@ -19,7 +18,6 @@ import {
   Tag,
   UserRound,
   UsersRound,
-  WalletCards,
   X,
   type LucideIcon,
 } from "lucide-react";
@@ -40,7 +38,11 @@ import {
   initialBookingActionState,
   type BookingActionState,
 } from "@/features/bookings/action-state";
-import { bookingCurrencies } from "@/features/bookings/money";
+import {
+  bookingCurrencies,
+  isBookingCurrency,
+  type BookingCurrency,
+} from "@/features/bookings/money";
 import { normalizeCustomerContactEmail } from "@/features/customers/email";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useFormErrorNavigation } from "@/hooks/use-form-error-navigation";
@@ -72,7 +74,7 @@ type BookingFormValues = {
   customerId?: string;
   title?: string;
   description?: string | null;
-  currency?: string;
+  currency?: BookingCurrency;
   totalAmount?: string;
   depositAmount?: string;
   scheduledFor?: string | null;
@@ -694,7 +696,7 @@ export function BookingForm({
         name="currency"
         value={currency}
         onValueChange={(value) => {
-          setCurrency(value);
+          if (isBookingCurrency(value)) setCurrency(value);
           clearFieldError("currency");
         }}
         disabled={disabled || materialDisabled}
@@ -786,8 +788,9 @@ export function BookingForm({
         Agreed total
       </Label>
       {editing ? (
-        <EditFieldControl icon={Banknote}>
+        <div className="min-w-0">
           <CurrencyAmountInput
+            currency={currency}
             id="totalAmount"
             name="totalAmount"
             defaultValue={totalAmount}
@@ -798,11 +801,12 @@ export function BookingForm({
             aria-describedby={
               fieldError(state, "totalAmount") ? "total-error" : undefined
             }
-            className="h-12 pl-12 aria-invalid:border-destructive focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
+            className="h-12 aria-invalid:border-destructive focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
           />
-        </EditFieldControl>
+        </div>
       ) : (
         <CurrencyAmountInput
+          currency={currency}
           id="totalAmount"
           name="totalAmount"
           defaultValue={totalAmount}
@@ -826,8 +830,9 @@ export function BookingForm({
     <div className={editing ? "space-y-2.5" : "space-y-2"}>
       <Label htmlFor="depositAmount">Deposit recorded</Label>
       {editing ? (
-        <EditFieldControl icon={WalletCards}>
+        <div className="min-w-0">
           <CurrencyAmountInput
+            currency={currency}
             id="depositAmount"
             name="depositAmount"
             defaultValue={depositAmount}
@@ -837,11 +842,12 @@ export function BookingForm({
             aria-describedby={
               fieldError(state, "depositAmount") ? "deposit-error" : undefined
             }
-            className="h-12 pl-12 aria-invalid:border-destructive focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
+            className="h-12 aria-invalid:border-destructive focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
           />
-        </EditFieldControl>
+        </div>
       ) : (
         <CurrencyAmountInput
+          currency={currency}
           id="depositAmount"
           name="depositAmount"
           defaultValue={depositAmount}

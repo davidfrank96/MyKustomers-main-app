@@ -1,6 +1,37 @@
 export const bookingCurrencies = ["NGN", "EUR", "GBP", "USD"] as const;
 export type BookingCurrency = (typeof bookingCurrencies)[number];
 
+export function isBookingCurrency(value: unknown): value is BookingCurrency {
+  return bookingCurrencies.some((currency) => currency === value);
+}
+
+export const bookingCurrencySymbols: Record<BookingCurrency, string> = {
+  NGN: "₦",
+  EUR: "€",
+  GBP: "£",
+  USD: "$",
+};
+
+/** A reading aid only. Never feed this rounded display into money persistence. */
+export function formatCompactMoneyMinor(amountMinor: number, currency: BookingCurrency) {
+  if (!Number.isSafeInteger(amountMinor) || amountMinor < 100_000) return null;
+  const amount = BigInt(amountMinor);
+  const units = [
+    [100_000n, "K"],
+    [100_000_000n, "M"],
+    [100_000_000_000n, "B"],
+    [100_000_000_000_000n, "T"],
+  ] as const;
+  let index = 0;
+  while (index < units.length - 1 && amount >= units[index + 1][0]) index++;
+  const rounded = (scale: bigint) => (amount * 100n + scale / 2n) / scale;
+  if (index < units.length - 1 && rounded(units[index][0]) >= 100_000n) index++;
+  const [scale, suffix] = units[index];
+  const hundredths = rounded(scale);
+  const fraction = (hundredths % 100n).toString().padStart(2, "0").replace(/0+$/, "");
+  return `${bookingCurrencySymbols[currency]}${hundredths / 100n}${fraction ? `.${fraction}` : ""}${suffix}`;
+}
+
 const currencyLocales: Record<BookingCurrency, string> = {
   NGN: "en-NG",
   EUR: "en-IE",
@@ -91,13 +122,24 @@ export function deriveBalanceMinor(totalAmountMinor: number, depositAmountMinor:
 }
 
 export function formatMoneyMinor(amountMinor: number, currency: BookingCurrency) {
-  const formatted = new Intl.NumberFormat(currencyLocales[currency], {
+  // Split before formatting: dividing a large safe integer by 100 can lose
+  // its final cent (MAX_SAFE_INTEGER previously displayed .90 instead of .91).
+  const minor = BigInt(amountMinor);
+  const remainder = minor < 0n ? -(minor % 100n) : minor % 100n;
+  const major = minor / 100n;
+  const formatter = new Intl.NumberFormat(currencyLocales[currency], {
     style: "currency",
     currency,
     currencyDisplay: "narrowSymbol",
-    minimumFractionDigits: amountMinor % 100 === 0 ? 0 : 2,
+    minimumFractionDigits: remainder === 0n ? 0 : 2,
     maximumFractionDigits: 2,
-  }).format(amountMinor / 100);
+  });
+  const formatted = formatter
+    .formatToParts(major === 0n && minor < 0n ? -0 : major)
+    .map((part) =>
+      part.type === "fraction" ? remainder.toString().padStart(2, "0") : part.value,
+    )
+    .join("");
 
   if (currency === "NGN") {
     return formatted.replace(/^NGN[\s\u00a0]?/, "₦");

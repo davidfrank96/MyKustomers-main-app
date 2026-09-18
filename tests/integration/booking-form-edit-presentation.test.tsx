@@ -12,7 +12,7 @@ type EditBookingAction = (
 const initialValues = {
   title: "Macbook pro",
   description: "Buying her a new laptop",
-  currency: "NGN",
+  currency: "NGN" as const,
   totalAmount: "50000.00",
   depositAmount: "30000.00",
   scheduledFor: "2030-09-01T14:30:00.000Z",
@@ -179,7 +179,10 @@ describe("BookingForm edit presentation", () => {
     );
     expect(screen.getByLabelText("Agreed total")).toHaveAttribute(
       "aria-describedby",
-      "total-error",
+      expect.stringContaining("total-error"),
+    );
+    expect(screen.getByLabelText("Agreed total")).toHaveAccessibleDescription(
+      /Enter a valid agreed total.*Currency: NGN/,
     );
     await waitFor(() => expect(screen.getByLabelText("Booking title")).toHaveFocus());
 

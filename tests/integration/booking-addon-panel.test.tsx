@@ -51,11 +51,13 @@ function addon(status: BookingAddonItem["status"]): BookingAddonItem {
 }
 
 function renderPanel({
+  currency = "NGN",
   summary = emptySummary,
   canCreate = true,
   requestBlocked = false,
   createAction = idleCreateAction,
 }: {
+  currency?: "NGN" | "USD" | "GBP" | "EUR";
   summary?: BookingAddonSummary;
   canCreate?: boolean;
   requestBlocked?: boolean;
@@ -77,7 +79,7 @@ function renderPanel({
         summary={summary}
         canCreate={canCreate}
         requestBlocked={requestBlocked}
-        currency="NGN"
+        currency={currency}
         originalTotalAmountMinor={5_000_000}
         originalDepositAmountMinor={3_000_000}
         businessName="Example Business"
@@ -122,6 +124,26 @@ describe("booking add-on panel presentation", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
     expect(screen.queryByRole("dialog", { name: "Add item" })).not.toBeInTheDocument();
+  });
+
+  it.each([
+    ["NGN", "₦"],
+    ["USD", "$"],
+    ["GBP", "£"],
+    ["EUR", "€"],
+  ] as const)("inherits parent %s for add-on entry and summaries", (currency, symbol) => {
+    renderPanel({ currency });
+    expect(screen.getAllByText(`${symbol}50,000`).length).toBeGreaterThan(0);
+    fireEvent.click(screen.getByRole("button", { name: "Add item" }));
+    fireEvent.change(screen.getByLabelText("Agreed amount"), {
+      target: { value: "2250000.25" },
+    });
+    expect(screen.getByLabelText("Agreed amount")).toHaveValue("2,250,000.25");
+    expect(document.querySelector("[data-money-compact]")).toHaveTextContent(
+      `${symbol}2.25M`,
+    );
+    expect(screen.queryByRole("combobox")).toBeNull();
+    if (currency !== "NGN") expect(screen.queryByText(/₦/)).toBeNull();
   });
 
   it("renders server validation in the redesigned dialog", async () => {

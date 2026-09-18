@@ -1,4 +1,4 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page, type Request } from "@playwright/test";
 import fs from "node:fs/promises";
 
 const fixtureOrigin = "http://127.0.0.1:55440";
@@ -87,6 +87,21 @@ test("golden shell: ordinary and notification navigation stay anchored through s
   const errors: string[] = [];
   const failedRequests: { url: string; error: string | undefined }[] = [];
   const measurements = [];
+  const pendingPrefetches = new Set<Request>();
+  page.on("request", (request) => {
+    if (new URL(request.url()).searchParams.has("_rsc")) pendingPrefetches.add(request);
+  });
+  const finished = (request: Request) => {
+    pendingPrefetches.delete(request);
+  };
+  page.on("requestfinished", finished);
+  page.on("requestfailed", finished);
+  const settlePrefetches = async () => {
+    // As in the Profile matrix, let Next's deferred prefetch settle before
+    // deliberately unloading the page. Keep the zero-page-error assertion.
+    await page.waitForLoadState("networkidle");
+    await expect.poll(() => pendingPrefetches.size).toBe(0);
+  };
   page.on("pageerror", (error) => errors.push(error.stack || error.message));
   page.on("requestfailed", (request) =>
     failedRequests.push({ url: request.url(), error: request.failure()?.errorText }),
@@ -102,6 +117,7 @@ test("golden shell: ordinary and notification navigation stay anchored through s
     dialog.getByText("Customer confirmed", { exact: true }).first(),
   ).toBeVisible();
   await page.screenshot({ path: `${output}/notification-panel.png` });
+  await settlePrefetches();
   await dialog
     .getByRole("link")
     .filter({ hasText: "Customer confirmed" })
@@ -115,11 +131,10 @@ test("golden shell: ordinary and notification navigation stay anchored through s
   ).toBeVisible();
   await anchored(page);
   await page.screenshot({ path: `${output}/notification-destination.png` });
+  await settlePrefetches();
   await page.goBack();
   await expect(page.getByRole("heading", { name: "Profile & account" })).toBeVisible();
-  // Back may restore a live modal in BFCache. Closing it must release its lock.
-  if (await page.getByRole("dialog").isVisible())
-    await page.getByRole("button", { name: "Close dialog" }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
   await anchored(page);
   const routes = [
     "/dashboard",
@@ -134,6 +149,7 @@ test("golden shell: ordinary and notification navigation stay anchored through s
     "/settings",
   ];
   for (const route of routes) {
+    await settlePrefetches();
     const start = Date.now();
     const response = await page.goto(route);
     await expect(page.locator("main h1").first()).toBeVisible();
@@ -409,6 +425,133 @@ test("notification Preferences navigation releases its dialog and scroll lock", 
   await page.getByRole("button", { name: /^Notifications/ }).click();
   await page.getByRole("dialog").getByRole("link", { name: "Preferences" }).click();
   await expect(page).toHaveURL(/\/settings#notifications/);
-  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect
+    .poll(() => page.evaluate(() => document.querySelectorAll('[role="dialog"]').length))
+    .toBe(0);
   await anchored(page);
+});
+
+test("notification booking navigation releases the modal before a slow resolver responds", async ({
+  page,
+}) => {
+  await page.goto("/settings");
+  await page.getByRole("button", { name: /^Notifications/ }).click();
+  const link = page
+    .getByRole("dialog")
+    .getByRole("link")
+    .filter({ hasText: "Customer confirmed" })
+    .first();
+  await expect(link).toBeVisible();
+  let release!: () => void;
+  const gate = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route("**/notifications/open/*", async (route) => {
+    await gate;
+    await route.continue();
+  });
+  let observed: unknown;
+  await page.exposeFunction("observeNotificationCleanup", (state: unknown) => {
+    observed = state;
+  });
+  await page.evaluate(() => {
+    const observe = (
+      window as unknown as { observeNotificationCleanup: (state: unknown) => void }
+    ).observeNotificationCleanup;
+    const timer = window.setInterval(() => {
+      const state = {
+        dialogs: document.querySelectorAll('[role="dialog"]').length,
+        overflow: document.body.style.overflow,
+        pointerEvents: document.body.style.pointerEvents,
+        lock: document.body.hasAttribute("data-scroll-locked"),
+      };
+      observe(state);
+      if (state.dialogs === 0 && !state.lock) window.clearInterval(timer);
+    }, 50);
+  });
+  try {
+    await link.click({ noWaitAfter: true });
+    await expect
+      .poll(() => observed)
+      .toEqual({ dialogs: 0, overflow: "", pointerEvents: "", lock: false });
+  } finally {
+    release();
+  }
+  await expect(page).toHaveURL(/\/bookings\/.+#customer-confirmation$/);
+  await anchored(page);
+});
+
+test("money input preserves exact editing and restores navigation after reduced viewports", async ({
+  page,
+}, info) => {
+  test.setTimeout(120000);
+  await page.goto("/bookings/new");
+  // Opening the controlled select establishes hydration before typing into SSR inputs.
+  await page.getByLabel("Currency", { exact: true }).click();
+  await expect(page.getByRole("option", { name: "NGN", exact: true })).toBeVisible();
+  await page.getByRole("option", { name: "NGN", exact: true }).click();
+  const amount = page.getByLabel("Agreed total");
+  await amount.fill("5000000.25");
+  await expect(amount).toHaveValue("5,000,000.25");
+  await expect(page.locator('[data-money-canonical][name="totalAmount"]')).toHaveValue(
+    "5000000.25",
+  );
+  for (const [currency, symbol] of [
+    ["USD", "$"],
+    ["GBP", "£"],
+    ["EUR", "€"],
+    ["NGN", "₦"],
+  ]) {
+    await page.getByLabel("Currency", { exact: true }).click();
+    await page.getByRole("option", { name: currency, exact: true }).click();
+    await expect(page.locator("[data-money-compact]").first()).toContainText(
+      `${symbol}5M`,
+    );
+    // Radix restores trigger focus on close; let that complete before editing.
+    await expect(page.getByLabel("Currency", { exact: true })).toBeFocused();
+    await expect(amount).toHaveValue("5,000,000.25");
+  }
+  await amount.fill("1234");
+  await amount.evaluate((input: HTMLInputElement) => input.setSelectionRange(2, 2));
+  await amount.press("Backspace");
+  await expect(amount).toHaveValue("1,234");
+  await expect
+    .poll(() => amount.evaluate((input: HTMLInputElement) => input.selectionStart))
+    .toBe(1);
+  await amount.press("Backspace");
+  await expect(amount).toHaveValue("234");
+  await amount.fill("1234");
+  await amount.evaluate((input: HTMLInputElement) => input.setSelectionRange(1, 1));
+  await amount.press("Delete");
+  await amount.press("Delete");
+  await expect(amount).toHaveValue("134");
+  await amount.fill("1,500,000.25");
+  await expect(amount).toHaveValue("1,500,000.25");
+  await expect(page.locator('[data-money-canonical][name="totalAmount"]')).toHaveValue(
+    "1500000.25",
+  );
+  await amount.selectText();
+  await amount.press("Backspace");
+  await expect(amount).toHaveValue("");
+  await expect(page.locator("[data-money-compact]")).toHaveCount(0);
+  await amount.fill("90071992547409.91");
+  const output = `output/playwright/currency-money/${info.project.name}`;
+  await fs.mkdir(output, { recursive: true });
+  for (const [width, height] of viewports) {
+    await page.setViewportSize({ width, height });
+    await amount.evaluate((input) => input.scrollIntoView({ block: "center" }));
+    await contained(page);
+    await page.screenshot({ path: `${output}/new-booking-${width}-${height}.png` });
+    await anchored(page);
+  }
+  for (const label of ["Booking title", "Agreed total"]) {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.getByLabel(label).focus();
+    await page.setViewportSize({ width: 390, height: 430 });
+    await page.getByLabel(label).scrollIntoViewIfNeeded();
+    await expect(page.getByLabel(label)).toBeInViewport();
+    await page.getByLabel(label).blur();
+    await page.setViewportSize({ width: 390, height: 844 });
+    await anchored(page);
+  }
 });

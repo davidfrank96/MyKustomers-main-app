@@ -79,58 +79,70 @@ describe("booking amendment panel presentation", () => {
     expect(screen.queryByRole("note")).not.toBeInTheDocument();
   });
 
-  it("keeps pending amendment evidence visible", () => {
-    const pending = {
-      id: "11111111-1111-4111-8111-111111111111",
-      business_id: "22222222-2222-4222-8222-222222222222",
-      booking_id: "33333333-3333-4333-8333-333333333333",
-      status: "PENDING_CUSTOMER" as const,
-      purpose: "BOOKING_AMENDMENT",
-      token_hash: "controlled-hash",
-      expires_at: "2026-09-02T10:00:00.000Z",
-      reason: "Customer requested a larger scope.",
-      base_terms_hash: "base-hash",
-      old_terms: {
-        title: "Website redesign",
-        currency: "NGN",
-        total_amount_minor: 5_000_000,
-      },
-      proposed_terms: {
-        title: "Website redesign and build",
-        currency: "NGN",
-        total_amount_minor: 7_500_000,
-      },
-      proposed_terms_hash: "proposed-hash",
-      changed_fields: ["title", "total_amount_minor"],
-      contact_email: "customer@example.com",
-      contact_phone: null,
-      proposed_by: "44444444-4444-4444-8444-444444444444",
-      created_at: "2026-08-30T10:00:00.000Z",
-      submitted_at: "2026-08-30T10:00:00.000Z",
-      first_opened_at: null,
-      confirmed_at: null,
-      revoked_at: null,
-      revoked_reason: null,
-      effective_terms: null,
-      effective_terms_hash: null,
-    };
-    const summary: BookingAmendmentSummary = {
-      latest: pending,
-      history: [pending],
-      displayStatus: "pending",
-      requestEmailStatus: "SENT",
-      confirmationEmailStatus: null,
-      sharedAt: null,
-      shareMethod: null,
-    };
+  it.each(["NGN", null] as const)(
+    "keeps pending amendment evidence truthful with currency %s",
+    (currency) => {
+      const pending = {
+        id: "11111111-1111-4111-8111-111111111111",
+        business_id: "22222222-2222-4222-8222-222222222222",
+        booking_id: "33333333-3333-4333-8333-333333333333",
+        status: "PENDING_CUSTOMER" as const,
+        purpose: "BOOKING_AMENDMENT",
+        token_hash: "controlled-hash",
+        expires_at: "2026-09-02T10:00:00.000Z",
+        reason: "Customer requested a larger scope.",
+        base_terms_hash: "base-hash",
+        old_terms: {
+          title: "Website redesign",
+          currency,
+          total_amount_minor: 5_000_000,
+        },
+        proposed_terms: {
+          title: "Website redesign and build",
+          currency,
+          total_amount_minor: 7_500_000,
+        },
+        proposed_terms_hash: "proposed-hash",
+        changed_fields: ["title", "total_amount_minor"],
+        contact_email: "customer@example.com",
+        contact_phone: null,
+        proposed_by: "44444444-4444-4444-8444-444444444444",
+        created_at: "2026-08-30T10:00:00.000Z",
+        submitted_at: "2026-08-30T10:00:00.000Z",
+        first_opened_at: null,
+        confirmed_at: null,
+        revoked_at: null,
+        revoked_reason: null,
+        effective_terms: null,
+        effective_terms_hash: null,
+      };
+      const summary: BookingAmendmentSummary = {
+        latest: pending,
+        history: [pending],
+        displayStatus: "pending",
+        requestEmailStatus: "SENT",
+        confirmationEmailStatus: null,
+        sharedAt: null,
+        shareMethod: null,
+      };
 
-    renderPanel({ summary, canPropose: true });
+      renderPanel({ summary, canPropose: true });
 
-    expect(screen.getByText("Changes awaiting customer confirmation")).toBeVisible();
-    expect(screen.getByText("Reason: Customer requested a larger scope.")).toBeVisible();
-    expect(screen.getByText("Website redesign and build")).toBeVisible();
-    expect(
-      screen.getByRole("button", { name: "Replace proposed changes" }),
-    ).toBeVisible();
-  });
+      expect(screen.getByText("Changes awaiting customer confirmation")).toBeVisible();
+      expect(
+        screen.getByText("Reason: Customer requested a larger scope."),
+      ).toBeVisible();
+      expect(screen.getByText("Website redesign and build")).toBeVisible();
+      if (currency === null) {
+        expect(screen.getAllByText("Unavailable")).toHaveLength(2);
+        expect(screen.queryByText(/₦/)).toBeNull();
+      } else {
+        expect(screen.getByText("₦50,000")).toBeVisible();
+        expect(screen.getByText("₦75,000")).toBeVisible();
+      }
+      expect(
+        screen.getByRole("button", { name: "Replace proposed changes" }),
+      ).toBeVisible();
+    },
+  );
 });

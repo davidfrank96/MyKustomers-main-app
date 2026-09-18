@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-09-18 — Booking money and notification cleanup (verification pending)
+
+Added currency-aware prefixes and optional compact helpers to the shared exact
+money input, corrected caret restoration around grouping separators, and removed
+the NGN guess from incomplete amendment snapshots. Exact money formatting also
+preserves cents at the supported safe-integer limit. Notification rows now release
+the shared dialog before native navigation. No database, dependency, scheduler,
+provider or environment configuration changes. Four-currency financial evidence
+and browser checks are tracked in [the verification report](BOOKING_CURRENCY_MONEY_PWA.md);
+the original receipt case and physical iPhone push/nav defect remain unconfirmed.
+
 ## 2026-09-16 — Homepage headline loop (local)
 
 Added only a thin SVG loop and five slowly orbiting journey icons around the

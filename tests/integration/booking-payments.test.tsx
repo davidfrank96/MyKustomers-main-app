@@ -119,14 +119,40 @@ describe("booking payments", () => {
     expect(screen.getByLabelText("Payment amount")).toHaveAttribute("max", "27500.00");
   });
 
+  it.each([
+    ["NGN", "₦"],
+    ["USD", "$"],
+    ["GBP", "£"],
+    ["EUR", "€"],
+  ] as const)(
+    "inherits %s for payment entry and its exact summary",
+    (currency, symbol) => {
+      render(
+        <BookingPayments
+          summary={{ ...summary, currency }}
+          payments={[]}
+          canRecordPayment
+          action={vi.fn()}
+        />,
+      );
+      expect(screen.getByText(`${symbol}27,500`)).toBeVisible();
+      fireEvent.click(screen.getByRole("button", { name: "Record payment" }));
+      fireEvent.change(screen.getByLabelText("Payment amount"), {
+        target: { value: "15000.25" },
+      });
+      expect(screen.getByLabelText("Payment amount")).toHaveValue("15,000.25");
+      expect(document.querySelector("[data-money-compact]")).toHaveTextContent(
+        `${symbol}15K`,
+      );
+      expect(document.querySelector("[data-money-canonical]")).toHaveValue("15000.25");
+      expect(screen.queryByRole("combobox")).toBeNull();
+      if (currency !== "NGN") expect(screen.queryByText(/₦/)).toBeNull();
+    },
+  );
+
   it("fails closed when the payment summary cannot be verified", () => {
     render(
-      <BookingPayments
-        summary={null}
-        payments={[]}
-        canRecordPayment
-        action={vi.fn()}
-      />,
+      <BookingPayments summary={null} payments={[]} canRecordPayment action={vi.fn()} />,
     );
 
     expect(screen.queryByRole("button", { name: "Record payment" })).toBeNull();

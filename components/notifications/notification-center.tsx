@@ -148,6 +148,20 @@ export function NotificationListView({ onNavigate }: { onNavigate?: () => void }
               {/* A normal document navigation lets the resolver switch the business cookie. No prefetch can mark a notification read. */}
               <a
                 href={`/notifications/open/${item.id}`}
+                onClick={(event) => {
+                  // Release the shared modal lock before a document navigation or BFCache snapshot.
+                  // Modified clicks keep the current window and its dialog intact.
+                  if (
+                    !event.defaultPrevented &&
+                    event.button === 0 &&
+                    !event.metaKey &&
+                    !event.ctrlKey &&
+                    !event.shiftKey &&
+                    !event.altKey
+                  ) {
+                    onNavigate?.();
+                  }
+                }}
                 className="flex min-h-20 gap-3 rounded-md px-2 py-4 outline-offset-2 hover:bg-muted/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring"
               >
                 <span
