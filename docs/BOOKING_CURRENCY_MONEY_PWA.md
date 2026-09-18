@@ -9,7 +9,8 @@ release claim.
 Clean `loop-experience/hompage` at `5f59ff66975a3a0bdf9e4ba962dabb72e38a727a`.
 Fetched main `cea7ad4b50e40daedfce3031a39c8fee68c7fb8e`; identical application
 contents, with PR #85's merge history. Created `fix/booking-currency-money-pwa`
-from main. Production metadata verified main's exact SHA on READY Production
+from main, then renamed this task branch to `booking-currency-money-pwa` to
+avoid the existing case-insensitive `Fix/` namespace collision on macOS. Production metadata verified main's exact SHA on READY Production
 `dpl_SX7HRb5pbBrbkKKVzgmW8mcjuTqH`, aliased to `mykustomers.com` and `www`.
 
 ## B. Currency model audit
@@ -170,15 +171,17 @@ is browser evidence only; OS notification background/cold launch remains unverif
 ## Z. In-app notification result
 
 Delayed-resolver cleanup passes in Chromium and WebKit. Exact booking deep-link
-and business resolver behavior retained. Full normal/back/matrix results pending.
+and business resolver behavior retained. Normal/Back/viewport matrix passed in both engines.
 
 ## AA. Chromium result
 
-Focused money/caret and notification cleanup passed. Full suite pending.
+Focused money/caret and notification cleanup passed. Complete production-build
+HTTPS notification suite passed (14 tests in this engine).
 
 ## AB. WebKit result
 
-Focused money/caret and notification cleanup passed. Full suite pending.
+Focused money/caret and notification cleanup passed. Complete production-build
+HTTPS notification suite passed (14 tests in this engine).
 
 ## AC. Physical iOS result
 
@@ -199,8 +202,9 @@ and public confirmation layouts. Screenshots are local QA artifacts.
 ## AF. Alignment/polish pass
 
 Currency prefix replaces generic money icons in edit fields to avoid overlapping
-adornments. Helper stays secondary below the exact input. Final screenshot review
-and production-rendered matrix pending.
+adornments. Helper stays secondary below the exact input. Production-rendered matrix passed; reviewed 320px and 390px WebKit screenshots
+for prefix/value/helper alignment. Full exact input remains readable without page
+overflow, and nav remains at the viewport edge.
 
 ## AG. Database changes
 
@@ -260,13 +264,12 @@ Full existing E2E run in progress using isolated local server/development email.
 
 ## AS. Build
 
-Isolated production build passed with local fixture credentials. Initial HTTPS
-fixture run: 26 passed, 2 failed. A synchronous caret assertion raced React
-restoration; polling the actual caret passes three repetitions in each engine.
-The WebKit matrix unloaded documents during deferred RSC prefetch, matching the
-existing Profile matrix failure in PR84_CI_RECOVERY.md. Reused its network-idle
-and tracked-prefetch sequencing; zero-page-error assertion remains intact.
-Final full HTTPS fixture run is in progress.
+Isolated production build passed with local fixture credentials. Complete HTTPS
+notification/shell suite: 28 passed, Chromium and WebKit (1.2m). Matrix waits for
+Next's deferred prefetch before deliberate document unload, matching the existing
+Profile test approach; zero-page-error assertions remain intact. Keyboard input
+checks wait for the currency menu's focus restoration before editing. The exact
+caret assertions are retained. Six additional isolated repeated money runs passed.
 
 ## AT. Dependency audit
 
@@ -278,7 +281,8 @@ Passed; final check pending.
 
 ## AV. PR
 
-Pending.
+[Draft PR #86](https://github.com/davidfrank96/MyKustomers-main-app/pull/86).
+Draft/unmerged because physical symptom reproduction remains open.
 
 ## AW. CI
 

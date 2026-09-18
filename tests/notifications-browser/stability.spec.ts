@@ -507,6 +507,8 @@ test("money input preserves exact editing and restores navigation after reduced 
     await expect(page.locator("[data-money-compact]").first()).toContainText(
       `${symbol}5M`,
     );
+    // Radix restores trigger focus on close; let that complete before editing.
+    await expect(page.getByLabel("Currency", { exact: true })).toBeFocused();
     await expect(amount).toHaveValue("5,000,000.25");
   }
   await amount.fill("1234");
