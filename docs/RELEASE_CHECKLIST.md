@@ -2,7 +2,7 @@
 
 ## Auth session integrity release gate — 2026-09-18
 
-Do not mark this pass Production verified until the [auth integrity audit](AUTH_SESSION_ROUTING_CONFIRMATION.md) has live project plan/settings readback, authorized native 24-hour time-box configuration, controlled pre/post-limit refresh evidence, green required CI and exact merged deployment verification. Project-management access is currently blocked. Do not substitute app service-role access, fixture expiry or a client timer for provider evidence. No mass session deletion or passkey activation is authorized by this gate.
+Do not mark this pass Production verified until the [auth integrity audit](AUTH_SESSION_ROUTING_CONFIRMATION.md) has authorized native 24-hour time-box configuration, controlled pre/post-limit refresh evidence, green required CI and exact merged deployment verification. Live project plan/settings readback is complete: the Free plan disables native time-box configuration, and the current value is 0 (never). A supported plan is required; no paid upgrade has been performed. Do not substitute app service-role access, fixture expiry or a client timer for provider evidence. No mass session deletion or passkey activation is authorized by this gate.
 
 
 ## Secure social-preview manual review — 2026-09-15

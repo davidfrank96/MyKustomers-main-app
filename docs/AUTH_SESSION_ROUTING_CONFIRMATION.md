@@ -1,7 +1,8 @@
 # Auth session, routing and confirmation integrity
 
-Status: IMPLEMENTED — VERIFICATION PENDING. Provider configuration access is
-blocked; the 24-hour session policy is requested, **not configured or verified**.
+Status: IMPLEMENTED — VERIFICATION PENDING. The native 24-hour session policy is
+**PROVIDER CAPABILITY BLOCKED** on the project's verified Free plan; it is not
+configured or verified.
 
 ## Scope and baseline
 
@@ -23,20 +24,34 @@ both the forwarded request and response. Server identity/AAL reads use verified
 claims with request-scoped React memoization. There is no session-age localStorage,
 unsigned age cookie, browser timer or application session table.
 
-The desired provider-native maximum lifetime is 24 hours. Live maximum lifetime,
-JWT configuration, inactivity timeout, single-session mode and reuse interval
-remain UNKNOWN: the Supabase connector denies access to the correct project
-`xtwzdgxbnlplsvcnmeje`, the CLI has no management login, and the browser opens the
-Supabase sign-in screen. Local app service-role access does not establish
-management access or subscription entitlement. No setting has been changed.
-The public Auth settings endpoint confirms Google and email enabled but does
-not expose time-box or passkey settings. Do not infer plan support from that.
+The desired provider-native maximum lifetime is 24 hours. After the user signed
+in on 2026-09-18, the dashboard confirmed MyKustomers project
+`xtwzdgxbnlplsvcnmeje` is on the Free plan. Its Sessions page explicitly says
+configuration requires Pro or above; the session controls and Save are disabled.
+This replaces the earlier management-access uncertainty with a verified provider
+capability blocker. No setting or subscription has been changed.
+
+| Dashboard setting | Before | After read-only audit |
+| --- | --- | --- |
+| Time-box user sessions | 0 hours (never) | 0 hours (never) |
+| Access token expiry | 3600 seconds | 3600 seconds |
+| Inactivity timeout | 0 hours (never) | 0 hours (never) |
+| Enforce single session | Off | Off |
+| Detect/revoke compromised refresh tokens | On | On |
+| Refresh token reuse interval | 10 seconds | 10 seconds |
+| Enable Passkey authentication | Off | Off |
+
+The safest native route is a user-approved upgrade to Pro or above, then applying
+only the already-authorized 24-hour time-box and testing controlled refreshes on
+both sides of the boundary. No paid upgrade is authorized by this audit. A custom
+server-owned enforcement design would require separate review and implementation;
+it is not a drop-in workaround. The PR remains draft while this policy is blocked.
 
 [Supabase sessions](https://supabase.com/docs/guides/auth/sessions) documents
 native time-boxing on Pro and above and enforcement at refresh. Existing access
 tokens can remain valid until expiry, so effective lifetime can include the JWT
-interval. The change does not instantly delete old sessions. After authorized
-project access is available: record exact settings and plan, change only the
+interval (currently one hour). The change does not instantly delete old sessions.
+After the project has a supported plan: record exact settings, change only the
 maximum lifetime to 24h if supported, reread it, and verify controlled sessions
 before/after the boundary without changing legitimate sessions or JWT expiry.
 If the plan lacks support, report a provider capability blocker and propose a
@@ -92,8 +107,9 @@ verification; fixture routing tests do not prove a configured lifetime.
 ## Passkeys: audit only
 
 Application status: **NOT ENABLED**. No passkey/WebAuthn opt-in, enrollment or
-sign-in path exists. Project-level configuration is **NOT VERIFIED**, not assumed
-disabled. The lockfile resolves `@supabase/supabase-js` 2.112.3.
+sign-in path exists. The dashboard's **Enable Passkey authentication** switch was
+verified Off on 2026-09-18 and left unchanged. The lockfile resolves
+`@supabase/supabase-js` 2.112.3.
 [Supabase passkey docs](https://supabase.com/docs/guides/auth/passkeys) require
 2.105.0+ and still label the opt-in API experimental; the May 28 changelog calls
 it Beta. No SDK upgrade or experimental activation was performed.
