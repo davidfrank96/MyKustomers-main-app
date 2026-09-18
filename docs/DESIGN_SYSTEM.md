@@ -1,5 +1,10 @@
 # Design System
 
+## Customer descriptions
+
+Long confirmation Details use a separate full text area below the label, left alignment, pre-wrap, normal word breaking and anywhere wrapping. Preserve paragraphs and separate title/description rows. Amendment current/proposed values and add-on descriptions follow the same text rules. Omit an empty confirmation Details row; no global overflow hiding. [Implementation audit](AUTH_SESSION_ROUTING_CONFIRMATION.md).
+
+
 ## Homepage headline loop — 2026-09-16
 
 The existing h1 has a thin muted-green rounded orbit with five small, upright

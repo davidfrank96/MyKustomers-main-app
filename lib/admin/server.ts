@@ -39,6 +39,7 @@ export class PrivilegedPlatformAdminAuthorizationError extends Error {
 
 export const getPlatformAdmin = cache(async function getPlatformAdmin(
   authenticatedUser?: AuthenticatedUser,
+  failOnLookupError = false,
 ): Promise<PlatformAdminAccess | null> {
   const user = authenticatedUser ?? (await getAuthenticatedUser());
 
@@ -48,6 +49,10 @@ export const getPlatformAdmin = cache(async function getPlatformAdmin(
 
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("get_my_platform_admin");
+
+  if (failOnLookupError && (error || data === null)) {
+    throw new Error("Account access could not be verified. Please try again.");
+  }
 
   if (error || !data || data.length !== 1) {
     return null;

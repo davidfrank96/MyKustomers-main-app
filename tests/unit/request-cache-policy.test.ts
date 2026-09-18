@@ -14,7 +14,10 @@ describe("request-scoped tenant context policy", () => {
   });
 
   it("uses the centralized zero-argument request-scoped workspace gate", () => {
-    expect(dashboardLayout).toContain('requireVendorWorkspace("/dashboard")');
+    expect(dashboardLayout).toContain("requireVendorWorkspace(next)");
+    expect(dashboardLayout).toContain(
+      "getSafeRedirectPath(requestHeaders.get(INTERNAL_REQUEST_PATH_HEADER))",
+    );
     expect(authServer).toContain("getCurrentBusinessContext()");
     expect(authServer).toContain("requireUser(next)");
     expect(authServer).not.toContain("getCurrentBusinessContext(user)");

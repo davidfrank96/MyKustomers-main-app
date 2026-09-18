@@ -84,7 +84,7 @@ function AddonTerms({ addon }: { addon: PublicAddon }) {
       </div>
       <div className="grid gap-1 py-4 sm:grid-cols-[10rem_1fr] sm:gap-4">
         <dt className="text-sm font-medium">Details</dt>
-        <dd className="min-w-0 break-words text-sm leading-6">
+        <dd className="min-w-0 whitespace-pre-wrap text-left text-sm leading-6 [overflow-wrap:anywhere] [word-break:normal]">
           {addon.description || "Not provided"}
         </dd>
       </div>

@@ -1,5 +1,10 @@
 # Auth Feature
 
+## 2026-09-18 routing integrity pass
+
+[Audit and release gate](../../docs/AUTH_SESSION_ROUTING_CONFIRMATION.md): the shared workspace-entry resolver sends verified admin-only accounts to the existing admin gate, retains owned pending-logo recovery, and fails safely for active but unusable memberships. Independent onboarding guards prevent a duplicate creation form. The dashboard layout retains the actual trusted internal path through login. Native 24-hour session time-boxing is requested but has not been configured: project-management access is unavailable. Passkey application integration remains disabled; provider-level status is unknown.
+
+
 Phase 2 implements the platform-user authentication foundation with Supabase
 Auth, server actions, and App Router auth routes.
 

@@ -328,6 +328,8 @@ test.describe("booking engine", () => {
     const businessName = "Phase 5 E2E Business";
     const customerName = `Phase 5 Customer ${randomUUID().slice(0, 8)}`;
     const bookingTitle = `Phase 5 Booking ${randomUUID().slice(0, 8)}`;
+    const bookingDescription =
+      "Three-tier chocolate cake with gold trim.\n\nDelivery is required by 2:00 PM.\nPlease call the venue coordinator on arrival.";
     const updatedTitle = `${bookingTitle} Updated`;
     const amendedTitle = `${updatedTitle} Amended`;
     createdBusinessSlugs.add(slug);
@@ -395,7 +397,7 @@ test.describe("booking engine", () => {
     await expect(page.getByLabel("Deposit recorded")).toHaveValue("");
     const scheduledFor = futureLocalDateTime();
     await page.getByLabel("Booking title").fill(bookingTitle);
-    await page.getByLabel("Description").fill("Created through Phase 5 E2E.");
+    await page.getByLabel("Description").fill(bookingDescription);
     await page.getByLabel("Scheduled delivery date").fill(scheduledFor);
     await page.getByLabel("Agreed total").fill("45000");
     await page.getByLabel("Deposit recorded").fill("5000");
@@ -407,6 +409,17 @@ test.describe("booking engine", () => {
     });
     const bookingDetailUrl = page.url();
     const bookingSyncId = new URL(bookingDetailUrl).pathname.split("/").at(-1)!;
+    const persistedText = await admin
+      .from("bookings")
+      .select("title, description")
+      .eq("id", bookingSyncId)
+      .single();
+    expect(persistedText.error).toBeNull();
+    expect(persistedText.data?.title).toBe(bookingTitle);
+    // Native multipart forms encode textarea line endings as CRLF.
+    expect(persistedText.data?.description?.replace(/\r\n/g, "\n")).toBe(
+      bookingDescription,
+    );
     const bookingIdentity = page.locator("[data-booking-identity]");
     const bookingJourney = page.locator("[data-booking-journey]");
     const bookingDetailScreenshotDirectory = "test-results/booking-detail-header-journey";
@@ -1005,6 +1018,15 @@ test.describe("booking engine", () => {
     await expect(customerPage.locator('meta[property="og:image:type"]')).toHaveAttribute(
       "content",
       "image/png",
+    );
+    expect(
+      await customerPage
+        .locator("dd")
+        .filter({ hasText: "Three-tier chocolate cake" })
+        .textContent(),
+    ).toBe(bookingDescription);
+    await expect(customerPage.locator("dd").filter({ hasText: updatedTitle })).toHaveText(
+      updatedTitle,
     );
     const vendorPreview = await page.request.get(
       `/social/confirmation/${linkAfterCrawler!.id}`,
