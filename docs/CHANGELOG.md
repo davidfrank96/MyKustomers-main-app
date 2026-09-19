@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-09-19 — Platform health and Admin logout
+
+IMPLEMENTED — RELEASE VERIFICATION PENDING. Admin now exposes the existing shared
+logout control outside its scrolling navigation. Customer-detail booking-state
+reads are bounded existence queries, preventing a REST row cap from hiding active
+work. Both archive entry points use database time to avoid reproduced clock-skew
+constraint failures. No schema, dependency, provider, environment or WhatsApp integration change.
+See [platform health evidence and release gates](PLATFORM_HEALTH_AND_EFFICIENCY.md).
+
 ## 2026-09-18 — Auth routing and customer text integrity
 
 IMPLEMENTED — VERIFICATION PENDING. Fix admin-only post-login/onboarding routing, fail safely for unusable pending memberships, preserve the protected internal return path through login, and preserve readable multiline confirmation/amendment/add-on text. Separate field mapping remains unchanged. Signed-in dashboard verification confirms native 24-hour session configuration is blocked by the project's Free plan (Pro or above required). Current policy remains never; provider passkeys are disabled. No settings or paid plan changed. See [audit and release gate](AUTH_SESSION_ROUTING_CONFIRMATION.md).

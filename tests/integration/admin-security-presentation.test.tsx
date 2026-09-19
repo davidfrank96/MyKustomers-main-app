@@ -36,6 +36,7 @@ vi.mock("@/lib/admin/server", () => ({
   PlatformAdminAuthorizationError: mocks.AuthorizationError,
 }));
 vi.mock("@/lib/auth/server", () => ({ requireUser: mocks.user }));
+vi.mock("@/features/auth/actions", () => ({ logoutAction: vi.fn() }));
 vi.mock("@/features/admin/health-server", () => ({
   getAdminHealthSummary: mocks.summary,
   getAdminSecurityActivity: mocks.activity,

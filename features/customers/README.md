@@ -59,3 +59,17 @@ Customer-contact email normalization trims surrounding whitespace, preserves
 the mailbox/local part exactly, and lowercases only the domain. It does not use
 a provider allowlist; syntactically supported Gmail, Outlook/Hotmail, Yahoo,
 iCloud, country-code, and custom domains follow the same validation policy.
+
+## Bounded booking-state checks (2026-09-19)
+
+Customer-detail archive/delete presentation uses two parallel, business/customer
+scoped `limit(1)` existence reads: any booking and any non-terminal booking. It
+does not infer active state from a truncated historical response. Either lookup
+error conservatively retains both booking flags. Archive/restore retain server-side tenant filters and RLS; deletion retains its
+authoritative eligibility RPC. Active bookings remain valid when archived. Customer-list enrichment is a separate scale
+follow-up recorded in [platform health](../../docs/PLATFORM_HEALTH_AND_EFFICIENCY.md).
+
+Both archive server actions send PostgreSQL's `now` timestamp input, so archive
+and creation timestamps use the database clock. This avoids the existing
+`customers_archived_after_created` constraint rejecting a recently created
+customer when the application host clock lags. No constraint or RLS change.

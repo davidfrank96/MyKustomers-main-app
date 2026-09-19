@@ -109,23 +109,26 @@ export async function listCustomersForBusiness(
 
 export async function getCustomerBookingState(businessId: string, customerId: string) {
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("bookings")
-    .select("status")
-    .eq("business_id", businessId)
-    .eq("customer_id", customerId);
+  // Existence checks must not depend on a truncated historical row set.
+  const bookingQuery = () =>
+    supabase
+      .from("bookings")
+      .select("id")
+      .eq("business_id", businessId)
+      .eq("customer_id", customerId)
+      .limit(1);
+  const [anyBooking, activeBooking] = await Promise.all([
+    bookingQuery(),
+    bookingQuery().not("status", "in", "(COMPLETED,CANCELLED)"),
+  ]);
 
-  if (error) {
+  if (anyBooking.error || activeBooking.error) {
     return { hasBookings: true, hasActiveBookings: true };
   }
 
-  const bookingRows = data ?? [];
-  const terminalStatuses = new Set(["COMPLETED", "CANCELLED"]);
   return {
-    hasBookings: bookingRows.length > 0,
-    hasActiveBookings: bookingRows.some(
-      (booking) => !terminalStatuses.has(booking.status),
-    ),
+    hasBookings: Boolean(anyBooking.data?.length || activeBooking.data?.length),
+    hasActiveBookings: Boolean(activeBooking.data?.length),
   };
 }
 

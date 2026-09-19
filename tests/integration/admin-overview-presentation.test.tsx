@@ -25,6 +25,7 @@ vi.mock("@/lib/admin/server", () => ({
 }));
 vi.mock("next/navigation", () => ({ useSelectedLayoutSegment: () => mocks.segment }));
 vi.mock("@sentry/nextjs", () => ({ captureException: vi.fn() }));
+vi.mock("@/features/auth/actions", () => ({ logoutAction: vi.fn() }));
 
 const fixture: AdminOverview = {
   businesses: 12,
@@ -68,6 +69,13 @@ afterEach(() => {
 });
 
 describe("admin overview presentation", () => {
+  it("exposes the shared logout form outside the scrolling admin navigation", async () => {
+    render(await AdminLayout({ children: <p>Admin content</p> }));
+    const logout = screen.getByRole("button", { name: "Log out" });
+    expect(logout.closest("header")).not.toBeNull();
+    expect(logout.closest("nav")).toBeNull();
+    expect(logout.closest("form")).not.toBeNull();
+  });
   it("reveals the active link and focused mobile links without intercepting navigation", () => {
     const scroll = vi.fn();
     const previous = HTMLElement.prototype.scrollIntoView;

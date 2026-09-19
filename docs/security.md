@@ -1229,3 +1229,12 @@ cleanup or capability revocation was justified. Migration
 `20260902104919_customer_email_source_of_truth.sql` changes functions only;
 ownership, empty search paths, grants, RLS, tenant derivation, rate limiting,
 normalization, and historical rows remain unchanged.
+
+## Evidence-driven efficiency and shared Admin logout (2026-09-19)
+
+Platform efficiency work must not weaken tenant isolation, Auth, capability
+privacy, durable communication evidence, or correctness. The Admin shell reuses
+the vendor shared logout, including server device revocation and local session/
+business-cookie cleanup. Platform role/AAL2 rules and Supabase global sign-out
+semantics are unchanged. Existing JWT lifetime is not represented as immediate
+global token invalidation. See [audit boundaries](PLATFORM_HEALTH_AND_EFFICIENCY.md).

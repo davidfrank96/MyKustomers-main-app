@@ -967,3 +967,18 @@ returned zero matching businesses and Auth users.
 - [ ] Controlled provider/inbox, wrong-recipient, archive/restore, and delete
       mutation smoke runs only if a separately safe target and controlled
       recipients are available; otherwise record the limitation, not a pass.
+
+## Platform health / Admin sign-out release gate (2026-09-19)
+
+- [x] Existing shared logout reused; role/AAL2 and notification revocation preserved.
+- [x] Optimized Chromium/WebKit Admin flow and responsive geometry covered.
+- [x] Bounded customer-state regression and full unit suite pass.
+- [x] Notification DB/browser contracts pass; scheduler observed ACTIVE.
+- [x] Local E2E failures diagnosed; archive clock boundary fixed and retested.
+- [x] Initial PR full cloud-backed E2E green; final SHA still requires green CI.
+- [ ] Exact-head CI green and Preview healthy.
+- [ ] Exact merged Production deployment current and controlled Admin logout verified.
+- [ ] Vendor/public/PWA and bounded post-release log smoke complete.
+
+No WhatsApp implementation belongs to this release.
+[Detailed audit and release evidence](PLATFORM_HEALTH_AND_EFFICIENCY.md).

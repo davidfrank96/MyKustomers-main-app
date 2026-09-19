@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   requireCurrentBusiness: vi.fn(),
@@ -17,7 +17,11 @@ vi.mock("@/features/customers/queries", () => ({
   hasPossibleDuplicateCustomer: vi.fn(),
 }));
 
-import { deleteCustomerAction } from "@/features/customers/actions";
+import {
+  archiveCustomerAction,
+  archiveCustomerLifecycleAction,
+  deleteCustomerAction,
+} from "@/features/customers/actions";
 import { initialCustomerActionState } from "@/features/customers/action-state";
 
 const customerId = "00000000-0000-4000-8000-000000000001";
@@ -34,6 +38,57 @@ function customerLookup(data: { id: string } | null, error: unknown = null) {
 function formData() {
   return new FormData();
 }
+
+describe("customer archive clock boundary", () => {
+  afterEach(() => vi.useRealTimers());
+
+  it.each(["legacy", "lifecycle"])(
+    "%s archive uses database time when the application clock is behind creation",
+    async (entry) => {
+      vi.clearAllMocks();
+      vi.useFakeTimers({ toFake: ["Date"] });
+      vi.setSystemTime(new Date("2026-09-19T10:00:00Z"));
+      mocks.requireCurrentBusiness.mockResolvedValue({
+        user: { id: "user-1" },
+        business: { id: "business-1" },
+      });
+      const databaseCreatedAt = Date.parse("2026-09-19T10:00:05Z");
+      const databaseNow = Date.parse("2026-09-19T10:00:10Z");
+      let archivedAt = "";
+      let constraintSatisfied = false;
+      const query = {
+        update: vi.fn((values: { archived_at: string }) => {
+          archivedAt = values.archived_at;
+          return query;
+        }),
+        eq: vi.fn(() => query),
+        is: vi.fn(() => query),
+        select: vi.fn(() => query),
+        maybeSingle: vi.fn(async () => {
+          const archiveTime = archivedAt === "now" ? databaseNow : Date.parse(archivedAt);
+          constraintSatisfied = archiveTime >= databaseCreatedAt;
+          return constraintSatisfied
+            ? { data: { id: customerId }, error: null }
+            : { data: null, error: { code: "23514" } };
+        }),
+      };
+      mocks.createClient.mockResolvedValue({ from: vi.fn(() => query) });
+      if (entry === "legacy") await archiveCustomerAction(customerId);
+      else
+        expect(
+          await archiveCustomerLifecycleAction(
+            customerId,
+            initialCustomerActionState,
+            formData(),
+          ),
+        ).toMatchObject({ status: "success" });
+      expect(constraintSatisfied).toBe(true);
+      expect(query.eq).toHaveBeenCalledWith("business_id", "business-1");
+      expect(query.eq).toHaveBeenCalledWith("id", customerId);
+      expect(query.is).toHaveBeenCalledWith("archived_at", null);
+    },
+  );
+});
 
 describe("deleteCustomerAction", () => {
   beforeEach(() => {

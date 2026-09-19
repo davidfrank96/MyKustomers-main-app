@@ -40,6 +40,7 @@ vi.mock("@/lib/admin/server", () => ({
   PlatformAdminAuthorizationError: class extends Error {},
 }));
 vi.mock("@/lib/auth/server", () => ({ requireUser: mocks.user }));
+vi.mock("@/features/auth/actions", () => ({ logoutAction: vi.fn() }));
 const originalScrollIntoView = HTMLElement.prototype.scrollIntoView;
 beforeEach(() => {
   HTMLElement.prototype.scrollIntoView = vi.fn();

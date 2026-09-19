@@ -22,6 +22,7 @@ import {
 import { requireUser } from "@/lib/auth/server";
 import { BrandLogo } from "@/components/shared/brand-logo";
 import { AdminNavigationLink } from "@/components/admin/admin-navigation";
+import { LogoutForm } from "@/components/notifications/logout-form";
 import { PRIVATE_ROBOTS } from "@/lib/seo/site";
 
 export const metadata: Metadata = {
@@ -91,6 +92,9 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
                 Signed in as {user.email ?? "authenticated account"}
               </p>
             </div>
+          </div>
+          <div className="pb-3 xl:order-last xl:shrink-0 xl:py-3">
+            <LogoutForm />
           </div>
           <nav
             aria-label="Admin navigation"

@@ -1931,3 +1931,21 @@ and fixture cleanup passed against merge commit `d2f55fd`.
   production clipboard handling are unchanged.
 - Client-rendered date coverage locks the shared display formatter's punctuation
   so Node and browser engines do not hydrate different timestamp strings.
+
+## Platform health regression coverage (2026-09-19)
+
+`tests/unit/customer-booking-state.test.ts` exercises real PostgREST query encoding
+against a capped response fixture, including an active booking after 1000 terminal
+rows and conservative failure behavior. `tests/integration/logout-form.test.tsx`
+checks optional browser cleanup and the authoritative server action boundary.
+`tests/profile-ui/admin-logout.spec.ts` runs in the existing Profile/Social job:
+zero-business Admin sign-out, Auth/business cookie cleanup, protected revisits and
+Back, ordinary-vendor denial, and ten-width geometry in Chromium/WebKit. The
+guarded real-admin E2E includes logout but still requires its dedicated safe test
+project. Fixture results do not replace Production Auth smoke or physical push.
+See [platform health results and exclusions](PLATFORM_HEALTH_AND_EFFICIENCY.md).
+
+The customer lifecycle unit suite covers both archive entry points with an app
+clock behind database creation time. The controlled PostgREST customer journey
+reproduced `customers_archived_after_created` before the fix and passed after
+switching to database timestamp input. Existing E2E assertions remain unchanged.

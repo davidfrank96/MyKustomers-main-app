@@ -127,3 +127,12 @@ the risk.
 
 Do not add dead navigation. Only implemented destinations belong in the admin
 shell.
+
+## Shared sign-out (2026-09-19)
+
+The Admin header reuses `LogoutForm` and the authoritative `logoutAction` outside
+its horizontally scrolling navigation. It works without vendor membership and
+preserves push/badge cleanup, server device revocation, Auth sign-out and cookie
+cleanup. Admin role and privileged AAL2 checks are unchanged. Optimized local
+Chromium/WebKit coverage passes; Production evidence is tracked in
+[platform health](../../docs/PLATFORM_HEALTH_AND_EFFICIENCY.md).
