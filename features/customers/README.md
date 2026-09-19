@@ -59,3 +59,12 @@ Customer-contact email normalization trims surrounding whitespace, preserves
 the mailbox/local part exactly, and lowercases only the domain. It does not use
 a provider allowlist; syntactically supported Gmail, Outlook/Hotmail, Yahoo,
 iCloud, country-code, and custom domains follow the same validation policy.
+
+## Bounded booking-state checks (2026-09-19)
+
+Customer-detail archive/delete presentation uses two parallel, business/customer
+scoped `limit(1)` existence reads: any booking and any non-terminal booking. It
+does not infer active state from a truncated historical response. Either lookup
+error conservatively retains both booking flags. Mutation RPC authorization and
+constraints remain authoritative. Customer-list enrichment is a separate scale
+follow-up recorded in [platform health](../../docs/PLATFORM_HEALTH_AND_EFFICIENCY.md).

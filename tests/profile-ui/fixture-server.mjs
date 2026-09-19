@@ -57,6 +57,9 @@ let failWrites = false;
 let membershipScenario = "normal";
 let publicBookingOverrides = {};
 let writes = [];
+let platformAdmin = false;
+let sessionRevoked = false;
+let requestCounts = {};
 let preferences = {
   user_id: userId,
   customer_confirmations: true,
@@ -185,6 +188,13 @@ createServer(async (req, res) => {
     res.end(req.method === "HEAD" ? "" : JSON.stringify(data));
   };
   if (url.pathname === "/health") return send({ ok: true });
+  if (url.pathname === "/fixture/metrics") return send(requestCounts);
+  if (url.pathname === "/fixture/metrics/reset") {
+    requestCounts = {};
+    return send({ ok: true });
+  }
+  if (!url.pathname.startsWith("/fixture/"))
+    requestCounts[url.pathname] = (requestCounts[url.pathname] ?? 0) + 1;
   if (url.pathname === "/fixture/session")
     return send({
       cookie: `base64-${encode(session)}`,
@@ -199,6 +209,7 @@ createServer(async (req, res) => {
   if (url.pathname === "/fixture/state")
     return send({
       writes,
+      sessionRevoked,
       business,
       otherBusiness,
       preferences,
@@ -235,6 +246,9 @@ createServer(async (req, res) => {
     membershipScenario = "normal";
     publicBookingOverrides = {};
     writes = [];
+    platformAdmin = false;
+    sessionRevoked = false;
+    requestCounts = {};
     links = originalLinks.map((link) => ({ ...link }));
     preferences = {
       user_id: userId,
@@ -254,6 +268,7 @@ createServer(async (req, res) => {
     if (scenario.memberships) membershipScenario = scenario.memberships;
     if (scenario.logoShape) logoShape = scenario.logoShape;
     if (scenario.role) memberRole = scenario.role;
+    if (scenario.platformAdmin !== undefined) platformAdmin = scenario.platformAdmin;
     if (scenario.failWrites !== undefined) failWrites = scenario.failWrites;
     if (scenario.link) Object.assign(links[0], scenario.link);
     if (scenario.logoFailure !== undefined) logoFailure = scenario.logoFailure;
@@ -272,9 +287,14 @@ createServer(async (req, res) => {
     return res.end(second ? otherLogo : logoShape ? await fixtureLogo(logoShape) : logo);
   }
   if (url.pathname === "/auth/v1/user")
-    return req.headers.authorization === `Bearer ${accessToken}`
+    return !sessionRevoked && req.headers.authorization === `Bearer ${accessToken}`
       ? send(user)
       : send({ message: "Invalid local fixture session" }, 401);
+  if (url.pathname === "/auth/v1/logout") {
+    sessionRevoked = true;
+    res.writeHead(204);
+    return res.end();
+  }
   if (!url.pathname.startsWith("/rest/v1/")) return send({}, 404);
   let body = null;
   if (!["GET", "HEAD"].includes(req.method)) {
@@ -289,7 +309,29 @@ createServer(async (req, res) => {
     if (url.pathname.endsWith("/rpc/record_audit_event")) return send(null);
     if (failWrites) return send({ message: "Local fixture write unavailable" }, 503);
     const rpc = url.pathname.split("/").at(-1);
-    if (rpc === "get_my_platform_admin") return send([]);
+    if (rpc === "get_my_platform_admin")
+      return send(
+        platformAdmin && !sessionRevoked
+          ? [{ user_id: userId, role: "SUPER_ADMIN", status: "ACTIVE" }]
+          : [],
+      );
+    if (rpc === "get_platform_admin_overview")
+      return send({
+        businesses: 2,
+        platform_users: 1,
+        customers: 2,
+        bookings: 2,
+        active_bookings: 2,
+        due_today: 0,
+        overdue: 0,
+        completed: 0,
+        open_issues: 0,
+        email_pending: 0,
+        email_sending: 0,
+        email_sent: 0,
+        email_failed: 0,
+        refreshed_at: new Date().toISOString(),
+      });
     if (
       [
         "get_confirmation_public_view",

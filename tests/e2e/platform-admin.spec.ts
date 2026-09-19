@@ -175,9 +175,11 @@ test.describe("platform admin route authorization", () => {
 
       await page.context().clearCookies();
       await signIn(page, activeAdmin.email, password);
-      await expect(page).toHaveURL(/\/onboarding/);
+      await expect(page).toHaveURL(/\/admin$/);
       await page.goto("/admin");
-      await expect(page.getByText("My Kustomers Admin")).toBeVisible();
+      await expect(
+        page.getByRole("navigation", { name: "Admin navigation" }),
+      ).toBeVisible();
       await expect(page.getByText("Role: Super Admin")).toBeVisible();
       await expect(page.getByRole("heading", { name: "Overview" })).toBeVisible();
       await expect(page.getByRole("heading", { name: "Platform scale" })).toBeVisible();
@@ -382,6 +384,17 @@ test.describe("platform admin route authorization", () => {
           await expectNoOverflow(page, width);
         }
       }
+
+      await page.getByRole("button", { name: "Log out", exact: true }).click();
+      await expect(page).toHaveURL(/\/login\?message=signed-out/);
+      await page.goto("/admin");
+      await expect(page).toHaveURL(/\/login\?next=%2Fadmin/);
+      await expect(
+        page.getByRole("navigation", { name: "Admin navigation" }),
+      ).toHaveCount(0);
+      await signIn(page, activeAdmin.email, password);
+      await expect(page).toHaveURL(/\/dashboard/);
+      await page.goto("/admin");
 
       const { error: disableError } = await service
         .from("platform_admins")
