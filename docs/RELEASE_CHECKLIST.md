@@ -974,7 +974,8 @@ returned zero matching businesses and Auth users.
 - [x] Optimized Chromium/WebKit Admin flow and responsive geometry covered.
 - [x] Bounded customer-state regression and full unit suite pass.
 - [x] Notification DB/browser contracts pass; scheduler observed ACTIVE.
-- [ ] Full cloud-backed E2E failures resolved/classified with passing release gate.
+- [x] Local E2E failures diagnosed; archive clock boundary fixed and retested.
+- [x] Initial PR full cloud-backed E2E green; final SHA still requires green CI.
 - [ ] Exact-head CI green and Preview healthy.
 - [ ] Exact merged Production deployment current and controlled Admin logout verified.
 - [ ] Vendor/public/PWA and bounded post-release log smoke complete.

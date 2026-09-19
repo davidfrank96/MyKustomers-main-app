@@ -161,7 +161,8 @@ export async function archiveCustomerAction(customerId: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("customers")
-    .update({ archived_at: new Date().toISOString() })
+    // PostgreSQL resolves this timestamp input against its own transaction clock.
+    .update({ archived_at: "now" })
     .eq("business_id", business.id)
     .eq("id", customerId)
     .is("archived_at", null)
@@ -193,7 +194,8 @@ export async function archiveCustomerLifecycleAction(
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("customers")
-    .update({ archived_at: new Date().toISOString() })
+    // Keep archive time on the same clock as the database-created timestamp.
+    .update({ archived_at: "now" })
     .eq("business_id", business.id)
     .eq("id", customerId)
     .is("archived_at", null)

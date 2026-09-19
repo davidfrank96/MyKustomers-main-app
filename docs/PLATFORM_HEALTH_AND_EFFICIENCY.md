@@ -2,7 +2,7 @@
 
 STATUS: IMPLEMENTED — RELEASE VERIFICATION PENDING
 
-This is a bounded pre-integration audit and two application fixes, not an
+This is a bounded pre-integration audit and three application fixes, not an
 exhaustive penetration test or a production load test. NO WHATSAPP INTEGRATION
 INCLUDED. Release evidence below distinguishes fixture, cloud-backed, and live
 Production observations. No database, environment, provider, or dependency change.
@@ -122,8 +122,9 @@ P2 fixed: customer-detail booking-state detection fetched an unbounded history.
 A deterministic 1000-completed-plus-one-active case reproduced a false inactive
 result at the REST row cap. Two tenant/customer-scoped, parallel `limit(1)`
 existence reads now return at most two IDs. Errors remain conservative. This
-trades one history request for two small independent requests. Existing mutation
-RPCs remain the authoritative archive/delete protection.
+trades one history request for two small independent requests. Existing server actions retain tenant filters and database RLS; deletion still
+uses the authoritative eligibility RPC. Active bookings are permitted during
+archive: the active flag controls the explanatory notice, not archive permission.
 
 Read-only live aggregate during testing: 40 customer/business groups with bookings,
 maximum history 11, zero groups at 1000. This is a latent scale/correctness defect,
@@ -141,6 +142,17 @@ Live Performance Advisor: 0 errors, 0 warnings, 26 informational recommendations
 including foreign-key index coverage. No EXPLAIN evidence demonstrated a current
 bottleneck; index proposals need exact plans, write/storage costs, rollback and
 separate approval.
+
+P2 fixed during E2E diagnosis: both customer archive actions supplied application
+wall-clock timestamps. Repeated controlled mobile runs returned PostgreSQL `23514`,
+`customers_archived_after_created`. The timestamp boundary is now database-owned:
+the existing PostgREST update sends the PostgreSQL timestamp input `now`. No SQL
+text interpolation, migration, grant, or constraint weakening is involved. Two
+clock-skew unit cases fail before and pass after; the same real PostgREST customer
+journey passes after the change. A read-only database check also verified JSON
+timestamp input resolves to `transaction_timestamp()`. This is a request value,
+not a persisted SQL definition that could freeze a parsed timestamp. See the
+[PostgreSQL special timestamp inputs](https://www.postgresql.org/docs/current/datatype-datetime.html#DATATYPE-DATETIME-SPECIAL-TABLE).
 
 ## K. Client-performance findings
 
@@ -256,14 +268,17 @@ outside the bounded audit.
 
 ## Y. P1 findings
 
-No confirmed application P1 identified. Full E2E failures are under investigation
-and block the release gate until resolved or independently reproduced/classified.
+No confirmed application P1 identified. Local E2E diagnosis identified the bounded
+archive clock defect below; the other initial timeouts passed unchanged on focused
+reruns. All executable CI jobs passed on the initial PR revision.
 
 ## Z. P2 fixes made
 
 1. Missing Admin logout: existing shared flow exposed accessibly.
 2. Customer-detail history-cap false state/unbounded transfer: bounded parallel
    existence reads, conservative failures, regression reproduction.
+3. Customer archive clock mismatch: use PostgreSQL transaction time in both shared
+   server archive entry points; preserve RLS, tenant predicates and constraints.
 
 ## AA. P3 recommendations
 
@@ -357,7 +372,8 @@ before starting that separately authorized integration.
 
 ## AN. Files changed
 
-Application: Admin layout and customer query module. Tests: shared logout, Admin
+Application: Admin layout, customer query module and both archive action entry
+points. Tests: shared logout, archive clock-skew regression, Admin
 presentations, bounded customer-state unit coverage, fixture Admin session/metrics,
 Admin browser and guarded runtime journey. Documentation: this report, changelog,
 testing, release checklist, security invariant, and affected feature READMEs.
@@ -380,7 +396,7 @@ PASS.
 
 ## AR. Unit/integration
 
-1085 passed, 24 skipped; 171 test files passed, 21 skipped (39.04s). Two Admin
+Final full suite: 1087 passed, 24 skipped; 171 test files passed, 21 skipped (22.61s). Two Admin
 presentation tests initially needed a server-action mock at the existing client
 boundary; after correcting that setup the full suite passed.
 
@@ -391,10 +407,14 @@ Command exit zero is not a runtime-security pass.
 
 ## AT. E2E
 
-Initial full run: 71 passed, 19 skipped, 12 failed (14.9m). Most failures remained
-pending in mobile form submission; one responsive journey waited for a business
-editor to load. Unchanged-assertion serial rerun is in progress. Release blocked
-until these failures are classified and the required gate passes.
+Initial full run: 71 passed, 19 skipped, 12 failed (14.9m). Unchanged serial
+rerun: 10 passed, two failed (10.5m). Payload-free diagnostics then passed the
+confirmation journey (both confirmation actions returned in 1.2–1.9s) and isolated
+the archive constraint failure. After the archive fix, that same remaining journey
+passed (20.3s); its archive response took 520ms. No assertions/timeouts/guards were
+weakened. Local contention is consistent with the intermittent delays, not proven
+as their sole cause. Initial revision full GitHub E2E also passed. Final exact-head
+CI will rerun the complete suite with the archive fix.
 
 ## AU. Profile/Social
 
@@ -436,11 +456,14 @@ only; release and prerequisite work still required).
 
 ## BC. PR
 
-Pending.
+[PR #88](https://github.com/davidfrank96/MyKustomers-main-app/pull/88), draft until
+final exact-head checks finish.
 
 ## BD. CI
 
-Baseline main green; this branch not yet submitted.
+Initial PR revision `c92598d50b917f9942520fbb0ef0ce41a69a6d4d`: all seven
+executable jobs passed in run `35444231842`; Runtime Security skipped. Final
+archive-fix revision requires its own green run. No required check changed.
 
 ## BE. Merge SHA
 
@@ -480,7 +503,7 @@ artifacts. Production scheduler remains active.
 
 ## BM. Remaining blockers before WhatsApp
 
-Complete E2E, exact-head CI/Preview/Production and controlled Admin/logout smoke;
+Complete final exact-head CI/Preview/Production and controlled Admin/logout smoke;
 then approve and fulfill the architectural prerequisites in AM. Live Sentry and
 physical-device gaps remain explicitly recorded. Pro-only session duration is an
 accepted deferred item, not silently represented as implemented.
@@ -489,5 +512,6 @@ accepted deferred item, not silently represented as implemented.
 
 MY KUSTOMERS PLATFORM HEALTH — BLOCKED
 
-This is the in-progress release status. Do not interpret implementation evidence
+This committed report is a pre-merge evidence snapshot; the PR release record and
+final local A–BN report carry later deployment results. Do not interpret implementation evidence
 as completed Production verification or begin WhatsApp integration.

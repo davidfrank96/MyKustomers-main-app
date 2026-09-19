@@ -5,7 +5,8 @@
 IMPLEMENTED — RELEASE VERIFICATION PENDING. Admin now exposes the existing shared
 logout control outside its scrolling navigation. Customer-detail booking-state
 reads are bounded existence queries, preventing a REST row cap from hiding active
-work. No schema, dependency, provider, environment or WhatsApp integration change.
+work. Both archive entry points use database time to avoid reproduced clock-skew
+constraint failures. No schema, dependency, provider, environment or WhatsApp integration change.
 See [platform health evidence and release gates](PLATFORM_HEALTH_AND_EFFICIENCY.md).
 
 ## 2026-09-18 — Auth routing and customer text integrity
