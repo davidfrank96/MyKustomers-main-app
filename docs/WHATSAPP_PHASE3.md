@@ -55,3 +55,12 @@ Read-only Supabase security advisors ran through the authorized database connect
 ## CI recovery
 
 Initial PR #90 CI identified two existing test-harness timing failures: Linux WebKit surfaced navigation-cancelled notification requests, and the eleven-route authenticated onboarding walk exhausted its 30-second total budget. The navigation test now requires the existing hydration-ready marker before waiting for network idle/screenshots/navigation. The onboarding test retains every per-assertion limit and all eleven route assertions, with a 90-second total journey budget. No product authorization, layout/error assertion, test skip or CI gate was relaxed. Three focused local WebKit reruns passed before the readiness correction; three focused WebKit reruns also passed after the readiness correction.
+
+
+## Controlled production database acceptance
+
+The reviewed migration was applied after local/full-schema verification and exact function-drift/hash checks. Historical counts were unchanged: 75 bookings, 95 Email events, two WhatsApp events and two attempts, with zero pending/processing WhatsApp work. Exactly one `WHATSAPP_CUSTOMER_UPDATES` entitlement is enabled: Frankenstein, source PILOT; the operator bootstrap emitted one audit event without impersonating a user. Operational rollout remains OFF at this checkpoint.
+
+Live ACL verification confirmed RLS, no authenticated direct writes, no anonymous read, no service-role public grant RPC and no authenticated private mutation. A forged opt-in under the account’s existing other membership raised insufficient_privilege before mutation inside a database-enforced READ ONLY transaction; no synthetic rows or sends were created. Post-migration security advisors show the same two pre-existing unrelated warnings and zero new warnings.
+
+[PR #90](https://github.com/davidfrank96/MyKustomers-main-app/pull/90) carries the final executable CI and subsequent exact-SHA production/UI acceptance evidence. General rollout remains pending the dedicated number even after productization acceptance.

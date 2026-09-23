@@ -1008,7 +1008,7 @@ Phase 2 controlled pilot verified; transport restored OFF. General rollout remai
 - [x] Isolated database and full lifecycle tests; no live transport sends.
 - [x] Final focused browser/polish and full suite evidence recorded.
 - [ ] One focused PR, all executable required CI green before merge.
-- [ ] Reviewed additive production migration; sole Frankenstein PILOT entitlement.
+- [x] Reviewed additive production migration; sole Frankenstein PILOT entitlement.
 - [ ] Exact merge SHA READY / PRODUCTION / CURRENT on mykustomers.com.
 - [ ] Logged-in Frankenstein New Booking plus non-entitled/forged-request acceptance.
 - [ ] Sanitized production/gateway logs and resource evidence.
