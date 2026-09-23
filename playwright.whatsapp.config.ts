@@ -1,0 +1,54 @@
+import { defineConfig, devices } from "@playwright/test";
+
+export default defineConfig({
+  testDir: "./tests",
+  testMatch: ["whatsapp-ui/*.spec.ts"],
+  fullyParallel: false,
+  workers: 1,
+  reporter: "list",
+  use: { baseURL: "http://127.0.0.1:3422", trace: "off" },
+  webServer: [
+    {
+      command: "node tests/profile-ui/fixture-server.mjs",
+      env: { WHATSAPP_UI_FIXTURE: "1" },
+      url: "http://127.0.0.1:55441/health",
+      reuseExistingServer: false,
+    },
+    {
+      command: "npm run dev -- --hostname 127.0.0.1 --port 3422",
+      url: "http://127.0.0.1:3422",
+      reuseExistingServer: false,
+      timeout: 120000,
+      env: {
+        NEXT_PUBLIC_APP_URL: "http://127.0.0.1:3422",
+        NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:55441",
+        NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "local-profile-fixture-key",
+        SUPABASE_SERVICE_ROLE_KEY: "local-profile-fixture-service-key",
+        NEXT_PUBLIC_WEB_PUSH_VAPID_PUBLIC_KEY: "",
+        WEB_PUSH_VAPID_PRIVATE_KEY: "",
+        WEB_PUSH_VAPID_SUBJECT: "",
+        NOTIFICATION_WORKER_SECRET: "",
+        NEXT_PUBLIC_SENTRY_DSN: "",
+        SENTRY_DSN: "",
+        SENTRY_AUTH_TOKEN: "",
+        BREVO_API_KEY: "",
+        RESEND_API_KEY: "",
+        TRANSACTIONAL_EMAIL_PROVIDER: "development",
+        VERCEL_ENV: "production",
+        WHATSAPP_ENABLED: "true",
+        WHATSAPP_PROVIDER: "wa_akg",
+        WHATSAPP_PILOT_BUSINESS_IDS: "20000000-0000-4000-8000-000000000001",
+        WA_AKG_BASE_URL: "",
+        WA_AKG_API_KEY: "",
+        WA_AKG_SESSION_ID: "",
+      },
+    },
+  ],
+  projects: [
+    { name: "chromium", use: { ...devices["Desktop Chrome"] } },
+    {
+      name: "webkit",
+      use: { ...devices["iPhone 13"] },
+    },
+  ],
+});

@@ -156,3 +156,8 @@ was a separate guarded transaction. PR CI never applies SQL to Supabase.
 The optimized WebKit fetch error also reproduces on an isolated unchanged main
 build; it is a pre-existing framework-path limitation, not a newly introduced
 regression. See [the release evidence](GOLDEN_STABILITY_PASS.md).
+
+
+## WhatsApp additive contracts
+
+The existing Notification Contracts job now also runs `npm run test:whatsapp:database` in a disposable native cluster and the isolated WhatsApp browser suite. Required job names and production migration prohibition stay unchanged. The new tests read no cloud credentials. Existing E2E is separately credential-backed; protected Runtime Security remains opt-in and must use an approved non-production target.

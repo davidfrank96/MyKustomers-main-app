@@ -925,3 +925,8 @@ reselection, bounded WebP persistence, the authoritative completion transition,
 one 320px success dialog, Done dismissal, silent refresh, clean runtime logs,
 and zero independent residue counts. Physical iOS/Android picker evidence
 remains a manual-device gap.
+
+
+## WhatsApp Phase 2 — single-business pilot
+
+IMPLEMENTED — VERIFICATION PENDING. Provider-neutral WhatsApp booking updates now have a local implementation, durable SQL intents/attempts, explicit consent, tenant guards and a separately deployed gateway idempotency prerequisite. Production app migration, credentials, CI and controlled pilot are pending; default remains disabled. No Phase 3 or general rollout. See [pilot architecture and gates](WHATSAPP_PILOT.md).

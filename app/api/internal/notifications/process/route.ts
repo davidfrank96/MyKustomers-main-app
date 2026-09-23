@@ -8,6 +8,7 @@ import {
   NotificationHttpError,
 } from "@/features/notifications/http";
 import { processNotifications } from "@/features/notifications/worker";
+import { processWhatsApp } from "@/features/whatsapp/worker";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 export async function POST(request: Request) {
@@ -43,6 +44,17 @@ export async function POST(request: Request) {
         Sentry.captureMessage("Notification worker unavailable", {
           level: "error",
           tags: { notification_stage: "worker" },
+        });
+      }
+    });
+    // Independent continuation: neither worker failure cancels the other.
+    after(async () => {
+      try {
+        await processWhatsApp();
+      } catch {
+        Sentry.captureMessage("WhatsApp worker unavailable", {
+          level: "error",
+          tags: { whatsapp_stage: "worker" },
         });
       }
     });

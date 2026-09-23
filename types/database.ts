@@ -4,6 +4,53 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      booking_communication_preferences: {
+        Row: {
+          booking_id: string;
+          business_id: string;
+          email_enabled: boolean;
+          whatsapp_enabled: boolean;
+          recipient_e164: string | null;
+          consent_at: string | null;
+          consent_source: string | null;
+          disabled_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      whatsapp_events: {
+        Row: {
+          id: string;
+          business_id: string;
+          booking_id: string;
+          event_type: string;
+          source_id: string;
+          capability_id: string | null;
+          contact_hash: string | null;
+          idempotency_key: string;
+          recipient_e164: string;
+          status: string;
+          provider: string;
+          provider_message_id: string | null;
+          attempt_count: number;
+          next_attempt_at: string;
+          lease_id: string | null;
+          lease_expires_at: string | null;
+          error_code: string | null;
+          accepted_at: string | null;
+          delivered_at: string | null;
+          read_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+
       notifications: {
         Row: {
           id: string;
@@ -866,6 +913,65 @@ export type Database = {
     };
     Views: Record<string, never>;
     Functions: {
+      create_booking_with_channels: {
+        Args: Database["public"]["Functions"]["create_booking_with_customer"]["Args"] & {
+          p_email_enabled: boolean;
+          p_whatsapp_enabled: boolean;
+          p_whatsapp_recipient: string | null;
+          p_whatsapp_consent: boolean;
+        };
+        Returns: Database["public"]["Functions"]["create_booking_with_customer"]["Returns"];
+      };
+      create_booking_confirmation_request_with_channels: {
+        Args: Omit<
+          Database["public"]["Functions"]["create_booking_confirmation_request"]["Args"],
+          "p_token_hash"
+        > & { p_capability_token: string };
+        Returns: Database["public"]["Functions"]["create_booking_confirmation_request"]["Returns"];
+      };
+      create_booking_amendment_with_channels: {
+        Args: Omit<
+          Database["public"]["Functions"]["create_booking_amendment"]["Args"],
+          "p_token_hash"
+        > & { p_capability_token: string };
+        Returns: Database["public"]["Functions"]["create_booking_amendment"]["Returns"];
+      };
+      submit_booking_addon_with_channels: {
+        Args: Omit<
+          Database["public"]["Functions"]["submit_booking_addon"]["Args"],
+          "p_token_hash"
+        > & { p_capability_token: string };
+        Returns: Database["public"]["Functions"]["submit_booking_addon"]["Returns"];
+      };
+      reschedule_booking_with_notification_with_channels: {
+        Args: Omit<
+          Database["public"]["Functions"]["reschedule_booking_with_notification"]["Args"],
+          "p_token_hash"
+        > & { p_capability_token: string };
+        Returns: Database["public"]["Functions"]["reschedule_booking_with_notification"]["Returns"];
+      };
+      disable_booking_whatsapp: { Args: { p_booking_id: string }; Returns: boolean };
+      claim_whatsapp_event: {
+        Args: { p_business_ids: string[] };
+        Returns: Database["public"]["Tables"]["whatsapp_events"]["Row"][];
+      };
+      get_whatsapp_dispatch_context: {
+        Args: { p_event_id: string; p_lease_id: string };
+        Returns: Json;
+      };
+      finish_whatsapp_event: {
+        Args: {
+          p_event_id: string;
+          p_lease_id: string;
+          p_status: string;
+          p_error_code?: string | null;
+          p_provider_message_id?: string | null;
+          p_retryable?: boolean;
+        };
+        Returns: boolean;
+      };
+      get_whatsapp_admin_summary: { Args: Record<PropertyKey, never>; Returns: Json };
+
       register_push_subscription: {
         Args: {
           p_endpoint: string;
@@ -1092,7 +1198,7 @@ export type Database = {
         };
         Returns: {
           confirmation_link_id: string;
-          email_event_id: string;
+          email_event_id: string | null;
           recipient_email: string;
           expires_at: string;
           replaced_link_count: number;
@@ -1279,7 +1385,7 @@ export type Database = {
           amendment_id: string;
           expires_at: string;
           replaced_amendment_count: number;
-          email_event_id: string;
+          email_event_id: string | null;
         }[];
       };
       revoke_booking_amendment: {
@@ -1322,7 +1428,7 @@ export type Database = {
           confirmation_link_id: string;
           expires_at: string;
           replaced_link_count: number;
-          email_event_id: string;
+          email_event_id: string | null;
         }[];
       };
       cancel_booking_addon: {

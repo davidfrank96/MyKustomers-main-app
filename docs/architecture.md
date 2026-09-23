@@ -670,3 +670,8 @@ Customer list/detail actions share Archive/Restore. Permanent deletion routes
 through a narrow owner-only database function that locks, reauthorizes, and
 rejects any booking or protected dependency. Client-side booking counts only
 shape the presentation and fail closed; they do not grant deletion authority.
+
+
+## WhatsApp sibling channel
+
+IMPLEMENTED — VERIFICATION PENDING. Existing booking transactions enqueue independent Email and WhatsApp intents. A server-only provider boundary, bounded worker, private encrypted capability envelope and durable gateway reservation isolate provider outages from booking actions. The existing minute receiver runs push and WhatsApp processing independently; no scheduler cadence changes or new paid services. See [full contracts](WHATSAPP_PILOT.md).

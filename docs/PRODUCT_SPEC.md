@@ -556,3 +556,8 @@ secondary fallback through the existing capability and never sends another
 email automatically. Pending feedback defaults open for delivered/completed
 bookings but remains user-collapsible. Current journey sections use visible text
 and `aria-current`, not red/error styling alone.
+
+
+## WhatsApp booking update pilot
+
+IMPLEMENTED — VERIFICATION PENDING. Only an explicitly allowlisted business can choose Email (default), WhatsApp or Both during booking creation. WhatsApp needs an international number and fresh booking-specific vendor-confirmed consent. Existing customer-contact and confirmation requirements remain. Nine current customer lifecycle events follow the stored choice. Booking details show honest acceptance/uncertainty and permit stopping future WhatsApp updates without changing Email. Broadcasts, inbound chat and general rollout are excluded. See [pilot contract](WHATSAPP_PILOT.md).

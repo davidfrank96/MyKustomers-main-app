@@ -6,6 +6,7 @@ import { requireCurrentBusiness } from "@/lib/auth/server";
 import { createClient } from "@/lib/supabase/server";
 import { canUseServiceRoleClient, createServiceRoleClient } from "@/lib/supabase/admin";
 import { recordAuditEvent } from "@/lib/security/audit";
+import { whatsappConfig } from "@/lib/whatsapp/config";
 import { deliverEmailEvent } from "@/lib/email/outbox";
 import type { ConfirmationShareMethod } from "@/features/confirmation-links/share";
 import { isConfirmationShareMethod } from "@/features/confirmation-links/share";
@@ -105,13 +106,20 @@ export async function submitBookingAddonAction(
   }
   const token = generateAddonToken();
   const expiresAt = addonExpiresAt();
-  const { data, error } = await (
-    await createClient()
-  ).rpc("submit_booking_addon", {
+  const args = {
     p_booking_addon_id: addonId,
-    p_token_hash: hashAddonToken(token),
     p_expires_at: expiresAt.toISOString(),
-  });
+  };
+  const supabase = await createClient();
+  const { data, error } = whatsappConfig().pilotBusinessIds.includes(business.id)
+    ? await supabase.rpc("submit_booking_addon_with_channels", {
+        ...args,
+        p_capability_token: token,
+      })
+    : await supabase.rpc("submit_booking_addon", {
+        ...args,
+        p_token_hash: hashAddonToken(token),
+      });
   const result = data?.[0];
   if (error || !result) {
     return { status: "error", message: addonErrorMessage(error?.message) };
@@ -119,7 +127,8 @@ export async function submitBookingAddonAction(
 
   const baseUrl = publicEnv.NEXT_PUBLIC_APP_URL.replace(/\/$/, "");
   const addonUrl = `${baseUrl}/x/${token}`;
-  await deliverEmailEvent(result.email_event_id, undefined, { addonUrl });
+  if (result.email_event_id)
+    await deliverEmailEvent(result.email_event_id, undefined, { addonUrl });
   revalidatePath(`/bookings/${bookingId}`);
   return {
     status: "success",

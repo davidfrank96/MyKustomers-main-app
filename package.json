@@ -15,7 +15,8 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:e2e:notifications": "playwright test --config playwright.notifications.config.ts",
-    "test:notifications:database": "node scripts/test-notification-database.mjs"
+    "test:notifications:database": "node scripts/test-notification-database.mjs",
+    "test:whatsapp:database": "node scripts/test-whatsapp-database.mjs"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.1.10",

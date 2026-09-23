@@ -1636,3 +1636,11 @@ without disabling streaming for ordinary browsers or dropping framework defaults
 Official Inter 400/700 TTFs are local rendering assets, not a package dependency.
 No customer data, token, hash, capability URL or preview ID reaches the new image
 renderer. See [SECURE_SOCIAL_PREVIEWS](SECURE_SOCIAL_PREVIEWS.md).
+
+## ADR-069 — Independent opt-in WhatsApp booking channel
+
+Status: Accepted architecture; production verification pending
+
+Date: 2026-09-23
+
+Reuse existing domain events and exact capability links while separating durable WhatsApp intents, attempts and provider transport from Email. Default off, one authorized pilot, explicit consent and dual app/SQL tenant gates. Accept an UNKNOWN terminal outcome after ambiguous handoff rather than risking duplicate customer messages. Use the existing minute receiver and a single bounded send; require durable gateway idempotency before enabling the app. Vault-encrypted short-use envelopes enable retries without persisting plaintext capabilities. No Meta implementation, new scheduler or paid service. See [contracts and rollout gates](WHATSAPP_PILOT.md).

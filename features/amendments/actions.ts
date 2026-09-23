@@ -6,6 +6,7 @@ import { requireCurrentBusiness } from "@/lib/auth/server";
 import { createClient } from "@/lib/supabase/server";
 import { canUseServiceRoleClient, createServiceRoleClient } from "@/lib/supabase/admin";
 import { recordAuditEvent } from "@/lib/security/audit";
+import { whatsappConfig } from "@/lib/whatsapp/config";
 import { deliverEmailEvent } from "@/lib/email/outbox";
 import type { ConfirmationShareMethod } from "@/features/confirmation-links/share";
 import { isConfirmationShareMethod } from "@/features/confirmation-links/share";
@@ -68,7 +69,7 @@ export async function createBookingAmendmentAction(
   const token = generateAmendmentToken();
   const expiresAt = amendmentExpiresAt();
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc("create_booking_amendment", {
+  const args = {
     p_booking_id: bookingId,
     p_reason: parsed.data.reason,
     p_title: parsed.data.title,
@@ -77,9 +78,17 @@ export async function createBookingAmendmentAction(
     p_total_amount_minor: parsed.data.totalAmount,
     p_deposit_amount_minor: parsed.data.depositAmount,
     p_scheduled_for: parsed.data.scheduledFor ?? null,
-    p_token_hash: hashAmendmentToken(token),
     p_expires_at: expiresAt.toISOString(),
-  });
+  };
+  const { data, error } = whatsappConfig().pilotBusinessIds.includes(business.id)
+    ? await supabase.rpc("create_booking_amendment_with_channels", {
+        ...args,
+        p_capability_token: token,
+      })
+    : await supabase.rpc("create_booking_amendment", {
+        ...args,
+        p_token_hash: hashAmendmentToken(token),
+      });
   const result = data?.[0];
 
   if (error || !result) {
@@ -93,7 +102,8 @@ export async function createBookingAmendmentAction(
 
   const baseUrl = publicEnv.NEXT_PUBLIC_APP_URL.replace(/\/$/, "");
   const amendmentUrl = `${baseUrl}/a/${token}`;
-  await deliverEmailEvent(result.email_event_id, undefined, { amendmentUrl });
+  if (result.email_event_id)
+    await deliverEmailEvent(result.email_event_id, undefined, { amendmentUrl });
 
   revalidatePath(`/bookings/${bookingId}`);
   return {

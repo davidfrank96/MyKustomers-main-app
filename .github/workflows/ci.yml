@@ -190,10 +190,14 @@ jobs:
       - run: npm ci
       - name: Verify notification SQL in a disposable native PostgreSQL cluster
         run: npm run test:notifications:database
+      - name: Verify WhatsApp SQL in a disposable native PostgreSQL cluster
+        run: npm run test:whatsapp:database
       - name: Install browser engines
         run: npx playwright install --with-deps chromium webkit
       - name: Verify notification UI using local fixtures without cloud credentials
         run: npm run test:e2e:notifications
+      - name: Verify WhatsApp UI using local fixtures without gateway credentials
+        run: npx playwright test --config playwright.whatsapp.config.ts
 
   profile-social-previews:
     name: Profile and Social Previews

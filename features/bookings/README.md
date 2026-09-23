@@ -273,3 +273,8 @@ secondary route to the existing feedback section; it never generates a second
 capability or sends another email. Delivered/completed pending feedback defaults
 open but remains manually collapsible. The independently derived current section
 uses primary-brand emphasis, visible **Current step** text, and `aria-current`.
+
+
+## WhatsApp pilot sibling channel
+
+IMPLEMENTED — VERIFICATION PENDING. Opted-in booking communication choices can fan out the existing customer event to WhatsApp using the same capability, while Email retains its existing provider and template behavior. Non-pilot/default behavior is unchanged. See [pilot contracts and release gates](../../docs/WHATSAPP_PILOT.md).

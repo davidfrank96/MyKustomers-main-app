@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { WhatsAppAdminHealth } from "@/components/whatsapp/admin-health";
 import type { Metadata } from "next";
 import { AdminSecurityHealth } from "@/components/admin/admin-security-health";
 import {
@@ -26,12 +28,17 @@ export default async function AdminSecurityPage() {
   ]);
 
   return (
-    <AdminSecurityHealth
-      admin={admin}
-      summary={summaryResult.status === "fulfilled" ? summaryResult.value : null}
-      activity={activityResult.status === "fulfilled" ? activityResult.value : null}
-      mfa={mfaResult.status === "fulfilled" ? mfaResult.value : null}
-      configuration={configuration}
-    />
+    <>
+      <AdminSecurityHealth
+        admin={admin}
+        summary={summaryResult.status === "fulfilled" ? summaryResult.value : null}
+        activity={activityResult.status === "fulfilled" ? activityResult.value : null}
+        mfa={mfaResult.status === "fulfilled" ? mfaResult.value : null}
+        configuration={configuration}
+      />
+      <Suspense fallback={null}>
+        <WhatsAppAdminHealth />
+      </Suspense>
+    </>
   );
 }

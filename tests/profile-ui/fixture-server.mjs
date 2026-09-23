@@ -4,6 +4,8 @@ import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import sharp from "sharp";
 
+const whatsappFixture = process.env.WHATSAPP_UI_FIXTURE === "1";
+let whatsappStopped = false;
 const businessId = "20000000-0000-4000-8000-000000000001";
 const otherBusinessId = "20000000-0000-4000-8000-000000000002";
 const userId = "10000000-0000-4000-8000-000000000001";
@@ -233,6 +235,7 @@ createServer(async (req, res) => {
       ),
     });
   if (url.pathname === "/fixture/reset") {
+    whatsappStopped = false;
     business = { ...originalBusiness };
     otherBusiness = { ...originalOtherBusiness };
     logoFailure = false;
@@ -309,6 +312,10 @@ createServer(async (req, res) => {
     if (url.pathname.endsWith("/rpc/record_audit_event")) return send(null);
     if (failWrites) return send({ message: "Local fixture write unavailable" }, 503);
     const rpc = url.pathname.split("/").at(-1);
+    if (whatsappFixture && rpc === "disable_booking_whatsapp") {
+      whatsappStopped = true;
+      return send(true);
+    }
     if (rpc === "get_my_platform_admin")
       return send(
         platformAdmin && !sessionRevoked
@@ -423,6 +430,74 @@ createServer(async (req, res) => {
         })),
       ),
     ];
+  if (whatsappFixture) {
+    if (
+      [
+        "confirmation_links",
+        "booking_amendments",
+        "booking_addons",
+        "feedback_links",
+        "booking_addon_confirmation_links",
+      ].includes(table)
+    )
+      rows = [];
+    if (table === "bookings")
+      rows = [
+        {
+          id: bookingA,
+          business_id: businessId,
+          customer_id: "90000000-0000-4000-8000-000000000001",
+          reference: "SYNTHETIC-001",
+          title: "Synthetic pilot booking",
+          description: null,
+          internal_notes: null,
+          status: "DRAFT",
+          currency: "EUR",
+          total_amount_minor: 10000,
+          deposit_amount_minor: 0,
+          balance_amount_minor: 10000,
+          scheduled_for: null,
+          created_at: "2026-01-15T12:00:00Z",
+          updated_at: "2026-01-15T12:00:00Z",
+          customer_confirmed_at: null,
+          confirmed_at: null,
+          started_at: null,
+          ready_at: null,
+          delivered_at: null,
+          completed_at: null,
+          cancelled_at: null,
+          cancellation_reason: null,
+          confirmation_terms_hash: null,
+          customers: {
+            id: "90000000-0000-4000-8000-000000000001",
+            name: "Synthetic Customer",
+            email: "customer@example.invalid",
+            phone: null,
+          },
+        },
+      ];
+    if (table === "booking_communication_preferences")
+      rows = [
+        {
+          booking_id: bookingA,
+          business_id: businessId,
+          email_enabled: true,
+          whatsapp_enabled: !whatsappStopped,
+          disabled_at: whatsappStopped ? new Date().toISOString() : null,
+        },
+      ];
+    if (table === "whatsapp_events")
+      rows = [
+        {
+          id: "90000000-0000-4000-8000-000000000002",
+          booking_id: bookingA,
+          business_id: businessId,
+          status: "UNKNOWN",
+          event_type: "booking_confirmation_requested",
+          created_at: "2026-01-15T12:00:00Z",
+        },
+      ];
+  }
   if (table === "notification_preferences") {
     if (body) preferences = { ...preferences, ...body };
     rows = [preferences];

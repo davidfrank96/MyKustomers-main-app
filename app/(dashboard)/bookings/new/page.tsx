@@ -10,6 +10,8 @@ import { createBookingAction } from "@/features/bookings/actions";
 import { listActiveBookingCustomerOptions } from "@/features/bookings/queries";
 import { getCurrentBusinessContext } from "@/lib/auth/server";
 
+import { whatsappAvailable } from "@/lib/whatsapp/config";
+
 export default async function NewBookingPage() {
   const businessContext = await getCurrentBusinessContext();
   const currentBusiness = businessContext.currentBusiness;
@@ -37,6 +39,7 @@ export default async function NewBookingPage() {
         customers={customers}
         defaultCustomerMode={customers.length === 0 ? "new" : "existing"}
         mode="create"
+        whatsappAvailable={whatsappAvailable(currentBusiness.id)}
       />
     </WorkspacePage>
   );

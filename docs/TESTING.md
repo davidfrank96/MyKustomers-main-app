@@ -1949,3 +1949,14 @@ The customer lifecycle unit suite covers both archive entry points with an app
 clock behind database creation time. The controlled PostgREST customer journey
 reproduced `customers_archived_after_created` before the fix and passed after
 switching to database timestamp input. Existing E2E assertions remain unchanged.
+
+
+## WhatsApp Phase 2 verification — 2026-09-23
+
+Focused suite: 69 passing unit/integration tests across the adapter, worker, booking-action tenant/consent/failure isolation, independent notification receiver, preference form and existing confirmation panel. `npm run test:whatsapp:database` starts its own native PostgreSQL cluster and tests nine-event fanout, original email conflict behavior, all channel choices, tenant/RPC ACLs, three-attempt retry bounds, UNKNOWN lease expiry, shared encrypted capability/revocation, disabling and concurrent claims. No cloud credentials are read. A separate disposable local run against a schema-only export passed the complete original lifecycle across Both/WhatsApp-only/Email-only.
+
+`npx playwright test --config playwright.whatsapp.config.ts` uses loopback synthetic fixtures and blank gateway credentials. Six Chromium/WebKit tests cover all ten requested widths, keyboard/consent reset, uncertain status, stop preserving Email and hidden non-pilot choices. Screenshots are local ignored artifacts. Full-cycle results will be recorded in the task evidence; protected Runtime Security remains SKIPPED without an approved non-production target. Production controlled sends remain unverified. See [remaining release gates](WHATSAPP_PILOT.md).
+
+The single full verification cycle passed lint, typecheck, build, audit (zero vulnerabilities) and diff checks. Vitest initially passed 1103 tests with 23 existing opt-in skips and two import failures; the new server-only import mocks were corrected and a focused rerun passed 26 tests with one existing preview-only skip, including three new Admin WhatsApp boundary cases. Local E2E passed 40 with 62 credential/opt-in skips. Protected Runtime Security skipped all 21 tests because no approved non-production target was configured. These results do not establish cloud E2E or production readiness.
+
+For full original lifecycle replay, pass a previously obtained schema-only public/private pg_dump to `npm run test:whatsapp:database -- /absolute/path/schema-only.sql`. The runner still creates a fresh local cluster, seeds only synthetic data and cleans up. The export is not committed and the runner never reads cloud connection credentials. This additionally verifies repeated delivery in WhatsApp-only mode reuses the exact original feedback capability without requiring an email row.
