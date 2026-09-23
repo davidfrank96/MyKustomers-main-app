@@ -675,3 +675,7 @@ shape the presentation and fail closed; they do not grant deletion authority.
 ## WhatsApp sibling channel
 
 IMPLEMENTED — VERIFICATION PENDING. Existing booking transactions enqueue independent Email and WhatsApp intents. A server-only provider boundary, bounded worker, private encrypted capability envelope and durable gateway reservation isolate provider outages from booking actions. The existing minute receiver runs push and WhatsApp processing independently; no scheduler cadence changes or new paid services. See [full contracts](WHATSAPP_PILOT.md).
+
+## Business-feature access
+
+`features/business-features` is the product-access boundary; `hasBusinessFeature` uses request-scoped reads from the tenant-protected entitlement table. `features/whatsapp/access` combines that result with global configuration and authorized SQL rollout state. Storage failures deny WhatsApp while ordinary Email booking creation remains available. Gateway health/failure handling stays in the existing worker/Admin transport layer, not a synchronous dependency of booking creation. A future subscription integration can grant the same entitlement through a separately authenticated event boundary; no billing implementation is included.

@@ -1,3 +1,4 @@
+import { BusinessFeatureAccess } from "@/components/admin/business-feature-access";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import type { Metadata } from "next";
 import type { Route } from "next";
@@ -125,6 +126,8 @@ export default async function AdminBusinessDetailPage({
           </div>
         </dl>
       </section>
+
+      <BusinessFeatureAccess businessId={business.id} />
 
       <section aria-labelledby="business-operations-title">
         <div className="flex flex-wrap items-center justify-between gap-3">

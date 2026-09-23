@@ -6,7 +6,9 @@ const mocks = vi.hoisted(() => ({
   business: vi.fn(),
   email: vi.fn(),
   provider: vi.fn(),
+  access: vi.fn(),
 }));
+vi.mock("@/features/whatsapp/access", () => ({ getWhatsAppAccess: mocks.access }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("next/navigation", () => ({
   redirect: () => {
@@ -58,6 +60,10 @@ beforeEach(() => {
   vi.stubEnv("WHATSAPP_PROVIDER", "wa_akg");
   vi.stubEnv("VERCEL_ENV", "production");
   mocks.business.mockResolvedValue({ business: { id: pilot } });
+  mocks.access.mockImplementation(async (id) => ({
+    entitled: id === pilot,
+    available: id === pilot && process.env.WHATSAPP_ENABLED === "true",
+  }));
   mocks.rpc.mockResolvedValue({
     data: [{ booking_id: "synthetic-booking" }],
     error: null,
@@ -118,4 +124,26 @@ it("preserves the ordinary email workflow when the pilot is off", async () => {
     expect.objectContaining({ p_business_id: pilot }),
   );
   expect(mocks.provider).not.toHaveBeenCalled();
+});
+
+it("rejects revoked access even when the browser omits the channel marker", async () => {
+  mocks.access.mockResolvedValue({ entitled: false, available: false });
+  const data = form();
+  data.delete("communicationPreference");
+  expect(await createBookingAction({ status: "idle" }, data)).toMatchObject({
+    status: "error",
+  });
+  expect(mocks.rpc).not.toHaveBeenCalled();
+});
+it("still creates an Email-only booking after entitlement revocation", async () => {
+  mocks.access.mockResolvedValue({ entitled: false, available: false });
+  const data = form();
+  data.delete("whatsappEnabled");
+  await expect(createBookingAction({ status: "idle" }, data)).rejects.toThrow(
+    "redirect-success",
+  );
+  expect(mocks.rpc).toHaveBeenCalledWith(
+    "create_booking_with_customer",
+    expect.any(Object),
+  );
 });

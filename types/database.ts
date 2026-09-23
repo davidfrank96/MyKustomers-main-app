@@ -4,6 +4,19 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      business_feature_entitlements: {
+        Row: {
+          business_id: string;
+          feature_key: string;
+          enabled: boolean;
+          source: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       booking_communication_preferences: {
         Row: {
           booking_id: string;
@@ -913,6 +926,16 @@ export type Database = {
     };
     Views: Record<string, never>;
     Functions: {
+      get_whatsapp_rollout_access: { Args: { p_business_id: string }; Returns: boolean };
+      set_business_feature_entitlement: {
+        Args: {
+          p_business_id: string;
+          p_feature_key: string;
+          p_enabled: boolean;
+          p_reason: string;
+        };
+        Returns: boolean;
+      };
       create_booking_with_channels: {
         Args: Database["public"]["Functions"]["create_booking_with_customer"]["Args"] & {
           p_email_enabled: boolean;
@@ -1572,6 +1595,7 @@ export type Database = {
       email_delivery_attempt_origin: "DOMAIN_EVENT" | "ADMIN_RETRY";
       email_delivery_attempt_status: "SENDING" | "SENT" | "FAILED";
       audit_event_type:
+        | "BUSINESS_FEATURE_ENTITLEMENT_CHANGED"
         | "AUTH_SIGNUP"
         | "AUTH_LOGIN"
         | "AUTH_LOGOUT"

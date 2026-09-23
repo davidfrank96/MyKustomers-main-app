@@ -1,9 +1,9 @@
 # WhatsApp booking updates — Phase 2
 
-STATUS: IMPLEMENTED — VERIFICATION PENDING (2026-09-23).
+STATUS: PHASE 2 CONTROLLED PILOT VERIFIED (2026-09-23). Phase 3 productization is tracked separately in [WHATSAPP_PHASE3.md](WHATSAPP_PHASE3.md).
 
 This is an opt-in, single-business pilot. It is not a general rollout. The app
-migration, production settings and real booking-message smoke remain unapplied.
+migration, production settings and controlled booking-message smoke were applied and verified after explicit approval.
 The selected business UUID is held only in private runtime configuration. There
 are no live gateway credentials or controlled recipient numbers in this repository.
 
@@ -120,12 +120,12 @@ The narrow authenticated endpoint is `/internal/v1/messages/text`; existing
 recipient allowlist, rate limit and single-send gate still apply.
 
 The gateway commit and additive MySQL table are deployed and HTTPS/session health
-returned connected without QR. No Phase 2 message has been sent. The gateway's
+returned connected without QR. Two authorized Phase 2 messages were accepted, with separate provider receipt evidence. After testing, the gateway's
 recipient allowlist remains empty. Review the separate draft [gateway PR #1](https://github.com/davidfrank96/wa-akg/pull/1)
 and [application PR #89](https://github.com/davidfrank96/MyKustomers-main-app/pull/89).
-Neither PR is merged. The gateway change is already deployed as the backward-compatible prerequisite.
+Application PR #89 merged at `82e936101439188726e3bab9ac9ee5d39a852c49`; gateway PR #1 remains a separate draft. The gateway change is already deployed as the backward-compatible prerequisite.
 
-Release sequence, once approved:
+Controlled release sequence (completed for Phase 2; retain for future controlled rollouts):
 
 1. Review the gateway commit, app diff and migration; obtain all executable CI gates.
 2. Apply `20260923001137_whatsapp_pilot_channel.sql` through the normal controlled
@@ -152,13 +152,6 @@ Focused unit/integration, native disposable SQL and browser evidence is recorded
 in `TESTING.md`. Full lifecycle verification additionally used a schema-only
 export with synthetic rows in a disposable local PostgreSQL cluster, exercising
 the actual original lifecycle functions. It did not mutate the cloud database.
-Production-backed migration/Vault testing was rejected by automatic approval
-review; no attempted production rollback test executed. The local alternative
-completed. Production migration, Vault provisioning, pilot settings and real
-controlled sends therefore remain a separate blocked release gate.
+A production-backed rollback-only synthetic test was rejected by automatic approval review; it was not run. Disposable local verification passed instead. The user subsequently explicitly approved the real migration/Vault/single-business release, which completed with green executable CI and controlled acceptance. Transport was restored OFF after verification.
 
-Protected runtime security requires an approved non-production Supabase target.
-Do not relabel production as test to bypass that gate. Required main PR CI,
-production deployment, Sentry and post-pilot resource evidence remain pending.
-The prior PR #88 timezone hydration finding is outside this change and must not
-be suppressed or silently bundled into Phase 2.
+Protected Runtime Security still requires an approved non-production target and remains SKIPPED. Sentry was not verified. General rollout remains prohibited on the personal test pairing. The prior PR #88 timezone hydration finding is outside this change.

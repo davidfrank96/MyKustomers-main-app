@@ -377,3 +377,7 @@ supported PNG/JPEG/WebP flow is unchanged.
 ## WhatsApp pilot UI — local evidence
 
 Chromium and WebKit passed pilot creation controls and booking update status at 320, 360, 375, 390, 414, 430, 768, 1024, 1280 and 1440px, without horizontal document overflow. Keyboard Space toggles consent; toggling WhatsApp off/on clears consent. Stop action preserves Email. Six isolated tests; local screenshots in output/playwright/whatsapp-phase2. This is synthetic UI evidence, not production messaging evidence. Existing timezone hydration finding is not fixed or suppressed here.
+
+## WhatsApp Phase 3
+
+Extends the existing cards, field help and privileged dialog without navigation/token changes. Browser fixtures exercise 320×568, 360×800, 375×812, 390×844, 414×896, 430×932, 768×1024, 1024×768, 1280×800 and 1440×900. New Booking choices/phone/consent, Booking Details, Settings and Admin retain document-width checks; no global overflow hiding was added. Chromium/WebKit keyboard focus and viewport contraction/restoration are emulated, not a physical-device keyboard claim. Final outcomes and visual review are recorded in [Phase 3](WHATSAPP_PHASE3.md).

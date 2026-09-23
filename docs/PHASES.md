@@ -1489,4 +1489,8 @@ iOS/Android picker evidence remains deferred.
 
 ## WhatsApp integration Phase 2 — 2026-09-23
 
-IMPLEMENTED — VERIFICATION PENDING. This named WhatsApp phase is separate from historical application phase numbering. Local implementation and disposable test evidence exist; production app migration/deployment, protected runtime checks, required CI and controlled messaging remain pending. Gateway prerequisite deployed separately. See [release gates](WHATSAPP_PILOT.md).
+CONTROLLED PILOT VERIFIED. This named WhatsApp phase is separate from historical application phase numbering. PR #89 released after green executable CI, approved migration/Vault provisioning and controlled Email-only/WhatsApp-only/Both acceptance. Global sending was restored OFF afterward. Protected runtime checks remain SKIPPED; general rollout is pending a dedicated number. See [release gates](WHATSAPP_PILOT.md).
+
+## WhatsApp integration Phase 3 — 2026-09-23
+
+IMPLEMENTED — VERIFICATION PENDING. Productization extends the verified Phase 2 release from PR #89; it adds generic feature access and existing-UI refinements, not transport infrastructure or billing. General real-customer rollout requires a dedicated WhatsApp number. [Current verification and release evidence](WHATSAPP_PHASE3.md).

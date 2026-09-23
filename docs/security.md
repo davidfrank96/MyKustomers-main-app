@@ -1243,3 +1243,7 @@ global token invalidation. See [audit boundaries](PLATFORM_HEALTH_AND_EFFICIENCY
 ## WhatsApp pilot boundary
 
 IMPLEMENTED — VERIFICATION PENDING. App allowlist plus private SQL pilot authorization, active membership checks, RLS and column grants prevent cross-tenant opt-in/evidence access. Explicit E.164 consent is required. Gateway credentials remain server-only and Preview is disabled. Capabilities are encrypted under a separate Vault key and revalidated before dispatch; ambiguous outcomes terminate UNKNOWN. No raw provider errors, request bodies, phones or capability URLs in logs. Local tests passed; protected runtime and real deployment evidence remain pending. See [pilot security and retention](WHATSAPP_PILOT.md).
+
+## Business-feature security boundary
+
+Feature access is authoritative in the database, never browser state. Members can read their own entitlement; active Super Admin can read across businesses. No direct authenticated INSERT/UPDATE/DELETE grants; anonymous and service-role mutation RPC execution are denied. Admin mutation requires fresh server authorization and the database rechecks actual active SUPER_ADMIN plus AAL2, records actor/reason/old-new state and uses an empty search path. The owner-only bootstrap records CONTROLLED_DATABASE_OPERATOR without impersonating a user. The worker rechecks entitlement at enqueue/claim/dispatch. A provider call already underway can finish after revoke; no ACCEPTED cancellation or UNKNOWN replay. Test-only personal pairing must not be used for general real-customer sending.

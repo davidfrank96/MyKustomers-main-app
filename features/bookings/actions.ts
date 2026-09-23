@@ -31,7 +31,8 @@ import {
 } from "@/features/confirmation-links/token";
 import { consumeOutboundMessageRateLimit } from "@/lib/security/rate-limit";
 
-import { whatsappAvailable, whatsappConfig } from "@/lib/whatsapp/config";
+import { whatsappConfig } from "@/lib/whatsapp/config";
+import { getWhatsAppAccess } from "@/features/whatsapp/access";
 import {
   communicationPreferenceSchema,
   normalizeWhatsAppPhone,
@@ -97,23 +98,22 @@ export async function createBookingAction(
   }
 
   const hasChannels = formData.get("communicationPreference") === "true";
-  if (
-    (hasChannels || formData.has("whatsappEnabled")) &&
-    !whatsappAvailable(business.id)
-  ) {
+  const wantsWhatsApp = formData.get("whatsappEnabled") === "on";
+  if (wantsWhatsApp && !(await getWhatsAppAccess(business.id)).available) {
     return {
       status: "error",
       message: "WhatsApp updates are unavailable for this business.",
     };
   }
-  const channels = hasChannels
-    ? communicationPreferenceSchema.safeParse({
-        emailEnabled: formData.get("emailEnabled") === "on",
-        whatsappEnabled: formData.get("whatsappEnabled") === "on",
-        recipient: String(formData.get("whatsappRecipient") ?? ""),
-        consent: formData.get("whatsappConsent") === "on",
-      })
-    : null;
+  const channels =
+    hasChannels || wantsWhatsApp
+      ? communicationPreferenceSchema.safeParse({
+          emailEnabled: formData.get("emailEnabled") === "on",
+          whatsappEnabled: formData.get("whatsappEnabled") === "on",
+          recipient: String(formData.get("whatsappRecipient") ?? ""),
+          consent: formData.get("whatsappConsent") === "on",
+        })
+      : null;
   if (channels && !channels.success) {
     const errors = channels.error.flatten().fieldErrors;
     return {
@@ -169,17 +169,18 @@ export async function createBookingAction(
     p_scheduled_for: parsed.data.scheduledFor ?? null,
     p_internal_notes: parsed.data.internalNotes ?? null,
   };
-  const { data, error } = channels?.success
-    ? await supabase.rpc("create_booking_with_channels", {
-        ...bookingArgs,
-        p_email_enabled: channels.data.emailEnabled,
-        p_whatsapp_enabled: channels.data.whatsappEnabled,
-        p_whatsapp_recipient: channels.data.whatsappEnabled
-          ? normalizeWhatsAppPhone(channels.data.recipient ?? "")
-          : null,
-        p_whatsapp_consent: channels.data.consent,
-      })
-    : await supabase.rpc("create_booking_with_customer", bookingArgs);
+  const { data, error } =
+    channels?.success && channels.data.whatsappEnabled
+      ? await supabase.rpc("create_booking_with_channels", {
+          ...bookingArgs,
+          p_email_enabled: channels.data.emailEnabled,
+          p_whatsapp_enabled: channels.data.whatsappEnabled,
+          p_whatsapp_recipient: channels.data.whatsappEnabled
+            ? normalizeWhatsAppPhone(channels.data.recipient ?? "")
+            : null,
+          p_whatsapp_consent: channels.data.consent,
+        })
+      : await supabase.rpc("create_booking_with_customer", bookingArgs);
   const createdBooking = data?.[0];
 
   if (error || !createdBooking) {

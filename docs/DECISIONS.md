@@ -1644,3 +1644,7 @@ Status: Accepted architecture; production verification pending
 Date: 2026-09-23
 
 Reuse existing domain events and exact capability links while separating durable WhatsApp intents, attempts and provider transport from Email. Default off, one authorized pilot, explicit consent and dual app/SQL tenant gates. Accept an UNKNOWN terminal outcome after ambiguous handoff rather than risking duplicate customer messages. Use the existing minute receiver and a single bounded send; require durable gateway idempotency before enabling the app. Vault-encrypted short-use envelopes enable retries without persisting plaintext capabilities. No Meta implementation, new scheduler or paid service. See [contracts and rollout gates](WHATSAPP_PILOT.md).
+
+## ADR-070 — Generic business features before commercial plans
+
+Accepted for WhatsApp Phase 3. Use the generic `WHATSAPP_CUSTOMER_UPDATES` entitlement as product access; retain existing operational UUID/private pilot gates and global kill switch. Future Pro → grants WHATSAPP_CUSTOMER_UPDATES through an authenticated billing boundary; no pricing, plan enum, provider, checkout or subscription code now. Initial grant is PILOT for the sole authorized business, with ordinary users unable to self-grant. Revocation stops future intent and pending work, preserves ACCEPTED/UNKNOWN and Email, and cannot recall an already-running provider call. Regrant does not replay cancelled or unknown messages.
