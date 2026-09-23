@@ -15,6 +15,12 @@ export default defineConfig({
       reuseExistingServer: false,
     },
     {
+      command: "node tests/whatsapp-ui/control-fixture.mjs",
+      url: "https://127.0.0.1:55443/health",
+      ignoreHTTPSErrors: true,
+      reuseExistingServer: false,
+    },
+    {
       command: "npm run dev -- --hostname 127.0.0.1 --port 3422",
       url: "http://127.0.0.1:3422",
       reuseExistingServer: false,
@@ -38,7 +44,9 @@ export default defineConfig({
         WHATSAPP_ENABLED: "true",
         WHATSAPP_PROVIDER: "wa_akg",
         WHATSAPP_PILOT_BUSINESS_IDS: "20000000-0000-4000-8000-000000000001",
-        WA_AKG_BASE_URL: "",
+        WA_AKG_BASE_URL: "https://127.0.0.1:55443",
+        WA_AKG_CONTROL_API_KEY: "c".repeat(64),
+        NODE_EXTRA_CA_CERTS: "output/playwright/control-tls/cert.pem",
         WA_AKG_API_KEY: "",
         WA_AKG_SESSION_ID: "",
       },

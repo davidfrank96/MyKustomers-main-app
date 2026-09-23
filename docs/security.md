@@ -1247,3 +1247,8 @@ IMPLEMENTED — VERIFICATION PENDING. App allowlist plus private SQL pilot autho
 ## Business-feature security boundary
 
 Feature access is authoritative in the database, never browser state. Members can read their own entitlement; active Super Admin can read across businesses. No direct authenticated INSERT/UPDATE/DELETE grants; anonymous and service-role mutation RPC execution are denied. Admin mutation requires fresh server authorization and the database rechecks actual active SUPER_ADMIN plus AAL2, records actor/reason/old-new state and uses an empty search path. The owner-only bootstrap records CONTROLLED_DATABASE_OPERATOR without impersonating a user. The worker rechecks entitlement at enqueue/claim/dispatch. A provider call already underway can finish after revoke; no ACCEPTED cancellation or UNKNOWN replay. Test-only personal pairing must not be used for general real-customer sending.
+
+
+## WhatsApp Admin control plane — 2026-09-23
+
+WhatsApp control requires fresh active SUPER_ADMIN and AAL2 for every mutation and QR read. Status reads do not demand repeated MFA. Authorization/audit/SQL pause precede gateway calls; only service-role result attestation can reopen claims after verified resume. QR stays in transient component memory, no-store responses, no analytics/logs/Sentry payload or automated screenshot. Status projections contain last four digits only; production smoke never mutates the paired account.

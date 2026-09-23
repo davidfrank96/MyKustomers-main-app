@@ -388,3 +388,8 @@ Repository migration generated with the Supabase CLI. APPLIED under the subseque
 ## WhatsApp Phase 3 entitlement migration — 2026-09-23
 
 `20260923022729_business_feature_entitlements.sql`: APPLIED after being manually reviewed and verified in fresh native PostgreSQL clusters, including the full baseline schema/lifecycle. It adds the feature table/read policy, audited AAL2 mutation, rollout-read RPC and entitlement checks to four existing functions while preserving their ACLs. No production application from CI; controlled production application and the sole Frankenstein PILOT grant completed with unchanged historical counts and zero new advisor warnings. Phase 2 migration `20260923001137_whatsapp_pilot_channel.sql` was subsequently applied under explicit approval and released with PR #89. See [Phase 3 release state](WHATSAPP_PHASE3.md).
+
+
+## WhatsApp Admin control plane — 2026-09-23
+
+`20260923111854_whatsapp_admin_control_plane.sql`: additive private control state, immediately enabled RLS, denied direct role grants, role/MFA-checked begin/read RPCs, service-only result RPC, audit enum and existing claim pause. No history rewrite, auth deletion, entitlement grant or outbox schema change. APPLIED to Production after native disposable PostgreSQL and baseline checks. SHA-256: `7fffa5d2fe34cd110721d6dcc6c0fcdea1738d5b37d27129cd14c10334b949e7`. Before/after: two events, two attempts, zero pending, one entitled business; RLS enabled, direct authenticated table access and authenticated result attestation denied. No new advisor warnings. Migration is immutable; any correction requires a forward migration.

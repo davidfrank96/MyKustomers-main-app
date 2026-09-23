@@ -50,6 +50,7 @@ const routes = [
   ["Bookings", "/admin/bookings", "bookings"],
   ["Issues", "/admin/issues", "issues"],
   ["Email Operations", "/admin/emails", "emails"],
+  ["WhatsApp", "/admin/whatsapp", "whatsapp"],
   ["Security & Health", "/admin/security", "security"],
 ] as const;
 
@@ -164,7 +165,7 @@ describe("admin overview presentation", () => {
       mocks.segment = segment;
       render(await AdminLayout({ children: <p>Protected content</p> }));
       const nav = screen.getByRole("navigation", { name: "Admin navigation" });
-      expect(within(nav).getAllByRole("link")).toHaveLength(7);
+      expect(within(nav).getAllByRole("link")).toHaveLength(8);
       expect(within(nav).getByRole("link", { name: label })).toHaveAttribute(
         "href",
         href,

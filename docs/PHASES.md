@@ -1494,3 +1494,8 @@ CONTROLLED PILOT VERIFIED. This named WhatsApp phase is separate from historical
 ## WhatsApp integration Phase 3 — 2026-09-23
 
 IMPLEMENTED — VERIFICATION PENDING. Productization extends the verified Phase 2 release from PR #89; it adds generic feature access and existing-UI refinements, not transport infrastructure or billing. General real-customer rollout requires a dedicated WhatsApp number. [Current verification and release evidence](WHATSAPP_PHASE3.md).
+
+
+## WhatsApp Admin control plane — 2026-09-23
+
+WhatsApp Admin control plane: IMPLEMENTED — RELEASE VERIFICATION PENDING. Gateway narrow control boundary and first-party Admin UI are implemented; focused tests pass. Exact CI/merge/production acceptance is recorded in the release report and PR after completion. Dedicated number and general rollout remain separate.

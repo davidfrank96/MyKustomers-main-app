@@ -64,6 +64,9 @@ test("admin without vendor membership logs out through the shared flow", async (
     (await (await request.get(`${fixtureOrigin}/fixture/state`)).json()).sessionRevoked,
   ).toBe(true);
   for (const route of ["/admin", "/admin/businesses", "/admin/emails"]) {
+    // Let the login page's deferred RSC prefetches finish before unloading it.
+    // WebKit reports cancelled same-origin prefetches as page errors otherwise.
+    await page.waitForLoadState("networkidle");
     await page.goto(route);
     await expect(page).toHaveURL(/\/login\?next=%2Fadmin/);
     await expect(page.getByRole("navigation", { name: "Admin navigation" })).toHaveCount(
@@ -71,8 +74,10 @@ test("admin without vendor membership logs out through the shared flow", async (
     );
     await expect(page.getByRole("heading", { name: "Create business" })).toHaveCount(0);
   }
+  await page.waitForLoadState("networkidle");
   await page.goBack();
   await expect(page.getByRole("navigation", { name: "Admin navigation" })).toHaveCount(0);
+  await page.waitForLoadState("networkidle");
   expect(errors).toEqual([]);
 });
 

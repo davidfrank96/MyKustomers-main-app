@@ -7,6 +7,7 @@ import sharp from "sharp";
 const whatsappFixture = process.env.WHATSAPP_UI_FIXTURE === "1";
 let whatsappStopped = false;
 let whatsappEntitled = true;
+let whatsappControlPaused = false;
 const businessId = "20000000-0000-4000-8000-000000000001";
 const otherBusinessId = "20000000-0000-4000-8000-000000000002";
 const userId = "10000000-0000-4000-8000-000000000001";
@@ -237,6 +238,7 @@ createServer(async (req, res) => {
     });
   if (url.pathname === "/fixture/reset") {
     whatsappStopped = false;
+    whatsappControlPaused = false;
     whatsappEntitled = true;
     business = { ...originalBusiness };
     otherBusiness = { ...originalOtherBusiness };
@@ -316,6 +318,39 @@ createServer(async (req, res) => {
     if (url.pathname.endsWith("/rpc/record_audit_event")) return send(null);
     if (failWrites) return send({ message: "Local fixture write unavailable" }, 503);
     const rpc = url.pathname.split("/").at(-1);
+    if (whatsappFixture && rpc === "get_whatsapp_operations")
+      return send({
+        paused: whatsappControlPaused,
+        summary: {
+          pending: 2,
+          processing: 0,
+          accepted: 1,
+          unknown: 1,
+          failed_recently: 0,
+        },
+        recent: [
+          {
+            id: "40000000-0000-4000-8000-000000000001",
+            created_at: "2026-09-23T10:00:00Z",
+            business_id: business.id,
+            business_name: business.name,
+            booking_id: "30000000-0000-4000-8000-000000000001",
+            event_type: "BOOKING_CONFIRMED",
+            status: "ACCEPTED",
+            attempt_count: 1,
+          },
+        ],
+        businesses: [{ id: business.id, name: business.name }],
+      });
+    if (whatsappFixture && rpc === "begin_whatsapp_control") {
+      whatsappControlPaused = true;
+      writes.push({ rpc });
+      return send("50000000-0000-4000-8000-000000000001");
+    }
+    if (whatsappFixture && rpc === "finish_whatsapp_control") {
+      writes.push({ rpc });
+      return send(true);
+    }
     if (whatsappFixture && rpc === "get_whatsapp_rollout_access")
       return send(body.p_business_id === businessId);
     if (whatsappFixture && rpc === "set_business_feature_entitlement") {
