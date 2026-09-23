@@ -1905,3 +1905,8 @@ Status: VERIFIED
 - Added PWA manifest and icons.
 - Added initial README, architecture, development, security, product boundaries, and database notes.
 - Verified install, lint, typecheck, tests, E2E smoke tests, production build, and dependency audit.
+
+
+## WhatsApp Admin control plane — 2026-09-23
+
+Added first-party Super Admin WhatsApp operations with masked session state, bounded queue/activity/business access, private QR pairing and audited AAL2 controls. Durable pause protects replacement and abandoned pairing; explicit verified resume preserves existing rollout restrictions. Reuses Phase 2/3 transport and vendor experience. Release verification pending.

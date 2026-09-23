@@ -1013,3 +1013,8 @@ Phase 2 controlled pilot verified; transport restored OFF. General rollout remai
 - [ ] Logged-in Frankenstein New Booking plus non-entitled/forged-request acceptance.
 - [ ] Sanitized production/gateway logs and resource evidence.
 - [ ] Dedicated number before general real-customer rollout (intentionally pending).
+
+
+## WhatsApp Admin control plane — 2026-09-23
+
+WhatsApp Admin release: gateway endpoints deployed before app; separate control key only in private gateway env and Vercel Production; current pairing retained. Require all executable CI green, exact merge SHA Ready/Production/Current, authenticated read-only Admin smoke, no new sends/QR/lifecycle calls, privacy/source/log checks and $6 resource measurements. Dedicated sender replacement is not part of release smoke.

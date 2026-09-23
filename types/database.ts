@@ -993,6 +993,15 @@ export type Database = {
         };
         Returns: boolean;
       };
+      get_whatsapp_operations: { Args: Record<PropertyKey, never>; Returns: Json };
+      begin_whatsapp_control: {
+        Args: { p_action: string; p_reason: string };
+        Returns: string;
+      };
+      finish_whatsapp_control: {
+        Args: { p_operation_id: string; p_succeeded: boolean };
+        Returns: boolean;
+      };
       get_whatsapp_admin_summary: { Args: Record<PropertyKey, never>; Returns: Json };
 
       register_push_subscription: {
@@ -1596,6 +1605,7 @@ export type Database = {
       email_delivery_attempt_status: "SENDING" | "SENT" | "FAILED";
       audit_event_type:
         | "BUSINESS_FEATURE_ENTITLEMENT_CHANGED"
+        | "WHATSAPP_SESSION_CONTROL"
         | "AUTH_SIGNUP"
         | "AUTH_LOGIN"
         | "AUTH_LOGOUT"

@@ -654,3 +654,8 @@ Migration `20260923001137_whatsapp_pilot_channel.sql` adds public booking_commun
 ## Business feature entitlements
 
 `20260923022729_business_feature_entitlements.sql` adds `business_feature_entitlements` keyed by `(business_id,feature_key)`, enabled flag, ADMIN/PILOT/BILLING/SYSTEM source and timestamps. The business FK restricts deletion. RLS and SELECT-only member/active-Super-Admin policy are enabled in the same transaction. Public `set_business_feature_entitlement` requires active SUPER_ADMIN and AAL2; its private owner-only mutation records BUSINESS_FEATURE_ENTITLEMENT_CHANGED and cancels only PENDING WhatsApp intents on revoke. `get_whatsapp_rollout_access` is an authorized read of the separate operational gate. Enqueue, claim, dispatch and opt-in creation recheck entitlement; existing history and Email are preserved. No historical backfill, destructive schema change or billing columns. Production application completed under the approved single-business scope; RLS/ACL and read-only negative authorization checks passed. [Contract](WHATSAPP_PHASE3.md).
+
+
+## WhatsApp Admin control plane — 2026-09-23
+
+Additive migration `20260923111854_whatsapp_admin_control_plane.sql` adds one RLS-protected private singleton with durable pause and bounded operation lease. No PII/QR fields or new public table. Existing audit_logs receive immutable WHATSAPP_SESSION_CONTROL REQUESTED/result events. `get_whatsapp_operations` returns bounded projections; `begin_whatsapp_control` rechecks Super Admin/AAL2 and pauses; server-only `finish_whatsapp_control` attests result. Existing claim RPC adds only the pause check.

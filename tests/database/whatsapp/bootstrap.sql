@@ -3,6 +3,8 @@ create role anon;
 create role authenticated;
 create role service_role bypassrls;
 create schema auth;
+create table auth.users(id uuid primary key);
+insert into auth.users values('20000000-0000-4000-8000-000000000001'),('20000000-0000-4000-8000-000000000002'),('20000000-0000-4000-8000-000000000003');
 create schema private;
 create schema extensions;
 create schema vault;

@@ -6,6 +6,7 @@ import {
   Clock3,
   ShieldCheck,
   Mail,
+  MessageCircle,
   Users,
 } from "lucide-react";
 import Link from "next/link";
@@ -124,6 +125,12 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
               <Mail className="size-4" aria-hidden="true" />
               Email Operations
             </AdminNavigationLink>
+            {admin.role === "SUPER_ADMIN" ? (
+              <AdminNavigationLink href="/admin/whatsapp" segment="whatsapp">
+                <MessageCircle className="size-4" aria-hidden="true" />
+                WhatsApp
+              </AdminNavigationLink>
+            ) : null}
             <AdminNavigationLink href="/admin/security" segment="security">
               <ShieldCheck className="size-4" aria-hidden="true" />
               Security &amp; Health

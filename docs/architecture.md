@@ -679,3 +679,8 @@ IMPLEMENTED — VERIFICATION PENDING. Existing booking transactions enqueue inde
 ## Business-feature access
 
 `features/business-features` is the product-access boundary; `hasBusinessFeature` uses request-scoped reads from the tenant-protected entitlement table. `features/whatsapp/access` combines that result with global configuration and authorized SQL rollout state. Storage failures deny WhatsApp while ordinary Email booking creation remains available. Gateway health/failure handling stays in the existing worker/Admin transport layer, not a synchronous dependency of booking creation. A future subscription integration can grant the same entitlement through a separately authenticated event boundary; no billing implementation is included.
+
+
+## WhatsApp Admin control plane — 2026-09-23
+
+WhatsApp Admin browser → authenticated My Kustomers server → separate server-only gateway control key → narrow canonical session boundary. Delivery credentials/routes are separate. One private SQL pause plus existing gateway Session.config pause prevent new claims/handoffs during lifecycle changes. No new paid resource, worker, scheduler or broadcast architecture.

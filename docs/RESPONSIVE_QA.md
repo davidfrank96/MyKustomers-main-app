@@ -381,3 +381,8 @@ Chromium and WebKit passed pilot creation controls and booking update status at 
 ## WhatsApp Phase 3
 
 Extends the existing cards, field help and privileged dialog without navigation/token changes. Browser fixtures exercise 320×568, 360×800, 375×812, 390×844, 414×896, 430×932, 768×1024, 1024×768, 1280×800 and 1440×900. New Booking choices/phone/consent, Booking Details, Settings and Admin retain document-width checks; no global overflow hiding was added. Chromium/WebKit keyboard focus and viewport contraction/restoration are emulated, not a physical-device keyboard claim. Final outcomes and visual review are recorded in [Phase 3](WHATSAPP_PHASE3.md).
+
+
+## WhatsApp Admin control plane — 2026-09-23
+
+WhatsApp Admin extends the existing max-1600px shell, contained navigation/table scrolling, neutral cards, badges and privileged dialogs. Exact ten-size matrix is covered in both Chromium and WebKit, including QR sizing with synthetic data but no QR screenshots. No document overflow hiding or separate WhatsApp design system.

@@ -1,0 +1,27 @@
+\set ON_ERROR_STOP on
+begin;
+create function pg_temp.control_assert(ok boolean,message text) returns void language plpgsql as $$begin if ok is distinct from true then raise exception 'FAIL: %',message;end if;end$$;
+insert into public.platform_admins(user_id,role,status) values('20000000-0000-4000-8000-000000000003','SUPER_ADMIN','ACTIVE');
+select pg_temp.control_assert(not has_table_privilege('authenticated','private.whatsapp_control_state','SELECT,INSERT,UPDATE,DELETE'),'private state not exposed');
+select pg_temp.control_assert(not has_function_privilege('authenticated','public.finish_whatsapp_control(uuid,boolean)','EXECUTE'),'browser cannot attest results');
+set local role authenticated;
+select set_config('request.jwt.claim.sub','20000000-0000-4000-8000-000000000001',true);
+do $$begin begin perform public.get_whatsapp_operations();raise exception 'vendor read allowed';exception when insufficient_privilege then null;end;begin perform public.begin_whatsapp_control('replace','test');raise exception 'vendor write allowed';exception when insufficient_privilege then null;end;end$$;
+select set_config('request.jwt.claim.sub','20000000-0000-4000-8000-000000000003',true);
+select pg_temp.control_assert(jsonb_array_length(public.get_whatsapp_operations()->'recent')<=20,'bounded recent');
+do $$begin begin perform public.begin_whatsapp_control('replace','test');raise exception 'aal1 allowed';exception when insufficient_privilege then null;end;end$$;
+select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+select public.begin_whatsapp_control('replace','Synthetic replacement');
+reset role;
+select pg_temp.control_assert((select paused from private.whatsapp_control_state),'pause precedes gateway request');
+select pg_temp.control_assert(not exists(select 1 from public.claim_whatsapp_event(array['10000000-0000-4000-8000-000000000001']::uuid[])),'paused worker does not claim');
+select public.finish_whatsapp_control((select operation_id from private.whatsapp_control_state),true);
+select pg_temp.control_assert((select paused from private.whatsapp_control_state),'replacement remains paused');
+set local role authenticated;
+select public.begin_whatsapp_control('resume','Synthetic connection verification');
+reset role;
+select public.finish_whatsapp_control((select operation_id from private.whatsapp_control_state),true);
+select pg_temp.control_assert(not (select paused from private.whatsapp_control_state),'confirmed resume releases claims');
+select pg_temp.control_assert((select count(*)=4 from public.audit_logs where event_type='WHATSAPP_SESSION_CONTROL'),'append-only requested/result audits');
+rollback;
+select 'PASS: control role/MFA/SQL pause, bounded projection, server-only result and audit';

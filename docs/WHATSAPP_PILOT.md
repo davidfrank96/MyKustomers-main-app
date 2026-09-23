@@ -155,3 +155,8 @@ the actual original lifecycle functions. It did not mutate the cloud database.
 A production-backed rollback-only synthetic test was rejected by automatic approval review; it was not run. Disposable local verification passed instead. The user subsequently explicitly approved the real migration/Vault/single-business release, which completed with green executable CI and controlled acceptance. Transport was restored OFF after verification.
 
 Protected Runtime Security still requires an approved non-production target and remains SKIPPED. Sentry was not verified. General rollout remains prohibited on the personal test pairing. The prior PR #88 timezone hydration finding is outside this change.
+
+
+## WhatsApp Admin control plane — 2026-09-23
+
+The dedicated `/admin/whatsapp` page is the first-party operational control plane; Security & Health links to it. WA-AKG dashboard remains unexposed. One sender supports existing durable transactional events. Product entitlement, rollout gates, global switch and controlled-recipient guard are unchanged. See [control-plane contracts](WHATSAPP_ADMIN.md).

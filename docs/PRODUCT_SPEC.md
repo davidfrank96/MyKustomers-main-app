@@ -565,3 +565,8 @@ PHASE 2 CONTROLLED PILOT VERIFIED. Only an explicitly allowlisted business can c
 ## WhatsApp productization
 
 An entitled, operationally allowed business can choose Email (default), WhatsApp (unchecked) or Both per booking. Valid explicit E.164 customer phone numbers prefill without country inference or implied consent. Switching customers resets the choices; changing the recipient resets consent. Local/empty numbers require an international number. Non-entitled businesses retain ordinary booking creation without locked/upgrade labels. Settings shows availability only to entitled businesses; Booking Details preserves the latest outcome after pausing/stopping. No default-channel setting or commercial plan model. See [Phase 3](WHATSAPP_PHASE3.md).
+
+
+## WhatsApp Admin control plane — 2026-09-23
+
+Super Admin can inspect the one platform sender and perform confirmed, reasoned AAL2 reconnect/pair/replace/unlink operations. Replacement pauses SQL claims and gateway handoffs first; successful connection requires explicit Verify and resume. Abandoned pairing remains paused. QR is ephemeral, no-store and server-proxied. No arbitrary-message or infrastructure controls.

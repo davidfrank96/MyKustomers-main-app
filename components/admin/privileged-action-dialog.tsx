@@ -34,6 +34,7 @@ type PrivilegedActionDialogProps = {
   confirmLabel: string;
   triggerLabel: string;
   requiresReason?: boolean;
+  secondary?: boolean;
   action: (
     previousState: PrivilegedActionState,
     formData: FormData,
@@ -46,6 +47,7 @@ export function PrivilegedActionDialog({
   confirmLabel,
   triggerLabel,
   requiresReason = false,
+  secondary = false,
   action,
 }: PrivilegedActionDialogProps) {
   const router = useRouter();
@@ -58,7 +60,9 @@ export function PrivilegedActionDialog({
   return (
     <Dialog open={open} onOpenChange={(nextOpen) => !pending && setOpen(nextOpen)}>
       <DialogTrigger asChild>
-        <Button type="button">{triggerLabel}</Button>
+        <Button type="button" variant={secondary ? "secondary" : "primary"}>
+          {triggerLabel}
+        </Button>
       </DialogTrigger>
       <DialogContent
         className="max-w-md"

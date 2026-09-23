@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { whatsappConfig } from "@/lib/whatsapp/config";
 import { getWhatsAppProvider } from "@/lib/whatsapp/provider";
@@ -31,7 +32,7 @@ export async function WhatsAppAdminHealth() {
         <dt>Channel</dt>
         <dd>{config.enabled ? "Enabled for pilot businesses" : "Disabled"}</dd>
         <dt>Provider</dt>
-        <dd>{config.provider === "wa_akg" ? "WA-AKG" : "Unsupported"}</dd>
+        <dd>{config.provider === "wa_akg" ? "WhatsApp" : "Unsupported"}</dd>
         <dt>Gateway</dt>
         <dd>
           {health === "CONNECTED" || health === "DISCONNECTED"
@@ -57,6 +58,12 @@ export async function WhatsAppAdminHealth() {
         <dt>Failed in 24 hours</dt>
         <dd>{counts?.success ? counts.data.failed_recently : "Unavailable"}</dd>
       </dl>
+      <Link
+        href="/admin/whatsapp"
+        className="inline-flex min-h-11 items-center text-sm font-medium text-primary hover:underline"
+      >
+        Open WhatsApp operations
+      </Link>
     </section>
   );
 }
