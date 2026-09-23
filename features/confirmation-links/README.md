@@ -211,3 +211,8 @@ view/open/confirm RPCs are service-only.
 
 See `docs/security.md`, `docs/DATA_MODEL.md`, and `docs/DECISIONS.md` for the
 accepted Phase 6 security and architecture decisions.
+
+
+## WhatsApp pilot sibling channel
+
+IMPLEMENTED — VERIFICATION PENDING. Opted-in booking communication choices can fan out the existing customer event to WhatsApp using the same capability, while Email retains its existing provider and template behavior. Non-pilot/default behavior is unchanged. See [pilot contracts and release gates](../../docs/WHATSAPP_PILOT.md).

@@ -379,3 +379,8 @@ transaction proved normalized booking contact with unchanged saved profile plus
 successful no-email delivery/v1 feedback creation, then rolled back completely.
 The migration is now immutable; correction requires a separately approved
 forward migration.
+
+
+## 20260923001137 — WhatsApp pilot channel
+
+Repository migration generated with the Supabase CLI. NOT APPLIED to production. Adds channel preferences/outbox and narrow wrappers, preserving existing domain function ACLs and email behavior. Requires a separately provisioned Vault key and explicit private pilot row before enabling opt-in. Migration itself contains neither key nor real pilot UUID. Passed disposable native PostgreSQL verification, including a local schema-only export with original lifecycle RPCs. Production-backed rollback testing was blocked by automatic approval review; do not bypass with an indirect SQL runner. See [deployment order](WHATSAPP_PILOT.md).

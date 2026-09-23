@@ -6,6 +6,7 @@ import { publicEnv } from "@/lib/config/public-env";
 import { recordAuditEvent } from "@/lib/security/audit";
 import { canUseServiceRoleClient, createServiceRoleClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { whatsappConfig } from "@/lib/whatsapp/config";
 import { deliverEmailEvent } from "@/lib/email/outbox";
 import { requiredCustomerEmailSchema } from "@/features/customers/validation";
 import {
@@ -112,12 +113,20 @@ export async function sendConfirmationEmailAction(
   const token = generateConfirmationToken();
   const expiresAt = confirmationLinkExpiresAt();
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc("create_booking_confirmation_request", {
+  const args = {
     p_booking_id: bookingId,
     p_contact_email: parsed.data,
-    p_token_hash: hashConfirmationToken(token),
     p_expires_at: expiresAt.toISOString(),
-  });
+  };
+  const { data, error } = whatsappConfig().pilotBusinessIds.includes(business.id)
+    ? await supabase.rpc("create_booking_confirmation_request_with_channels", {
+        ...args,
+        p_capability_token: token,
+      })
+    : await supabase.rpc("create_booking_confirmation_request", {
+        ...args,
+        p_token_hash: hashConfirmationToken(token),
+      });
   const request = data?.[0];
 
   if (error || !request) {
@@ -141,15 +150,22 @@ export async function sendConfirmationEmailAction(
 
   const baseUrl = publicEnv.NEXT_PUBLIC_APP_URL.replace(/\/$/, "");
   const confirmationUrl = `${baseUrl}/c/${token}`;
-  const delivery = await deliverEmailEvent(request.email_event_id, undefined, {
-    confirmationUrl,
-  });
+  const delivery = request.email_event_id
+    ? await deliverEmailEvent(request.email_event_id, undefined, {
+        confirmationUrl,
+      })
+    : null;
 
   revalidatePath("/bookings");
   revalidatePath(`/bookings/${bookingId}`);
 
   return {
-    ...confirmationDispatchFeedback(delivery),
+    ...(delivery
+      ? confirmationDispatchFeedback(delivery)
+      : {
+          status: "success" as const,
+          message: "Confirmation request queued for WhatsApp.",
+        }),
     recipientEmail: request.recipient_email,
     confirmationLinkId: request.confirmation_link_id,
     expiresAt: request.expires_at,

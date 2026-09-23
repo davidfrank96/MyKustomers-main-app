@@ -1,3 +1,5 @@
+import { whatsappConfig } from "@/lib/whatsapp/config";
+import { BookingUpdates } from "@/components/whatsapp/booking-updates";
 import { notFound, redirect } from "next/navigation";
 import type { Route } from "next";
 import { Suspense } from "react";
@@ -9,10 +11,7 @@ import {
   Timer,
   UserRound,
 } from "lucide-react";
-import {
-  WorkspaceBackLink,
-  WorkspacePage,
-} from "@/components/layout/workspace-page";
+import { WorkspaceBackLink, WorkspacePage } from "@/components/layout/workspace-page";
 import {
   BookingDetailSection,
   BookingDetailSections,
@@ -341,19 +340,20 @@ export default async function BookingDetailPage({
     pendingAmendment: amendmentSummary.displayStatus === "pending",
     awaitingAddon: addonSummary.hasAwaitingAddon,
   });
-  const currentDetailSection = amendmentSummary.displayStatus === "pending"
-    ? "booking-changes"
-    : addonSummary.hasAwaitingAddon
-      ? "booking-addons"
-      : booking.status === "DRAFT" || booking.status === "AWAITING_CUSTOMER"
-        ? "customer-confirmation"
-        : ["CONFIRMED", "IN_PROGRESS", "READY"].includes(booking.status)
-          ? "operational-progress"
-          : booking.status === "DELIVERED"
-            ? "booking-payments"
-            : booking.status === "COMPLETED" && !feedback
-              ? "private-feedback"
-              : null;
+  const currentDetailSection =
+    amendmentSummary.displayStatus === "pending"
+      ? "booking-changes"
+      : addonSummary.hasAwaitingAddon
+        ? "booking-addons"
+        : booking.status === "DRAFT" || booking.status === "AWAITING_CUSTOMER"
+          ? "customer-confirmation"
+          : ["CONFIRMED", "IN_PROGRESS", "READY"].includes(booking.status)
+            ? "operational-progress"
+            : booking.status === "DELIVERED"
+              ? "booking-payments"
+              : booking.status === "COMPLETED" && !feedback
+                ? "private-feedback"
+                : null;
   const confirmationSectionSummary = confirmationSummary.confirmedAt
     ? "Customer confirmed"
     : confirmationSummary.status === "active"
@@ -489,6 +489,9 @@ export default async function BookingDetailPage({
         cancellationReason={booking.cancellation_reason}
       />
 
+      <Suspense fallback={null}>
+        <BookingUpdates businessId={currentBusiness.id} bookingId={bookingId} />
+      </Suspense>
       <BookingDetailSections>
         <BookingDetailSection
           id="booking-payments"
@@ -559,6 +562,9 @@ export default async function BookingDetailPage({
           current={currentDetailSection === "customer-confirmation"}
         >
           <ConfirmationLinkPanel
+            bookingChannels={whatsappConfig().pilotBusinessIds.includes(
+              currentBusiness.id,
+            )}
             summary={confirmationSummary}
             providerDelivery={confirmationDelivery}
             canManage={isConfirmationEligibleStatus(booking.status)}

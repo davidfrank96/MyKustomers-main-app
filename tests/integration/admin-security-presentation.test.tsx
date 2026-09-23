@@ -10,6 +10,11 @@ import AdminLoading from "@/app/admin/security/loading";
 import { buildAdminHealthView } from "@/features/admin/health";
 import { securityFixture, securityStates } from "../fixtures/admin-health";
 
+// Async server sibling is verified separately; keep this presentation test synchronous.
+vi.mock("@/components/whatsapp/admin-health", () => ({
+  WhatsAppAdminHealth: () => null,
+}));
+
 const mocks = vi.hoisted(() => ({
   refresh: vi.fn(),
   pending: false,

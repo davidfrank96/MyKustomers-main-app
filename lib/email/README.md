@@ -162,3 +162,8 @@ visible-From-domain identity concern. The 2026-09-06 read-only audit found the
 public DMARC policy at `p=none` and no default BIMI record, so no Production DNS
 or Brevo account-wide header change is authorized. See
 `docs/EMAIL_SENDER_AVATAR_BIMI.md`.
+
+
+## WhatsApp pilot sibling channel
+
+IMPLEMENTED — VERIFICATION PENDING. Opted-in booking communication choices can fan out the existing customer event to WhatsApp using the same capability, while Email retains its existing provider and template behavior. Non-pilot/default behavior is unchanged. See [pilot contracts and release gates](../../docs/WHATSAPP_PILOT.md).

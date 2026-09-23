@@ -47,6 +47,8 @@ import { useFormErrorNavigation } from "@/hooks/use-form-error-navigation";
 import { cn } from "@/lib/utils/cn";
 import { formatDisplayDateTime } from "@/lib/utils/display-date";
 
+import { BookingCommunicationFields } from "./booking-communication-fields";
+
 const bookingFieldOrder = [
   "customerId",
   "newCustomerName",
@@ -59,6 +61,9 @@ const bookingFieldOrder = [
   "totalAmount",
   "depositAmount",
   "internalNotes",
+  "emailEnabled",
+  "whatsappRecipient",
+  "whatsappConsent",
 ] as const;
 
 type CustomerOption = {
@@ -80,6 +85,7 @@ type BookingFormValues = {
 };
 
 type BookingFormProps = {
+  whatsappAvailable?: boolean;
   action: (
     previousState: BookingActionState,
     formData: FormData,
@@ -227,6 +233,7 @@ function formatSummaryDate(value: string) {
 }
 
 export function BookingForm({
+  whatsappAvailable = false,
   action,
   submitLabel,
   customers = [],
@@ -968,6 +975,8 @@ export function BookingForm({
           <CreateFormSection title="Internal notes" icon={NotebookPen}>
             {notesField}
           </CreateFormSection>
+
+          {whatsappAvailable && <BookingCommunicationFields errors={state.fieldErrors} />}
 
           <Card aria-labelledby="booking-summary-title" className="overflow-hidden">
             <div className="flex items-center gap-3 bg-primary/[0.04] px-4 py-4 sm:px-5">

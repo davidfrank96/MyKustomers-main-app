@@ -982,3 +982,19 @@ returned zero matching businesses and Auth users.
 
 No WhatsApp implementation belongs to this release.
 [Detailed audit and release evidence](PLATFORM_HEALTH_AND_EFFICIENCY.md).
+
+
+## WhatsApp Phase 2 release gates
+
+- [x] Exact pilot business resolved through active authoritative membership, read-only.
+- [x] Gateway durable-idempotency commit deployed; session reconnected.
+- [x] Synthetic local lifecycle/tenant/consent/idempotency/browser verification.
+- [x] Separate application draft PR #89 and gateway draft PR #1 created.
+- [ ] All required executable CI green on the final app commit.
+- [ ] Approved production migration, Vault key and only the selected private pilot row.
+- [ ] Production-only provider configuration, Preview disabled.
+- [ ] Controlled pilot Email-only / WhatsApp-only / Both and exact-link comparison.
+- [ ] Post-pilot resources, provider IDs, sanitized Vercel/gateway logs and Sentry.
+- [ ] Protected runtime checks against an approved non-production target.
+
+Default WhatsApp remains false; do not claim pilot ready before these gates. See [runbook](WHATSAPP_PILOT.md).

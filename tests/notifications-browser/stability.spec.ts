@@ -94,6 +94,10 @@ test("golden shell: ordinary and notification navigation stay anchored through s
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/settings");
   await expect(page.getByRole("heading", { name: "Profile & account" })).toBeVisible();
+  // Hydration and Next's development stack-frame requests can outlive visible
+  // content. Let them settle before screenshots or forced document navigation;
+  // Linux WebKit surfaces cancelled requests as uncaught page errors.
+  await page.waitForLoadState("networkidle");
   await anchored(page);
   await page.screenshot({ path: `${output}/normal-nav.png` });
   await page.getByRole("button", { name: /^Notifications/ }).click();
@@ -115,6 +119,7 @@ test("golden shell: ordinary and notification navigation stay anchored through s
   ).toBeVisible();
   await anchored(page);
   await page.screenshot({ path: `${output}/notification-destination.png` });
+  await page.waitForLoadState("networkidle");
   await page.goBack();
   await expect(page.getByRole("heading", { name: "Profile & account" })).toBeVisible();
   // Back may restore a live modal in BFCache. Closing it must release its lock.
@@ -134,9 +139,11 @@ test("golden shell: ordinary and notification navigation stay anchored through s
     "/settings",
   ];
   for (const route of routes) {
+    await page.waitForLoadState("networkidle");
     const start = Date.now();
     const response = await page.goto(route);
     await expect(page.locator("main h1").first()).toBeVisible();
+    await page.waitForLoadState("networkidle");
     expect(response?.status()).toBe(200);
     const timing = await page.evaluate(() => {
       const n = performance.getEntriesByType(
@@ -170,6 +177,7 @@ test("golden shell: ordinary and notification navigation stay anchored through s
       });
     }
   }
+  await page.waitForLoadState("networkidle");
   await fs.writeFile(
     `${output}/baseline.json`,
     JSON.stringify({ measurements, errors, failedRequests }, null, 2),

@@ -44,6 +44,7 @@ import { cn } from "@/lib/utils/cn";
 import { formatDisplayDateTime } from "@/lib/utils/display-date";
 
 type ConfirmationLinkPanelProps = {
+  bookingChannels?: boolean;
   summary: ConfirmationLinkSummary;
   providerDelivery?: ProviderDeliverySummary | null;
   canManage: boolean;
@@ -188,6 +189,7 @@ const statusPresentation: Record<
 };
 
 export function ConfirmationLinkPanel({
+  bookingChannels = false,
   summary,
   providerDelivery,
   canManage,
@@ -356,8 +358,8 @@ export function ConfirmationLinkPanel({
               ? emailPresentation.primaryKind === "confirmed_contact"
                 ? "Same as confirmed booking contact"
                 : "Recipient shown above"
-              : `Sent to ${summary.requestRecipientEmail}`} ·{" "}
-            {summary.requestEmailStatus?.toLowerCase() ?? "queued"} ·{" "}
+              : `Sent to ${summary.requestRecipientEmail}`}{" "}
+            · {summary.requestEmailStatus?.toLowerCase() ?? "queued"} ·{" "}
             {formatDateTime(summary.requestCreatedAt)}
           </p>
         </div>
@@ -519,13 +521,21 @@ export function ConfirmationLinkPanel({
                       still share the secure link another way.
                     </p>
                   ) : null}
+                  {bookingChannels && (
+                    <p className="text-xs leading-5 text-muted-foreground">
+                      Delivery follows this booking’s Customer updates choices. The
+                      contact email remains required for confirmation.
+                    </p>
+                  )}
                   <SubmitButton
                     label={
                       unchangedSendBlocked
                         ? "Change email to send"
                         : summary.requestRecipientEmail
                           ? "Send fresh confirmation"
-                          : "Send confirmation email"
+                          : bookingChannels
+                            ? "Send confirmation"
+                            : "Send confirmation email"
                     }
                     pendingLabel="Sending..."
                     variant="primary"

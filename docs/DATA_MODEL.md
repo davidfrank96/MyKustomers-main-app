@@ -645,3 +645,8 @@ health record. Migration
 `platform_admins`, `audit_logs`, `profiles`, and `auth.users` evidence through a
 strict minimized DTO. The activity query limits source rows before actor joins;
 no audit array is embedded in the health summary.
+
+
+## WhatsApp pilot schema — pending migration
+
+Migration `20260923001137_whatsapp_pilot_channel.sql` adds public booking_communication_preferences and whatsapp_events, plus private whatsapp_pilot_businesses, whatsapp_attempts and encrypted whatsapp_capabilities. Composite tenant/booking keys, semantic unique intents, lease-conditional finalization and role-specific grants enforce isolation. Existing lifecycle functions preserve their business checks and email associations while enqueueing channel intents. New authenticated wrappers capture the same capability atomically; service-only RPCs claim, resolve context and finalize. No historical backfill. NOT APPLIED to the production app database. See [privacy, retention and state contracts](WHATSAPP_PILOT.md).

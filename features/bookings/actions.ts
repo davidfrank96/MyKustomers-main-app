@@ -31,6 +31,12 @@ import {
 } from "@/features/confirmation-links/token";
 import { consumeOutboundMessageRateLimit } from "@/lib/security/rate-limit";
 
+import { whatsappAvailable, whatsappConfig } from "@/lib/whatsapp/config";
+import {
+  communicationPreferenceSchema,
+  normalizeWhatsAppPhone,
+} from "@/features/whatsapp/validation";
+
 function formValue(formData: FormData, key: string) {
   return formData.get(key);
 }
@@ -90,6 +96,37 @@ export async function createBookingAction(
     return validationError(parsed.error);
   }
 
+  const hasChannels = formData.get("communicationPreference") === "true";
+  if (
+    (hasChannels || formData.has("whatsappEnabled")) &&
+    !whatsappAvailable(business.id)
+  ) {
+    return {
+      status: "error",
+      message: "WhatsApp updates are unavailable for this business.",
+    };
+  }
+  const channels = hasChannels
+    ? communicationPreferenceSchema.safeParse({
+        emailEnabled: formData.get("emailEnabled") === "on",
+        whatsappEnabled: formData.get("whatsappEnabled") === "on",
+        recipient: String(formData.get("whatsappRecipient") ?? ""),
+        consent: formData.get("whatsappConsent") === "on",
+      })
+    : null;
+  if (channels && !channels.success) {
+    const errors = channels.error.flatten().fieldErrors;
+    return {
+      status: "error",
+      message: "Check your customer update choices.",
+      fieldErrors: {
+        emailEnabled: errors.emailEnabled ?? [],
+        whatsappRecipient: errors.recipient ?? [],
+        whatsappConsent: errors.consent ?? [],
+      },
+    };
+  }
+
   if (parsed.data.customerMode === "new" && !parsed.data.duplicateAcknowledged) {
     const duplicateCandidates = await findPotentialDuplicateCustomers({
       businessId: business.id,
@@ -113,7 +150,7 @@ export async function createBookingAction(
   }
 
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc("create_booking_with_customer", {
+  const bookingArgs = {
     p_business_id: business.id,
     p_customer_mode: parsed.data.customerMode,
     p_customer_id:
@@ -131,7 +168,18 @@ export async function createBookingAction(
     p_deposit_amount_minor: parsed.data.depositAmount,
     p_scheduled_for: parsed.data.scheduledFor ?? null,
     p_internal_notes: parsed.data.internalNotes ?? null,
-  });
+  };
+  const { data, error } = channels?.success
+    ? await supabase.rpc("create_booking_with_channels", {
+        ...bookingArgs,
+        p_email_enabled: channels.data.emailEnabled,
+        p_whatsapp_enabled: channels.data.whatsappEnabled,
+        p_whatsapp_recipient: channels.data.whatsappEnabled
+          ? normalizeWhatsAppPhone(channels.data.recipient ?? "")
+          : null,
+        p_whatsapp_consent: channels.data.consent,
+      })
+    : await supabase.rpc("create_booking_with_customer", bookingArgs);
   const createdBooking = data?.[0];
 
   if (error || !createdBooking) {
@@ -507,12 +555,20 @@ export async function rescheduleBookingAction(
   const token = generateConfirmationToken();
   const expiresAt = confirmationLinkExpiresAt();
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc("reschedule_booking_with_notification", {
+  const args = {
     p_booking_id: bookingId,
     p_scheduled_for: parsed.data.scheduledFor,
-    p_token_hash: hashConfirmationToken(token),
     p_expires_at: expiresAt.toISOString(),
-  });
+  };
+  const { data, error } = whatsappConfig().pilotBusinessIds.includes(business.id)
+    ? await supabase.rpc("reschedule_booking_with_notification_with_channels", {
+        ...args,
+        p_capability_token: token,
+      })
+    : await supabase.rpc("reschedule_booking_with_notification", {
+        ...args,
+        p_token_hash: hashConfirmationToken(token),
+      });
 
   if (error || !data?.[0]) {
     return {

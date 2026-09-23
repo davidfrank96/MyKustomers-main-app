@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-23 — WhatsApp booking pilot implementation
+
+IMPLEMENTED — VERIFICATION PENDING. Adds explicit booking channel choices and consent, durable tenant-isolated WhatsApp events/attempts, a server-only WA-AKG adapter and bounded independent worker. Existing email and secure-link semantics remain. Gateway idempotency prerequisite is deployed; app migration and real controlled pilot remain unapplied. No general rollout, scheduler cadence change or new paid resources. [Architecture, evidence and release gates](WHATSAPP_PILOT.md).
+
 ## 2026-09-19 — Platform health and Admin logout
 
 IMPLEMENTED — RELEASE VERIFICATION PENDING. Admin now exposes the existing shared

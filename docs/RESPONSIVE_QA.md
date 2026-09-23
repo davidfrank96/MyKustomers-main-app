@@ -372,3 +372,8 @@ emulated viewport, but it cannot reproduce a physical iPhone software keyboard
 or Safari snapshot process. Real iOS homescreen launch, lock/unlock, keyboard,
 and photo-library selection remain pending. HEIC/HEIF is safely rejected; the
 supported PNG/JPEG/WebP flow is unchanged.
+
+
+## WhatsApp pilot UI — local evidence
+
+Chromium and WebKit passed pilot creation controls and booking update status at 320, 360, 375, 390, 414, 430, 768, 1024, 1280 and 1440px, without horizontal document overflow. Keyboard Space toggles consent; toggling WhatsApp off/on clears consent. Stop action preserves Email. Six isolated tests; local screenshots in output/playwright/whatsapp-phase2. This is synthetic UI evidence, not production messaging evidence. Existing timezone hydration finding is not fixed or suppressed here.

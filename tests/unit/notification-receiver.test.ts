@@ -1,7 +1,12 @@
 // @vitest-environment node
 import { beforeEach, afterEach, expect, it, vi } from "vitest";
 vi.mock("server-only", () => ({}));
-const mocks = vi.hoisted(() => ({ after: vi.fn(), process: vi.fn(), capture: vi.fn() }));
+const mocks = vi.hoisted(() => ({
+  after: vi.fn(),
+  process: vi.fn(),
+  whatsapp: vi.fn(),
+  capture: vi.fn(),
+}));
 vi.mock("next/server", async (importOriginal) => ({
   ...(await importOriginal<typeof import("next/server")>()),
   after: mocks.after,
@@ -9,6 +14,7 @@ vi.mock("next/server", async (importOriginal) => ({
 vi.mock("@/features/notifications/worker", () => ({
   processNotifications: mocks.process,
 }));
+vi.mock("@/features/whatsapp/worker", () => ({ processWhatsApp: mocks.whatsapp }));
 vi.mock("@sentry/nextjs", () => ({ captureMessage: mocks.capture }));
 import { POST } from "@/app/api/internal/notifications/process/route";
 const secret = "test-worker-credential-".repeat(3);
@@ -42,7 +48,9 @@ it("acknowledges promptly and runs the worker in Next's retained lifetime", asyn
   expect(await response.json()).toEqual({ accepted: true });
   expect(response.headers.get("cache-control")).toContain("no-store");
   expect(mocks.process).not.toHaveBeenCalled();
-  expect(mocks.after).toHaveBeenCalledTimes(1);
+  expect(mocks.after).toHaveBeenCalledTimes(2);
+  await mocks.after.mock.calls[1][0]();
+  expect(mocks.whatsapp).toHaveBeenCalledTimes(1);
   await mocks.after.mock.calls[0][0]();
   expect(mocks.process).toHaveBeenCalledTimes(1);
   expect(console.info).toHaveBeenCalledWith("Notification worker completed", {
@@ -60,5 +68,19 @@ it("records a fixed failure message without leaking provider errors", async () =
   expect(mocks.capture).toHaveBeenCalledWith("Notification worker unavailable", {
     level: "error",
     tags: { notification_stage: "worker" },
+  });
+});
+
+it("keeps both channels independent when either worker fails", async () => {
+  mocks.whatsapp.mockRejectedValue(new Error("private provider data"));
+  await POST(request());
+  await expect(
+    Promise.all(mocks.after.mock.calls.map(([callback]) => callback())),
+  ).resolves.toBeDefined();
+  expect(mocks.process).toHaveBeenCalledTimes(1);
+  expect(mocks.whatsapp).toHaveBeenCalledTimes(1);
+  expect(mocks.capture).toHaveBeenCalledWith("WhatsApp worker unavailable", {
+    level: "error",
+    tags: { whatsapp_stage: "worker" },
   });
 });

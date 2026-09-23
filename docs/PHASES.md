@@ -1485,3 +1485,8 @@ same-file recovery, persisted WebP validation, one transition-only completion
 dialog at 320px, dismissal and refresh suppression, zero Warning/Error/Fatal
 runtime logs, and zero independent fixture-residue counts. Physical-device
 iOS/Android picker evidence remains deferred.
+
+
+## WhatsApp integration Phase 2 — 2026-09-23
+
+IMPLEMENTED — VERIFICATION PENDING. This named WhatsApp phase is separate from historical application phase numbering. Local implementation and disposable test evidence exist; production app migration/deployment, protected runtime checks, required CI and controlled messaging remain pending. Gateway prerequisite deployed separately. See [release gates](WHATSAPP_PILOT.md).

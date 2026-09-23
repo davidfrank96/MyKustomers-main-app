@@ -1238,3 +1238,8 @@ the vendor shared logout, including server device revocation and local session/
 business-cookie cleanup. Platform role/AAL2 rules and Supabase global sign-out
 semantics are unchanged. Existing JWT lifetime is not represented as immediate
 global token invalidation. See [audit boundaries](PLATFORM_HEALTH_AND_EFFICIENCY.md).
+
+
+## WhatsApp pilot boundary
+
+IMPLEMENTED — VERIFICATION PENDING. App allowlist plus private SQL pilot authorization, active membership checks, RLS and column grants prevent cross-tenant opt-in/evidence access. Explicit E.164 consent is required. Gateway credentials remain server-only and Preview is disabled. Capabilities are encrypted under a separate Vault key and revalidated before dispatch; ambiguous outcomes terminate UNKNOWN. No raw provider errors, request bodies, phones or capability URLs in logs. Local tests passed; protected runtime and real deployment evidence remain pending. See [pilot security and retention](WHATSAPP_PILOT.md).
