@@ -50,3 +50,8 @@ The four live Phase 2 function bodies were compared exactly against the approved
 
 
 Read-only Supabase security advisors ran through the authorized database connection. The two baseline warnings concern pre-existing `private.set_updated_at` and `private.prevent_customer_business_id_change` search paths; neither is changed by this task. The linked-management command could not authenticate, so it was not used against any other project. Post-migration advisors must confirm no new warnings.
+
+
+## CI recovery
+
+Initial PR #90 CI identified two existing test-harness timing failures: Linux WebKit surfaced navigation-cancelled notification requests, and the eleven-route authenticated onboarding walk exhausted its 30-second total budget. The navigation test now requires the existing hydration-ready marker before waiting for network idle/screenshots/navigation. The onboarding test retains every per-assertion limit and all eleven route assertions, with a 90-second total journey budget. No product authorization, layout/error assertion, test skip or CI gate was relaxed. Three focused local WebKit reruns passed before the readiness correction; three focused WebKit reruns also passed after the readiness correction.

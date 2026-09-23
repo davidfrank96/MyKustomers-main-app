@@ -321,6 +321,9 @@ test.describe("Supabase authentication journeys", () => {
   test("zero-business login and direct vendor routes stay behind onboarding", async ({
     page,
   }, testInfo) => {
+    // This journey provisions/logs in and verifies eleven independent server
+    // redirects. Keep each assertion timeout, but budget the complete cold-CI walk.
+    test.setTimeout(90_000);
     const email = testEmail("zero-business-gate", testInfo.project.name);
     const password = `Phase2v-Zero-Business-${randomUUID()}-A1`;
     await createConfirmedUser(email, password);

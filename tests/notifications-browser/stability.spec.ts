@@ -95,8 +95,13 @@ test("golden shell: ordinary and notification navigation stay anchored through s
   await page.goto("/settings");
   await expect(page.getByRole("heading", { name: "Profile & account" })).toBeVisible();
   // Hydration and Next's development stack-frame requests can outlive visible
-  // content. Let them settle before screenshots or forced document navigation;
+  // content. Require actual hydration, then let requests settle before screenshots
+  // or forced document navigation;
   // Linux WebKit surfaces cancelled requests as uncaught page errors.
+  await expect(page.locator("[data-pwa-reliability-coordinator]")).toHaveAttribute(
+    "data-ready",
+    "true",
+  );
   await page.waitForLoadState("networkidle");
   await anchored(page);
   await page.screenshot({ path: `${output}/normal-nav.png` });
@@ -119,6 +124,10 @@ test("golden shell: ordinary and notification navigation stay anchored through s
   ).toBeVisible();
   await anchored(page);
   await page.screenshot({ path: `${output}/notification-destination.png` });
+  await expect(page.locator("[data-pwa-reliability-coordinator]")).toHaveAttribute(
+    "data-ready",
+    "true",
+  );
   await page.waitForLoadState("networkidle");
   await page.goBack();
   await expect(page.getByRole("heading", { name: "Profile & account" })).toBeVisible();
@@ -139,10 +148,18 @@ test("golden shell: ordinary and notification navigation stay anchored through s
     "/settings",
   ];
   for (const route of routes) {
+    await expect(page.locator("[data-pwa-reliability-coordinator]")).toHaveAttribute(
+      "data-ready",
+      "true",
+    );
     await page.waitForLoadState("networkidle");
     const start = Date.now();
     const response = await page.goto(route);
     await expect(page.locator("main h1").first()).toBeVisible();
+    await expect(page.locator("[data-pwa-reliability-coordinator]")).toHaveAttribute(
+      "data-ready",
+      "true",
+    );
     await page.waitForLoadState("networkidle");
     expect(response?.status()).toBe(200);
     const timing = await page.evaluate(() => {
@@ -177,6 +194,10 @@ test("golden shell: ordinary and notification navigation stay anchored through s
       });
     }
   }
+  await expect(page.locator("[data-pwa-reliability-coordinator]")).toHaveAttribute(
+    "data-ready",
+    "true",
+  );
   await page.waitForLoadState("networkidle");
   await fs.writeFile(
     `${output}/baseline.json`,
