@@ -121,8 +121,9 @@ recipient allowlist, rate limit and single-send gate still apply.
 
 The gateway commit and additive MySQL table are deployed and HTTPS/session health
 returned connected without QR. No Phase 2 message has been sent. The gateway's
-recipient allowlist remains empty. Gateway PR creation was denied by connector
-repository permissions; the commit is pushed on its separate Phase 2 branch.
+recipient allowlist remains empty. Review the separate draft [gateway PR #1](https://github.com/davidfrank96/wa-akg/pull/1)
+and [application PR #89](https://github.com/davidfrank96/MyKustomers-main-app/pull/89).
+Neither PR is merged. The gateway change is already deployed as the backward-compatible prerequisite.
 
 Release sequence, once approved:
 

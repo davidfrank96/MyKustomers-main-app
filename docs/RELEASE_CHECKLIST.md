@@ -989,7 +989,8 @@ No WhatsApp implementation belongs to this release.
 - [x] Exact pilot business resolved through active authoritative membership, read-only.
 - [x] Gateway durable-idempotency commit deployed; session reconnected.
 - [x] Synthetic local lifecycle/tenant/consent/idempotency/browser verification.
-- [ ] App PR and required executable CI green.
+- [x] Separate application draft PR #89 and gateway draft PR #1 created.
+- [ ] All required executable CI green on the final app commit.
 - [ ] Approved production migration, Vault key and only the selected private pilot row.
 - [ ] Production-only provider configuration, Preview disabled.
 - [ ] Controlled pilot Email-only / WhatsApp-only / Both and exact-link comparison.
