@@ -10,7 +10,7 @@ import { createBookingAction } from "@/features/bookings/actions";
 import { listActiveBookingCustomerOptions } from "@/features/bookings/queries";
 import { getCurrentBusinessContext } from "@/lib/auth/server";
 
-import { whatsappAvailable } from "@/lib/whatsapp/config";
+import { getWhatsAppAccess } from "@/features/whatsapp/access";
 
 export default async function NewBookingPage() {
   const businessContext = await getCurrentBusinessContext();
@@ -20,7 +20,10 @@ export default async function NewBookingPage() {
     redirect("/onboarding" as Route);
   }
 
-  const customers = await listActiveBookingCustomerOptions(currentBusiness.id);
+  const [customers, access] = await Promise.all([
+    listActiveBookingCustomerOptions(currentBusiness.id),
+    getWhatsAppAccess(currentBusiness.id),
+  ]);
 
   return (
     <WorkspacePage className="max-w-3xl pb-28 lg:pb-8">
@@ -39,7 +42,7 @@ export default async function NewBookingPage() {
         customers={customers}
         defaultCustomerMode={customers.length === 0 ? "new" : "existing"}
         mode="create"
-        whatsappAvailable={whatsappAvailable(currentBusiness.id)}
+        whatsappAvailable={access.available}
       />
     </WorkspacePage>
   );

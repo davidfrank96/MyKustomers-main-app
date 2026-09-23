@@ -976,7 +976,18 @@ export function BookingForm({
             {notesField}
           </CreateFormSection>
 
-          {whatsappAvailable && <BookingCommunicationFields errors={state.fieldErrors} />}
+          {whatsappAvailable && (
+            <BookingCommunicationFields
+              key={`${customerMode}:${selectedCustomerId}`}
+              customerPhone={
+                customerMode === "new"
+                  ? newCustomerPhone
+                  : customerOptions.find((customer) => customer.id === selectedCustomerId)
+                      ?.phone
+              }
+              errors={state.fieldErrors}
+            />
+          )}
 
           <Card aria-labelledby="booking-summary-title" className="overflow-hidden">
             <div className="flex items-center gap-3 bg-primary/[0.04] px-4 py-4 sm:px-5">

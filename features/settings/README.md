@@ -10,3 +10,7 @@ push preferences and the current device's optional push subscription. The My
 Profile Notifications row links here and reuses its current API and error states.
 Billing/subscriptions, account editing, vendor privacy/security settings, platform
 Terms and About destinations are not implemented; their hub rows remain static.
+
+## Customer communications
+
+Entitled businesses see a compact WhatsApp availability card and a New Booking link, using existing Settings cards. Operationally paused access is labelled temporarily unavailable. Non-entitled businesses see no new section; no provider internals, billing labels or default-channel setting.

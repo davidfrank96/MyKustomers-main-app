@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { whatsappConfig, whatsappAvailable } from "@/lib/whatsapp/config";
+import { getWhatsAppAccess } from "@/features/whatsapp/access";
 import { whatsappStatusLabels } from "@/features/whatsapp/validation";
 import { disableBookingWhatsApp } from "@/features/whatsapp/actions";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ export async function BookingUpdates({
   businessId: string;
   bookingId: string;
 }) {
-  if (!whatsappConfig().pilotBusinessIds.includes(businessId)) return null;
+  const access = await getWhatsAppAccess(businessId);
   const db = await createClient();
   const [preferences, events] = await Promise.all([
     db
@@ -28,6 +28,7 @@ export async function BookingUpdates({
       .order("created_at", { ascending: false })
       .limit(1),
   ]);
+  if (!access.entitled && !preferences.data && !events.data?.length) return null;
   if (preferences.error || events.error)
     return (
       <p className="text-sm text-muted-foreground">
@@ -35,19 +36,18 @@ export async function BookingUpdates({
       </p>
     );
   const preference = preferences.data;
-  const state = !whatsappAvailable(businessId)
-    ? "Unavailable — queued updates are paused"
-    : preference?.disabled_at
-      ? "Updates stopped"
-      : !preference?.whatsapp_enabled
-        ? "Not selected"
-        : events.data?.[0]
-          ? (whatsappStatusLabels[events.data[0].status] ?? "Status unavailable")
-          : "Ready for booking updates";
+  const latestEvent = events.data?.[0];
+  const state = preference?.disabled_at
+    ? "Updates stopped"
+    : !preference?.whatsapp_enabled
+      ? "Not selected"
+      : !access.available
+        ? "Future updates paused"
+        : "Selected";
   return (
     <section
       aria-labelledby="booking-updates-title"
-      className="min-w-0 space-y-3 rounded-xl border border-border bg-card p-4 sm:p-5"
+      className="min-w-0 space-y-3 rounded-lg border border-border bg-card p-4 sm:p-5"
     >
       <h2 id="booking-updates-title" className="font-semibold">
         Customer updates
@@ -57,6 +57,14 @@ export async function BookingUpdates({
         <dd>{preference?.email_enabled === false ? "Not selected" : "Selected"}</dd>
         <dt>WhatsApp</dt>
         <dd className="break-words">{state}</dd>
+        {latestEvent && (
+          <>
+            <dt>Latest WhatsApp update</dt>
+            <dd className="break-words">
+              {whatsappStatusLabels[latestEvent.status] ?? "Status unavailable"}
+            </dd>
+          </>
+        )}
       </dl>
       {preference?.whatsapp_enabled && (
         <form action={disableBookingWhatsApp.bind(null, bookingId)}>

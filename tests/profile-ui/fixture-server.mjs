@@ -6,6 +6,7 @@ import sharp from "sharp";
 
 const whatsappFixture = process.env.WHATSAPP_UI_FIXTURE === "1";
 let whatsappStopped = false;
+let whatsappEntitled = true;
 const businessId = "20000000-0000-4000-8000-000000000001";
 const otherBusinessId = "20000000-0000-4000-8000-000000000002";
 const userId = "10000000-0000-4000-8000-000000000001";
@@ -27,7 +28,7 @@ const accessToken = `${encode({ alg: "HS256", typ: "JWT" })}.${encode({
   exp: Math.floor(Date.now() / 1000) + 86400,
   iat: Math.floor(Date.now() / 1000),
   user_metadata: user.user_metadata,
-  aal: "aal1",
+  aal: whatsappFixture ? "aal2" : "aal1",
 })}.${Buffer.from("local-profile-fixture-only").toString("base64url")}`;
 const session = {
   access_token: accessToken,
@@ -236,6 +237,7 @@ createServer(async (req, res) => {
     });
   if (url.pathname === "/fixture/reset") {
     whatsappStopped = false;
+    whatsappEntitled = true;
     business = { ...originalBusiness };
     otherBusiness = { ...originalOtherBusiness };
     logoFailure = false;
@@ -265,6 +267,8 @@ createServer(async (req, res) => {
     const chunks = [];
     for await (const chunk of req) chunks.push(chunk);
     const scenario = JSON.parse(Buffer.concat(chunks));
+    if (scenario.whatsappEntitled !== undefined)
+      whatsappEntitled = scenario.whatsappEntitled;
     if (scenario.kind) capabilityOverrides[scenario.kind] = scenario.record ?? {};
     if (scenario.booking) bookingOverrides = scenario.booking;
     if (scenario.publicBooking) publicBookingOverrides = scenario.publicBooking;
@@ -312,6 +316,52 @@ createServer(async (req, res) => {
     if (url.pathname.endsWith("/rpc/record_audit_event")) return send(null);
     if (failWrites) return send({ message: "Local fixture write unavailable" }, 503);
     const rpc = url.pathname.split("/").at(-1);
+    if (whatsappFixture && rpc === "get_whatsapp_rollout_access")
+      return send(body.p_business_id === businessId);
+    if (whatsappFixture && rpc === "set_business_feature_entitlement") {
+      if (!platformAdmin || body.p_business_id !== businessId) return send({}, 403);
+      whatsappEntitled = body.p_enabled;
+      return send(true);
+    }
+    if (whatsappFixture && rpc === "get_platform_admin_business") {
+      const b = body.p_business_id === businessId ? business : otherBusiness;
+      const {
+        id,
+        name,
+        slug,
+        category,
+        website,
+        instagram,
+        email,
+        phone,
+        logo_path,
+        created_at,
+        onboarding_completed_at,
+      } = b;
+      return send({
+        id,
+        name,
+        slug,
+        category,
+        website,
+        instagram,
+        email,
+        phone,
+        logo_path,
+        created_at,
+        onboarding_completed_at,
+        memberships: [],
+        metrics: {
+          customers: 3,
+          bookings: 1,
+          active_bookings: 1,
+          completed_bookings: 0,
+          open_issues: 0,
+          failed_emails: 0,
+          pending_emails: 0,
+        },
+      });
+    }
     if (whatsappFixture && rpc === "disable_booking_whatsapp") {
       whatsappStopped = true;
       return send(true);
@@ -431,6 +481,39 @@ createServer(async (req, res) => {
       ),
     ];
   if (whatsappFixture) {
+    if (table === "business_feature_entitlements")
+      rows = [
+        {
+          business_id: businessId,
+          feature_key: "WHATSAPP_CUSTOMER_UPDATES",
+          enabled: whatsappEntitled,
+          source: "PILOT",
+        },
+      ];
+    if (table === "customers")
+      rows = [
+        {
+          id: "90000000-0000-4000-8000-000000000001",
+          name: "International fixture",
+          phone: "+1 (555) 555-0123",
+        },
+        {
+          id: "90000000-0000-4000-8000-000000000003",
+          name: "Local fixture",
+          phone: "05555550124",
+        },
+        {
+          id: "90000000-0000-4000-8000-000000000004",
+          name: "Empty fixture",
+          phone: null,
+        },
+      ].map((customer) => ({
+        ...customer,
+        business_id: businessId,
+        email: "fixture@example.invalid",
+        archived_at: null,
+        created_at: "2026-01-15T12:00:00Z",
+      }));
     if (
       [
         "confirmation_links",

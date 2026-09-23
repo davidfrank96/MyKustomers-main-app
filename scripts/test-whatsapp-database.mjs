@@ -64,6 +64,8 @@ try {
       localSchema,
       "-f",
       "supabase/migrations/20260923001137_whatsapp_pilot_channel.sql",
+      "-f",
+      "supabase/migrations/20260923022729_business_feature_entitlements.sql",
     ]);
     console.log(run("psql", [...psql, "-f", "tests/database/whatsapp/lifecycle.sql"]));
   } else {
@@ -73,6 +75,8 @@ try {
       "tests/database/whatsapp/bootstrap.sql",
       "-f",
       "supabase/migrations/20260923001137_whatsapp_pilot_channel.sql",
+      "-f",
+      "supabase/migrations/20260923022729_business_feature_entitlements.sql",
     ]);
     console.log(run("psql", [...psql, "-f", "tests/database/whatsapp/verify.sql"]));
     const claim = () =>
@@ -102,6 +106,7 @@ try {
     console.log(
       "PASS: concurrent workers claim distinct events without duplicate handoff",
     );
+    console.log(run("psql", [...psql, "-f", "tests/database/whatsapp/entitlements.sql"]));
   }
 } finally {
   if (started) run("pg_ctl", ["-D", data, "-m", "fast", "stop"]);

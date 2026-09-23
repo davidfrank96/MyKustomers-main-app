@@ -1,3 +1,4 @@
+import { WhatsAppBusinessSettings } from "@/components/whatsapp/business-settings";
 import { NotificationSettings } from "@/components/notifications/notification-settings";
 import Link from "next/link";
 import type { Route } from "next";
@@ -53,6 +54,8 @@ export default async function SettingsPage() {
           </div>
         </CardContent>
       </Card>
+
+      <WhatsAppBusinessSettings businessId={business.id} />
 
       <NotificationSettings />
 

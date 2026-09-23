@@ -4,6 +4,7 @@ insert into public.businesses(id,name) values('10000000-0000-4000-8000-000000000
 insert into public.business_members(business_id,user_id,status,role) values('10000000-0000-4000-8000-000000000001','20000000-0000-4000-8000-000000000001','active','owner');
 insert into public.bookings(id,business_id,reference) values('30000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000001','SYNTHETIC-A'),('30000000-0000-4000-8000-000000000002','10000000-0000-4000-8000-000000000002','SYNTHETIC-B');
 insert into private.whatsapp_pilot_businesses values('10000000-0000-4000-8000-000000000001',true);
+insert into public.business_feature_entitlements(business_id,feature_key,enabled,source) values('10000000-0000-4000-8000-000000000001','WHATSAPP_CUSTOMER_UPDATES',true,'PILOT');
 insert into public.booking_communication_preferences(booking_id,business_id,email_enabled,whatsapp_enabled,recipient_e164,consent_at,consent_source)
 values('30000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000001',true,true,'+15555550123',now(),'VENDOR_CONFIRMED');
 -- Nine existing semantic events, Both, and repeated same logical event.

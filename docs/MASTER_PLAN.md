@@ -930,3 +930,7 @@ remains a manual-device gap.
 ## WhatsApp Phase 2 — single-business pilot
 
 IMPLEMENTED — VERIFICATION PENDING. Provider-neutral WhatsApp booking updates now have a local implementation, durable SQL intents/attempts, explicit consent, tenant guards and a separately deployed gateway idempotency prerequisite. Production app migration, credentials, CI and controlled pilot are pending; default remains disabled. No Phase 3 or general rollout. See [pilot architecture and gates](WHATSAPP_PILOT.md).
+
+## WhatsApp Phase 3 — product access
+
+Generic business-feature entitlements now control product access separately from the existing operational pilot gates and kill switch. Refined existing booking choices, safe international phone prefill, consent reset, honest historical status, compact Settings availability and audited Super Admin grant/revoke. No billing, plans or general rollout. Implementation and isolated verification exist; release acceptance is tracked in [Phase 3](WHATSAPP_PHASE3.md).

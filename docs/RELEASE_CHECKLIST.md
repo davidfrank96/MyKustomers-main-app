@@ -990,11 +990,26 @@ No WhatsApp implementation belongs to this release.
 - [x] Gateway durable-idempotency commit deployed; session reconnected.
 - [x] Synthetic local lifecycle/tenant/consent/idempotency/browser verification.
 - [x] Separate application draft PR #89 and gateway draft PR #1 created.
-- [ ] All required executable CI green on the final app commit.
-- [ ] Approved production migration, Vault key and only the selected private pilot row.
-- [ ] Production-only provider configuration, Preview disabled.
-- [ ] Controlled pilot Email-only / WhatsApp-only / Both and exact-link comparison.
-- [ ] Post-pilot resources, provider IDs, sanitized Vercel/gateway logs and Sentry.
+- [x] All required executable CI green on the final app commit.
+- [x] Approved production migration, Vault key and only the selected private pilot row.
+- [x] Production-only provider configuration, Preview disabled.
+- [x] Controlled pilot Email-only / WhatsApp-only / Both and exact-link comparison.
+- [x] Post-pilot resources, provider IDs and sanitized Vercel/gateway logs.
+- [ ] Sentry — NOT VERIFIED.
 - [ ] Protected runtime checks against an approved non-production target.
 
-Default WhatsApp remains false; do not claim pilot ready before these gates. See [runbook](WHATSAPP_PILOT.md).
+Phase 2 controlled pilot verified; transport restored OFF. General rollout remains pending a dedicated number. See [runbook](WHATSAPP_PILOT.md).
+
+
+## WhatsApp Phase 3 release gates
+
+- [x] Design-language and existing-feature audit before coding; reuse Phase 2 UI and infrastructure.
+- [x] Generic entitlement, member RLS, MFA-protected audited Super Admin mutation.
+- [x] Isolated database and full lifecycle tests; no live transport sends.
+- [x] Final focused browser/polish and full suite evidence recorded.
+- [ ] One focused PR, all executable required CI green before merge.
+- [x] Reviewed additive production migration; sole Frankenstein PILOT entitlement.
+- [ ] Exact merge SHA READY / PRODUCTION / CURRENT on mykustomers.com.
+- [ ] Logged-in Frankenstein New Booking plus non-entitled/forged-request acceptance.
+- [ ] Sanitized production/gateway logs and resource evidence.
+- [ ] Dedicated number before general real-customer rollout (intentionally pending).

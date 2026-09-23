@@ -560,4 +560,8 @@ and `aria-current`, not red/error styling alone.
 
 ## WhatsApp booking update pilot
 
-IMPLEMENTED — VERIFICATION PENDING. Only an explicitly allowlisted business can choose Email (default), WhatsApp or Both during booking creation. WhatsApp needs an international number and fresh booking-specific vendor-confirmed consent. Existing customer-contact and confirmation requirements remain. Nine current customer lifecycle events follow the stored choice. Booking details show honest acceptance/uncertainty and permit stopping future WhatsApp updates without changing Email. Broadcasts, inbound chat and general rollout are excluded. See [pilot contract](WHATSAPP_PILOT.md).
+PHASE 2 CONTROLLED PILOT VERIFIED. Only an explicitly allowlisted business can choose Email (default), WhatsApp or Both during booking creation. WhatsApp needs an international number and fresh booking-specific vendor-confirmed consent. Existing customer-contact and confirmation requirements remain. Nine current customer lifecycle events follow the stored choice. Booking details show honest acceptance/uncertainty and permit stopping future WhatsApp updates without changing Email. Broadcasts, inbound chat and general rollout are excluded. See [pilot contract](WHATSAPP_PILOT.md).
+
+## WhatsApp productization
+
+An entitled, operationally allowed business can choose Email (default), WhatsApp (unchecked) or Both per booking. Valid explicit E.164 customer phone numbers prefill without country inference or implied consent. Switching customers resets the choices; changing the recipient resets consent. Local/empty numbers require an international number. Non-entitled businesses retain ordinary booking creation without locked/upgrade labels. Settings shows availability only to entitled businesses; Booking Details preserves the latest outcome after pausing/stopping. No default-channel setting or commercial plan model. See [Phase 3](WHATSAPP_PHASE3.md).

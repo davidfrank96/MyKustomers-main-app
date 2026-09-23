@@ -5,6 +5,7 @@ insert into public.profiles(id,display_name) values('20000000-0000-4000-8000-000
 insert into public.businesses(id,name,slug,category,created_by,onboarding_completed_at) values('10000000-0000-4000-8000-000000000001','Synthetic Vendor','synthetic-vendor','Other','20000000-0000-4000-8000-000000000001',now());
 insert into public.business_members(business_id,user_id,role,status) values('10000000-0000-4000-8000-000000000001','20000000-0000-4000-8000-000000000001','owner','active');
 insert into private.whatsapp_pilot_businesses values('10000000-0000-4000-8000-000000000001',true);
+insert into public.business_feature_entitlements(business_id,feature_key,enabled,source) values('10000000-0000-4000-8000-000000000001','WHATSAPP_CUSTOMER_UPDATES',true,'PILOT');
 do $$
 declare pilot uuid:='10000000-0000-4000-8000-000000000001'; b record; r record; repeated record; a record; addon record; second_booking record; result jsonb; mode text; t1 text;t2 text;t3 text;t4 text;t5 text;
 begin

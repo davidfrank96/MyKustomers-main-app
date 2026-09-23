@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-23 — WhatsApp Phase 3 productization
+
+IMPLEMENTED — VERIFICATION PENDING. Adds a generic, tenant-protected business-feature entitlement with audited MFA-protected Super Admin controls. Reuses booking UI with safe phone prefill, consent reset, persistent honest history and entitled-only Settings availability. No billing or subscription model; personal pairing remains test-only. See [Phase 3 evidence](WHATSAPP_PHASE3.md).
+
+## 2026-09-23 — Phase 2 controlled release verification
+
+PR #89 merged at `82e936101439188726e3bab9ac9ee5d39a852c49`; seven executable CI checks passed. Approved migration/Vault provisioning and controlled Email-only, WhatsApp-only and Both acceptance completed. Two WhatsApp handoffs were ACCEPTED with separate provider receipt evidence; transport was restored OFF after testing. Protected Runtime Security and Sentry remain unverified. This supersedes the implementation-time pending entry below without changing its historical meaning.
+
 ## 2026-09-23 — WhatsApp booking pilot implementation
 
 IMPLEMENTED — VERIFICATION PENDING. Adds explicit booking channel choices and consent, durable tenant-isolated WhatsApp events/attempts, a server-only WA-AKG adapter and bounded independent worker. Existing email and secure-link semantics remain. Gateway idempotency prerequisite is deployed; app migration and real controlled pilot remain unapplied. No general rollout, scheduler cadence change or new paid resources. [Architecture, evidence and release gates](WHATSAPP_PILOT.md).
