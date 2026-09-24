@@ -575,3 +575,8 @@ Super Admin can inspect the one platform sender and perform confirmed, reasoned 
 ## Customer updates UI polish — 2026-09-24
 
 The booking creation Customer updates selector presents independent Email/WhatsApp cards and explicitly explains that either or both may be selected. A subtle Pro badge is presentation only; no plan model, upgrade action or entitlement enforcement is added. Existing defaults, availability gates, international-number validation, submission names and fresh consent behavior remain unchanged.
+
+
+## Customer updates summary — 2026-09-24
+
+The booking-details Customer updates summary presents read-only full-width Email and WhatsApp cards using existing authoritative labels. Selected and Not selected use calm green/neutral status pills; existing Updates stopped and Future updates paused labels remain visible in the neutral treatment. Latest delivery history, stop action, fallback behavior, availability gates and the separate editing form are preserved. No Pro badge or new control is added to this summary.

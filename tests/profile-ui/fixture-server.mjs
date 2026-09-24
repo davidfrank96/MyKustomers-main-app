@@ -8,6 +8,8 @@ const whatsappFixture = process.env.WHATSAPP_UI_FIXTURE === "1";
 let whatsappStopped = false;
 let whatsappEntitled = true;
 let whatsappControlPaused = false;
+let whatsappSummaryPreferences = {};
+let whatsappSummaryHasEvent = true;
 const businessId = "20000000-0000-4000-8000-000000000001";
 const otherBusinessId = "20000000-0000-4000-8000-000000000002";
 const userId = "10000000-0000-4000-8000-000000000001";
@@ -237,6 +239,8 @@ createServer(async (req, res) => {
       ),
     });
   if (url.pathname === "/fixture/reset") {
+    whatsappSummaryPreferences = {};
+    whatsappSummaryHasEvent = true;
     whatsappStopped = false;
     whatsappControlPaused = false;
     whatsappEntitled = true;
@@ -269,6 +273,10 @@ createServer(async (req, res) => {
     const chunks = [];
     for await (const chunk of req) chunks.push(chunk);
     const scenario = JSON.parse(Buffer.concat(chunks));
+    if (whatsappFixture && scenario.whatsappSummaryPreferences)
+      whatsappSummaryPreferences = scenario.whatsappSummaryPreferences;
+    if (whatsappFixture && scenario.whatsappSummaryHasEvent !== undefined)
+      whatsappSummaryHasEvent = scenario.whatsappSummaryHasEvent;
     if (scenario.whatsappEntitled !== undefined)
       whatsappEntitled = scenario.whatsappEntitled;
     if (scenario.kind) capabilityOverrides[scenario.kind] = scenario.record ?? {};
@@ -602,6 +610,7 @@ createServer(async (req, res) => {
           email_enabled: true,
           whatsapp_enabled: !whatsappStopped,
           disabled_at: whatsappStopped ? new Date().toISOString() : null,
+          ...whatsappSummaryPreferences,
         },
       ];
     if (table === "whatsapp_events")
@@ -615,6 +624,7 @@ createServer(async (req, res) => {
           created_at: "2026-01-15T12:00:00Z",
         },
       ];
+    if (table === "whatsapp_events" && !whatsappSummaryHasEvent) rows = [];
   }
   if (table === "notification_preferences") {
     if (body) preferences = { ...preferences, ...body };

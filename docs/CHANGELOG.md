@@ -1915,3 +1915,8 @@ Added first-party Super Admin WhatsApp operations with masked session state, bou
 ## Customer updates UI polish — 2026-09-24
 
 Refined only the booking Customer updates selector to match the supplied design direction: icon-led heading, explicit email/WhatsApp/both guidance, subtle presentation-only Pro badge, selectable channel cards and clearer conditional number/consent grouping. No backend, database, API, routing, billing, validation or business-logic changes. IMPLEMENTED — UI REVIEW APPROVED; CI/RELEASE PENDING. Publishing the feature branch and PR is approved; merge remains manual, with Production deployment following the existing main-branch integration.
+
+
+## Customer updates summary — 2026-09-24
+
+Implemented the approved read-only booking Customer updates summary: compact title/copy, matching full-width Email and WhatsApp cards, consistent selected/neutral status pills and responsive geometry. Existing exceptional status labels, latest delivery evidence and stop action remain. The editor, queries, actions, preferences, consent, number, backend, schema, API, RLS, routes, billing and entitlement behavior are unchanged. IMPLEMENTED — UI REVIEW APPROVED; CI/RELEASE PENDING. Local alignment/responsive verification passed. Feature-branch publication and PR creation are approved; merge remains manual after required CI, with Production deployment following the existing main-branch integration.

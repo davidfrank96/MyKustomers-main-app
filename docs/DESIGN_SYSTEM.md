@@ -399,3 +399,8 @@ equivalent.
 ## Customer updates UI polish — 2026-09-24
 
 Customer updates uses a restrained rounded panel, bell icon tile, small outline Pro badge and native-checkbox channel cards. Email and WhatsApp stack below 640px and share a row above it. Selected cards use the existing primary token, light tint and a circular checkmark; keyboard focus is visible on the checkbox and card. The conditional number field has a 48px height with 16px text, followed by a padded consent row. Shared primitives and unrelated form sections are unchanged.
+
+
+## Customer updates summary — 2026-09-24
+
+The summary uses a compact title and secondary one-line-purpose copy above two equal-width/equal-height rows. Identical icon tiles, row padding, type and status-pill height apply to both channels. Below 640px the non-wrapping pill sits below the text, aligned to its left edge; wider layouts centre the pill at the trailing edge. Native definition-list semantics keep the rows read-only. Existing stopped/paused labels use the same neutral visual treatment without hiding operational state. No global overflow rule or client state/effect is introduced.
