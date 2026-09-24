@@ -1660,7 +1660,7 @@ Supersedes earlier pre-work-only eligibility in this document. Allow DRAFT,
 AWAITING_CUSTOMER, CONFIRMED, IN_PROGRESS, and READY; deny terminal states.
 Preserve existing IN_PROGRESS reconfirmation behavior. READY schedule changes
 retain READY/timestamps, invalidate current terms and use the existing capability
-and channel outboxes. Delivery waits for reconfirmation. Four narrow function
+and channel outboxes. Delivery waits for reconfirmation. Five narrow function
 replacements are necessary to make the rule coherent; no new lifecycle state.
 
 Reproduced WebKit validation failures justify moving shared error clearing from

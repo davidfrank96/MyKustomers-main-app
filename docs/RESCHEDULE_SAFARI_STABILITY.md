@@ -20,8 +20,8 @@ This report describes local evidence. It does not declare Production released.
 | J. READY afterward | READY, including after secure reconfirmation; ready timestamp retained. Delivery is blocked while current confirmation is invalidated. |
 | K. Notifications | Real database matrix: 24 status/channel combinations. Previously confirmed reschedules create one BOOKING_RESCHEDULED intent per selected channel and a replacement capability; same-schedule duplicate rejected. No external send performed. |
 | L. Email | Email-only/Both enqueue one email; WhatsApp-only enqueues none. Existing nine-event lifecycle/channel regression passes. |
-| M. WhatsApp | WhatsApp-only/Both enqueue one WhatsApp event; Email-only enqueues none. Existing provider adapter, consent, entitlement and dispatcher paths unchanged. |
-| N. Audit/history | One BOOKING_RESCHEDULED audit and reschedule booking_changes record; original confirmation evidence retained. Pending IN_PROGRESS amendment revocation explicitly tested. Existing add-on lifecycle regression passes. |
+| M. WhatsApp | WhatsApp-only/Both enqueue one WhatsApp event; Email-only enqueues none. Existing provider adapter, consent, entitlement and dispatcher paths unchanged. Pending READY shared-link previews retain the owning business identity without exposing terms hashes. |
+| N. Audit/history | One BOOKING_RESCHEDULED audit and reschedule booking_changes record; first-open attribution remains idempotent; original confirmation evidence retained. Pending IN_PROGRESS amendment revocation explicitly tested. Existing add-on lifecycle regression passes. |
 | O. Safari reproduction | Deterministically held a real server-validation response while typing in a different input. Baseline stole focus; with focus preserved alone, WebKit still reverted each typed character while the same DOM node remained connected. |
 | P. Exact root cause | Two shared-hook defects: delayed error navigation stole active editing focus; capture-phase error-clearing state updates preceded the controlled field's change handler, reverting input in WebKit. Moving clearing to bubbling change fixed the reproduced input reversion. This does not prove the reporter's physical keyboard symptom is fully resolved. |
 | Q. Error navigation | Preserves an active editable control; otherwise scrolls instantly and focuses the first invalid field. Error clearing bubbles after field handlers and avoids repeated no-op updates. Accessible errors and server validation remain. No UA sniff or arbitrary timeout. |
@@ -34,23 +34,23 @@ This report describes local evidence. It does not declare Production released.
 | X. WebKit repetition | Exact delayed-validation regression passed three independent repetitions with zero retries. |
 | Y. Responsive matrix | 320×568, 360×800, 375×812, 390×844, 414×896, 430×932, 768×1024 in both engines. Booking validation, reschedule field bounds, payment dialog, input identity and no horizontal overflow checked. Representative screenshots visually reviewed; existing design retained. |
 | Z. Navigation/keyboard | Mobile nav remains inside viewport after contraction/restoration; focused field retained. Notification/PWA regressions pass. This is browser layout evidence, not a physical software-keyboard test. |
-| AA. Migration | `20260924210343_reschedule_through_ready.sql`: four CREATE OR REPLACE functions in one transaction; no table, RLS, ACL or signature change. Locally applied/tested only. Production not applied. |
+| AA. Migration | `20260924210343_reschedule_through_ready.sql`: five CREATE OR REPLACE functions in one transaction; no table, RLS, ACL or signature change. Locally applied/tested only. Production not applied. |
 | AB. Environment | NONE. |
 | AC. Dependencies | NONE. |
 | AD. Files | Application changes: booking detail page, booking/customer/reschedule forms, shared error-navigation hook, booking status helper and journey projection. Database: one additive migration. Tests/runner/fixture and relevant documentation updated; detailed list below. |
 | AE. Tests | Eight-state unit/UI/RPC matrices; overdue active schedules; READY reconfirmation/capability replay/unguarded confirmation denial; history/outbox counts; pending amendment revocation; tenant/anonymous/terminal denial; action rate limits; 34 Chromium/WebKit form cases. |
 | AF. Lint | PASS. |
 | AG. Typecheck | PASS. |
-| AH. Unit/integration | 183 files passed / 21 skipped; 1,185 tests passed / 24 skipped. Skips remain guarded; no tests weakened. |
+| AH. Unit/integration | 183 files passed / 21 skipped; 1,186 tests passed / 24 skipped. Skips remain guarded; no tests weakened. |
 | AI. Runtime Security | **SKIPPED** — 21 protected runtime tests; no approved protected non-production target configured in this checkout. |
 | AJ. E2E | Local: 40 passed / 62 credential-dependent or optional cases skipped. Not a complete authenticated-cloud E2E pass. CI uses its existing configured fixture credentials separately. |
-| AK. Profile/Social | 49 passed in Chromium/WebKit. |
+| AK. Profile/Social | 49 passed in Chromium/WebKit; 16 affected secure-preview/branding cases passed again after the final READY preview guard. |
 | AL. Notification Contracts | Native disposable database checks passed; browser suite 24 passed. |
 | AM. WhatsApp UI/Admin | 62 passed, including all 34 form cases and existing channel, summary and Admin regressions. Default native WhatsApp contracts passed; optional full-schema lifecycle and 24-combination matrix passed. |
 | AN. Build | PASS, production Next build. |
 | AO. Dependency audit | PASS, zero vulnerabilities at moderate threshold. |
 | AP. Diff check | PASS before commit. |
-| AQ. PR | Opened from this branch; see task's attached PR and final response. |
+| AQ. PR | [PR #94](https://github.com/davidfrank96/MyKustomers-main-app/pull/94), open for manual merge. |
 | AR. CI | GitHub checks are reported on the PR for its current head. Local results above are separate evidence. |
 | AS. Merge SHA | NOT MERGED; user requested manual merge after green CI. |
 | AT. Production deployment | NOT PERFORMED. Deploy and apply the reviewed migration together before Production acceptance. |
@@ -58,7 +58,7 @@ This report describes local evidence. It does not declare Production released.
 | AV. Production READY | NOT RUN; requires migration, merged deployment, and safe controlled fixture. |
 | AW. Production DELIVERED | NOT RUN; local UI/RPC denial verified. |
 | AX. Production Safari | NOT RUN; no Production release occurred. |
-| AY. Limitations | Physical iOS keyboard/picker, production release/smoke, and protected Runtime Security remain unverified. Full-schema SQL matrix is local caller-supplied-schema mode, not the default CI lightweight database fixture. Existing CI cloud-target caveat is documented in CI.md. No real customer sends authorized or performed for this task. |
+| AY. Limitations | Physical iOS keyboard/picker, production release/smoke, and protected Runtime Security remain unverified. Full-schema SQL matrix is local caller-supplied-schema mode, not the default CI lightweight database fixture. Existing CI cloud-target caveat is documented in CI.md. READY keeps its existing confirmation-management UI restriction; a further schedule change creates a replacement link if required. No real customer sends authorized or performed for this task. |
 | AZ. Final status | **RESCHEDULE + SAFARI INPUT STABILITY — IMPLEMENTED — DEVICE VERIFICATION PENDING** |
 
 ## Changed source and verification files
@@ -67,6 +67,8 @@ This report describes local evidence. It does not declare Production released.
 - `components/forms/{booking-form,customer-form,booking-reschedule-form}.tsx`
 - `hooks/use-form-error-navigation.ts`
 - `features/bookings/{status,journey}.ts`
+- `features/confirmation-links/public.ts`
+- `tests/unit/confirmation-preview-resolution.test.ts`
 - `supabase/migrations/20260924210343_reschedule_through_ready.sql`
 - `scripts/test-whatsapp-database.mjs`
 - `tests/database/whatsapp/reschedule.sql`
@@ -76,7 +78,7 @@ This report describes local evidence. It does not declare Production released.
 - `tests/integration/booking-reschedule-form.test.tsx`
 
 Documentation updated: PRODUCT_SPEC, DATA_MODEL, MIGRATIONS, DECISIONS, security,
-TESTING, RESPONSIVE_QA, CHANGELOG, bookings feature README, and this report.
+TESTING, RESPONSIVE_QA, CHANGELOG, bookings and confirmation-links feature READMEs, and this report.
 Existing historical decisions remain as history and are explicitly superseded.
 
 ## Local evidence and safe release order

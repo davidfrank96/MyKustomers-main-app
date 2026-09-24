@@ -1,7 +1,7 @@
 -- READY schedule changes preserve operational completion while reusing the
 -- existing reconfirmation capability, history and channel outboxes.
 -- Replacing only reschedule_booking is insufficient: the integrity trigger locks
--- READY terms and confirmation read/write functions accept only AWAITING_CUSTOMER.
+-- READY terms and confirmation read/write/open functions accept only AWAITING_CUSTOMER.
 -- Existing function ACLs, tenant checks and capability checks are preserved.
 
 begin;
@@ -786,6 +786,78 @@ begin
   end if;
 
   return jsonb_build_object('status', 'valid', 'booking', view_data);
+end;
+$_$;
+
+CREATE OR REPLACE FUNCTION public.record_confirmation_link_open(p_token_hash text) RETURNS boolean
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO ''
+    AS $_$
+declare
+  opened_link_id uuid;
+  opened_booking_id uuid;
+  opened_business_id uuid;
+  opened_at timestamptz;
+begin
+  if p_token_hash !~ '^[a-f0-9]{64}$' then
+    return false;
+  end if;
+
+  update public.confirmation_links as confirmation_link
+  set first_opened_at = now()
+  from public.bookings as booking
+  where confirmation_link.token_hash = p_token_hash
+    and confirmation_link.first_opened_at is null
+    and confirmation_link.revoked_at is null
+    and booking.id = confirmation_link.booking_id
+    and booking.business_id = confirmation_link.business_id
+    and (
+      (
+        confirmation_link.used_at is null
+        and confirmation_link.expires_at > now()
+        and (booking.status = 'AWAITING_CUSTOMER'
+          or (booking.status = 'READY' and booking.confirmation_terms_hash is null))
+      )
+      or (
+        confirmation_link.used_at is not null
+        and exists (
+          select 1
+          from public.booking_confirmations as confirmation
+          where confirmation.confirmation_link_id = confirmation_link.id
+            and confirmation.booking_id = confirmation_link.booking_id
+            and confirmation.business_id = confirmation_link.business_id
+        )
+      )
+    )
+  returning
+    confirmation_link.id,
+    confirmation_link.booking_id,
+    confirmation_link.business_id,
+    confirmation_link.first_opened_at
+  into opened_link_id, opened_booking_id, opened_business_id, opened_at;
+
+  if opened_link_id is null then
+    return false;
+  end if;
+
+  insert into public.audit_logs (
+    actor_user_id,
+    business_id,
+    event_type,
+    metadata
+  )
+  values (
+    null,
+    opened_business_id,
+    'CONFIRMATION_OPENED',
+    jsonb_build_object(
+      'booking_id', opened_booking_id,
+      'confirmation_link_id', opened_link_id,
+      'opened_at', opened_at
+    )
+  );
+
+  return true;
 end;
 $_$;
 

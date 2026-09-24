@@ -99,6 +99,12 @@ begin
     if (select count(*) from public.whatsapp_events where booking_id=b.booking_id and event_type='BOOKING_RESCHEDULED')<>(case when mode='email_only' then 0 else 1 end) then raise exception 'whatsapp_channel_mismatch'; end if;
     result:=public.get_confirmation_public_view(encode(extensions.digest(token,'sha256'),'hex'));
     if result->>'status'<>'valid' then raise exception 'replacement_capability_not_valid % %',lifecycle,result->>'status'; end if;
+    if not public.record_confirmation_link_open(encode(extensions.digest(token,'sha256'),'hex')) then
+     raise exception 'replacement_link_open_not_recorded';
+    end if;
+    if public.record_confirmation_link_open(encode(extensions.digest(token,'sha256'),'hex')) then
+     raise exception 'replacement_link_open_duplicated';
+    end if;
     if lifecycle='READY' then
      perform set_config('request.jwt.claim.sub','',true);
      begin

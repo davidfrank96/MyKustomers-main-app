@@ -4,8 +4,9 @@
 
 `20260924210343_reschedule_through_ready.sql`: **IMPLEMENTED — PRODUCTION NOT APPLIED**.
 Replaces `reschedule_booking`, `private.enforce_booking_integrity`,
-`confirm_booking_by_token_hash`, and `get_confirmation_public_view`. The additional
-three replacements are necessary because READY terms were locked and confirmation
+`confirm_booking_by_token_hash`, `get_confirmation_public_view`, and
+`record_confirmation_link_open`. The additional
+four replacements are necessary because READY terms were locked and confirmation
 accepted only AWAITING_CUSTOMER. READY retains completed work and requires the
 existing secure reconfirmation before delivery. No tables, grants, RLS, provider,
 or environment changes. Native PostgreSQL testing uses a read-only schema export

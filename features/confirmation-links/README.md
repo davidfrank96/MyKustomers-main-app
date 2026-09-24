@@ -216,3 +216,13 @@ accepted Phase 6 security and architecture decisions.
 ## WhatsApp pilot sibling channel
 
 IMPLEMENTED — VERIFICATION PENDING. Opted-in booking communication choices can fan out the existing customer event to WhatsApp using the same capability, while Email retains its existing provider and template behavior. Non-pilot/default behavior is unchanged. See [pilot contracts and release gates](../../docs/WHATSAPP_PILOT.md).
+
+## READY reschedule reconfirmation — 2026-09-24
+
+The reschedule migration permits the existing confirmation view/mutation and
+idempotent first-open attribution while READY has invalidated current terms.
+Confirmation retains READY and completed-work timestamps. Read-only social
+previews use the same pending-READY guard and return only existing business
+identity; terms hashes never enter preview output. Existing malformed, revoked,
+expired, used-link and business-binding policies remain.
+[Release evidence](../../docs/RESCHEDULE_SAFARI_STABILITY.md); Production pending.
