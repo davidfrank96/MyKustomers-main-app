@@ -394,3 +394,8 @@ presentational feedback for a newly observed authoritative transition into
 existing dialog primitive supplies focus containment, Escape, outside
 dismissal, and focus return. Motion is optional and must have a reduced-motion
 equivalent.
+
+
+## Customer updates UI polish — 2026-09-24
+
+Customer updates uses a restrained rounded panel, bell icon tile, small outline Pro badge and native-checkbox channel cards. Email and WhatsApp stack below 640px and share a row above it. Selected cards use the existing primary token, light tint and a circular checkmark; keyboard focus is visible on the checkbox and card. The conditional number field has a 48px height with 16px text, followed by a padded consent row. Shared primitives and unrelated form sections are unchanged.

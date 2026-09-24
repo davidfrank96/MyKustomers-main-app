@@ -1910,3 +1910,8 @@ Status: VERIFIED
 ## WhatsApp Admin control plane — 2026-09-23
 
 Added first-party Super Admin WhatsApp operations with masked session state, bounded queue/activity/business access, private QR pairing and audited AAL2 controls. Durable pause protects replacement and abandoned pairing; explicit verified resume preserves existing rollout restrictions. Reuses Phase 2/3 transport and vendor experience. Release verification pending.
+
+
+## Customer updates UI polish — 2026-09-24
+
+Refined only the booking Customer updates selector to match the supplied design direction: icon-led heading, explicit email/WhatsApp/both guidance, subtle presentation-only Pro badge, selectable channel cards and clearer conditional number/consent grouping. No backend, database, API, routing, billing, validation or business-logic changes. IMPLEMENTED — UI REVIEW APPROVED; CI/RELEASE PENDING. Publishing the feature branch and PR is approved; merge remains manual, with Production deployment following the existing main-branch integration.
