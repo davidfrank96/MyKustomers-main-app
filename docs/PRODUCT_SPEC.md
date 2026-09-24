@@ -570,3 +570,8 @@ An entitled, operationally allowed business can choose Email (default), WhatsApp
 ## WhatsApp Admin control plane — 2026-09-23
 
 Super Admin can inspect the one platform sender and perform confirmed, reasoned AAL2 reconnect/pair/replace/unlink operations. Replacement pauses SQL claims and gateway handoffs first; successful connection requires explicit Verify and resume. Abandoned pairing remains paused. QR is ephemeral, no-store and server-proxied. No arbitrary-message or infrastructure controls.
+
+
+## Customer updates UI polish — 2026-09-24
+
+The booking creation Customer updates selector presents independent Email/WhatsApp cards and explicitly explains that either or both may be selected. A subtle Pro badge is presentation only; no plan model, upgrade action or entitlement enforcement is added. Existing defaults, availability gates, international-number validation, submission names and fresh consent behavior remain unchanged.
