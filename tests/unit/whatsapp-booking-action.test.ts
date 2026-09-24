@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
   email: vi.fn(),
   provider: vi.fn(),
   access: vi.fn(),
+  rate: vi.fn(),
 }));
 vi.mock("@/features/whatsapp/access", () => ({ getWhatsAppAccess: mocks.access }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
@@ -21,7 +22,7 @@ vi.mock("@/lib/supabase/server", () => ({
 }));
 vi.mock("@/lib/security/audit", () => ({ recordAuditEvent: vi.fn() }));
 vi.mock("@/lib/security/rate-limit", () => ({
-  consumeOutboundMessageRateLimit: vi.fn(),
+  consumeOutboundMessageRateLimit: mocks.rate,
 }));
 vi.mock("@/features/bookings/queries", () => ({ getBookingForBusiness: vi.fn() }));
 vi.mock("@/features/customers/queries", () => ({
@@ -29,7 +30,10 @@ vi.mock("@/features/customers/queries", () => ({
 }));
 vi.mock("@/lib/email/outbox", () => ({ deliverEmailEvent: mocks.email }));
 vi.mock("@/lib/whatsapp/provider", () => ({ getWhatsAppProvider: mocks.provider }));
-import { createBookingAction } from "@/features/bookings/actions";
+import {
+  createBookingAction,
+  rescheduleBookingAction,
+} from "@/features/bookings/actions";
 const pilot = "10000000-0000-4000-8000-000000000001";
 function form(channels = true) {
   const result = new FormData();
@@ -147,3 +151,42 @@ it("still creates an Email-only booking after entitlement revocation", async () 
     expect.any(Object),
   );
 });
+
+it.each(["limited", "unavailable"])(
+  "reschedule remains fail-closed when outbound protection is %s",
+  async (status) => {
+    mocks.business.mockResolvedValue({ business: { id: pilot }, user: { id: "vendor" } });
+    mocks.rate.mockResolvedValue({ status, retryAfterSeconds: 60 });
+    const data = new FormData();
+    data.set("scheduledFor", new Date(Date.now() + 86400000).toISOString());
+    const result = await rescheduleBookingAction("booking", { status: "idle" }, data);
+    expect(result.status).toBe("error");
+    expect(result.message).toContain("Nothing was sent.");
+    expect(mocks.rpc).not.toHaveBeenCalled();
+    expect(mocks.email).not.toHaveBeenCalled();
+  },
+);
+
+it.each([true, false])(
+  "reschedule uses the existing channel-aware=%s wrapper",
+  async (pilotEnabled) => {
+    const id = pilotEnabled ? pilot : "10000000-0000-4000-8000-000000000002";
+    mocks.business.mockResolvedValue({ business: { id }, user: { id: "vendor" } });
+    mocks.rate.mockResolvedValue({ status: "allowed" });
+    mocks.rpc.mockResolvedValue({
+      data: [{ booking_id: "booking", status: "READY", email_event_id: null }],
+      error: null,
+    });
+    const data = new FormData();
+    data.set("scheduledFor", new Date(Date.now() + 86400000).toISOString());
+    const result = await rescheduleBookingAction("booking", { status: "idle" }, data);
+    expect(result.status).toBe("success");
+    expect(mocks.rpc).toHaveBeenCalledWith(
+      pilotEnabled
+        ? "reschedule_booking_with_notification_with_channels"
+        : "reschedule_booking_with_notification",
+      expect.objectContaining({ p_booking_id: "booking" }),
+    );
+    expect(mocks.email).not.toHaveBeenCalled();
+  },
+);

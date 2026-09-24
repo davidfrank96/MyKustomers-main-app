@@ -477,7 +477,8 @@ terms are denied. The material set is customer, title, customer-facing
 description, currency, total, deposit, and schedule. Non-material internal
 notes do not invalidate confirmation.
 
-Booking reschedules before fulfilment use `public.reschedule_booking`.
+Booking reschedules through `READY` use `public.reschedule_booking` (migration
+`20260924210343` implemented locally; Production application pending).
 Rescheduling a confirmed booking is a material change: it clears the current
 confirmation fields, revokes open confirmation links, records a
 `booking_changes` row, and requires a new customer confirmation before work
@@ -492,9 +493,13 @@ trigger, applies the structured proposal, updates the current effective snapshot
 and hash, writes one amendment `booking_changes` row/audit/email event, and marks
 the amendment confirmed. Original booking-confirmation rows are not rewritten.
 
-Schedule-only explicit reschedule remains the established pre-work workflow and
-returns a confirmed booking to `AWAITING_CUSTOMER` for ordinary confirmation.
+Schedule-only reschedule returns `CONFIRMED`/`IN_PROGRESS` to `AWAITING_CUSTOMER`
+for ordinary confirmation. `READY` stays `READY`, retaining operational timestamps
+while clearing current confirmation; the same secure capability restores terms
+without moving work backward. Delivery is blocked pending reconfirmation.
 It revokes a pending general amendment so the two paths cannot conflict.
+No table, RLS, grant, signature, or generated type changes are required.
+[Function replacement scope and verification](RESCHEDULE_SAFARI_STABILITY.md).
 
 Confirmed/later cancellation requires a bounded plain-text reason where the
 existing transition graph permits cancellation. The transaction preserves

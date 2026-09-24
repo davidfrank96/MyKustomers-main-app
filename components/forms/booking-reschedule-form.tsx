@@ -3,13 +3,7 @@
 import { useMemo, useState } from "react";
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
-import {
-  CalendarClock,
-  CalendarDays,
-  Info,
-  LoaderCircle,
-  MailCheck,
-} from "lucide-react";
+import { CalendarClock, CalendarDays, Info, LoaderCircle, MailCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -147,8 +141,8 @@ export function BookingRescheduleForm({
         </span>
         <p className="self-center">
           {reconfirmationExpected
-            ? "The customer will need to confirm the updated schedule. Email delivery is attempted using the saved confirmation address."
-            : "A reschedule email is sent only after a customer has previously confirmed the booking."}
+            ? "The customer will need to confirm the updated schedule. Updates use this booking’s selected channels."
+            : "Reschedule updates are sent only after a customer has previously confirmed the booking."}
         </p>
       </div>
     </form>

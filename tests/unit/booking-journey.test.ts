@@ -196,3 +196,22 @@ describe("booking journey", () => {
     expect(journey.complete).toBe(true);
   });
 });
+
+it("keeps READY work visible while awaiting reschedule confirmation before delivery", () => {
+  const journey = journeyFor("READY", {
+    reconfirmationRequired: true,
+    confirmationLinkStatus: "active",
+  });
+  expect(journey.primaryAction).toMatchObject({
+    kind: "anchor",
+    href: "#customer-confirmation",
+  });
+  expect(journey.attention).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        kind: "reconfirmation",
+        message: expect.stringContaining("before delivery"),
+      }),
+    ]),
+  );
+});

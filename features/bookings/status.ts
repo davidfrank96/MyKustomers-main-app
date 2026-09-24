@@ -38,6 +38,16 @@ export function isAllowedBookingTransition(from: BookingStatus, to: BookingStatu
   return allowedTransitions[from].includes(to);
 }
 
+export function isBookingReschedulable(status: BookingStatus) {
+  return (
+    status === "DRAFT" ||
+    status === "AWAITING_CUSTOMER" ||
+    status === "CONFIRMED" ||
+    status === "IN_PROGRESS" ||
+    status === "READY"
+  );
+}
+
 export function isTerminalBookingStatus(status: BookingStatus) {
   return terminalBookingStatuses.includes(
     status as (typeof terminalBookingStatuses)[number],
