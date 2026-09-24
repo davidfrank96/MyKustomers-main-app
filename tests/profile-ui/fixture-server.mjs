@@ -10,6 +10,7 @@ let whatsappEntitled = true;
 let whatsappControlPaused = false;
 let whatsappSummaryPreferences = {};
 let whatsappSummaryHasEvent = true;
+let paymentFixture = false;
 const businessId = "20000000-0000-4000-8000-000000000001";
 const otherBusinessId = "20000000-0000-4000-8000-000000000002";
 const userId = "10000000-0000-4000-8000-000000000001";
@@ -241,6 +242,7 @@ createServer(async (req, res) => {
   if (url.pathname === "/fixture/reset") {
     whatsappSummaryPreferences = {};
     whatsappSummaryHasEvent = true;
+    paymentFixture = false;
     whatsappStopped = false;
     whatsappControlPaused = false;
     whatsappEntitled = true;
@@ -281,6 +283,7 @@ createServer(async (req, res) => {
       whatsappEntitled = scenario.whatsappEntitled;
     if (scenario.kind) capabilityOverrides[scenario.kind] = scenario.record ?? {};
     if (scenario.booking) bookingOverrides = scenario.booking;
+    if (whatsappFixture && scenario.paymentFixture) paymentFixture = true;
     if (scenario.publicBooking) publicBookingOverrides = scenario.publicBooking;
     if (scenario.memberships) membershipScenario = scenario.memberships;
     if (scenario.logoShape) logoShape = scenario.logoShape;
@@ -326,6 +329,18 @@ createServer(async (req, res) => {
     if (url.pathname.endsWith("/rpc/record_audit_event")) return send(null);
     if (failWrites) return send({ message: "Local fixture write unavailable" }, 503);
     const rpc = url.pathname.split("/").at(-1);
+    if (paymentFixture && rpc === "get_booking_payment_summary")
+      return send([
+        {
+          currency: "EUR",
+          effective_total_amount_minor: 10000,
+          initial_deposit_amount_minor: 0,
+          confirmed_addon_deposit_amount_minor: 0,
+          subsequent_payment_amount_minor: 0,
+          recorded_paid_amount_minor: 0,
+          outstanding_amount_minor: 10000,
+        },
+      ]);
     if (whatsappFixture && rpc === "get_whatsapp_operations")
       return send({
         paused: whatsappControlPaused,
@@ -594,6 +609,7 @@ createServer(async (req, res) => {
           cancelled_at: null,
           cancellation_reason: null,
           confirmation_terms_hash: null,
+          ...bookingOverrides,
           customers: {
             id: "90000000-0000-4000-8000-000000000001",
             name: "Synthetic Customer",

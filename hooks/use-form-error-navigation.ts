@@ -25,7 +25,18 @@ export function useFormErrorNavigation(
         form?.querySelector<HTMLElement>(`[name="${firstInvalidField}"]`);
       if (!control) return;
 
-      control.scrollIntoView?.({ behavior: "smooth", block: "center" });
+      // A server response can arrive after the user has resumed editing.
+      // Do not move their focus (or viewport) away from that active control.
+      const active = document.activeElement;
+      if (
+        active instanceof HTMLElement &&
+        active.matches(
+          'input:not([type="hidden"]):not([type="submit"]):not([type="button"]), textarea, select, [contenteditable="true"], [role="combobox"]',
+        )
+      )
+        return;
+
+      control.scrollIntoView?.({ behavior: "instant", block: "center" });
       control.focus({ preventScroll: true });
     });
 
@@ -47,13 +58,16 @@ export function useFormErrorNavigation(
 
   function clearFieldError(field: string) {
     if (!fieldErrors?.[field]?.length) return;
-    setClearedState((current) => ({
-      source: fieldErrors,
-      fields: new Set(current.source === fieldErrors ? current.fields : []).add(field),
-    }));
+    setClearedState((current) => {
+      if (current.source === fieldErrors && current.fields.has(field)) return current;
+      return {
+        source: fieldErrors,
+        fields: new Set(current.source === fieldErrors ? current.fields : []).add(field),
+      };
+    });
   }
 
-  function onInputCapture(event: React.FormEvent<HTMLFormElement>) {
+  function onChange(event: React.FormEvent<HTMLFormElement>) {
     const target = event.target as HTMLInputElement | HTMLTextAreaElement;
     const field = target.name || target.id;
     if (field) clearFieldError(field);
@@ -63,7 +77,6 @@ export function useFormErrorNavigation(
     formRef,
     visibleFieldErrors,
     clearFieldError,
-    onInputCapture,
-    onChangeCapture: onInputCapture,
+    onChange,
   };
 }

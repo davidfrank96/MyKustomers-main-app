@@ -62,14 +62,25 @@ try {
       "tests/database/whatsapp/full-schema-bootstrap.sql",
       "-f",
       localSchema,
+    ]);
+    if (!snapshot.includes("CREATE TABLE private.whatsapp_pilot_businesses")) {
+      run("psql", [
+        ...psql,
+        "-f",
+        "supabase/migrations/20260923001137_whatsapp_pilot_channel.sql",
+        "-f",
+        "supabase/migrations/20260923022729_business_feature_entitlements.sql",
+        "-f",
+        "supabase/migrations/20260923111854_whatsapp_admin_control_plane.sql",
+      ]);
+    }
+    run("psql", [
+      ...psql,
       "-f",
-      "supabase/migrations/20260923001137_whatsapp_pilot_channel.sql",
-      "-f",
-      "supabase/migrations/20260923022729_business_feature_entitlements.sql",
-      "-f",
-      "supabase/migrations/20260923111854_whatsapp_admin_control_plane.sql",
+      "supabase/migrations/20260924210343_reschedule_through_ready.sql",
     ]);
     console.log(run("psql", [...psql, "-f", "tests/database/whatsapp/lifecycle.sql"]));
+    console.log(run("psql", [...psql, "-f", "tests/database/whatsapp/reschedule.sql"]));
   } else {
     run("psql", [
       ...psql,
