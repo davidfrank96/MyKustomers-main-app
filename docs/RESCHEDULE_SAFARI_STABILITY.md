@@ -73,6 +73,7 @@ This report describes local evidence. It does not declare Production released.
 - `scripts/test-whatsapp-database.mjs`
 - `tests/database/whatsapp/reschedule.sql`
 - `tests/whatsapp-ui/form-stability.spec.ts`
+- `tests/e2e/bookings.spec.ts` (reschedule helper-copy assertion)
 - `tests/profile-ui/fixture-server.mjs`
 - `tests/unit/{booking-reschedule-status,booking-journey,whatsapp-booking-action}.test.ts`
 - `tests/integration/booking-reschedule-form.test.tsx`
@@ -94,3 +95,7 @@ against the old database functions. Use only safe controlled fixtures/recipients
 for Production acceptance. Verify overdue IN_PROGRESS, overdue READY preserving
 READY, DELIVERED denial, secure reconfirmation and Safari correction. Verify on a
 physical iPhone before declaring its keyboard/picker behavior resolved.
+
+CI run #224 exposed an old email-only helper-copy expectation in both canonical
+booking journeys after rescheduling had already succeeded. The expectation now
+checks the selected-channel copy; all subsequent lifecycle/event assertions remain.
