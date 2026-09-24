@@ -391,3 +391,8 @@ WhatsApp Admin extends the existing max-1600px shell, contained navigation/table
 ## Customer updates UI polish — 2026-09-24
 
 Local Chromium/WebKit checks passed at 320×568, 360×800, 375×812, 390×844, 414×896, 430×932, 768×1024, 1024×768, 1280×800 and 1440×900. No document overflow; channel selection and consent remain keyboard-operable. Desktop, tablet and narrow mobile captures were inspected for spacing, alignment, wrapping and control hierarchy. Tall element screenshots in WebKit can include the existing fixed shell; this is a capture limitation, not a change to that shell.
+
+
+## Customer updates summary — 2026-09-24
+
+The read-only summary matrix exercises Email-only, Both, WhatsApp-only, neither after stopping WhatsApp-only updates, and operationally paused WhatsApp. Geometry checks cover the ten widths from 320 to 1440 in Chromium/WebKit: equal row dimensions, contained non-wrapping 32px pills, and no row or document overflow. Screenshots target 320, 390, 430, 768, 1024 and 1440px. Native viewport assertions run before a temporary taller capture viewport keeps fixed navigation out of element screenshots. All 100 summary viewport/state/engine checks passed. Widths: 320, 360, 375, 390, 414, 430, 768, 1024, 1280 and 1440px. All 18 Chromium captures for the three standard channel combinations were manually reviewed, plus WebKit 320/1440 captures for all five states. Alignment, compact typography, icon placement, spacing and long status containment passed. Sixty captures and ten geometry reports are available locally under output/playwright/customer-updates-summary; INDEX.md lists their exact paths. This is emulated local browser evidence, not physical-device or production verification. CUSTOMER UPDATES ALIGNMENT GATE: PASS.
