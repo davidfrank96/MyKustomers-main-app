@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-09-24 — Rescheduling through READY and validation input stability
+
+IMPLEMENTED — DEVICE / PRODUCTION VERIFICATION PENDING. Permit rescheduling
+through READY while retaining completed work and the existing reconfirmation and
+channel paths. Fix reproduced WebKit controlled-input reversion by clearing
+errors in bubbling change events; avoid stealing an active editor's focus when
+server validation returns. Currency formatting, server validation, navigation,
+and dependencies remain unchanged. Production migration and manual PR merge are
+pending. [Evidence](RESCHEDULE_SAFARI_STABILITY.md).
+
+
 ## 2026-09-23 — WhatsApp Phase 3 productization
 
 IMPLEMENTED — VERIFICATION PENDING. Adds a generic, tenant-protected business-feature entitlement with audited MFA-protected Super Admin controls. Reuses booking UI with safe phone prefill, consent reset, persistent honest history and entitled-only Settings availability. No billing or subscription model; personal pairing remains test-only. See [Phase 3 evidence](WHATSAPP_PHASE3.md).

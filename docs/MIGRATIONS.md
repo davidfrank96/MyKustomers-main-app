@@ -1,5 +1,20 @@
 # Migrations
 
+## Rescheduling through READY — 2026-09-24
+
+`20260924210343_reschedule_through_ready.sql`: **IMPLEMENTED — PRODUCTION NOT APPLIED**.
+Replaces `reschedule_booking`, `private.enforce_booking_integrity`,
+`confirm_booking_by_token_hash`, `get_confirmation_public_view`, and
+`record_confirmation_link_open`. The additional
+four replacements are necessary because READY terms were locked and confirmation
+accepted only AWAITING_CUSTOMER. READY retains completed work and requires the
+existing secure reconfirmation before delivery. No tables, grants, RLS, provider,
+or environment changes. Native PostgreSQL testing uses a read-only schema export
+and synthetic records. Apply this migration as part of the reviewed release before
+exposing READY rescheduling; PR CI must never apply it to Production.
+[Full evidence and release limits](RESCHEDULE_SAFARI_STABILITY.md).
+
+
 ## Approved read-notification retention — 2026-09-14
 
 `20260914020434_notification_read_retention.sql`: **APPLIED**, after explicit user

@@ -26,7 +26,7 @@ widths.
 Phase 5 implements vendor-side booking management. Phase 6 extends booking
 lifecycle behavior with secure customer confirmation before a booking can move
 to confirmed. Phase 7 adds controlled operational fulfilment transitions,
-rescheduling before fulfilment, and operational queues. Phase 8 adds completed
+rescheduling through READY, and operational queues. Phase 8 adds completed
 booking feedback links and internal operational issues around the booking
 record. Phase 9.5 tightens booking UX with natural currency display, consistent
 status labels, and a state-specific next-step area on booking detail pages.
@@ -150,11 +150,15 @@ integrity trigger. The database owns operational timestamps for start, ready,
 delivery, completion, and cancellation.
 
 Rescheduling uses `public.reschedule_booking` while a booking is still
-`DRAFT`, `AWAITING_CUSTOMER`, `CONFIRMED`, or `IN_PROGRESS`. Rescheduling a
+`DRAFT`, `AWAITING_CUSTOMER`, `CONFIRMED`, `IN_PROGRESS`, or `READY`. Rescheduling a
 confirmed/in-progress booking
 is material: it returns the booking to `AWAITING_CUSTOMER`, clears current
 confirmation fields, revokes open confirmation links, records a
-`booking_changes` row, and requires a new customer confirmation.
+`booking_changes` row, and requires a new customer confirmation. READY retains
+its status/timestamps while awaiting that same confirmation and blocks delivery
+until it is restored. Email/WhatsApp/Both use the existing channel outboxes.
+`isBookingReschedulable` centralizes application eligibility; the RPC independently
+enforces it. [Current release evidence](../../docs/RESCHEDULE_SAFARI_STABILITY.md).
 
 Confirmed cancellation remains a controlled lifecycle transition. It requires
 a bounded plain-text reason, preserves immutable confirmation evidence and

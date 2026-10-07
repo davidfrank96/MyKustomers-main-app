@@ -58,6 +58,7 @@ import {
   hasCustomerConfirmedTerms,
   isBookingOverdue,
   isTerminalBookingStatus,
+  isBookingReschedulable,
 } from "@/features/bookings/status";
 import {
   generateConfirmationLinkAction,
@@ -285,12 +286,7 @@ export default async function BookingDetailPage({
         : []),
     ]),
   ].sort((a, b) => new Date(a.occurredAt).getTime() - new Date(b.occurredAt).getTime());
-  const rescheduleEligible = [
-    "DRAFT",
-    "AWAITING_CUSTOMER",
-    "CONFIRMED",
-    "IN_PROGRESS",
-  ].includes(booking.status);
+  const rescheduleEligible = isBookingReschedulable(booking.status);
   const scheduleControlled = booking.status !== "DRAFT";
   const overdue = isBookingOverdue({
     scheduledFor: booking.scheduled_for,
@@ -307,7 +303,8 @@ export default async function BookingDetailPage({
     history.some((event) => event.to_status === "CONFIRMED"),
   );
   const reconfirmationRequired =
-    booking.status === "AWAITING_CUSTOMER" &&
+    (booking.status === "AWAITING_CUSTOMER" ||
+      (booking.status === "READY" && !booking.confirmation_terms_hash)) &&
     confirmationEverCompleted &&
     changes.some((change) => change.change_type === "reschedule");
   const journey = deriveBookingJourney({
@@ -749,7 +746,9 @@ export default async function BookingDetailPage({
           />
           {!rescheduleEligible ? (
             <p className="mt-3 rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground">
-              Rescheduling is only available before operational work starts.
+              {booking.status === "CANCELLED"
+                ? "Cancelled bookings cannot be rescheduled."
+                : "Rescheduling is no longer available after delivery."}
             </p>
           ) : null}
         </BookingDetailSection>

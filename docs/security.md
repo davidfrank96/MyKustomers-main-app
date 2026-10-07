@@ -1252,3 +1252,15 @@ Feature access is authoritative in the database, never browser state. Members ca
 ## WhatsApp Admin control plane — 2026-09-23
 
 WhatsApp control requires fresh active SUPER_ADMIN and AAL2 for every mutation and QR read. Status reads do not demand repeated MFA. Authorization/audit/SQL pause precede gateway calls; only service-role result attestation can reopen claims after verified resume. QR stays in transient component memory, no-store responses, no analytics/logs/Sentry payload or automated screenshot. Status projections contain last four digits only; production smoke never mutates the paired account.
+
+## 2026-09-24 — Reschedule / validation release boundary
+
+The READY migration preserves existing security-definer signatures/search paths,
+tenant checks, future-date validation, capability revocation/expiry/usage checks,
+audits, channel enqueueing, and outbound rate limits. A narrow transaction flag
+permits READY same-status reconfirmation only after locked capability checks;
+ordinary material edits stay blocked. No ACL or RLS changes. Disposable native
+PostgreSQL tests verify direct terminal/cross-tenant/anonymous denial and replay
+behavior; these are not a protected live Runtime Security pass. Production was
+read schema-only; no customer records or messages were used.
+[Exact evidence and release gates](RESCHEDULE_SAFARI_STABILITY.md).
