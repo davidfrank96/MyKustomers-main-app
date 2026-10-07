@@ -161,3 +161,8 @@ regression. See [the release evidence](GOLDEN_STABILITY_PASS.md).
 ## WhatsApp additive contracts
 
 The existing Notification Contracts job now also runs `npm run test:whatsapp:database` in a disposable native cluster and the isolated WhatsApp browser suite. Required job names and production migration prohibition stay unchanged. The new tests read no cloud credentials. Existing E2E is separately credential-backed; protected Runtime Security remains opt-in and must use an approved non-production target.
+
+
+## PR #95 publication gate — 2026-10-07
+
+The initial Dependency Security run failed on existing lockfile advisories. Available compatible dependency patches were applied in a follow-up commit. The unresolved `braces` advisory GHSA-vfj7-8cjw-p6xm has no published patched version and remains a release blocker through the Next ESLint dependency chain. The existing `npm audit --audit-level=moderate` check, all required workflow jobs and the protected Runtime Security guard are unchanged. The PR remains for manual merge only after the blocker is resolved; preview success is not Production deployment evidence.

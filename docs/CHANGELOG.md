@@ -1925,3 +1925,8 @@ Implemented the approved read-only booking Customer updates summary: compact tit
 ## Customer updates disclosure — 2026-10-07
 
 IMPLEMENTED — UI REVIEW APPROVED; CI/RELEASE PENDING. Customer updates now reuses the booking disclosure shell with a compact bell header, dynamic channel summary and selected/inactive pills. Expanded read-only states, latest provider evidence and the existing stop action remain intact. The shared primitive adds an optional summary-detail slot and bell icon, and delivers the current hash target to late subscribers so streamed sections open correctly. Server queries, actions, pilot/entitlement rules (including retained historical evidence), notification behavior and booking lifecycle remain unchanged. Focused integration and browser coverage includes seven states, ten responsive widths, keyboard disclosure and neighboring panels. Feature-branch publication and PR creation are approved. Merge remains manual after CI passes, with Production deployment following the existing main-branch integration.
+
+
+## Dependency patch updates for PR #95 — 2026-10-07
+
+CI remediation updates Next.js 16.3.4→16.3.8, Sharp 0.35.4→0.35.5 and the vulnerable brace-expansion, fast-uri and source-map-js patch versions. Application behavior and the Customer updates pilot scope are unchanged. RELEASE BLOCKED by the remaining unpatched braces advisory in the Next ESLint dependency chain; Dependency Security is preserved without exceptions.

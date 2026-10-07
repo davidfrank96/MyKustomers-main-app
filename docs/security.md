@@ -1252,3 +1252,10 @@ Feature access is authoritative in the database, never browser state. Members ca
 ## WhatsApp Admin control plane — 2026-09-23
 
 WhatsApp control requires fresh active SUPER_ADMIN and AAL2 for every mutation and QR read. Status reads do not demand repeated MFA. Authorization/audit/SQL pause precede gateway calls; only service-role result attestation can reopen claims after verified resume. QR stays in transient component memory, no-store responses, no analytics/logs/Sentry payload or automated screenshot. Status projections contain last four digits only; production smoke never mutates the paired account.
+
+
+## PR #95 dependency audit — 2026-10-07
+
+CI exposed existing lockfile advisories while publishing the Customer updates disclosure. Next.js is updated from 16.3.4 to the compatible 16.3.8 patch, Sharp from 0.35.4 to 0.35.5 (libvips 1.3.4), brace-expansion to 1.1.21/5.0.12, fast-uri to 3.1.8 and source-map-js to 1.2.2. These remove the reported Next ImageResponse, Sharp/librsvg and patched transitive advisories.
+
+RELEASE BLOCKED: `braces` 3.0.3 remains vulnerable under [GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm), with no published patched version at verification time. It is reached through the development-only eslint-config-next → @next/eslint-plugin-next → fast-glob → micromatch chain. npm reports five high-severity affected package entries for this one remaining root advisory. The audit threshold and CI job remain unchanged; no suppression, forced framework downgrade, or unverified package substitution is applied. A patched upstream dependency chain or separately reviewed replacement is needed before this gate can pass.
