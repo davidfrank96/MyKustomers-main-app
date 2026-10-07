@@ -45,7 +45,9 @@ describe("booking reschedule presentation", () => {
     const trigger = screen.getByRole("button", { name: /Scheduled Sep 1, 2030/ });
     expect(trigger).toHaveTextContent("Scheduled Sep 1, 2030, 3:30 PM");
     expect(trigger).toHaveAttribute("aria-expanded", "true");
-    expect(screen.getByText("Choose a new date and time for this booking.")).toBeVisible();
+    expect(
+      screen.getByText("Choose a new date and time for this booking."),
+    ).toBeVisible();
     expect(screen.getByLabelText("New scheduled date")).toHaveAttribute(
       "type",
       "datetime-local",
@@ -56,7 +58,9 @@ describe("booking reschedule presentation", () => {
 
     fireEvent.click(trigger);
     expect(trigger).toHaveAttribute("aria-expanded", "false");
-    expect(screen.getByText("Choose a new date and time for this booking.")).not.toBeVisible();
+    expect(
+      screen.getByText("Choose a new date and time for this booking."),
+    ).not.toBeVisible();
   });
 
   it("submits the existing UTC ISO payload without changing date conversion", async () => {
@@ -103,7 +107,7 @@ describe("booking reschedule presentation", () => {
     const { rerender } = renderReschedule();
     expect(
       screen.getByText(
-        "A reschedule email is sent only after a customer has previously confirmed the booking.",
+        "Reschedule updates are sent only after a customer has previously confirmed the booking.",
       ),
     ).toBeVisible();
 
@@ -125,10 +129,12 @@ describe("booking reschedule presentation", () => {
 
     expect(
       screen.getByText(
-        "The customer will need to confirm the updated schedule. Email delivery is attempted using the saved confirmation address.",
+        "The customer will need to confirm the updated schedule. Updates use this booking’s selected channels.",
       ),
     ).toBeVisible();
-    expect(screen.queryByText("Customers will be notified after you reschedule.")).toBeNull();
+    expect(
+      screen.queryByText("Customers will be notified after you reschedule."),
+    ).toBeNull();
   });
 
   it("keeps the existing lifecycle eligibility lock visible and effective", () => {

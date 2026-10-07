@@ -207,6 +207,15 @@ function derivePrimaryAction(
           "Mark this booking as ready when the order is prepared for delivery or collection.",
       };
     case "READY":
+      if (input.reconfirmationRequired) {
+        return {
+          kind: "anchor",
+          href: "#customer-confirmation",
+          label: "Review confirmation request",
+          description:
+            "The work remains ready. Wait for the customer to confirm the changed schedule before delivery.",
+        };
+      }
       return {
         kind: "transition",
         toStatus: "DELIVERED",
@@ -330,7 +339,9 @@ export function deriveBookingJourney(
     attention.push({
       kind: "reconfirmation",
       message:
-        "Delivery schedule changed. Customer confirmation is required before work can start.",
+        input.status === "READY"
+          ? "The work remains ready. Customer confirmation of the changed schedule is required before delivery."
+          : "Delivery schedule changed. Customer confirmation is required before work can start.",
       href: "#customer-confirmation",
       actionLabel: "Review confirmation request",
     });

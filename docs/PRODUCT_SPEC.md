@@ -296,8 +296,11 @@ hydrated and recorded its first valid open.
 Phase 7 implements the first operational fulfilment workflow. After customer
 confirmation, the vendor can start work, mark the booking ready, mark it
 delivered, and complete it. Vendors can cancel active operational bookings with
-a reason. Vendors can reschedule before fulfilment begins; rescheduling a
-confirmed booking requires customer reconfirmation.
+a reason. Rescheduling is available through `READY`, including overdue work when
+the new date is future. `DELIVERED`, `COMPLETED`, and `CANCELLED` are blocked.
+Previously confirmed bookings require reconfirmation; READY retains its work state
+and timestamps and cannot be delivered until the changed schedule is confirmed.
+See [implementation and release evidence](RESCHEDULE_SAFARI_STABILITY.md).
 
 Phase 8 implements the first private feedback and operational issue workflow.
 At delivery, the system creates or recovers a secure feedback link; legacy and

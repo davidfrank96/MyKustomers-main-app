@@ -126,7 +126,11 @@ describe("confirmation preview resolution", () => {
     expect(
       state.reads
         .filter((read) => read.table === "bookings")
-        .every((read) => read.columns === "status" && Boolean(read.filters.business_id)),
+        .every(
+          (read) =>
+            read.columns === "status, confirmation_terms_hash" &&
+            Boolean(read.filters.business_id),
+        ),
     ).toBe(true);
   });
 
@@ -187,6 +191,22 @@ describe("confirmation preview resolution", () => {
       expect(await getPublicConfirmationImageMetadata(previewA)).toBeNull();
     },
   );
+
+  it("keeps READY reschedule previews business-bound only while reconfirmation is pending", async () => {
+    Object.assign(state.rows.bookings[0], {
+      status: "READY",
+      confirmation_terms_hash: null,
+    });
+    expect(await getPublicConfirmationMetadata(tokenA)).toMatchObject({
+      businessName: "Cedar Workshop",
+    });
+    expect(await getPublicConfirmationImageMetadata(previewA)).toMatchObject({
+      businessName: "Cedar Workshop",
+    });
+    state.rows.bookings[0].confirmation_terms_hash = "confirmed";
+    expect(await getPublicConfirmationMetadata(tokenA)).toBeNull();
+    expect(await getPublicConfirmationImageMetadata(previewA)).toBeNull();
+  });
 
   it("preserves the current already-used link identity policy", async () => {
     Object.assign(state.rows.confirmation_links[0], {

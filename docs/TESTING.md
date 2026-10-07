@@ -1,5 +1,24 @@
 # Testing
 
+## Reschedule and Safari input stability — 2026-09-24
+
+Permanent regressions cover all eight lifecycle statuses, channel-aware actions
+and rate limits, delayed server validation while typing, seven mobile/tablet
+widths, formatted amounts/caret, notes/payment, and reschedule datetime identity.
+`tests/whatsapp-ui/form-stability.spec.ts` runs in the existing Chromium/WebKit job.
+The exact delayed-response case also passed three independent WebKit repetitions
+without retries. Physical iOS remains unverified.
+
+The real-function database matrix runs with:
+`node scripts/test-whatsapp-database.mjs <schema-only-export.sql>`.
+This optional full-schema mode loads only a disposable local cluster, then applies
+the READY migration and tests lifecycle/channel/capability/tenant enforcement.
+It does not read cloud credentials. The default CI database mode remains its
+existing lightweight contract fixture; do not claim it executes the full-schema
+matrix. Never commit the local schema export. Runtime Security remains SKIPPED
+without its approved protected target. [Results](RESCHEDULE_SAFARI_STABILITY.md).
+
+
 ## Auth routing and confirmation text — 2026-09-18
 
 Permanent executable server/component tests cover invalid identity, verified zero memberships, lookup failures, missing business joins, stale/multiple memberships, pending-owner recovery, non-owner safe failure, admin-only destinations, independent onboarding guards and forged return headers. Local production-build Chromium/WebKit tests cover the ten-width Auth/onboarding/confirmation matrix, multiline and unbroken text, empty details and NGN/USD/GBP/EUR. The canonical booking E2E now traces distinct title/description through native form submission, database and customer DOM, accounting for standard CRLF form encoding. Controlled browser fixtures do not establish native provider time-box configuration, physical PWA behavior or real biometric success. See [evidence and remaining gates](AUTH_SESSION_ROUTING_CONFIRMATION.md).

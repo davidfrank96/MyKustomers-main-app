@@ -1862,7 +1862,7 @@ test.describe("booking engine", () => {
     expect(delayedRescheduleRequest).toBe(true);
     await expect(
       rescheduleSection.getByText(
-        "The customer will need to confirm the updated schedule. Email delivery is attempted using the saved confirmation address.",
+        "The customer will need to confirm the updated schedule. Updates use this booking’s selected channels.",
       ),
     ).toBeVisible();
     if (testInfo.project.name === "chromium") {

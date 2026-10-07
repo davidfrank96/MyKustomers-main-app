@@ -246,13 +246,8 @@ export function BookingForm({
 }: BookingFormProps) {
   const editing = mode === "edit";
   const [actionState, formAction] = useActionState(action, initialBookingActionState);
-  const {
-    formRef,
-    visibleFieldErrors,
-    clearFieldError,
-    onInputCapture,
-    onChangeCapture,
-  } = useFormErrorNavigation(actionState.fieldErrors, bookingFieldOrder);
+  const { formRef, visibleFieldErrors, clearFieldError, onChange } =
+    useFormErrorNavigation(actionState.fieldErrors, bookingFieldOrder);
   const state = { ...actionState, fieldErrors: visibleFieldErrors };
   const [customerMode, setCustomerMode] = useState<"existing" | "new">(
     defaultCustomerMode,
@@ -918,8 +913,7 @@ export function BookingForm({
     <form
       ref={formRef}
       action={formAction}
-      onInputCapture={onInputCapture}
-      onChangeCapture={onChangeCapture}
+      onChange={onChange}
       className={cn("min-w-0 space-y-5", editing && "space-y-6")}
       noValidate
     >

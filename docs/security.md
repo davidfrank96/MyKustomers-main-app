@@ -1272,3 +1272,14 @@ No patched braces release exists at review time. Current stable/canary Next ESLi
 `scripts/audit-dependencies.mjs` accepts only the single exact advisory URL/source and its five high-severity entries: braces 3.0.3, micromatch 4.0.8, fast-glob 3.3.1, @next/eslint-plugin-next 16.3.1 and eslint-config-next 16.3.1. Each must occupy its reviewed lockfile path and have `dev: true`; only eslint-config-next may be a direct dependency, and root declarations are checked. New advisories, versions, affected installations, advisory paths or severities require review. An independent production audit admits no exceptions at moderate or above. Report schema/totals, process failures and exit statuses are checked; registry failures cannot silently pass.
 
 Acceptance expires **2026-10-21 00:00 UTC** and cannot renew automatically. Maintainers must replace this exception with an upstream compatible patch or reviewed behavior-preserving replacement, or seek a new explicit risk decision. Once patched, remove the exception and its package snapshot and restore the direct audit command, retaining relevant fail-closed regression coverage. Expired exceptions block whenever the advisory remains; a clean report still passes. No runtime code, lint behavior, dependency resolution, customer messaging or production settings change in this follow-up.
+## 2026-09-24 — Reschedule / validation release boundary
+
+The READY migration preserves existing security-definer signatures/search paths,
+tenant checks, future-date validation, capability revocation/expiry/usage checks,
+audits, channel enqueueing, and outbound rate limits. A narrow transaction flag
+permits READY same-status reconfirmation only after locked capability checks;
+ordinary material edits stay blocked. No ACL or RLS changes. Disposable native
+PostgreSQL tests verify direct terminal/cross-tenant/anonymous denial and replay
+behavior; these are not a protected live Runtime Security pass. Production was
+read schema-only; no customer records or messages were used.
+[Exact evidence and release gates](RESCHEDULE_SAFARI_STABILITY.md).

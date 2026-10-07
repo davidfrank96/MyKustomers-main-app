@@ -207,8 +207,10 @@ export function CustomerForm({
   cancelHref,
 }: CustomerFormProps) {
   const [actionState, formAction] = useActionState(action, initialCustomerActionState);
-  const { formRef, visibleFieldErrors, onInputCapture, onChangeCapture } =
-    useFormErrorNavigation(actionState.fieldErrors, customerFieldOrder);
+  const { formRef, visibleFieldErrors, onChange } = useFormErrorNavigation(
+    actionState.fieldErrors,
+    customerFieldOrder,
+  );
   const state = { ...actionState, fieldErrors: visibleFieldErrors };
   const [createNotesLength, setCreateNotesLength] = useState(
     initialValues.notes?.length ?? 0,
@@ -219,8 +221,7 @@ export function CustomerForm({
       <form
         ref={formRef}
         action={formAction}
-        onInputCapture={onInputCapture}
-        onChangeCapture={onChangeCapture}
+        onChange={onChange}
         className="space-y-4 sm:space-y-5"
         noValidate
       >
@@ -343,8 +344,7 @@ export function CustomerForm({
       <form
         ref={formRef}
         action={formAction}
-        onInputCapture={onInputCapture}
-        onChangeCapture={onChangeCapture}
+        onChange={onChange}
         className="space-y-4 sm:space-y-5"
         noValidate
       >
@@ -445,8 +445,7 @@ export function CustomerForm({
     <form
       ref={formRef}
       action={formAction}
-      onInputCapture={onInputCapture}
-      onChangeCapture={onChangeCapture}
+      onChange={onChange}
       className="space-y-5"
       noValidate
     >

@@ -116,7 +116,7 @@ async function readPublicConfirmationMetadata(
   const [{ data: booking }, { data: business }] = await Promise.all([
     supabase
       .from("bookings")
-      .select("status")
+      .select("status, confirmation_terms_hash")
       .eq("id", link.booking_id)
       .eq("business_id", link.business_id)
       .maybeSingle(),
@@ -130,7 +130,9 @@ async function readPublicConfirmationMetadata(
   if (
     !booking ||
     !business ||
-    (!link.used_at && booking.status !== "AWAITING_CUSTOMER")
+    (!link.used_at &&
+      booking.status !== "AWAITING_CUSTOMER" &&
+      !(booking.status === "READY" && booking.confirmation_terms_hash === null))
   ) {
     return null;
   }
