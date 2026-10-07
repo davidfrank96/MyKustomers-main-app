@@ -1931,3 +1931,18 @@ Refined only the booking Customer updates selector to match the supplied design 
 ## Customer updates summary — 2026-09-24
 
 Implemented the approved read-only booking Customer updates summary: compact title/copy, matching full-width Email and WhatsApp cards, consistent selected/neutral status pills and responsive geometry. Existing exceptional status labels, latest delivery evidence and stop action remain. The editor, queries, actions, preferences, consent, number, backend, schema, API, RLS, routes, billing and entitlement behavior are unchanged. IMPLEMENTED — UI REVIEW APPROVED; CI/RELEASE PENDING. Local alignment/responsive verification passed. Feature-branch publication and PR creation are approved; merge remains manual after required CI, with Production deployment following the existing main-branch integration.
+
+
+## Customer updates disclosure — 2026-10-07
+
+IMPLEMENTED — UI REVIEW APPROVED; CI/RELEASE PENDING. Customer updates now reuses the booking disclosure shell with a compact bell header, dynamic channel summary and selected/inactive pills. Expanded read-only states, latest provider evidence and the existing stop action remain intact. The shared primitive adds an optional summary-detail slot and bell icon, and delivers the current hash target to late subscribers so streamed sections open correctly. Server queries, actions, pilot/entitlement rules (including retained historical evidence), notification behavior and booking lifecycle remain unchanged. Focused integration and browser coverage includes seven states, ten responsive widths, keyboard disclosure and neighboring panels. Feature-branch publication and PR creation are approved. Merge remains manual after CI passes, with Production deployment following the existing main-branch integration.
+
+
+## Dependency patch updates for PR #95 — 2026-10-07
+
+CI remediation updates Next.js 16.3.4→16.3.8, Sharp 0.35.4→0.35.5 and the vulnerable brace-expansion, fast-uri and source-map-js patch versions. Application behavior and the Customer updates pilot scope are unchanged. RELEASE BLOCKED by the remaining unpatched braces advisory in the Next ESLint dependency chain; Dependency Security is preserved without exceptions.
+
+
+## Scoped dependency audit exception for PR #95 — 2026-10-07
+
+The owner-approved fallback supersedes the preceding release blocker with temporary risk acceptance for the exact development-only GHSA-vfj7-8cjw-p6xm chain, expiring 2026-10-21 00:00 UTC. Keeps Dependency Security active, independently audits production dependencies without exceptions, blocks other moderate-or-higher findings and malformed/failed audit output, and adds 24 policy regressions. Braces remains unpatched; runtime and lint behavior are unchanged. Latest-head CI is required before the user's manual merge.

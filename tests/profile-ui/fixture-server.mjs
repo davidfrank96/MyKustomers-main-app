@@ -10,6 +10,7 @@ let whatsappEntitled = true;
 let whatsappControlPaused = false;
 let whatsappSummaryPreferences = {};
 let whatsappSummaryHasEvent = true;
+let whatsappSummaryHasPreferences = true;
 let paymentFixture = false;
 const businessId = "20000000-0000-4000-8000-000000000001";
 const otherBusinessId = "20000000-0000-4000-8000-000000000002";
@@ -242,6 +243,7 @@ createServer(async (req, res) => {
   if (url.pathname === "/fixture/reset") {
     whatsappSummaryPreferences = {};
     whatsappSummaryHasEvent = true;
+    whatsappSummaryHasPreferences = true;
     paymentFixture = false;
     whatsappStopped = false;
     whatsappControlPaused = false;
@@ -277,6 +279,8 @@ createServer(async (req, res) => {
     const scenario = JSON.parse(Buffer.concat(chunks));
     if (whatsappFixture && scenario.whatsappSummaryPreferences)
       whatsappSummaryPreferences = scenario.whatsappSummaryPreferences;
+    if (whatsappFixture && scenario.whatsappSummaryHasPreferences !== undefined)
+      whatsappSummaryHasPreferences = scenario.whatsappSummaryHasPreferences;
     if (whatsappFixture && scenario.whatsappSummaryHasEvent !== undefined)
       whatsappSummaryHasEvent = scenario.whatsappSummaryHasEvent;
     if (scenario.whatsappEntitled !== undefined)
@@ -640,6 +644,8 @@ createServer(async (req, res) => {
           created_at: "2026-01-15T12:00:00Z",
         },
       ];
+    if (table === "booking_communication_preferences" && !whatsappSummaryHasPreferences)
+      rows = [];
     if (table === "whatsapp_events" && !whatsappSummaryHasEvent) rows = [];
   }
   if (table === "notification_preferences") {

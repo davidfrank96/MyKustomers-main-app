@@ -1,4 +1,4 @@
-import { render, screen, cleanup, within } from "@testing-library/react";
+import { render, screen, cleanup, within, fireEvent } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 vi.mock("server-only", () => ({}));
 const mocks = vi.hoisted(() => ({ access: vi.fn(), from: vi.fn(), disable: vi.fn() }));
@@ -36,8 +36,10 @@ beforeEach(() => {
   });
 });
 afterEach(cleanup);
-async function show() {
+async function show(expand = true) {
   render(await BookingUpdates({ businessId: "business", bookingId: "booking" }));
+  const trigger = screen.queryByRole("button", { name: /Customer updates/ });
+  if (trigger && expand) fireEvent.click(trigger);
 }
 it.each([
   [true, false, null, "Selected", "Not selected"],
@@ -54,7 +56,7 @@ it.each([
       disabled_at: stopped,
     };
     await show();
-    const section = screen.getByRole("region", { name: "Customer updates" });
+    const section = screen.getByRole("region", { name: /Customer updates/ });
     expect(
       within(section)
         .getAllByRole("definition")
@@ -103,6 +105,45 @@ it("preserves historical data after entitlement is removed and unknown-event fal
   mocks.access.mockResolvedValue({ entitled: false, available: false });
   events = [{ status: "UNRECOGNIZED" }];
   await show();
-  expect(screen.getByRole("region", { name: "Customer updates" })).toBeVisible();
+  expect(screen.getByRole("region", { name: /Customer updates/ })).toBeVisible();
   expect(screen.getByText("Status unavailable")).toBeVisible();
+});
+
+it("starts collapsed and toggles without re-reading or running an action", async () => {
+  preference = {
+    email_enabled: true,
+    whatsapp_enabled: true,
+    disabled_at: "2026-09-24T00:00:00Z",
+  };
+  await show(false);
+  const trigger = screen.getByRole("button", {
+    name: "Customer updates Email selected · WhatsApp stopped",
+  });
+  expect(trigger).toHaveAttribute("aria-expanded", "false");
+  expect(screen.queryByRole("region")).not.toBeInTheDocument();
+  const content = document.getElementById(trigger.getAttribute("aria-controls")!)!;
+  const form = content.querySelector("form");
+  fireEvent.click(trigger);
+  expect(trigger).toHaveAttribute("aria-expanded", "true");
+  expect(within(content).getByText("Updates stopped")).toBeVisible();
+  expect(
+    within(content).getByRole("button", { name: "Stop WhatsApp updates" }),
+  ).toBeVisible();
+  fireEvent.click(trigger);
+  fireEvent.click(trigger);
+  expect(content.querySelector("form")).toBe(form);
+  expect(mocks.from).toHaveBeenCalledTimes(2);
+  expect(mocks.disable).not.toHaveBeenCalled();
+});
+
+it("keeps accepted provider evidence in the expanded content only", async () => {
+  events = [{ status: "ACCEPTED" }];
+  await show(false);
+  const trigger = screen.getByRole("button", { name: /Customer updates/ });
+  expect(trigger).not.toHaveTextContent("Accepted");
+  expect(screen.getByText("Accepted")).not.toBeVisible();
+  fireEvent.click(trigger);
+  expect(screen.getByText("Latest WhatsApp update")).toBeVisible();
+  expect(screen.getByText("Accepted")).toBeVisible();
+  expect(screen.queryByText("Delivered")).not.toBeInTheDocument();
 });

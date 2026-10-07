@@ -1253,6 +1253,25 @@ Feature access is authoritative in the database, never browser state. Members ca
 
 WhatsApp control requires fresh active SUPER_ADMIN and AAL2 for every mutation and QR read. Status reads do not demand repeated MFA. Authorization/audit/SQL pause precede gateway calls; only service-role result attestation can reopen claims after verified resume. QR stays in transient component memory, no-store responses, no analytics/logs/Sentry payload or automated screenshot. Status projections contain last four digits only; production smoke never mutates the paired account.
 
+
+## PR #95 dependency audit — 2026-10-07
+
+CI exposed existing lockfile advisories while publishing the Customer updates disclosure. Next.js is updated from 16.3.4 to the compatible 16.3.8 patch, Sharp from 0.35.4 to 0.35.5 (libvips 1.3.4), brace-expansion to 1.1.21/5.0.12, fast-uri to 3.1.8 and source-map-js to 1.2.2. These remove the reported Next ImageResponse, Sharp/librsvg and patched transitive advisories.
+
+Initial publication result (superseded by the explicit risk acceptance below): RELEASE BLOCKED. `braces` 3.0.3 remains vulnerable under [GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm), with no published patched version at verification time. It is reached through the development-only eslint-config-next → @next/eslint-plugin-next → fast-glob → micromatch chain. npm reports five high-severity affected package entries for this one remaining root advisory. The audit threshold and CI job remain unchanged; no suppression, forced framework downgrade, or unverified package substitution is applied. A patched upstream dependency chain or separately reviewed replacement is needed before this gate can pass.
+
+
+## Temporary braces risk acceptance — 2026-10-07
+
+The repository owner explicitly authorized fixing the PR #95 dependency failure or skipping the security test if necessary. This narrowly scoped exception uses that fallback; the required job is not disabled. The underlying vulnerability is **unpatched**, and raw full `npm audit --audit-level=moderate` still exits 1. No claim of vulnerability remediation or remote exploitation is made.
+
+The actual path is `settings.next.rootDir` → Next ESLint `getRootDirs` → fast-glob → micromatch → braces expansion. Two 4,000-level nested brace inputs reproduce stack exhaustion through the actual helper (string and array settings). Legitimate default cwd, literal `app` and `{app,components}` controls work. Current ESLint configuration has no rootDir override, so its normal path never calls globSync; no application imports were found. Controlling executable ESLint configuration already grants code execution. Production-only audit reports zero findings. Reassess this acceptance if application imports or configuration input sources change.
+
+No patched braces release exists at review time. Current stable/canary Next ESLint releases retain the affected chain. A tested direct tinyglobby alias changes literal-directory, globstar and trailing-slash behavior, so no unverified substitution or major lint downgrade is shipped.
+
+`scripts/audit-dependencies.mjs` accepts only the single exact advisory URL/source and its five high-severity entries: braces 3.0.3, micromatch 4.0.8, fast-glob 3.3.1, @next/eslint-plugin-next 16.3.1 and eslint-config-next 16.3.1. Each must occupy its reviewed lockfile path and have `dev: true`; only eslint-config-next may be a direct dependency, and root declarations are checked. New advisories, versions, affected installations, advisory paths or severities require review. An independent production audit admits no exceptions at moderate or above. Report schema/totals, process failures and exit statuses are checked; registry failures cannot silently pass.
+
+Acceptance expires **2026-10-21 00:00 UTC** and cannot renew automatically. Maintainers must replace this exception with an upstream compatible patch or reviewed behavior-preserving replacement, or seek a new explicit risk decision. Once patched, remove the exception and its package snapshot and restore the direct audit command, retaining relevant fail-closed regression coverage. Expired exceptions block whenever the advisory remains; a clean report still passes. No runtime code, lint behavior, dependency resolution, customer messaging or production settings change in this follow-up.
 ## 2026-09-24 — Reschedule / validation release boundary
 
 The READY migration preserves existing security-definer signatures/search paths,

@@ -59,7 +59,8 @@ describe("repository governance", () => {
     }
 
     expect(workflow).toContain("npm ci");
-    expect(workflow).toContain("npm audit --audit-level=moderate");
+    expect(workflow).toContain("node --test scripts/audit-dependencies.test.mjs");
+    expect(workflow).toContain("node scripts/audit-dependencies.mjs");
     expect(workflow).toContain("npx playwright install --with-deps chromium");
     expect(workflow).not.toContain("|| true");
     expect(workflow).not.toMatch(/supabase\s+db\s+(push|reset)/);

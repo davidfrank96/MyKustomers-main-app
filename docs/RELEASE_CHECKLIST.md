@@ -1018,3 +1018,8 @@ Phase 2 controlled pilot verified; transport restored OFF. General rollout remai
 ## WhatsApp Admin control plane — 2026-09-23
 
 WhatsApp Admin release: gateway endpoints deployed before app; separate control key only in private gateway env and Vercel Production; current pairing retained. Require all executable CI green, exact merge SHA Ready/Production/Current, authenticated read-only Admin smoke, no new sends/QR/lifecycle calls, privacy/source/log checks and $6 resource measurements. Dedicated sender replacement is not part of release smoke.
+
+
+## PR #95 dependency risk acceptance — 2026-10-07
+
+Before manual merge, require every enabled CI job on the latest PR head, including Dependency Security under the [documented exception](security.md#temporary-braces-risk-acceptance--2026-10-07). The underlying braces advisory remains unpatched in development tooling. Acceptance expires 2026-10-21 00:00 UTC; remove it after a compatible remediation or obtain explicit renewed review. Runtime Security remains intentionally environment-gated and is not evidence of a runtime pass. This task does not merge or deploy Production.

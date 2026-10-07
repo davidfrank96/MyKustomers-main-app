@@ -12,6 +12,7 @@ import {
 } from "react";
 import {
   AlertTriangle,
+  Bell,
   CalendarClock,
   ChevronDown,
   ClipboardCheck,
@@ -29,6 +30,7 @@ type BookingDetailSectionProps = {
   id: string;
   title: string;
   summary: string;
+  summaryDetails?: ReactNode;
   defaultOpen?: boolean;
   attention?: boolean;
   current?: boolean;
@@ -42,7 +44,8 @@ type BookingDetailSectionProps = {
     | "progress"
     | "reschedule"
     | "timeline"
-    | "wallet";
+    | "wallet"
+    | "updates";
   children: ReactNode;
 };
 
@@ -55,6 +58,8 @@ export function BookingDetailSections({ children }: { children: ReactNode }) {
   const listenersRef = useRef(new Set<HashTargetListener>());
   const subscribe = useCallback<SubscribeToHashTarget>((listener) => {
     listenersRef.current.add(listener);
+    // Streamed sections can subscribe after the initial hash notification.
+    listener(window.location.hash.slice(1) || null);
     return () => listenersRef.current.delete(listener);
   }, []);
 
@@ -83,6 +88,7 @@ export function BookingDetailSection({
   id,
   title,
   summary,
+  summaryDetails,
   defaultOpen = false,
   attention = false,
   current = false,
@@ -122,7 +128,9 @@ export function BookingDetailSection({
           aria-current={current ? "step" : undefined}
           onClick={() => setOpen((current) => !current)}
         >
-          <span className="flex min-w-0 items-center gap-3">
+          <span
+            className={cn("flex min-w-0 items-center gap-3", summaryDetails && "flex-1")}
+          >
             {icon ? (
               <span
                 className={cn(
@@ -132,7 +140,9 @@ export function BookingDetailSection({
                     : "bg-primary/[0.07] text-primary",
                 )}
               >
-                {icon === "link" ? (
+                {icon === "updates" ? (
+                  <Bell className="size-5" aria-hidden={true} />
+                ) : icon === "link" ? (
                   <Link2 className="size-5" aria-hidden={true} />
                 ) : icon === "addon" ? (
                   <PackagePlus className="size-5" aria-hidden={true} />
@@ -155,18 +165,31 @@ export function BookingDetailSection({
                 )}
               </span>
             ) : null}
-            <span className="min-w-0">
-              <span className="flex flex-wrap items-center gap-2 text-sm font-semibold leading-5 sm:text-base sm:leading-6">
-                <span>{title}</span>
-                {current ? (
-                  <span className="rounded-full bg-primary px-2 py-0.5 text-[0.6875rem] font-semibold uppercase tracking-wide text-primary-foreground">
-                    Current step
-                  </span>
-                ) : null}
+            <span
+              className={cn(
+                "min-w-0",
+                summaryDetails &&
+                  "flex-1 lg:flex lg:items-center lg:justify-between lg:gap-4",
+              )}
+            >
+              <span className="block min-w-0">
+                <span className="flex flex-wrap items-center gap-2 text-sm font-semibold leading-5 sm:text-base sm:leading-6">
+                  <span>{title}</span>
+                  {current ? (
+                    <span className="rounded-full bg-primary px-2 py-0.5 text-[0.6875rem] font-semibold uppercase tracking-wide text-primary-foreground">
+                      Current step
+                    </span>
+                  ) : null}
+                </span>
+                <span className="mt-0.5 block break-words text-xs font-normal leading-5 text-muted-foreground sm:text-sm">
+                  {summary}
+                </span>
               </span>
-              <span className="mt-0.5 block break-words text-xs font-normal leading-5 text-muted-foreground sm:text-sm">
-                {summary}
-              </span>
+              {summaryDetails ? (
+                <span className="mt-2 flex flex-wrap items-center gap-2 lg:mt-0 lg:shrink-0">
+                  {summaryDetails}
+                </span>
+              ) : null}
             </span>
           </span>
           <ChevronDown

@@ -25,7 +25,7 @@ loopback Auth/REST fixtures and reads no cloud credentials.
 | Quality             | `npm ci`, lint, typecheck, and changed-file `git diff --check`                                                                                |
 | Tests               | `npm ci` and unit, integration, static security, governance, and migration convention tests through `npm run test`                            |
 | Build               | `npm ci` and the production Next.js build                                                                                                     |
-| Dependency Security | `npm ci` and `npm audit --audit-level=moderate`                                                                                               |
+| Dependency Security | `npm ci`, audit-policy regression tests, and `node scripts/audit-dependencies.mjs`                                                                                               |
 | E2E                 | Chromium installation and the complete Playwright suite against its workflow-owned local server and dedicated non-production Supabase project |
 
 CI uses Node 22 because `package.json` requires Node 22 or newer. Official
@@ -161,3 +161,8 @@ regression. See [the release evidence](GOLDEN_STABILITY_PASS.md).
 ## WhatsApp additive contracts
 
 The existing Notification Contracts job now also runs `npm run test:whatsapp:database` in a disposable native cluster and the isolated WhatsApp browser suite. Required job names and production migration prohibition stay unchanged. The new tests read no cloud credentials. Existing E2E is separately credential-backed; protected Runtime Security remains opt-in and must use an approved non-production target.
+
+
+## PR #95 publication gate — 2026-10-07
+
+The initial Dependency Security run failed on existing lockfile advisories. Available compatible dependency patches were applied. The owner subsequently authorized a security-check exception if no compatible fix was available. Dependency Security remains required and now runs policy regression tests followed by separate production and full `npm audit --json --audit-level=moderate` reports. Only GHSA-vfj7-8cjw-p6xm in the exact reviewed development-only Next ESLint chain is accepted until 2026-10-21 00:00 UTC; all other moderate-or-higher findings, changed affected versions/installations, production findings, malformed reports and audit failures block CI. Low findings retain the existing threshold. This is temporary risk acceptance, not a patched dependency or a clean full audit. See [the scope and removal criteria](security.md#temporary-braces-risk-acceptance--2026-10-07). All other jobs and the protected Runtime Security guard remain unchanged. Merge remains manual after all enabled jobs pass; preview success is not Production deployment evidence.
