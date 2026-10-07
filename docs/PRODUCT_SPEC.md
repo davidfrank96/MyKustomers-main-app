@@ -580,3 +580,10 @@ The booking creation Customer updates selector presents independent Email/WhatsA
 ## Customer updates summary — 2026-09-24
 
 The booking-details Customer updates summary presents read-only full-width Email and WhatsApp cards using existing authoritative labels. Selected and Not selected use calm green/neutral status pills; existing Updates stopped and Future updates paused labels remain visible in the neutral treatment. Latest delivery history, stop action, fallback behavior, availability gates and the separate editing form are preserved. No Pro badge or new control is added to this summary.
+
+
+## Customer updates disclosure — 2026-10-07
+
+IMPLEMENTED — UI REVIEW APPROVED; CI/RELEASE PENDING. Booking detail now presents Customer updates as a default-closed `BookingDetailSection`, using its existing hash targeting, keyboard behavior, controlled region and disclosure state. The header summarizes the saved Email state and the existing WhatsApp state; compact decorative channel pills reinforce the text. `Updates stopped` is summarized as `WhatsApp stopped`, separately from `Not selected` and `Future updates paused`. Email retains its existing Selected/Not selected terminology and legacy default. Expanded content retains the read-only channel cards, latest provider evidence and existing Stop WhatsApp updates action. No number or consent editor is introduced into this summary.
+
+The server entitlement, operational allowlist, queries and render guard are unchanged. The existing historical-data exception still permits saved preferences/event evidence after entitlement removal; a business without entitlement or historical data remains hidden. This presentation change grants no access and does not expand the pilot. Feature-branch publication and a pull request to `main` are approved. Merge remains manual after CI passes; Production deployment follows the existing main-branch integration.

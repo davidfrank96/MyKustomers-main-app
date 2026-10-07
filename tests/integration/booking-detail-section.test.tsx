@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import {
   BookingDetailSection,
@@ -109,5 +109,28 @@ describe("booking detail section", () => {
     expect(trigger).toHaveAttribute("aria-current", "step");
     expect(trigger).toHaveAttribute("aria-expanded", "false");
     expect(screen.getByText("Current step")).toBeVisible();
+  });
+  it("opens a streamed section that subscribes after the initial hash notification", async () => {
+    window.history.replaceState(null, "", "#customer-updates");
+    const { rerender } = render(<BookingDetailSections>{null}</BookingDetailSections>);
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    });
+    rerender(
+      <BookingDetailSections>
+        <BookingDetailSection
+          id="customer-updates"
+          title="Customer updates"
+          summary="Email selected"
+        >
+          <p>Channel evidence</p>
+        </BookingDetailSection>
+      </BookingDetailSections>,
+    );
+    const trigger = screen.getByRole("button", { name: /Customer updates/ });
+    await waitFor(() => expect(trigger).toHaveAttribute("aria-expanded", "true"));
+    fireEvent.click(trigger);
+    expect(trigger).toHaveAttribute("aria-expanded", "false");
+    window.history.replaceState(null, "", "/");
   });
 });

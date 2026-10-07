@@ -489,10 +489,10 @@ export default async function BookingDetailPage({
         cancellationReason={booking.cancellation_reason}
       />
 
-      <Suspense fallback={null}>
-        <BookingUpdates businessId={currentBusiness.id} bookingId={bookingId} />
-      </Suspense>
       <BookingDetailSections>
+        <Suspense fallback={null}>
+          <BookingUpdates businessId={currentBusiness.id} bookingId={bookingId} />
+        </Suspense>
         <BookingDetailSection
           id="booking-payments"
           title="Payment & completion"

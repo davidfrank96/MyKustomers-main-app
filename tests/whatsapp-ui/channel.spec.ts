@@ -75,7 +75,8 @@ test("uncertain status is honest and stopping preserves Email", async ({
     "true",
   );
   await page.waitForLoadState("networkidle");
-  const group = page.getByRole("region", { name: "Customer updates", exact: true });
+  const group = page.locator("#customer-updates");
+  await group.getByRole("button", { name: /Customer updates/ }).click();
   await expect(
     group.getByText("Delivery status uncertain", { exact: true }),
   ).toBeVisible();
@@ -95,7 +96,9 @@ test("uncertain status is honest and stopping preserves Email", async ({
   await group.getByRole("button", { name: "Stop WhatsApp updates" }).click();
   await expect(group.getByText("Updates stopped", { exact: true })).toBeVisible();
   await expect(group.getByText("Selected", { exact: true })).toBeVisible();
-  await expect(group.getByRole("button")).toHaveCount(0);
+  await expect(group.getByRole("button", { name: "Stop WhatsApp updates" })).toHaveCount(
+    0,
+  );
 });
 test("another business has no pilot choices", async ({ page, context, request }) => {
   const fixture = await (await request.get(`${origin}/fixture/session`)).json();
@@ -215,6 +218,10 @@ test("Settings and Admin grant/revoke fit the product and preserve history", asy
     0,
   );
   await page.goto(`/bookings/${booking}`);
+  await page
+    .locator("#customer-updates")
+    .getByRole("button", { name: /Customer updates/ })
+    .click();
   await expect(
     page.getByText("Delivery status uncertain", { exact: true }),
   ).toBeVisible();

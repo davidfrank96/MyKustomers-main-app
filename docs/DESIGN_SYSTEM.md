@@ -404,3 +404,8 @@ Customer updates uses a restrained rounded panel, bell icon tile, small outline 
 ## Customer updates summary — 2026-09-24
 
 The summary uses a compact title and secondary one-line-purpose copy above two equal-width/equal-height rows. Identical icon tiles, row padding, type and status-pill height apply to both channels. Below 640px the non-wrapping pill sits below the text, aligned to its left edge; wider layouts centre the pill at the trailing edge. Native definition-list semantics keep the rows read-only. Existing stopped/paused labels use the same neutral visual treatment without hiding operational state. No global overflow rule or client state/effect is introduced.
+
+
+## Customer updates disclosure — 2026-10-07
+
+Reuse `BookingDetailSection` for Customer updates, including its border/radius, bell tile, focus ring, chevron rotation and reduced-motion behavior. An optional server-rendered `summaryDetails` slot holds non-interactive channel pills; existing sections omit it and retain their layout. The existing hash subscription also delivers the current target to a newly mounted section, so async streamed content does not miss the initial disclosure notification. Pills are 32px high, use existing primary/muted tokens, and wrap with an 8px gap on narrow screens. Text summaries provide the accessible state; redundant chips are decorative. At 1024px and above, pills sit alongside the summary within the existing booking content width. Expanded content uses the shared divider/padding and preserves the existing channel rows. Disclosure hides rather than unmounts content, preserving form identity.
