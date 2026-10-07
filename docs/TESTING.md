@@ -2001,3 +2001,8 @@ The isolated Chromium/WebKit fixture suite adds seven state combinations across 
 ### PR #95 dependency follow-up
 
 After the CI audit findings, compatible Next.js/Sharp and transitive security patches were installed. Local lint (zero errors, the same one existing warning), typecheck, production build and all 1,175 unit/integration tests passed again; 24 existing environment-gated tests remained skipped. npm audit now reports zero critical entries and five high entries tracing to the one unpatched braces advisory in the Next ESLint chain. Browser suites will run on the updated PR head through the unchanged CI workflow. The security gate remains blocking; it is not represented as a pass.
+
+
+### PR #95 temporary audit exception verification — 2026-10-07
+
+`node --test scripts/audit-dependencies.test.mjs` covers 24 cases: the accepted exact chain, clean reports after expiry, the existing low-severity threshold, new and substituted advisories, extra affected installs/packages, cyclic paths, production reachability, missing dev flags, changed versions, invalid lock/report metadata, expiry boundaries, invalid clock, process/JSON/schema/status failures, independent production rejection and mandatory completion of both audits. These tests run in Dependency Security before `node scripts/audit-dependencies.mjs`. Both commands pass locally against the current lockfile. This supersedes the earlier unqualified blocking gate with the owner-approved, time-limited policy; it does not claim a clean full audit or patched braces. Latest-head GitHub results remain the merge gate.

@@ -91,8 +91,10 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
-      - name: Audit moderate and higher vulnerabilities
-        run: npm audit --audit-level=moderate
+      - name: Verify dependency audit policy
+        run: node --test scripts/audit-dependencies.test.mjs
+      - name: Audit production and all dependencies with reviewed exception
+        run: node scripts/audit-dependencies.mjs
 
   e2e:
     name: E2E

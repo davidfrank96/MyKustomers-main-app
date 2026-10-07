@@ -1930,3 +1930,8 @@ IMPLEMENTED — UI REVIEW APPROVED; CI/RELEASE PENDING. Customer updates now reu
 ## Dependency patch updates for PR #95 — 2026-10-07
 
 CI remediation updates Next.js 16.3.4→16.3.8, Sharp 0.35.4→0.35.5 and the vulnerable brace-expansion, fast-uri and source-map-js patch versions. Application behavior and the Customer updates pilot scope are unchanged. RELEASE BLOCKED by the remaining unpatched braces advisory in the Next ESLint dependency chain; Dependency Security is preserved without exceptions.
+
+
+## Scoped dependency audit exception for PR #95 — 2026-10-07
+
+The owner-approved fallback supersedes the preceding release blocker with temporary risk acceptance for the exact development-only GHSA-vfj7-8cjw-p6xm chain, expiring 2026-10-21 00:00 UTC. Keeps Dependency Security active, independently audits production dependencies without exceptions, blocks other moderate-or-higher findings and malformed/failed audit output, and adds 24 policy regressions. Braces remains unpatched; runtime and lint behavior are unchanged. Latest-head CI is required before the user's manual merge.
