@@ -2,7 +2,7 @@
 
 ## Deployment recovery and Terms — 8 October 2026
 
-Use supported provider deployment ID with commit-SHA fallback. Hobby lacks paid Skew Protection; exact missing-action failures receive one guarded current-URL reload, never replay. Terms content stays server-rendered, passed into a small existing-Dialog client wrapper and shared with the canonical static page. No new service, polling or consent store. [Evidence](PREPRODUCTION_STABILITY.md).
+Use supported provider deployment ID with unique Vercel deployment fallback. Hobby lacks paid Skew Protection; exact missing-action failures receive one guarded current-URL reload, never replay. Terms content stays server-rendered, passed into a small existing-Dialog client wrapper and shared with the canonical static page. No new service, polling or consent store. [Evidence](PREPRODUCTION_STABILITY.md).
 
 ## Shared secure-preview action cards — 2026-09-15
 

@@ -27,9 +27,12 @@ const privateRouteSources = [
 ] as const;
 
 const nextConfig: NextConfig = {
-  // Prefer the provider's deployment identifier; commit identity is a fallback
-  // on plans without version locking. Next uses this to detect navigation skew.
-  deploymentId: process.env.NEXT_DEPLOYMENT_ID ?? process.env.VERCEL_GIT_COMMIT_SHA,
+  // Preserve Next's injected identity. On Hobby, use the unique deployment ID
+  // without Vercel's reserved prefix (custom IDs must be <=32 characters).
+  // A commit SHA is unsuitable: redeployments of one commit need distinct IDs.
+  deploymentId:
+    process.env.NEXT_DEPLOYMENT_ID ??
+    process.env.VERCEL_DEPLOYMENT_ID?.replace(/^dpl_/, ""),
   // Preserve Next's full default list and also block metadata for every crawler
   // that receives our read-only capability shell (including standalone Telegram).
   htmlLimitedBots: new RegExp(

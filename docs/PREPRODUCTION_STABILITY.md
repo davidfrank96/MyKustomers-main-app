@@ -18,7 +18,7 @@ No real messages were sent by the operational audit; no infrastructure was resiz
 | E | Server Action root cause | The client submitted an action the responding server did not recognise. Version skew is strongly supported by the old client release and deployment timing; the original POST lacks the serving deployment ID, so exact request-to-server correlation is not proven. |
 | F | Deployment/version-skew evidence | PR #94 deployment `dpl_ZCFVxL7eac6Zby4RpfaUkhxkDux4`, SHA `4485b2f322febb8ada8cea6d685e8ba10b627cfd`, became READY at 13:09:24.311 UTC, about 58 seconds before the first error. Old-release page activity began 13:08:51; three action POSTs returned 404. PR #95 became READY at 13:51:32.271 UTC, after all three events. Original hard-refresh outcome was not recorded. |
 | G | Vercel Skew Protection | Hobby plan. Advanced settings offers Skew Protection as a Pro upgrade; not enabled, no active duration. No plan change. Supported deployment identification and bounded fallback are used. |
-| H | Server Action fix | Prefer `NEXT_DEPLOYMENT_ID`, otherwise `VERCEL_GIT_COMMIT_SHA`. Global boundary retains Sentry capture and flushes for up to 1.5 seconds before one same-URL reload only for the observed named/42-hex-ID error signature. A sessionStorage guard stores only `attempted`; blocked storage leaves the normal error UI. No encryption key or mutation replay. |
+| H | Server Action fix | Prefer `NEXT_DEPLOYMENT_ID`, otherwise `VERCEL_DEPLOYMENT_ID` without its reserved `dpl_` prefix. Global boundary retains Sentry capture and flushes for up to 1.5 seconds before one same-URL reload only for the observed named/42-hex-ID error signature. A sessionStorage guard stores only `attempted`; blocked storage leaves the normal error UI. No encryption key or mutation replay. |
 | I | Stale-client recovery result | PASS: two separate immutable local production builds with different actual action IDs behind a switching proxy. A→B mismatch reloaded once, preserved query URL, did not replay POST; new B action worked; B→A mismatch showed fallback without another reload. Synthetic browser fixtures also pass Chromium/WebKit. These are not two Vercel deployments or a real user session. |
 | J | Localhost login reproduction | Existing port 3000 ran a stale optimized fixture build via `npm start`; user reported login failure. Its compiled backend used loopback test fixture endpoints, despite the source environment targeting the intended Supabase project. |
 | K | Localhost Auth root cause | Local process/build drift, not a production Auth defect: stale Next 16.3.4 fixture output instead of current 16.3.8 development server. |
@@ -53,16 +53,16 @@ No real messages were sent by the operational audit; no infrastructure was resiz
 | AN | Sentry baseline | Authenticated production last-24-hour query returned only the original three-event unresolved stale-action issue. It was not marked resolved. A meaningful post-release observation window remains required. |
 | AO | Dependency security | Production audit: 0 vulnerabilities. Full audit: five high package entries from one development-only advisory. No compatible braces patch was available (registry latest 3.0.3 at inspection); lockfile unchanged. |
 | AP | Temporary exception | Existing exact `GHSA-vfj7-8cjw-p6xm` development ESLint-chain exception retained unchanged; expires 2026-10-21 00:00 UTC. Policy and its 24 regression tests pass. Raw full npm audit remains nonzero; this is not a clean full audit. |
-| AQ | Responsive matrix | 320×568, 360×800, 375×812, 390×844, 414×896, 430×932, 768×1024, 1024×768, 1280×800, 1440×900. 80 vendor + 80 live Admin checks; public/auth/Terms and existing browser suites. Physical keyboards and every possible private data state are outside this evidence. |
+| AQ | Responsive matrix | 320×568, 360×800, 375×812, 390×844, 414×896, 430×932, 768×1024, 1024×768, 1280×800, 1440×900. 50 public + 80 vendor + 80 live Admin checks; public/auth/Terms and existing browser suites. Physical keyboards and every possible private data state are outside this evidence. |
 | AR | Efficiency findings | Auth verification/context use request-scoped React cache; customer detail uses two parallel limit(1) existence reads; lists paginated; WhatsApp claims one event/invocation; push worker max four batches of two/35 seconds, maintenance limit 1000. Terms text stays server-rendered; no new polling/listeners/DB fetches. Public HTTP samples 217–360ms for successful routes are single observations, not SLOs. No measured regression warranted optimization. |
 | AS | Database changes | Only the already-reviewed READY migration: five function replacements; sixth wrapper compared unchanged. Owners, ACLs, security-definer flags and search paths preserved. No table/RLS/grant/ledger/scheduler changes. |
-| AT | Environment changes | None to production/local secrets or platform settings. Build configuration reads existing deployment-ID/SHA variables. Local process/cache repaired. |
+| AT | Environment changes | None to production/local secrets or platform settings. Build configuration reads existing deployment-ID variables. Local process/cache repaired. |
 | AU | Dependencies changed | None; installation follows the existing package-lock. |
 | AV | Files changed | Application: public/auth/settings/business legal links, Terms server content/dialog/page, sitemap, global error helper and Next configuration. Tests: recovery/Terms/SEO/profile expectations/config. Documentation: this report, legal review and affected setup/product/migration/security/testing/release guides. Exact list is the PR diff. |
-| AW | Tests added/updated | Three helper unit cases; real-boundary browser recovery in Chromium/WebKit; ten-width Terms/accessibility test in E2E and Profile job; SEO sitemap and profile navigation updated for the real new destination. No skips or security assertions weakened. |
+| AW | Tests added/updated | Three helper unit cases and three actual-config deployment-ID cases; real-boundary browser recovery in Chromium/WebKit; ten-width Terms/accessibility test in E2E and Profile job; SEO sitemap and profile navigation updated for the real new destination. No skips or security assertions weakened. |
 | AX | Lint | PASS, zero errors. One pre-existing unused `writeFileSync` warning in WhatsApp fixture. |
 | AY | Typecheck | PASS (`next typegen` + TypeScript). |
-| AZ | Unit/integration | 1192 passed, 24 existing guarded skips, 205 files. Audit-policy tests separately: 24 passed. |
+| AZ | Unit/integration | Initial full run: 1192 passed, 24 existing guarded skips, 205 files; three deployment-ID config regressions added after preview validation. Audit-policy tests separately: 24 passed. |
 | BA | Runtime Security | SKIPPED: 21 guarded files/tests. Protected target remains required; never represented as PASS. |
 | BB | Local E2E | 42 passed, 62 existing environment-gated skips in the isolated worktree without cloud test secrets. CI must run its configured authenticated journeys; local read-only acceptance is separate evidence. |
 | BC | Profile/Social | Initial run: 49 passed, two stale expected link-count failures. Updated count for the implemented Terms link; both browser variants plus Terms passed the focused rerun (4 passed). Recovery cases passed both browsers. Exact full CI run is the release gate. |
@@ -93,7 +93,7 @@ Measured memory: 961 MiB total, 464 MiB used, 497 MiB available; swap 118/2047 M
 used, no active swap-in/out in the short vmstat sample. Node RSS 111.6 MiB, heap
 37.2/40.1 MiB; MySQL RSS 69.1 MiB. Load 0.00/0.00/0.00; sampled Node CPU 0%,
 MySQL 0.9%. Process uptime about 7.7 days, system uptime 15 days, systemd restarts
-0. Reconnect attempts 37, opens 38/disconnects 37 over that process lifetime;
+0; no kernel OOM matches in the inspected seven days. Reconnect attempts 37, opens 38/disconnects 37 over that process lifetime;
 unchanged between the two observations, not a claim of zero reconnects.
 
 Capacity verdict: **$6 DROPLET — SUITABLE WITH RESOURCE CAUTION**. This is current
@@ -126,3 +126,14 @@ are not committed. The immutable-build reproduction used synthetic actions only.
 References: [Next deploymentId](https://nextjs.org/docs/app/api-reference/config/next-config-js/deploymentId),
 [Vercel Skew Protection](https://vercel.com/docs/skew-protection),
 [Sentry issue](https://my-kustomers.sentry.io/issues/152107717/).
+
+
+## Preview validation correction
+
+The first preview rejected the full Git SHA with `INVALID_DEPLOYMENT_ID` (maximum
+32 characters). The fallback now uses the unique Vercel deployment identifier
+without the reserved `dpl_` prefix, preserving Next's own injected ID when present.
+This also gives two redeployments of the same commit different identities, as
+required by Vercel. Three actual-config regression tests cover precedence, valid
+length/characters/uniqueness and local absence. Final preview/CI must be evaluated
+on the corrected head; the earlier preview failure is not a production incident.
