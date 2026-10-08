@@ -1,5 +1,9 @@
 # Sentry Production Observability
 
+## Missing-action recovery — 8 October 2026
+
+Issue 152107717 has three events from old release `84971b2` shortly after PR #94 deployment. Version skew is strongly supported; original POST serving-deployment correlation is absent. Exact-signature one-per-tab reload retains Sentry capture/bounded flush/normal fallback; no generic reload or encryption-key change. Two immutable local builds verified no replay/loop. Post-release observation remains pending; do not resolve from brief silence. [Evidence](PREPRODUCTION_STABILITY.md).
+
 ## Brevo Webhook Privacy Boundary
 
 Unexpected provider-evidence persistence failures may report only fixed provider,

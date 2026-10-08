@@ -1,5 +1,9 @@
 # Release Checklist
 
+## Pre-production checkpoint — 8 October 2026
+
+Local Auth, Terms/recovery regressions and existing READY migration/rollback smoke verified. Remaining gates: green executable CI on final head; user manual merge; exact SHA READY/current on canonical production; Terms/recovery smoke and meaningful recorded Sentry/runtime observation; legal/contact/privacy approval and date confirmation; protected runtime/physical-device acceptance. Do not replay historical synthetic email to clear audit counts. [Full report](PREPRODUCTION_STABILITY.md).
+
 ## Auth session integrity release gate — 2026-09-18
 
 Do not mark this pass Production verified until the [auth integrity audit](AUTH_SESSION_ROUTING_CONFIRMATION.md) has authorized native 24-hour time-box configuration, controlled pre/post-limit refresh evidence, green required CI and exact merged deployment verification. Live project plan/settings readback is complete: the Free plan disables native time-box configuration, and the current value is 0 (never). A supported plan is required; no paid upgrade has been performed. Do not substitute app service-role access, fixture expiry or a client timer for provider evidence. No mass session deletion or passkey activation is authorized by this gate.

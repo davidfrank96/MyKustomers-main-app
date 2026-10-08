@@ -2,7 +2,11 @@ import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./tests",
-  testMatch: ["profile-ui/*.spec.ts", "e2e/responsive.spec.ts"],
+  testMatch: [
+    "profile-ui/*.spec.ts",
+    "e2e/responsive.spec.ts",
+    "e2e/preproduction-stability.spec.ts",
+  ],
   fullyParallel: false,
   workers: 1,
   reporter: "list",

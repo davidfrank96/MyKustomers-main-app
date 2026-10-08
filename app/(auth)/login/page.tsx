@@ -1,3 +1,4 @@
+import { TermsLink } from "@/components/legal/terms-link";
 import Link from "next/link";
 import type { Route } from "next";
 import { redirect } from "next/navigation";
@@ -73,6 +74,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
               Create an account
             </Link>
           </span>
+          <TermsLink className="font-medium text-primary" />
         </div>
       }
     />

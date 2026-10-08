@@ -80,8 +80,9 @@ const groups: { id: string; title: string; rows: ProfileRow[] }[] = [
       },
       {
         title: "Terms & conditions",
-        description: "Read our terms and policies",
+        description: "Read our Terms of Service",
         icon: FileText,
+        href: "/terms",
       },
       {
         title: "About MyKustomers",

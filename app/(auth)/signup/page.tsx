@@ -1,11 +1,9 @@
+import { TermsLink } from "@/components/legal/terms-link";
 import Link from "next/link";
 import type { Route } from "next";
 import { redirect } from "next/navigation";
 import { AuthForm } from "@/components/forms/auth-form";
-import {
-  resendSignupConfirmationAction,
-  signupAction,
-} from "@/features/auth/actions";
+import { resendSignupConfirmationAction, signupAction } from "@/features/auth/actions";
 import { getAuthenticatedUser } from "@/lib/auth/server";
 import { isGoogleAuthEnabled } from "@/features/auth/provider-status";
 import { resolvePostAuthDestination } from "@/lib/auth/post-auth";
@@ -64,12 +62,15 @@ export default async function SignupPage() {
         },
       ]}
       footer={
-        <span>
-          Already have an account?{" "}
-          <Link href={"/login" as Route} className="font-medium text-primary">
-            Log in
-          </Link>
-        </span>
+        <div className="flex flex-col gap-2">
+          <span>
+            Already have an account?{" "}
+            <Link href={"/login" as Route} className="font-medium text-primary">
+              Log in
+            </Link>
+          </span>
+          <TermsLink className="font-medium text-primary" />
+        </div>
       }
     />
   );

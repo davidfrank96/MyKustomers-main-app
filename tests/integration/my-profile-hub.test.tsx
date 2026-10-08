@@ -29,7 +29,7 @@ describe("My Profile presentation and existing-feature mapping", () => {
     expect(screen.queryByText(/Member since/)).not.toBeInTheDocument();
   });
 
-  it("wires only implemented destinations and keeps the other five rows static", () => {
+  it("wires only implemented destinations and keeps the other four rows static", () => {
     const { container } = render(<MyProfileHub business={business} isOwner />);
 
     for (const name of ["Business", "Account", "Billing & Legal"]) {
@@ -42,20 +42,20 @@ describe("My Profile presentation and existing-feature mapping", () => {
       container.querySelectorAll("form, input, select, textarea, [tabindex]"),
     ).toHaveLength(0);
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
-    expect(screen.getAllByRole("link")).toHaveLength(5);
+    expect(screen.getAllByRole("link")).toHaveLength(6);
     for (const [name, href] of [
       ["Edit", "/business/edit?section=information"],
       ["Business information", "/business/edit?section=information"],
       ["Contact information", "/business/edit?section=contact"],
       ["Business address", "/business/edit?section=address"],
       ["Notifications", "/settings#notifications"],
+      ["Terms & conditions", "/terms"],
     ])
       expect(screen.getByRole("link", { name })).toHaveAttribute("href", href);
     for (const name of [
       "Account details",
       "Privacy & security",
       "Billing & subscriptions",
-      "Terms & conditions",
       "About MyKustomers",
     ]) {
       expect(screen.queryByRole("link", { name })).not.toBeInTheDocument();

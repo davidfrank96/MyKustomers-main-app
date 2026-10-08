@@ -1,5 +1,9 @@
 # Responsive QA
 
+## Pre-production matrix — 8 October 2026
+
+Terms passes Chromium/WebKit at 320×568, 360×800, 375×812, 390×844, 414×896, 430×932, 768×1024, 1024×768, 1280×800 and 1440×900 with contained dialog geometry and scroll/focus/keyboard/close checks. 320/1440 screenshots visually reviewed. Live Admin and authenticated localhost current-main vendor pages passed 80 checks each without horizontal overflow. Physical keyboards/PWA remain separate. [Evidence](PREPRODUCTION_STABILITY.md).
+
 ## Reschedule and validation stability — 2026-09-24
 
 Chromium/WebKit cover 320×568, 360×800, 375×812, 390×844, 414×896, 430×932,

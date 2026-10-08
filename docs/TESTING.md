@@ -1,5 +1,11 @@
 # Testing
 
+## Pre-production stabilization — 8 October 2026
+
+Actual-config tests cover deployment identity precedence, Vercel custom-ID limits, same-commit redeployment uniqueness and local absence. Helper tests restrict recovery to the observed named 42-hex action signature, one storage claim and safe blocked-storage fallback. `tests/profile-ui/stale-action-recovery.spec.ts` exercises the optimized Next boundary, same-URL recovery, no POST replay and second-mismatch fallback in Chromium/WebKit. A separate two-immutable-build experiment reproduced actual action-ID drift.
+
+`tests/e2e/preproduction-stability.spec.ts` verifies SSR/canonical Terms, ten exact sizes, scroll/focus trap/restore/Escape and full-page link in E2E and Profile. SEO/profile expectations now include Terms. No skips, guarded targets or unrelated assertions weakened. [Counts and limits](PREPRODUCTION_STABILITY.md).
+
 ## Reschedule and Safari input stability — 2026-09-24
 
 Permanent regressions cover all eight lifecycle statuses, channel-aware actions

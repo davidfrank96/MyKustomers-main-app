@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-10-08 — Pre-production stabilization
+
+IMPLEMENTED — MANUAL MERGE / RELEASE VERIFICATION PENDING. Add canonical Terms and an accessible shared dialog with legal-review gaps. Recover only the verified missing Server Action signature once per tab, retaining Sentry and URL without replaying mutations. Prefer provider deployment ID with unique Vercel deployment fallback on Hobby. Apply the existing READY migration after drift/ACL checks and live rollback smoke; no duplicate SQL or lifecycle change. Restore localhost by replacing its stale fixture build with the correct dev process. Dependencies and paid resources unchanged. [Evidence](PREPRODUCTION_STABILITY.md).
+
 ## 2026-09-24 — Rescheduling through READY and validation input stability
 
 IMPLEMENTED — DEVICE / PRODUCTION VERIFICATION PENDING. Permit rescheduling

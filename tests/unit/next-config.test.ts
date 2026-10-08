@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import nextConfig from "../../next.config";
 import fs from "node:fs";
 import { HTML_LIMITED_BOT_UA_RE } from "next/dist/shared/lib/router/utils/html-bots";
@@ -30,6 +30,7 @@ it("blocks metadata for every read-only social crawler while retaining Next's de
 });
 
 afterEach(() => {
+  vi.unstubAllEnvs();
   if (originalVercelEnvironment === undefined) {
     delete process.env.VERCEL_ENV;
   } else {
@@ -134,5 +135,41 @@ describe("private capability cache headers", () => {
   it("keeps machine-authenticated provider callbacks outside session middleware", () => {
     const proxy = fs.readFileSync("proxy.ts", "utf8");
     expect(proxy).toContain("api/webhooks/");
+  });
+});
+
+describe("deployment identity", () => {
+  it("keeps the framework-injected identity authoritative", async () => {
+    vi.stubEnv("NEXT_DEPLOYMENT_ID", "dpl_frameworkProvidedIdentity");
+    vi.stubEnv("VERCEL_DEPLOYMENT_ID", "dpl_otherDeploymentIdentity");
+    vi.resetModules();
+    const { default: config } = await import("../../next.config");
+    expect(config.deploymentId).toBe("dpl_frameworkProvidedIdentity");
+  });
+
+  it("uses distinct Vercel deployments within custom-ID constraints even for the same commit", async () => {
+    vi.stubEnv("NEXT_DEPLOYMENT_ID", undefined);
+    vi.stubEnv("VERCEL_GIT_COMMIT_SHA", "1234567890abcdef1234567890abcdef12345678");
+    const ids: string[] = [];
+    for (const id of [
+      "dpl_H4Yqg7aH4PmnPYzmGozyGYzADvp8",
+      "dpl_AXd5Ta6sYBjnT1pjFzTE6FHBZtJH",
+    ]) {
+      vi.stubEnv("VERCEL_DEPLOYMENT_ID", id);
+      vi.resetModules();
+      const { default: config } = await import("../../next.config");
+      expect(config.deploymentId).toMatch(/^[A-Za-z0-9_-]{1,32}$/);
+      expect(config.deploymentId).not.toMatch(/^dpl_/);
+      ids.push(config.deploymentId!);
+    }
+    expect(new Set(ids).size).toBe(2);
+  });
+
+  it("leaves local builds unpinned without deployment metadata", async () => {
+    vi.stubEnv("NEXT_DEPLOYMENT_ID", undefined);
+    vi.stubEnv("VERCEL_DEPLOYMENT_ID", undefined);
+    vi.resetModules();
+    const { default: config } = await import("../../next.config");
+    expect(config.deploymentId).toBeUndefined();
   });
 });

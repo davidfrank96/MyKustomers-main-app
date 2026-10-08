@@ -1,3 +1,4 @@
+import { TermsLink } from "@/components/legal/terms-link";
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
@@ -207,6 +208,7 @@ export default function HomePage() {
           <a href="#features">Features</a>
           <a href="#how-it-works">How it works</a>
           <Link href="/login">Log in</Link>
+          <TermsLink />
         </nav>
       </footer>
     </div>

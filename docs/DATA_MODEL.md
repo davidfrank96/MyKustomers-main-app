@@ -1,5 +1,9 @@
 # Data Model
 
+## READY deployment verification — 8 October 2026
+
+The existing `20260924210343_reschedule_through_ready.sql` is now applied to production. Five function definitions updated; no entity, column, grant or RLS change. Owners/ACLs and unchanged wrapper verified. Live rollback-only Email/WhatsApp/Both smoke retained READY and one intent per selected channel without persistent fixtures or messages. [Migration record](MIGRATIONS.md), [audit](PREPRODUCTION_STABILITY.md).
+
 ## Golden Stability — 2026-09-14
 
 The Golden Stability live audit confirms `read_at` already exists but the old privileged cleanup deletes unread rows after 90 days. Approved migration `20260914020434_notification_read_retention.sql` is APPLIED and verified: a valid partial `(read_at,id)` index and a bounded read-at-only history predicate; no new column/table/grant. See [the proposal](proposals/NOTIFICATION_RETENTION_APPROVAL.md) and [release evidence](GOLDEN_STABILITY_PASS.md).
