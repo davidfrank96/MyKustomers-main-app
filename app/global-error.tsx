@@ -3,6 +3,7 @@
 import * as Sentry from "@sentry/nextjs";
 import { RefreshCw, TriangleAlert } from "lucide-react";
 import { useEffect } from "react";
+import { claimStaleActionRecovery } from "@/lib/observability/stale-action-recovery";
 
 export default function GlobalError({
   error,
@@ -15,6 +16,17 @@ export default function GlobalError({
     Sentry.captureException(error, {
       tags: { boundary: "global" },
     });
+    try {
+      if (claimStaleActionRecovery(error, window.sessionStorage)) {
+        // Give the existing event a bounded chance to send before navigation.
+        // A GET reload keeps the URL and never replays the failed mutation.
+        void Sentry.flush(1500)
+          .catch(() => false)
+          .then(() => window.location.reload());
+      }
+    } catch {
+      // Browsers may block access to sessionStorage itself.
+    }
   }, [error]);
 
   return (
