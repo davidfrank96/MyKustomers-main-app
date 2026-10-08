@@ -1,3 +1,4 @@
+import { TermsLink } from "@/components/legal/terms-link";
 import { WhatsAppBusinessSettings } from "@/components/whatsapp/business-settings";
 import { NotificationSettings } from "@/components/notifications/notification-settings";
 import Link from "next/link";
@@ -58,6 +59,15 @@ export default async function SettingsPage() {
       <WhatsAppBusinessSettings businessId={business.id} />
 
       <NotificationSettings />
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Legal</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <TermsLink className="inline-flex min-h-11 items-center font-medium text-primary" />
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

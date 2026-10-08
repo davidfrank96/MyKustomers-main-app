@@ -65,7 +65,7 @@ test.describe("SEO Phase 1 foundation", () => {
     expect(schemas.join(" ")).not.toMatch(/aggregateRating|"review"|"offers"/);
   });
 
-  test("serves a one-URL sitemap and canonical Production robots policy", async ({
+  test("serves a public-only sitemap and canonical Production robots policy", async ({
     request,
   }) => {
     const [robotsResponse, sitemapResponse] = await Promise.all([
@@ -81,7 +81,8 @@ test.describe("SEO Phase 1 foundation", () => {
     expect(sitemapResponse.status()).toBe(200);
     expect(sitemapResponse.headers()["content-type"]).toContain("application/xml");
     const sitemap = await sitemapResponse.text();
-    expect(sitemap.match(/<loc>/g)).toHaveLength(1);
+    expect(sitemap.match(/<loc>/g)).toHaveLength(2);
+    expect(sitemap).toContain(`<loc>${canonicalOrigin}/terms</loc>`);
     expect(sitemap).toContain(`<loc>${canonicalOrigin}/</loc>`);
     expect(sitemap).not.toMatch(
       /login|signup|dashboard|admin|\/c\/|\/a\/|\/x\/|\/f\/|vercel\.app/,
