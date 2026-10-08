@@ -1667,3 +1667,8 @@ Reproduced WebKit validation failures justify moving shared error clearing from
 capture to bubbling change and preserving active editing focus. Currency caret
 restoration was not the reproduced cause and remains unchanged. Physical iOS and
 Production release remain pending. [Evidence](RESCHEDULE_SAFARI_STABILITY.md).
+
+
+## 2026-10-08 — Bounded recovery and shared Terms
+
+Use supported deployment identity, preserve Sentry and allow only one exact-signature reload per tab. Hobby Skew Protection requires an unapproved upgrade; no action replay, generic encryption key or reload for unrelated errors. Terms shares server content with the existing Dialog; no clickwrap/storage. Legal review and post-merge verification remain gates. [Evidence](PREPRODUCTION_STABILITY.md).

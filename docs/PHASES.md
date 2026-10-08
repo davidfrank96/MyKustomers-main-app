@@ -1,5 +1,9 @@
 # Phases
 
+## 8 October 2026 stabilization evidence
+
+Terms and guarded recovery: IMPLEMENTED — RELEASE VERIFICATION PENDING. Local login: VERIFIED. Existing READY migration: APPLIED and live rollback-only smoke VERIFIED. Commercial launch and physical-device/protected runtime acceptance are not implied. [Report](PREPRODUCTION_STABILITY.md).
+
 ## Secure-link social previews — 2026-09-15
 
 IMPLEMENTED — LOCAL, MANUAL REVIEW PENDING. Confirmation and private feedback

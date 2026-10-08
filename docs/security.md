@@ -1,5 +1,9 @@
 # Security
 
+## Stabilization boundary — 8 October 2026
+
+Recovery stores only one non-sensitive attempted marker per tab, no URL/forms/capabilities, and never replays a mutation. Existing Sentry/privacy controls remain; blocked storage leaves normal fallback. Terms adds no acceptance data or Auth bypass. READY deployment preserves ACL/RLS boundaries. Live advisor warnings and protected runtime gaps are explicit in [the audit](PREPRODUCTION_STABILITY.md), not a clean penetration-test claim. Dependency exception remains exact and time-limited.
+
 ## Auth routing and requested session time-box — 2026-09-18
 
 The [auth integrity audit](AUTH_SESSION_ROUTING_CONFIRMATION.md) records the requested native 24-hour policy. Dashboard access confirms the Free plan blocks configuration: time-box and inactivity are 0 (never), JWT expiry 3600 seconds, single-session off, refresh-replay protection on, reuse interval 10 seconds, passkeys off. No settings changed. Workspace entry distinguishes verified zero memberships, pending-owner recovery, unusable memberships, and separate active-admin authority. Admin lookup errors cannot become zero-business creation decisions. The proxy overwrites the internal request-path header and the layout sanitizes it for login return routing. JWT/refresh, AAL2, RLS, provider settings and private-cache policies are unchanged.

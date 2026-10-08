@@ -8,8 +8,10 @@ menu on mobile without expanding the five-item primary navigation.
 Existing NotificationSettings at `/settings#notifications` manages three user
 push preferences and the current device's optional push subscription. The My
 Profile Notifications row links here and reuses its current API and error states.
-Billing/subscriptions, account editing, vendor privacy/security settings, platform
-Terms and About destinations are not implemented; their hub rows remain static.
+Billing/subscriptions, account editing, vendor privacy/security settings and About
+remain static. Terms now links to canonical `/terms`; Settings also opens the
+shared accessible dialog. No acceptance record. Publication is implemented with
+production verification pending. [Legal review](../../docs/LEGAL_REVIEW.md).
 
 ## Customer communications
 

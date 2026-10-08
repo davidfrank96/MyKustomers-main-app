@@ -2,7 +2,13 @@
 
 ## Rescheduling through READY — 2026-09-24
 
-`20260924210343_reschedule_through_ready.sql`: **IMPLEMENTED — PRODUCTION NOT APPLIED**.
+`20260924210343_reschedule_through_ready.sql`: **APPLIED — 8 October 2026 (Dublin)**.
+SHA-256: `35fb8664b89906d00cfccf0d735e6972ae5b55ba9ec35cf85fd562c87bd92ed7`.
+Exact prior bodies matched history. Schema-only backup, full-schema disposable
+tests and rollback preflight preceded application. Body/owner/ACL checks and
+live rollback-only channel smoke passed; no messages. No migration-ledger table
+existed and none was created. [Operational evidence](PREPRODUCTION_STABILITY.md).
+
 Replaces `reschedule_booking`, `private.enforce_booking_integrity`,
 `confirm_booking_by_token_hash`, `get_confirmation_public_view`, and
 `record_confirmation_link_open`. The additional
@@ -10,8 +16,8 @@ four replacements are necessary because READY terms were locked and confirmation
 accepted only AWAITING_CUSTOMER. READY retains completed work and requires the
 existing secure reconfirmation before delivery. No tables, grants, RLS, provider,
 or environment changes. Native PostgreSQL testing uses a read-only schema export
-and synthetic records. Apply this migration as part of the reviewed release before
-exposing READY rescheduling; PR CI must never apply it to Production.
+and synthetic records. This existing migration is now deployed; do not create a
+duplicate. PR CI must never apply migrations to Production.
 [Full evidence and release limits](RESCHEDULE_SAFARI_STABILITY.md).
 
 

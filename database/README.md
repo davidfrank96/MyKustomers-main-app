@@ -1,5 +1,9 @@
 # Database
 
+## READY migration deployment — 8 October 2026
+
+Existing `20260924210343_reschedule_through_ready.sql` applied after exact drift/ACL checks and isolated full-schema tests. Live Email/WhatsApp/Both synthetic transactions rolled back with no messages. No ledger existed and none was invented. See [MIGRATIONS](../docs/MIGRATIONS.md) and [audit](../docs/PREPRODUCTION_STABILITY.md).
+
 The application schema is implemented in the configured development Supabase
 project. It includes tenant profiles, businesses and memberships, customers,
 bookings and lifecycle evidence, secure public-link records, private feedback,

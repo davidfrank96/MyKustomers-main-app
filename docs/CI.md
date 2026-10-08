@@ -1,5 +1,9 @@
 # Continuous Integration
 
+## Stabilization checks — 8 October 2026
+
+Existing Profile/Social job now includes Terms accessibility at ten widths and bounded action recovery in Chromium/WebKit; E2E also includes Terms. No workflow/security guard/required check or dependency exception was disabled or broadened. Current-head GitHub results are authoritative; raw full npm audit retains the exact existing dev-only exception. Manual user merge required. [Audit](PREPRODUCTION_STABILITY.md).
+
 STATUS: VERIFIED
 
 GitHub Actions workflow `.github/workflows/ci.yml` validates pull requests into

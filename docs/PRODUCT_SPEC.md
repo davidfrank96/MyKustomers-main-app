@@ -1,5 +1,9 @@
 # Product Specification
 
+## Terms and stale-client recovery — 8 October 2026
+
+Public `/terms` and the shared modal provide the same sixteen-section wording. Links appear in homepage/auth footers, Settings and the existing profile legal row. No required acceptance, clickwrap or data record. Exact missing-action errors may reload the current URL once per tab, preserving Sentry; mutations are never replayed. Other errors retain normal fallback. IMPLEMENTED — RELEASE VERIFICATION PENDING. [Audit](PREPRODUCTION_STABILITY.md).
+
 ## Secure-link social previews — 2026-09-15
 
 IMPLEMENTED — LOCAL, MANUAL REVIEW PENDING. Confirmation and private feedback

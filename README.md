@@ -1,5 +1,11 @@
 # My Kustomers
 
+## Pre-production stabilization — 8 October 2026
+
+Terms and bounded stale-action recovery are implemented; manual merge and production verification remain pending. The existing READY migration is applied and rollback-smoke verified. See [full A–BR audit](docs/PREPRODUCTION_STABILITY.md) and [legal review](docs/LEGAL_REVIEW.md).
+
+For ordinary localhost work use `npm ci` then `npm run dev`. Browser fixture suites build `.next` with loopback dummy backends; do not run `npm start` on that leftover build for real-account login. Stop that local process, remove only rebuildable `.next`, then restart development with the intended ignored env. Do not alter production Auth to compensate for stale local output.
+
 ## Secure-link social previews — 2026-09-15
 
 IMPLEMENTED — LOCAL, MANUAL REVIEW PENDING. Confirmation and private feedback
@@ -27,7 +33,7 @@ The approved vendor branding pass is implemented with release verification pendi
 
 My Profile Phase 2 is implemented; release verification is in progress. The
 approved hub links to the existing business editors and notification preferences.
-Five missing settings features remain static. Confirmation previews now use one
+Four missing settings features remain static; Terms now has a public destination. Confirmation previews now use one
 booking-owned 1200×630 PNG; general URLs retain platform branding. No database,
 environment, provider, dependency or scheduler changes are included. See the
 [Phase 2 report](docs/MY_PROFILE_PHASE_2.md) for exact gates and release status;

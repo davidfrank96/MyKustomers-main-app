@@ -1,5 +1,9 @@
 # Reschedule lifecycle and Safari input stability
 
+## Production follow-up — 8 October 2026
+
+This supersedes original production-migration-pending statements below. PR #94 application changes are on current live main `5bbd4be`. Its existing migration was absent by exact body comparison, then applied after drift/owner/ACL review and disposable/rollback tests. Live rollback-only Email/WhatsApp/Both smoke passes READY retention, future date, single intent and reconfirmation gating; no messages or persistent fixtures. No duplicate implementation. Physical iOS remains unverified. [Evidence](PREPRODUCTION_STABILITY.md).
+
 Status: **IMPLEMENTED — DEVICE / PRODUCTION VERIFICATION PENDING**.
 Branch: `fix/reschedule-and-safari-input-stability`.
 This report describes local evidence. It does not declare Production released.

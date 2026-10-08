@@ -1,5 +1,9 @@
 # Master Plan
 
+## Stabilization checkpoint — 8 October 2026
+
+IMPLEMENTED — RELEASE VERIFICATION PENDING. Canonical Terms/modal and bounded stale-action recovery are implemented; no acceptance tracking or new phase. Existing READY rescheduling is now database-deployed and rollback-smoke verified. Local Auth restored. Manual merge, exact deployment acceptance and legal inputs remain separate launch gates. [Evidence](PREPRODUCTION_STABILITY.md).
+
 ## Secure-link social previews — 2026-09-15
 
 IMPLEMENTED — LOCAL, MANUAL REVIEW PENDING. Confirmation and private feedback
