@@ -29,7 +29,7 @@ describe("My Profile presentation and existing-feature mapping", () => {
     expect(screen.queryByText(/Member since/)).not.toBeInTheDocument();
   });
 
-  it("wires only implemented destinations and keeps the other four rows static", () => {
+  it("wires only implemented destinations and keeps the other three rows static", () => {
     const { container } = render(<MyProfileHub business={business} isOwner />);
 
     for (const name of ["Business", "Account", "Billing & Legal"]) {
@@ -42,7 +42,7 @@ describe("My Profile presentation and existing-feature mapping", () => {
       container.querySelectorAll("form, input, select, textarea, [tabindex]"),
     ).toHaveLength(0);
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
-    expect(screen.getAllByRole("link")).toHaveLength(6);
+    expect(screen.getAllByRole("link")).toHaveLength(7);
     for (const [name, href] of [
       ["Edit", "/business/edit?section=information"],
       ["Business information", "/business/edit?section=information"],
@@ -50,13 +50,13 @@ describe("My Profile presentation and existing-feature mapping", () => {
       ["Business address", "/business/edit?section=address"],
       ["Notifications", "/settings#notifications"],
       ["Terms & conditions", "/terms"],
+      ["About MyKustomers", "/about"],
     ])
       expect(screen.getByRole("link", { name })).toHaveAttribute("href", href);
     for (const name of [
       "Account details",
       "Privacy & security",
       "Billing & subscriptions",
-      "About MyKustomers",
     ]) {
       expect(screen.queryByRole("link", { name })).not.toBeInTheDocument();
       expect(
@@ -111,4 +111,15 @@ describe("My Profile presentation and existing-feature mapping", () => {
     expect(container.querySelectorAll("a, button, input, time")).toHaveLength(0);
     expect(screen.queryByText(business.name)).not.toBeInTheDocument();
   });
+});
+
+it("opens the About modal with the six real capabilities and canonical page", () => {
+  render(<MyProfileHub business={business} isOwner />);
+  fireEvent.click(screen.getByRole("link", { name: "About MyKustomers" }));
+  const dialog = screen.getByRole("dialog", { name: "About My Kustomers" });
+  expect(within(dialog).getByText("Keep every customer in the loop.")).toBeVisible();
+  expect(within(dialog).getAllByRole("button", { name: /^[1-6]\./ })).toHaveLength(6);
+  expect(
+    within(dialog).getByRole("link", { name: "Read full About page" }),
+  ).toHaveAttribute("href", "/about");
 });

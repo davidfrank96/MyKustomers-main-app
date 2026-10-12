@@ -1,5 +1,12 @@
 # Design System
 
+## Communication and About — 12 October 2026
+
+STATUS: IMPLEMENTED — VERIFICATION PENDING
+
+About reuses the finalized Terms LegalPage, LegalSection and LegalDocumentDialog. Profile remains a Server Component. Modal/public page keep the same disclosure, typography, focus and responsive spacing conventions. See [verification report](COMMUNICATION_ABOUT_VERIFICATION.md).
+
+
 ## Terms document presentation
 
 Use the approved brand icon, constrained single-column legal page, two date blocks, numbered pale-green badges and thin bordered disclosure cards. First section opens by default. Preserve source wording; collapsed previews derive from the same content. Keep full text in server HTML and expand it for print. [Scope and verification](TERMS_UI_REDESIGN.md).

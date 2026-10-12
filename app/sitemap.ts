@@ -8,6 +8,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly",
       priority: 1,
     },
+    { url: `${SEO_SITE.origin}/about`, changeFrequency: "yearly", priority: 0.3 },
     { url: `${SEO_SITE.origin}/terms`, changeFrequency: "yearly", priority: 0.3 },
   ];
 }

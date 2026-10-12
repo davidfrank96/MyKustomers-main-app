@@ -39,7 +39,7 @@ export function LegalSection({
             {number}
             <span className="sr-only">. </span>
           </span>
-          <span className="min-w-0 flex-1 break-words pt-1 text-[1.0625rem] font-semibold leading-6 sm:text-lg sm:leading-7">
+          <span className="min-w-0 flex-1 break-words pt-1 text-[1.0625rem] font-semibold text-foreground leading-6 sm:text-lg sm:leading-7">
             {title}
           </span>
           <ChevronDown

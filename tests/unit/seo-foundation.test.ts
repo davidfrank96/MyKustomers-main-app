@@ -30,10 +30,11 @@ describe("SEO Phase 1 foundation", () => {
     expect(SEO_SITE.title).toContain("Booking & Customer Management");
   });
 
-  it("publishes the public homepage and Terms in the canonical sitemap", () => {
+  it("publishes the public homepage, About and Terms in the canonical sitemap", () => {
     const entries = sitemap();
-    expect(entries).toHaveLength(2);
-    expect(entries[1]?.url).toBe("https://mykustomers.com/terms");
+    expect(entries).toHaveLength(3);
+    expect(entries[1]?.url).toBe("https://mykustomers.com/about");
+    expect(entries[2]?.url).toBe("https://mykustomers.com/terms");
     expect(entries[0]?.url).toBe("https://mykustomers.com/");
     expect(entries[0]).not.toHaveProperty("lastModified");
     expect(JSON.stringify(entries)).not.toMatch(
