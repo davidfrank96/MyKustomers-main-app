@@ -1,5 +1,5 @@
 import fs from "node:fs";
-import { expect, test, type Request } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 const matrix = [
   [320, 568],
@@ -107,13 +107,6 @@ test("About page and Profile modal share the legal layout across ten widths", as
   fs.mkdirSync(root, { recursive: true });
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
-  const prefetches = new Set<Request>();
-  page.on("request", (request) => {
-    if (new URL(request.url()).searchParams.has("_rsc")) prefetches.add(request);
-  });
-  const finished = (request: Request) => prefetches.delete(request);
-  page.on("requestfinished", finished);
-  page.on("requestfailed", finished);
   await request.get("http://127.0.0.1:55441/fixture/reset");
   const fixture = await (
     await request.get("http://127.0.0.1:55441/fixture/session")
@@ -121,10 +114,11 @@ test("About page and Profile modal share the legal layout across ten widths", as
   await context.addCookies([
     { name: "sb-127-auth-token", value: fixture.cookie, domain: "127.0.0.1", path: "/" },
   ]);
+  // Keep each surface mounted while resizing. Navigating away from Profile
+  // cancels late Next prefetches and WebKit reports those aborts as page errors.
+  await page.goto("/about");
   for (const [width, height] of matrix) {
-    await expect.poll(() => prefetches.size).toBe(0);
     await page.setViewportSize({ width, height });
-    await page.goto("/about");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(
       "About My Kustomers",
     );
@@ -142,12 +136,18 @@ test("About page and Profile modal share the legal layout across ten widths", as
     await expect(payment).toHaveAttribute("aria-expanded", "true");
     if (captures.has(width))
       await page.screenshot({ path: `${root}/about-${width}.png`, fullPage: true });
-    await expect.poll(() => prefetches.size).toBe(0);
-    await page.goto("/business");
-    const trigger = page.getByRole("link", { name: "About MyKustomers", exact: true });
+    await payment.click();
+    await expect(payment).toHaveAttribute("aria-expanded", "false");
+  }
+  const profile = await context.newPage();
+  profile.on("pageerror", (error) => errors.push(error.message));
+  await profile.goto("/business");
+  for (const [width, height] of matrix) {
+    await profile.setViewportSize({ width, height });
+    const trigger = profile.getByRole("link", { name: "About MyKustomers", exact: true });
     await trigger.focus();
-    await page.keyboard.press("Enter");
-    const modal = page.getByRole("dialog", { name: "About My Kustomers" });
+    await profile.keyboard.press("Enter");
+    const modal = profile.getByRole("dialog", { name: "About My Kustomers" });
     await expect(modal).toBeVisible();
     const box = (await modal.boundingBox())!;
     expect(box.x).toBeGreaterThanOrEqual(0);
@@ -158,11 +158,10 @@ test("About page and Profile modal share the legal layout across ten widths", as
       modal.getByRole("link", { name: "Read full About page" }),
     ).toHaveAttribute("href", "/about");
     if (captures.has(width))
-      await page.screenshot({ path: `${root}/about-modal-${width}.png` });
-    await page.keyboard.press("Escape");
+      await profile.screenshot({ path: `${root}/about-modal-${width}.png` });
+    await profile.keyboard.press("Escape");
     await expect(modal).not.toBeVisible();
     await expect(trigger).toBeFocused();
-    await expect.poll(() => prefetches.size).toBe(0);
   }
   expect(errors).toEqual([]);
 });

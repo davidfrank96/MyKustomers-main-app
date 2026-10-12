@@ -116,6 +116,10 @@ Alignment/polish: PASS for the inspected Terms/About desktop and mobile pages/mo
 | BK. Limitations | Deferred live send, guarded runtime security, existing conservative schedule-email retry policy |
 | BL. Final status | IMPLEMENTED — VERIFICATION PENDING |
 
+## CI follow-up
+
+The initial PR run caught a Linux WebKit test-navigation race: repeatedly leaving Profile aborted newly scheduled background RSC prefetches. The responsive test now keeps About and Profile mounted in separate pages while exercising the same ten widths, keyboard behavior, focus restoration and unfiltered page-error assertion. The six legal/About tests pass locally after this test-only correction; current-head GitHub results remain authoritative.
+
 ## Remaining release checks
 
 Local gates complete; current-head CI must pass on the PR before manual merge. Manual merge, new production deployment, operational reschedule UI smoke and production About/Terms smoke pending. Controlled WhatsApp send explicitly deferred. Migration application alone is not application release.
