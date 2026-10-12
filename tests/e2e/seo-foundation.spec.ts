@@ -81,8 +81,9 @@ test.describe("SEO Phase 1 foundation", () => {
     expect(sitemapResponse.status()).toBe(200);
     expect(sitemapResponse.headers()["content-type"]).toContain("application/xml");
     const sitemap = await sitemapResponse.text();
-    expect(sitemap.match(/<loc>/g)).toHaveLength(2);
+    expect(sitemap.match(/<loc>/g)).toHaveLength(3);
     expect(sitemap).toContain(`<loc>${canonicalOrigin}/terms</loc>`);
+    expect(sitemap).toContain(`<loc>${canonicalOrigin}/about</loc>`);
     expect(sitemap).toContain(`<loc>${canonicalOrigin}/</loc>`);
     expect(sitemap).not.toMatch(
       /login|signup|dashboard|admin|\/c\/|\/a\/|\/x\/|\/f\/|vercel\.app/,
