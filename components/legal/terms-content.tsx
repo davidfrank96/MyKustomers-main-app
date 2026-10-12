@@ -1,3 +1,6 @@
+import { CalendarDays, CalendarClock } from "lucide-react";
+import { LegalSection } from "@/components/legal/legal-section";
+
 export const TERMS_DATE = "8 October 2026";
 
 const sections = [
@@ -69,20 +72,42 @@ const sections = [
 
 export function TermsContent() {
   return (
-    <div className="space-y-6 break-words text-sm leading-7">
-      <p className="text-muted-foreground">
-        Effective date: {TERMS_DATE}
-        <br />
-        Last updated: {TERMS_DATE}
-      </p>
-      {sections.map(([title, body], index) => (
-        <section key={title}>
-          <h2 className="mb-2 text-base font-semibold text-foreground">
-            {index + 1}. {title}
-          </h2>
-          <p className="text-muted-foreground">{body}</p>
-        </section>
-      ))}
+    <div className="break-words">
+      <dl className="mb-5 grid grid-cols-2 gap-3 border-b border-border pb-5 sm:mb-6 sm:gap-6 sm:pb-6">
+        {(
+          [
+            ["Effective date", CalendarDays],
+            ["Last updated", CalendarClock],
+          ] as const
+        ).map(([label, Icon]) => (
+          <div
+            key={String(label)}
+            className="flex min-w-0 flex-col items-start gap-2 min-[375px]:flex-row min-[375px]:items-center sm:gap-3"
+          >
+            <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-primary/[0.06] text-primary sm:size-11">
+              <Icon className="size-5 sm:size-6" aria-hidden="true" />
+            </span>
+            <div className="min-w-0">
+              <dt className="text-[0.8125rem] leading-5 text-muted-foreground sm:text-sm">
+                {String(label)}
+              </dt>
+              <dd className="text-base leading-6">{TERMS_DATE}</dd>
+            </div>
+          </div>
+        ))}
+      </dl>
+      <div className="space-y-3">
+        {sections.map(([title, body], index) => (
+          <LegalSection
+            key={title}
+            number={index + 1}
+            title={title}
+            defaultOpen={index === 0}
+          >
+            <p>{body}</p>
+          </LegalSection>
+        ))}
+      </div>
     </div>
   );
 }

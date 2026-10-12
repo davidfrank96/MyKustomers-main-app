@@ -1,5 +1,9 @@
 # Design System
 
+## Terms document presentation
+
+Use the approved brand icon, constrained single-column legal page, two date blocks, numbered pale-green badges and thin bordered disclosure cards. First section opens by default. Preserve source wording; collapsed previews derive from the same content. Keep full text in server HTML and expand it for print. [Scope and verification](TERMS_UI_REDESIGN.md).
+
 ## Customer descriptions
 
 Long confirmation Details use a separate full text area below the label, left alignment, pre-wrap, normal word breaking and anywhere wrapping. Preserve paragraphs and separate title/description rows. Amendment current/proposed values and add-on descriptions follow the same text rules. Omit an empty confirmation Details row; no global overflow hiding. [Implementation audit](AUTH_SESSION_ROUTING_CONFIRMATION.md).

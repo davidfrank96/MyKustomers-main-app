@@ -1,5 +1,9 @@
 # Responsive QA
 
+## Terms disclosure matrix
+
+The Terms page and existing modal are checked across the ten-width mobile/tablet/desktop matrix in Chromium and WebKit. The gate includes keyboard, print, full text, equal card edges, overflow, modal bounds and focus restoration. [Evidence](TERMS_UI_REDESIGN.md).
+
 ## Pre-production matrix — 8 October 2026
 
 Terms passes Chromium/WebKit at 320×568, 360×800, 375×812, 390×844, 414×896, 430×932, 768×1024, 1024×768, 1280×800 and 1440×900 with contained dialog geometry and scroll/focus/keyboard/close checks. 320/1440 screenshots visually reviewed. Live Admin and authenticated localhost current-main vendor pages passed 80 checks each without horizontal overflow. Physical keyboards/PWA remain separate. [Evidence](PREPRODUCTION_STABILITY.md).

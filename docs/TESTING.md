@@ -1,5 +1,9 @@
 # Testing
 
+## Terms legal-content preservation
+
+A fixed hash covers all approved section headings and paragraphs. Component tests cover full-DOM text and ARIA relationships; browser tests cover the ten-width disclosure/print/back-navigation matrix and existing modal behavior. [Evidence](TERMS_UI_REDESIGN.md).
+
 ## Pre-production stabilization — 8 October 2026
 
 Actual-config tests cover deployment identity precedence, Vercel custom-ID limits, same-commit redeployment uniqueness and local absence. Helper tests restrict recovery to the observed named 42-hex action signature, one storage claim and safe blocked-storage fallback. `tests/profile-ui/stale-action-recovery.spec.ts` exercises the optimized Next boundary, same-URL recovery, no POST replay and second-mismatch fallback in Chromium/WebKit. A separate two-immutable-build experiment reproduced actual action-ID drift.

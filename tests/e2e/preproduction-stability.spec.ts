@@ -20,7 +20,7 @@ test("Terms are public and the modal scrolls, traps focus and restores its trigg
   test.setTimeout(120000);
   const response = await request.get("/terms");
   expect(response.status()).toBe(200);
-  expect(await response.text()).toMatch(/16(?:<!-- -->)?\. (?:<!-- -->)?Contact/);
+  expect(await response.text()).toContain("For questions about a booking, payment, delivery");
   await page.goto("/terms");
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
     "href",
