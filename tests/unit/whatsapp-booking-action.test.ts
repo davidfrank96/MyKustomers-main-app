@@ -3,6 +3,7 @@ import { beforeEach, afterEach, expect, it, vi } from "vitest";
 vi.mock("server-only", () => ({}));
 const mocks = vi.hoisted(() => ({
   rpc: vi.fn(),
+  booking: vi.fn(),
   business: vi.fn(),
   email: vi.fn(),
   provider: vi.fn(),
@@ -24,7 +25,7 @@ vi.mock("@/lib/security/audit", () => ({ recordAuditEvent: vi.fn() }));
 vi.mock("@/lib/security/rate-limit", () => ({
   consumeOutboundMessageRateLimit: mocks.rate,
 }));
-vi.mock("@/features/bookings/queries", () => ({ getBookingForBusiness: vi.fn() }));
+vi.mock("@/features/bookings/queries", () => ({ getBookingForBusiness: mocks.booking }));
 vi.mock("@/features/customers/queries", () => ({
   findPotentialDuplicateCustomers: vi.fn(),
 }));
@@ -59,6 +60,12 @@ function form(channels = true) {
 }
 beforeEach(() => {
   vi.clearAllMocks();
+  mocks.booking.mockResolvedValue({
+    status: "AWAITING_CUSTOMER",
+    customer_confirmed_at: null,
+    confirmation_terms_hash: null,
+    confirmation_terms_snapshot: null,
+  });
   vi.stubEnv("WHATSAPP_ENABLED", "true");
   vi.stubEnv("WHATSAPP_PILOT_BUSINESS_IDS", pilot);
   vi.stubEnv("WHATSAPP_PROVIDER", "wa_akg");
@@ -183,10 +190,85 @@ it.each([true, false])(
     expect(result.status).toBe("success");
     expect(mocks.rpc).toHaveBeenCalledWith(
       pilotEnabled
-        ? "reschedule_booking_with_notification_with_channels"
-        : "reschedule_booking_with_notification",
+        ? "reschedule_booking_update_with_channels"
+        : "reschedule_booking_update",
       expect.objectContaining({ p_booking_id: "booking" }),
     );
     expect(mocks.email).not.toHaveBeenCalled();
   },
 );
+
+it.each(["CONFIRMED", "IN_PROGRESS", "READY"])(
+  "%s reschedule creates no token and delivers the informational email without a URL",
+  async (status) => {
+    mocks.business.mockResolvedValue({ business: { id: pilot }, user: { id: "owner" } });
+    mocks.rate.mockResolvedValue({ status: "allowed" });
+    mocks.booking.mockResolvedValue({
+      status,
+      customer_confirmed_at: "2026-01-01",
+      confirmation_terms_hash: "hash",
+      confirmation_terms_snapshot: { title: "Booking" },
+    });
+    mocks.rpc.mockResolvedValue({
+      data: [{ status, email_event_id: "schedule-event", confirmation_link_id: null }],
+      error: null,
+    });
+    mocks.email.mockResolvedValue({ status: "sent" });
+    const data = new FormData();
+    data.set("scheduledFor", "2099-01-01T12:00:00Z");
+    const result = await rescheduleBookingAction("booking", { status: "idle" }, data);
+    expect(mocks.rpc).toHaveBeenCalledWith(
+      "reschedule_booking_update_with_channels",
+      expect.objectContaining({ p_capability_token: null }),
+    );
+    expect(mocks.email).toHaveBeenCalledWith("schedule-event", undefined, {
+      confirmationUrl: undefined,
+    });
+    expect(result.message).toContain("No customer action is required");
+  },
+);
+it("fails atomically with useful copy when the confirmation email is unavailable", async () => {
+  mocks.business.mockResolvedValue({ business: { id: pilot }, user: { id: "owner" } });
+  mocks.rate.mockResolvedValue({ status: "allowed" });
+  mocks.rpc.mockResolvedValue({
+    data: null,
+    error: { message: "booking_confirmation_contact_unavailable" },
+  });
+  const data = new FormData();
+  data.set("scheduledFor", "2099-01-01T12:00:00Z");
+  expect(
+    await rescheduleBookingAction("booking", { status: "idle" }, data),
+  ).toMatchObject({
+    status: "error",
+    message: expect.stringContaining("schedule was not changed"),
+  });
+  expect(mocks.email).not.toHaveBeenCalled();
+});
+
+it("legacy READY without current proof still reports required confirmation", async () => {
+  mocks.business.mockResolvedValue({ business: { id: pilot }, user: { id: "owner" } });
+  mocks.rate.mockResolvedValue({ status: "allowed" });
+  mocks.booking.mockResolvedValue({
+    status: "READY",
+    customer_confirmed_at: null,
+    confirmation_terms_hash: null,
+    confirmation_terms_snapshot: null,
+  });
+  mocks.rpc.mockResolvedValue({
+    data: [
+      {
+        status: "READY",
+        email_event_id: "legacy-email",
+        confirmation_link_id: "legacy-link",
+      },
+    ],
+    error: null,
+  });
+  mocks.email.mockResolvedValue({ status: "sent" });
+  const data = new FormData();
+  data.set("scheduledFor", "2099-01-01T12:00:00Z");
+  const result = await rescheduleBookingAction("booking", { status: "idle" }, data);
+  expect(result.message).toContain("new confirmation request");
+  expect(result.message).not.toContain("No customer action");
+  expect(mocks.rpc.mock.calls[0][1].p_capability_token).toEqual(expect.any(String));
+});

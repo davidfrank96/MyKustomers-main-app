@@ -1,5 +1,12 @@
 # Bookings Feature
 
+## Communication and About — 12 October 2026
+
+STATUS: IMPLEMENTED — VERIFICATION PENDING
+
+New operational reschedule RPCs preserve CONFIRMED/IN_PROGRESS/READY evidence and status for schedule-only changes. Initial/unconfirmed behavior and material amendment guards remain. UI does not request another email or confirmation after current proof. See [verification report](../../docs/COMMUNICATION_ABOUT_VERIFICATION.md).
+
+
 Booking communication uses immutable `booking_confirmations.contact_email`, not
 the optional saved `customers.email` profile field. The confirmation-send field
 starts blank; a vendor may type a booking address or explicitly choose **Use

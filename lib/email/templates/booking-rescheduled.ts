@@ -14,7 +14,7 @@ type BookingRescheduledEmailInput = {
   bookingReference: string;
   previousScheduledFor: string | null;
   scheduledFor: string;
-  confirmationUrl: string;
+  confirmationUrl?: string;
 };
 
 export function bookingRescheduledEmail(
@@ -33,15 +33,17 @@ export function bookingRescheduledEmail(
       `Business: ${input.businessName}`,
       ...rows.map(([label, value]) => `${label}: ${value}`),
       "",
-      "Open the secure link to review and confirm the updated booking.",
-      input.confirmationUrl,
+      input.confirmationUrl
+        ? "Open the secure link to review and confirm the updated booking."
+        : "No action is required. Contact the business if you have questions.",
+      input.confirmationUrl ?? "",
     ].join("\n"),
   );
 
   return {
     idempotencyKey: `email-event/${input.emailEventId}`,
     to: input.recipientEmail,
-    subject: `Booking rescheduled - ${input.businessName} - ${input.bookingReference}`,
+    subject: `${input.confirmationUrl ? "Booking rescheduled" : "Booking schedule updated"} - ${input.businessName} - ${input.bookingReference}`,
     text,
     html: renderTransactionalEmailHtml({
       contextLabel: "Schedule update",
@@ -49,8 +51,12 @@ export function bookingRescheduledEmail(
       businessLogoPath: input.businessLogoPath,
       heading: "Your booking schedule has changed",
       introduction: [
-        `${input.businessName} has proposed a new delivery schedule for your booking.`,
-        "Open the secure link to review and confirm the updated booking.",
+        input.confirmationUrl
+          ? `${input.businessName} has proposed a new delivery schedule for your booking.`
+          : `${input.businessName} has updated the schedule for your booking.`,
+        input.confirmationUrl
+          ? "Open the secure link to review and confirm the updated booking."
+          : "No action is required. Contact the business if you have questions.",
       ],
       sections: [
         {
@@ -58,11 +64,15 @@ export function bookingRescheduledEmail(
           rows: rows.map(([label, value]) => ({ label, value })),
         },
       ],
-      cta: {
-        label: "Review updated booking",
-        url: input.confirmationUrl,
-      },
-      footer: "This secure review link relates only to this booking update.",
+      cta: input.confirmationUrl
+        ? {
+            label: "Review updated booking",
+            url: input.confirmationUrl,
+          }
+        : undefined,
+      footer: input.confirmationUrl
+        ? "This secure review link relates only to this booking update."
+        : "Your original booking confirmation remains on record.",
     }),
   };
 }

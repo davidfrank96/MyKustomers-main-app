@@ -167,3 +167,17 @@ describe("booking reschedule presentation", () => {
     expect(await screen.findByRole("status")).toHaveTextContent("Booking rescheduled.");
   });
 });
+
+it("operational schedule form has no email field or reconfirmation instruction", () => {
+  render(
+    <BookingRescheduleForm
+      action={async () => ({ status: "idle" })}
+      currentScheduledFor={currentScheduledFor}
+      notificationOnly
+      reconfirmationExpected
+    />,
+  );
+  expect(screen.getByText(/No confirmation or other action is required/)).toBeVisible();
+  expect(screen.queryByText(/customer will need to confirm/)).not.toBeInTheDocument();
+  expect(document.querySelector('input[type="email"]')).toBeNull();
+});

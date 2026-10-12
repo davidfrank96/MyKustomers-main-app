@@ -1,5 +1,12 @@
 # Confirmation Links Feature
 
+## Communication and About — 12 October 2026
+
+STATUS: IMPLEMENTED — VERIFICATION PENDING
+
+Generating a manual confirmation link creates no provider send. Explicit send action invokes channel fanout; UI copy now states the distinction. Operational post-confirmation reschedules use the separate notice path and create no capability. See [verification report](../../docs/COMMUNICATION_ABOUT_VERIFICATION.md).
+
+
 ## 2026-09-18 description correctness
 
 Title and description remain separate form/RPC/database/public-view fields. Confirmation Details preserve newlines and wrap left-aligned below the label; empty descriptions omit the row. The canonical booking browser test verifies native form text through storage and public DOM, while synthetic browser coverage checks long and unbroken descriptions and four currencies. No capability, persistence or money authority changes. [Audit](../../docs/AUTH_SESSION_ROUTING_CONFIRMATION.md).

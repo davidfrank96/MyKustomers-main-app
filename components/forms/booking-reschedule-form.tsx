@@ -20,6 +20,7 @@ type BookingRescheduleFormProps = {
   currentScheduledFor: string | null;
   disabled?: boolean;
   reconfirmationExpected?: boolean;
+  notificationOnly?: boolean;
 };
 
 function toLocalDateTimeValue(value?: string | null) {
@@ -61,6 +62,7 @@ export function BookingRescheduleForm({
   currentScheduledFor,
   disabled = false,
   reconfirmationExpected = false,
+  notificationOnly = false,
 }: BookingRescheduleFormProps) {
   const [state, formAction] = useActionState(action, initialBookingActionState);
   const [scheduledLocal, setScheduledLocal] = useState(
@@ -140,9 +142,11 @@ export function BookingRescheduleForm({
           <MailCheck className="size-4" aria-hidden="true" />
         </span>
         <p className="self-center">
-          {reconfirmationExpected
-            ? "The customer will need to confirm the updated schedule. Updates use this booking’s selected channels."
-            : "Reschedule updates are sent only after a customer has previously confirmed the booking."}
+          {notificationOnly
+            ? "The customer will receive a schedule update through this booking’s selected channels. No confirmation or other action is required."
+            : reconfirmationExpected
+              ? "The customer will need to confirm the updated schedule. Updates use this booking’s selected channels."
+              : "Reschedule updates are sent only after a customer has previously confirmed the booking."}
         </p>
       </div>
     </form>

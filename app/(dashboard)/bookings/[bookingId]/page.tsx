@@ -59,6 +59,7 @@ import {
   isBookingOverdue,
   isTerminalBookingStatus,
   isBookingReschedulable,
+  isOperationalReschedule,
 } from "@/features/bookings/status";
 import {
   generateConfirmationLinkAction,
@@ -743,6 +744,7 @@ export default async function BookingDetailPage({
             currentScheduledFor={booking.scheduled_for}
             disabled={!rescheduleEligible}
             reconfirmationExpected={confirmationEverCompleted}
+            notificationOnly={isOperationalReschedule(booking)}
           />
           {!rescheduleEligible ? (
             <p className="mt-3 rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground">

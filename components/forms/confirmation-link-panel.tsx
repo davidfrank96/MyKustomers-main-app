@@ -381,7 +381,8 @@ export function ConfirmationLinkPanel({
                 Your confirmation request is ready.
               </p>
               <p className="mt-0.5 text-sm leading-5 text-muted-foreground">
-                Share it now. This exact secure link is shown only once.
+                No message has been sent. Share this link manually or use Send
+                confirmation to deliver through the selected channels.
               </p>
             </div>
           </div>
@@ -628,8 +629,8 @@ export function ConfirmationLinkPanel({
                         : "Confirmation link expired."}
                   </p>
                   <p className="mt-0.5 text-sm leading-5 text-muted-foreground">
-                    Generate a secure link when you&apos;re ready to ask the customer to
-                    confirm.
+                    Generate a secure link to share manually. Generating a link does not
+                    send Email or WhatsApp updates.
                   </p>
                 </div>
               </div>

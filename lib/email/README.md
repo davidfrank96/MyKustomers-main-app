@@ -1,5 +1,12 @@
 # Email
 
+## Communication and About — 12 October 2026
+
+STATUS: IMPLEMENTED — VERIFICATION PENDING
+
+Informational BOOKING_RESCHEDULED notices reconstruct immutable confirmation contact via reschedule_confirmation_id and schedule via booking_change_id, both booking/tenant scoped. No profile fallback or confirmation CTA. Legacy secure-link templates and conservative retry policy remain. See [verification report](../../docs/COMMUNICATION_ABOUT_VERIFICATION.md).
+
+
 ## Provider Delivery Evidence
 
 Future Brevo attempts add `X-Mailin-custom` with a namespaced SHA-256 digest of

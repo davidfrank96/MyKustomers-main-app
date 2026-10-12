@@ -36,18 +36,8 @@ begin
     perform set_config('app.booking_reschedule_allowed','false',true);
     perform set_config('app.booking_amendment_allowed','false',true);
     perform set_config('app.booking_addon_workflow_allowed','false',true);
-    select * into r from public.reschedule_booking_with_notification_with_channels(b.booking_id,now()+interval '2 days',t2,now()+interval '24 hours');
-    perform set_config('request.jwt.claim.sub','',true);
-    perform set_config('app.booking_transition_allowed','false',true);
-    perform set_config('app.booking_reschedule_allowed','false',true);
-    perform set_config('app.booking_amendment_allowed','false',true);
-    perform set_config('app.booking_addon_workflow_allowed','false',true);
-    result:=public.confirm_booking_by_token_hash(encode(extensions.digest(t2,'sha256'),'hex'),'fixture@example.com',null);
-    perform set_config('request.jwt.claim.sub','20000000-0000-4000-8000-000000000001',true);
-    perform set_config('app.booking_transition_allowed','false',true);
-    perform set_config('app.booking_reschedule_allowed','false',true);
-    perform set_config('app.booking_amendment_allowed','false',true);
-    perform set_config('app.booking_addon_workflow_allowed','false',true);
+    select * into r from public.reschedule_booking_update_with_channels(b.booking_id,now()+interval '2 days',t2,now()+interval '24 hours');
+    if r.confirmation_link_id is not null or r.status <> 'IN_PROGRESS' then raise exception 'operational_reschedule_created_confirmation'; end if;
     select * into a from public.create_booking_amendment_with_channels(b.booking_id,'Synthetic change','Synthetic amended booking',null,'EUR',1000,0,now()+interval '2 days',t3,now()+interval '24 hours');
     perform set_config('request.jwt.claim.sub','',true);
     perform set_config('app.booking_transition_allowed','false',true);
@@ -89,7 +79,7 @@ begin
     end if;
     if mode<>'email_only' then
       if (select count(distinct event_type) from public.whatsapp_events where booking_id=b.booking_id)<>8 then raise exception 'lifecycle_event_coverage_failed'; end if;
-      if (select count(*) from private.whatsapp_capabilities c join public.whatsapp_events w on w.id=c.event_id where w.booking_id=b.booking_id)<>5 then raise exception 'capability_capture_failed'; end if;
+      if (select count(*) from private.whatsapp_capabilities c join public.whatsapp_events w on w.id=c.event_id where w.booking_id=b.booking_id)<>4 then raise exception 'capability_capture_failed'; end if;
       if mode='whatsapp_only' and exists(select 1 from public.email_events where booking_id=b.booking_id) then raise exception 'whatsapp_only_email_leak'; end if;
     end if;
     perform set_config('app.booking_transition_allowed','false',true);
