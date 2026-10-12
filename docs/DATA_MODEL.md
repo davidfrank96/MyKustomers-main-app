@@ -1,5 +1,11 @@
 # Data Model
 
+## Communication and About — 12 October 2026
+
+STATUS: IMPLEMENTED — VERIFICATION PENDING
+
+Additive migration 20261012003112 adds email_events.reschedule_confirmation_id with a business/booking-bound confirmation FK; existing confirmation-event uniqueness stays intact. New reschedule RPCs preserve current proof and use booking_changes as the notice identity. See [verification report](COMMUNICATION_ABOUT_VERIFICATION.md).
+
 ## READY deployment verification — 8 October 2026
 
 The existing `20260924210343_reschedule_through_ready.sql` is now applied to production. Five function definitions updated; no entity, column, grant or RLS change. Owners/ACLs and unchanged wrapper verified. Live rollback-only Email/WhatsApp/Both smoke retained READY and one intent per selected channel without persistent fixtures or messages. [Migration record](MIGRATIONS.md), [audit](PREPRODUCTION_STABILITY.md).

@@ -1,5 +1,11 @@
 # Master Plan
 
+## Communication and About — 12 October 2026
+
+STATUS: IMPLEMENTED — VERIFICATION PENDING
+
+Operational post-confirmation schedules and About are implemented on the review branch; production release remains pending manual merge and current-head CI. See [verification report](COMMUNICATION_ABOUT_VERIFICATION.md).
+
 ## Stabilization checkpoint — 8 October 2026
 
 IMPLEMENTED — RELEASE VERIFICATION PENDING. Canonical Terms/modal and bounded stale-action recovery are implemented; no acceptance tracking or new phase. Existing READY rescheduling is now database-deployed and rollback-smoke verified. Local Auth restored. Manual merge, exact deployment acceptance and legal inputs remain separate launch gates. [Evidence](PREPRODUCTION_STABILITY.md).

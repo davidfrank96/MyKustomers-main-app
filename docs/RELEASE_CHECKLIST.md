@@ -1,5 +1,11 @@
 # Release Checklist
 
+## Communication and About — 12 October 2026
+
+STATUS: IMPLEMENTED — VERIFICATION PENDING
+
+Keep this branch unmerged for user review. Database preparation approved/applied; current-head CI, manual merge, deployment and production UI/reschedule smoke remain gates. User deferred the single live WhatsApp send; zero task messages. See [verification report](COMMUNICATION_ABOUT_VERIFICATION.md).
+
 ## Pre-production checkpoint — 8 October 2026
 
 Local Auth, Terms/recovery regressions and existing READY migration/rollback smoke verified. Remaining gates: green executable CI on final head; user manual merge; exact SHA READY/current on canonical production; Terms/recovery smoke and meaningful recorded Sentry/runtime observation; legal/contact/privacy approval and date confirmation; protected runtime/physical-device acceptance. Do not replay historical synthetic email to clear audit counts. [Full report](PREPRODUCTION_STABILITY.md).

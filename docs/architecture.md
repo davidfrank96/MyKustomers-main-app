@@ -1,5 +1,11 @@
 # Architecture
 
+## Communication and About — 12 October 2026
+
+STATUS: IMPLEMENTED — VERIFICATION PENDING
+
+Versioned reschedule RPCs provide operational schedule notices while legacy callers retain reconfirmation behavior during staged release. About/Terms share server-rendered legal layout/content and small client disclosure/dialog boundaries. See [verification report](COMMUNICATION_ABOUT_VERIFICATION.md).
+
 ## Deployment recovery and Terms — 8 October 2026
 
 Use supported provider deployment ID with unique Vercel deployment fallback. Hobby lacks paid Skew Protection; exact missing-action failures receive one guarded current-URL reload, never replay. Terms content stays server-rendered, passed into a small existing-Dialog client wrapper and shared with the canonical static page. No new service, polling or consent store. [Evidence](PREPRODUCTION_STABILITY.md).

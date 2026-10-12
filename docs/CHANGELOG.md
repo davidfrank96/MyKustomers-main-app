@@ -1,5 +1,11 @@
 # Changelog
 
+## Communication and About — 12 October 2026
+
+STATUS: IMPLEMENTED — VERIFICATION PENDING
+
+Implemented Terms presentation, shared About modal/page, operational post-confirmation schedule notices and clearer manual-link/send copy. Applied only approved backward-compatible database preparation; application release pending manual merge. See [verification report](COMMUNICATION_ABOUT_VERIFICATION.md).
+
 ## 2026-10-12 — Terms presentation
 
 VERIFIED LOCALLY — RELEASE PENDING. Restyle the existing public Terms page with approved branding, date blocks and numbered disclosures while preserving every legal word, date, metadata and route. Retain the reusable modal and make print reveal the whole document. [Evidence](TERMS_UI_REDESIGN.md).

@@ -1,5 +1,11 @@
 # Testing
 
+## Communication and About — 12 October 2026
+
+STATUS: IMPLEMENTED — VERIFICATION PENDING
+
+Operational SQL coverage now includes immutable proof/status, no capability, repeated changes, authoritative contact, legacy compatibility and capability-free dispatch; isolated CI native tests exercise the real new RPCs/trigger. Updated real E2E expects notification-only reschedule. Final results are recorded in the linked report. See [verification report](COMMUNICATION_ABOUT_VERIFICATION.md).
+
 ## Terms legal-content preservation
 
 A fixed hash covers all approved section headings and paragraphs. Component tests cover full-DOM text and ARIA relationships; browser tests cover the ten-width disclosure/print/back-navigation matrix and existing modal behavior. [Evidence](TERMS_UI_REDESIGN.md).

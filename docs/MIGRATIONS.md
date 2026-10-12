@@ -1,5 +1,11 @@
 # Migrations
 
+## Communication and About — 12 October 2026
+
+STATUS: IMPLEMENTED — VERIFICATION PENDING
+
+20261012003112_operational_reschedule_updates.sql was created with the Supabase CLI, tested in disposable native PostgreSQL, then applied with explicit user approval and exact function drift checks. New RPCs preserve legacy deployed behavior until manual merge. No applied migration was edited. See [verification report](COMMUNICATION_ABOUT_VERIFICATION.md).
+
 ## Rescheduling through READY — 2026-09-24
 
 `20260924210343_reschedule_through_ready.sql`: **APPLIED — 8 October 2026 (Dublin)**.

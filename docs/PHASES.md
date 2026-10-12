@@ -1,5 +1,11 @@
 # Phases
 
+## Communication and About — 12 October 2026
+
+STATUS: IMPLEMENTED — VERIFICATION PENDING
+
+The combined communication/About scope is implemented; database preparation approved/applied. App deployment and controlled live WhatsApp send remain pending. See [verification report](COMMUNICATION_ABOUT_VERIFICATION.md).
+
 ## 8 October 2026 stabilization evidence
 
 Terms and guarded recovery: IMPLEMENTED — RELEASE VERIFICATION PENDING. Local login: VERIFIED. Existing READY migration: APPLIED and live rollback-only smoke VERIFIED. Commercial launch and physical-device/protected runtime acceptance are not implied. [Report](PREPRODUCTION_STABILITY.md).
