@@ -580,7 +580,10 @@ export async function deliverClaimedEmailEvent({
       message = bookingAmendmentConfirmedEmail(input);
     }
   } else if (event.event_type === "BOOKING_RESCHEDULED") {
-    if (!event.booking_change_id || !event.confirmation_link_id) {
+    const notificationOnly = Boolean(
+      event.reschedule_confirmation_id && !event.confirmation_link_id,
+    );
+    if (!event.booking_change_id || (!notificationOnly && !event.confirmation_link_id)) {
       return failClaimedEmailEvent({
         code: "invalid_reschedule_event",
         message: "The booking reschedule email data is unavailable.",
@@ -595,36 +598,47 @@ export async function deliverClaimedEmailEvent({
         .eq("business_id", event.business_id)
         .eq("booking_id", event.booking_id)
         .maybeSingle(),
-      supabase
-        .from("confirmation_links")
-        .select("id, used_at, revoked_at, expires_at")
-        .eq("id", event.confirmation_link_id)
-        .eq("business_id", event.business_id)
-        .eq("booking_id", event.booking_id)
-        .maybeSingle(),
-      supabase
-        .from("booking_confirmations")
-        .select("terms_snapshot, contact_email")
-        .eq("business_id", event.business_id)
-        .eq("booking_id", event.booking_id)
-        .order("confirmed_at", { ascending: false })
-        .limit(1)
-        .maybeSingle(),
+      notificationOnly
+        ? Promise.resolve({ data: null })
+        : supabase
+            .from("confirmation_links")
+            .select("id, used_at, revoked_at, expires_at")
+            .eq("id", event.confirmation_link_id!)
+            .eq("business_id", event.business_id)
+            .eq("booking_id", event.booking_id)
+            .maybeSingle(),
+      notificationOnly
+        ? supabase
+            .from("booking_confirmations")
+            .select("terms_snapshot, contact_email")
+            .eq("id", event.reschedule_confirmation_id!)
+            .eq("business_id", event.business_id)
+            .eq("booking_id", event.booking_id)
+            .maybeSingle()
+        : supabase
+            .from("booking_confirmations")
+            .select("terms_snapshot, contact_email")
+            .eq("business_id", event.business_id)
+            .eq("booking_id", event.booking_id)
+            .order("confirmed_at", { ascending: false })
+            .limit(1)
+            .maybeSingle(),
     ]);
     const parsedChange = rescheduleChangeSchema.safeParse(change);
     const snapshot = bookingSnapshotSchema.safeParse(confirmation?.terms_snapshot);
     const authoritativeRecipient = selectCancellationRecipient({
       confirmationContactEmail: confirmation?.contact_email ?? null,
-      customerEmail: event.recipient_email,
+      customerEmail: notificationOnly ? null : event.recipient_email,
     });
 
     if (
       !parsedChange.success ||
       !snapshot.success ||
-      !link ||
-      link.used_at ||
-      link.revoked_at ||
-      new Date(link.expires_at).getTime() <= Date.now() ||
+      (!notificationOnly &&
+        (!link ||
+          link.used_at ||
+          link.revoked_at ||
+          new Date(link.expires_at).getTime() <= Date.now())) ||
       authoritativeRecipient !== event.recipient_email
     ) {
       return failClaimedEmailEvent({
@@ -633,20 +647,22 @@ export async function deliverClaimedEmailEvent({
       });
     }
 
-    let confirmationUrl: URL;
-    try {
-      confirmationUrl = new URL(context.confirmationUrl ?? "");
-    } catch {
-      return failClaimedEmailEvent({
-        code: "confirmation_url_unavailable",
-        message: "The secure booking confirmation URL is unavailable.",
-      });
-    }
-    if (!confirmationUrl.pathname.startsWith("/c/")) {
-      return failClaimedEmailEvent({
-        code: "confirmation_url_invalid",
-        message: "The secure booking confirmation URL is invalid.",
-      });
+    let confirmationUrl: URL | undefined;
+    if (!notificationOnly) {
+      try {
+        confirmationUrl = new URL(context.confirmationUrl ?? "");
+      } catch {
+        return failClaimedEmailEvent({
+          code: "confirmation_url_unavailable",
+          message: "The secure booking confirmation URL is unavailable.",
+        });
+      }
+      if (!confirmationUrl.pathname.startsWith("/c/")) {
+        return failClaimedEmailEvent({
+          code: "confirmation_url_invalid",
+          message: "The secure booking confirmation URL is invalid.",
+        });
+      }
     }
 
     threadContext = {
@@ -662,7 +678,7 @@ export async function deliverClaimedEmailEvent({
       bookingReference: snapshot.data.booking_reference,
       previousScheduledFor: parsedChange.data.previous_scheduled_for,
       scheduledFor: parsedChange.data.new_scheduled_for,
-      confirmationUrl: confirmationUrl.toString(),
+      confirmationUrl: confirmationUrl?.toString(),
     });
   } else if (
     event.event_type === "BOOKING_CONFIRMED" ||

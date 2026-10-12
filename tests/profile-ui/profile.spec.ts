@@ -256,7 +256,7 @@ test("missing rows stay non-operational while existing features and shell contro
     page.locator("main form, main input, main select, main textarea"),
   ).toHaveCount(0);
   await expect(page.locator("main button")).toHaveCount(0);
-  await expect(page.locator("main a")).toHaveCount(6);
+  await expect(page.locator("main a")).toHaveCount(7);
   await expect(page.getByRole("link", { name: "Terms & conditions" })).toHaveAttribute(
     "href",
     "/terms",

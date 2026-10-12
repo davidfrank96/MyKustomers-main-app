@@ -1,3 +1,5 @@
+import { LegalDocumentDialog } from "@/components/legal/terms-dialog";
+import { AboutContent } from "@/components/legal/about-content";
 import {
   Bell,
   Building2,
@@ -88,6 +90,7 @@ const groups: { id: string; title: string; rows: ProfileRow[] }[] = [
         title: "About MyKustomers",
         description: "Learn more about our platform",
         icon: Info,
+        href: "/about",
       },
     ],
   },
@@ -124,7 +127,20 @@ function ProfileSettingsRow({ title, description, icon: Icon, href }: ProfileRow
   );
   return (
     <li className={href ? "flex min-h-16" : rowClassName}>
-      {href ? (
+      {href === "/about" ? (
+        <LegalDocumentDialog
+          href="/about"
+          title="About My Kustomers"
+          trigger={content}
+          triggerLabel={titleId}
+          triggerDescription={`${titleId}-description`}
+          textLabel="About My Kustomers text"
+          fullPageLabel="Read full About page"
+          className="flex min-w-0 flex-1 items-center gap-3 self-stretch py-2.5 focus-visible:rounded-md"
+        >
+          <AboutContent />
+        </LegalDocumentDialog>
+      ) : href ? (
         <Link
           href={href}
           className="flex min-w-0 flex-1 items-center gap-3 self-stretch py-2.5 focus-visible:rounded-md"

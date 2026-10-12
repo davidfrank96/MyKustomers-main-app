@@ -169,3 +169,63 @@ describe("event-owned logo dispatch", () => {
     expect(send).toHaveBeenCalledOnce();
   });
 });
+
+it.each(["valid", "missing_email", "wrong_tenant", "wrong_recipient"])(
+  "operational schedule email uses immutable evidence (%s)",
+  async (scenario) => {
+    Object.assign(state.rows.email_events[0], {
+      event_type: "BOOKING_RESCHEDULED",
+      confirmation_link_id: null,
+      booking_confirmation_id: null,
+      reschedule_confirmation_id: "confirmation",
+      booking_change_id: "change",
+    });
+    state.rows.booking_changes = [
+      {
+        id: "change",
+        business_id: businessA,
+        booking_id: "booking-0",
+        change_type: "reschedule",
+        previous_scheduled_for: "2026-10-10T12:00:00Z",
+        new_scheduled_for: "2026-10-14T12:00:00Z",
+      },
+    ];
+    state.rows.booking_confirmations = [
+      {
+        id: "confirmation",
+        business_id: scenario === "wrong_tenant" ? businessB : businessA,
+        booking_id: "booking-0",
+        contact_email:
+          scenario === "missing_email"
+            ? null
+            : scenario === "wrong_recipient"
+              ? "other@example.invalid"
+              : "recipient-0@example.invalid",
+        terms_snapshot: {
+          business_name: "Cedar Studio",
+          booking_reference: "BK-000",
+          title: "Synthetic booking",
+          currency: "EUR",
+          total_amount_minor: 1000,
+          deposit_amount_minor: 0,
+          balance_amount_minor: 1000,
+        },
+      },
+    ];
+    const send = vi.fn(async (message: TransactionalEmailMessage) => {
+      expect(message.subject).toContain("Booking schedule updated");
+      expect(message.text).toContain("No action is required");
+      expect(message.text).toContain("Previous schedule");
+      expect(message.html).not.toContain("Review updated booking");
+      expect(message.text).not.toMatch(/\/c\/|confirm the updated/);
+      return { status: "sent" as const, messageId: "test-provider-id" };
+    });
+    await deliverClaimedEmailEvent({
+      emailEventId: events[0],
+      attemptId: attempts[0],
+      provider: { name: "brevo", send },
+    });
+    expect(send).toHaveBeenCalledTimes(scenario === "valid" ? 1 : 0);
+    expect(state.reads.some((r) => r.table === "confirmation_links")).toBe(false);
+  },
+);

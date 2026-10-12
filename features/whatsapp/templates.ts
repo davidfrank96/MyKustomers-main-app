@@ -1,3 +1,5 @@
+import { formatEmailDateTime } from "@/lib/email/templates/shared";
+
 export const whatsappEventTypes = [
   "BOOKING_CONFIRMATION_REQUESTED",
   "BOOKING_CONFIRMED",
@@ -32,6 +34,7 @@ export function renderWhatsAppMessage(input: {
   businessName: string;
   bookingReference: string;
   capabilityUrl?: string | null;
+  scheduleUpdate?: { previous: string | null; next: string };
 }) {
   const safeText = (value: string, max: number) =>
     value
@@ -41,7 +44,14 @@ export function renderWhatsAppMessage(input: {
   return [
     safeText(input.businessName, 120),
     `Booking ${safeText(input.bookingReference, 80)}`,
-    copy[input.eventType],
+    input.eventType === "BOOKING_RESCHEDULED" && input.scheduleUpdate
+      ? [
+          "Your booking schedule has changed.",
+          `Previous schedule: ${formatEmailDateTime(input.scheduleUpdate.previous)}`,
+          `New schedule: ${formatEmailDateTime(input.scheduleUpdate.next)}`,
+          "No action is required. Contact the business if you have questions.",
+        ].join("\n")
+      : copy[input.eventType],
     input.capabilityUrl,
     "Powered by My Kustomers",
   ]

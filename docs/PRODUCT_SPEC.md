@@ -1,5 +1,11 @@
 # Product Specification
 
+## Communication and About — 12 October 2026
+
+STATUS: IMPLEMENTED — VERIFICATION PENDING
+
+After release, confirmed operational schedules preserve status and confirmation evidence and notify selected channels without reconfirmation. Initial/unconfirmed and legacy missing-evidence cases retain secure confirmation. See [verification report](COMMUNICATION_ABOUT_VERIFICATION.md).
+
 ## Terms and stale-client recovery — 8 October 2026
 
 Public `/terms` and the shared modal provide the same sixteen-section wording. Links appear in homepage/auth footers, Settings and the existing profile legal row. No required acceptance, clickwrap or data record. Exact missing-action errors may reload the current URL once per tab, preserving Sentry; mutations are never replayed. Other errors retain normal fallback. IMPLEMENTED — RELEASE VERIFICATION PENDING. [Audit](PREPRODUCTION_STABILITY.md).

@@ -70,3 +70,26 @@ select {
   outline: 2px solid var(--ring);
   outline-offset: 3px;
 }
+
+.legal-section button:focus-visible {
+  outline-offset: -3px;
+}
+
+@media print {
+  .legal-preview {
+    display: none;
+  }
+  @layer base {
+    .legal-body[hidden] {
+      /* Match the reset's layer: important layered rules outrank unlayered rules. */
+      display: block !important;
+    }
+  }
+  .legal-section {
+    break-inside: avoid;
+    box-shadow: none;
+  }
+  .legal-section button svg {
+    display: none;
+  }
+}

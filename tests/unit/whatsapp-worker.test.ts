@@ -124,3 +124,36 @@ it("never retries provider acceptance after persistence fails", async () => {
   await expect(processWhatsApp()).rejects.toThrow("WhatsApp worker storage unavailable");
   expect(mocks.send).toHaveBeenCalledTimes(1);
 });
+
+it.each([true, false])(
+  "reschedule context validation (valid=%s) cannot generate a confirmation link",
+  async (valid) => {
+    const update = {
+      ...context,
+      event_type: "BOOKING_RESCHEDULED",
+      path_prefix: null,
+      token: null,
+      schedule_update: valid
+        ? { previous: "2026-10-10T12:00:00Z", next: "2026-10-14T12:00:00Z" }
+        : undefined,
+    };
+    mocks.rpc.mockImplementation(async (name: string) => ({
+      data:
+        name === "claim_whatsapp_event"
+          ? [event]
+          : name === "get_whatsapp_dispatch_context"
+            ? update
+            : true,
+      error: null,
+    }));
+    await processWhatsApp();
+    if (valid) {
+      expect(mocks.send).toHaveBeenCalledTimes(1);
+      const text = mocks.send.mock.calls[0][0].text;
+      expect(text).toContain("No action is required");
+      expect(text).toContain("Previous schedule");
+      expect(text).toContain("New schedule");
+      expect(text).not.toMatch(/https?:|confirm the updated/);
+    } else expect(mocks.send).not.toHaveBeenCalled();
+  },
+);

@@ -1672,3 +1672,7 @@ Production release remain pending. [Evidence](RESCHEDULE_SAFARI_STABILITY.md).
 ## 2026-10-08 — Bounded recovery and shared Terms
 
 Use supported deployment identity, preserve Sentry and allow only one exact-signature reload per tab. Hobby Skew Protection requires an unapproved upgrade; no action replay, generic encryption key or reload for unrelated errors. Terms shares server content with the existing Dialog; no clickwrap/storage. Legal review and post-merge verification remain gates. [Evidence](PREPRODUCTION_STABILITY.md).
+
+## 12 October 2026 — Operational schedules preserve confirmation evidence
+
+A post-confirmation schedule change is an informational operational update. Use new RPCs and an explicit transaction-local flag so pre-merge clients retain existing semantics. Preserve the original confirmation and operational state; bind each notice to its own schedule change and immutable contact evidence. Do not generate a new capability. Keep legacy missing-proof confirmation and all non-schedule material guards. Existing conservative retry handling remains unchanged. See [verification](COMMUNICATION_ABOUT_VERIFICATION.md).

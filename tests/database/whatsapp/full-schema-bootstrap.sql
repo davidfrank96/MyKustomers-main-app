@@ -1,4 +1,5 @@
 -- Synthetic Supabase infrastructure only; never load into a shared database.
+create role supabase_admin;
 create role anon;
 create role authenticated;
 create role service_role bypassrls;

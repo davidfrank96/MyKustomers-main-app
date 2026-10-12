@@ -1,5 +1,11 @@
 # Continuous Integration
 
+## Communication and About — 12 October 2026
+
+STATUS: IMPLEMENTED — VERIFICATION PENDING
+
+The WhatsApp UI/Channels native database runner now exercises the additive operational migration and new RPCs/integrity trigger without cloud data. Existing real E2E requires the approved new production-backed RPCs. No required check or audit gate was skipped. See [verification report](COMMUNICATION_ABOUT_VERIFICATION.md).
+
 ## Stabilization checks — 8 October 2026
 
 Existing Profile/Social job now includes Terms accessibility at ten widths and bounded action recovery in Chromium/WebKit; E2E also includes Terms. No workflow/security guard/required check or dependency exception was disabled or broadened. Current-head GitHub results are authoritative; raw full npm audit retains the exact existing dev-only exception. Manual user merge required. [Audit](PREPRODUCTION_STABILITY.md).

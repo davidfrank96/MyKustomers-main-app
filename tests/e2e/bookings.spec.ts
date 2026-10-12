@@ -1855,19 +1855,19 @@ test.describe("booking engine", () => {
     }
     await expect(
       page.getByText(
-        "Booking rescheduled. The new confirmation request was accepted for delivery.",
+        "Booking rescheduled. The schedule update was accepted for email delivery. No customer action is required.",
       ),
     ).toBeVisible({ timeout: serverActionTimeout });
     await page.unroute(bookingDetailUrl, delayRescheduleRequest);
     expect(delayedRescheduleRequest).toBe(true);
     await expect(
       rescheduleSection.getByText(
-        "The customer will need to confirm the updated schedule. Updates use this booking’s selected channels.",
+        "The customer will receive a schedule update through this booking’s selected channels. No confirmation or other action is required.",
       ),
     ).toBeVisible();
     if (testInfo.project.name === "chromium") {
       await rescheduleSection.screenshot({
-        path: `${rescheduleScreenshotDirectory}/reschedule-reconfirmation-390.png`,
+        path: `${rescheduleScreenshotDirectory}/reschedule-notification-390.png`,
         animations: "disabled",
       });
     }
@@ -1878,21 +1878,17 @@ test.describe("booking engine", () => {
     }
     if (rescheduleViewport) await page.setViewportSize(rescheduleViewport);
     await expect(
-      page.locator("span.inline-flex.w-fit").filter({ hasText: /^Awaiting customer$/ }),
+      page.locator("span.inline-flex.w-fit").filter({ hasText: /^In progress$/ }),
     ).toBeVisible();
     await expect(page.getByText("Booking rescheduled", { exact: true })).toBeVisible();
     await expect(
       page.getByRole("heading", { name: "Waiting for customer confirmation" }),
-    ).toBeVisible();
-    await expect(
-      page.getByText("The delivery schedule changed.", { exact: false }),
-    ).toBeVisible();
-    await expect(page.getByRole("button", { name: "Start work" })).toHaveCount(0);
-
-    await expandBookingSection(page, "customer-confirmation");
+    ).toHaveCount(0);
     const { data: rescheduleEvents } = await admin
       .from("email_events")
-      .select("event_type, status, booking_change_id, confirmation_link_id")
+      .select(
+        "event_type,status,booking_change_id,confirmation_link_id,reschedule_confirmation_id",
+      )
       .eq("business_id", fixture.businessId)
       .eq("event_type", "BOOKING_RESCHEDULED");
     expect(rescheduleEvents).toEqual([
@@ -1900,34 +1896,14 @@ test.describe("booking engine", () => {
         event_type: "BOOKING_RESCHEDULED",
         status: "SENT",
         booking_change_id: expect.any(String),
-        confirmation_link_id: expect.any(String),
+        confirmation_link_id: null,
+        reschedule_confirmation_id: expect.any(String),
       },
     ]);
-
-    await page
-      .getByRole("button", { name: /Generate confirmation link|Regenerate link/ })
-      .click();
-    const regeneratedLinkInput = page.getByLabel("Generated confirmation link");
-    await expect(regeneratedLinkInput).toBeAttached({ timeout: 15_000 });
-    const regeneratedConfirmationUrl = await regeneratedLinkInput.inputValue();
-    expect(regeneratedConfirmationUrl).toContain("/c/");
-
-    await page.goto(regeneratedConfirmationUrl);
-    await page.getByLabel("Email address").fill("customer-confirmation@example.com");
-    await page.getByLabel("Phone number (optional)").fill("+353 01 555 0155");
-    await page.getByRole("button", { name: "Review and confirm" }).click();
-    await page.getByRole("button", { name: "Confirm booking" }).click();
-    await expect(page.getByRole("heading", { name: "Booking confirmed" })).toBeVisible();
-
-    await page.goto(bookingDetailUrl);
+    await expandBookingSection(page, "customer-confirmation");
     await expect(
-      page.locator("span.inline-flex.w-fit").filter({ hasText: /^In progress$/ }),
-    ).toBeVisible({ timeout: serverActionTimeout });
-    await expandBookingSection(page, "operational-timeline");
-    await expect(page.getByText("Confirmed to In progress").last()).toBeVisible();
-    await expect(
-      page.getByRole("heading", { name: "Customer confirmed - work in progress" }),
-    ).toBeVisible();
+      page.getByRole("button", { name: /Generate confirmation link|Regenerate link/ }),
+    ).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Start work" })).toHaveCount(0);
 
     await page.getByRole("button", { name: "Mark as ready" }).click();

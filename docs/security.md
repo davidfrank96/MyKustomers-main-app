@@ -1,5 +1,11 @@
 # Security
 
+## Communication and About — 12 October 2026
+
+STATUS: IMPLEMENTED — VERIFICATION PENDING
+
+New operational schedule RPCs lock and authorize tenant membership, preserve immutable confirmation, and reset controlled flags. Email proof is tenant/booking-bound; missing contact aborts selected-email changes. No broader RLS/anonymous/dispatch grants, recipient rollout or ambiguous retry changes. See [verification report](COMMUNICATION_ABOUT_VERIFICATION.md).
+
 ## Stabilization boundary — 8 October 2026
 
 Recovery stores only one non-sensitive attempted marker per tab, no URL/forms/capabilities, and never replays a mutation. Existing Sentry/privacy controls remain; blocked storage leaves normal fallback. Terms adds no acceptance data or Auth bypass. READY deployment preserves ACL/RLS boundaries. Live advisor warnings and protected runtime gaps are explicit in [the audit](PREPRODUCTION_STABILITY.md), not a clean penetration-test claim. Dependency exception remains exact and time-limited.

@@ -1,5 +1,15 @@
 # Changelog
 
+## Communication and About — 12 October 2026
+
+STATUS: IMPLEMENTED — VERIFICATION PENDING
+
+Implemented Terms presentation, shared About modal/page, operational post-confirmation schedule notices and clearer manual-link/send copy. Applied only approved backward-compatible database preparation; application release pending manual merge. See [verification report](COMMUNICATION_ABOUT_VERIFICATION.md).
+
+## 2026-10-12 — Terms presentation
+
+VERIFIED LOCALLY — RELEASE PENDING. Restyle the existing public Terms page with approved branding, date blocks and numbered disclosures while preserving every legal word, date, metadata and route. Retain the reusable modal and make print reveal the whole document. [Evidence](TERMS_UI_REDESIGN.md).
+
 ## 2026-10-08 — Pre-production stabilization
 
 IMPLEMENTED — MANUAL MERGE / RELEASE VERIFICATION PENDING. Add canonical Terms and an accessible shared dialog with legal-review gaps. Recover only the verified missing Server Action signature once per tab, retaining Sentry and URL without replaying mutations. Prefer provider deployment ID with unique Vercel deployment fallback on Hobby. Apply the existing READY migration after drift/ACL checks and live rollback smoke; no duplicate SQL or lifecycle change. Restore localhost by replacing its stale fixture build with the correct dev process. Dependencies and paid resources unchanged. [Evidence](PREPRODUCTION_STABILITY.md).

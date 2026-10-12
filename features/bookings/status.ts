@@ -132,3 +132,20 @@ export function isBookingDueToday({
     scheduled.getDate() === now.getDate()
   );
 }
+
+/** UI/token decision only; the database verifies immutable confirmation evidence. */
+export function isOperationalReschedule(booking: {
+  status: BookingStatus;
+  customer_confirmed_at: string | null;
+  confirmation_terms_hash: string | null;
+  confirmation_terms_snapshot: unknown;
+}) {
+  return (
+    ["CONFIRMED", "IN_PROGRESS", "READY"].includes(booking.status) &&
+    Boolean(
+      booking.customer_confirmed_at &&
+      booking.confirmation_terms_hash &&
+      booking.confirmation_terms_snapshot,
+    )
+  );
+}

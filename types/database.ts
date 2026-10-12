@@ -632,6 +632,7 @@ export type Database = {
           booking_id: string;
           customer_id: string;
           booking_confirmation_id: string | null;
+          reschedule_confirmation_id: string | null;
           booking_amendment_id: string | null;
           booking_addon_id: string | null;
           booking_addon_confirmation_link_id: string | null;
@@ -972,6 +973,13 @@ export type Database = {
           "p_token_hash"
         > & { p_capability_token: string };
         Returns: Database["public"]["Functions"]["reschedule_booking_with_notification"]["Returns"];
+      };
+      reschedule_booking_update_with_channels: {
+        Args: Omit<
+          Database["public"]["Functions"]["reschedule_booking_update"]["Args"],
+          "p_token_hash"
+        > & { p_capability_token: string | null };
+        Returns: Database["public"]["Functions"]["reschedule_booking_update"]["Returns"];
       };
       disable_booking_whatsapp: { Args: { p_booking_id: string }; Returns: boolean };
       claim_whatsapp_event: {
@@ -1388,6 +1396,23 @@ export type Database = {
           p_booking_id: string;
           p_scheduled_for: string;
           p_token_hash: string;
+          p_expires_at?: string;
+        };
+        Returns: {
+          booking_id: string;
+          previous_scheduled_for: string | null;
+          new_scheduled_for: string;
+          status: Database["public"]["Enums"]["booking_status"];
+          confirmation_link_id: string | null;
+          expires_at: string | null;
+          email_event_id: string | null;
+        }[];
+      };
+      reschedule_booking_update: {
+        Args: {
+          p_booking_id: string;
+          p_scheduled_for: string;
+          p_token_hash: string | null;
           p_expires_at?: string;
         };
         Returns: {

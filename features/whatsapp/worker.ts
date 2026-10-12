@@ -7,17 +7,35 @@ import { publicEnv } from "@/lib/config/public-env";
 import { e164Schema } from "./validation";
 import { renderWhatsAppMessage, whatsappEventTypes } from "./templates";
 
-const dispatchSchema = z.object({
-  event_type: z.enum(whatsappEventTypes),
-  business_name: z.string().min(1).max(200),
-  booking_reference: z.string().min(1).max(120),
-  recipient: e164Schema,
-  path_prefix: z.enum(["c", "a", "x", "f"]).nullable(),
-  token: z
-    .string()
-    .regex(/^[A-Za-z0-9_-]{32,128}$/)
-    .nullable(),
-});
+const dispatchSchema = z
+  .object({
+    schedule_update: z
+      .object({
+        previous: z.string().datetime({ offset: true }).nullable(),
+        next: z.string().datetime({ offset: true }),
+      })
+      .optional(),
+    event_type: z.enum(whatsappEventTypes),
+    business_name: z.string().min(1).max(200),
+    booking_reference: z.string().min(1).max(120),
+    recipient: e164Schema,
+    path_prefix: z.enum(["c", "a", "x", "f"]).nullable(),
+    token: z
+      .string()
+      .regex(/^[A-Za-z0-9_-]{32,128}$/)
+      .nullable(),
+  })
+  .refine((context) => {
+    if (context.schedule_update)
+      return (
+        context.event_type === "BOOKING_RESCHEDULED" &&
+        context.token === null &&
+        context.path_prefix === null
+      );
+    if (context.event_type === "BOOKING_RESCHEDULED")
+      return Boolean(context.token && context.path_prefix === "c");
+    return true;
+  });
 
 // One send per minute invocation: below the gateway's ten-second cooldown.
 // Overlapping invocations use independent DB leases; 429 is a proven safe retry.
@@ -64,6 +82,7 @@ export async function processWhatsApp() {
       businessName: c.business_name,
       bookingReference: c.booking_reference,
       capabilityUrl,
+      scheduleUpdate: c.schedule_update,
     }),
   });
   const final = await db.rpc("finish_whatsapp_event", {

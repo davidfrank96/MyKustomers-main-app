@@ -20,6 +20,7 @@ import { findPotentialDuplicateCustomers } from "@/features/customers/queries";
 import {
   areMaterialBookingTermsLocked,
   isTerminalBookingStatus,
+  isOperationalReschedule,
 } from "@/features/bookings/status";
 import { hasMaterialBookingFieldChange } from "@/features/confirmation-links/terms";
 import { deliverEmailEvent } from "@/lib/email/outbox";
@@ -553,7 +554,11 @@ export async function rescheduleBookingAction(
     };
   }
 
-  const token = generateConfirmationToken();
+  const booking = await getBookingForBusiness(business.id, bookingId);
+  if (!booking)
+    return { status: "error", message: "This booking could not be rescheduled." };
+  const notificationOnly = isOperationalReschedule(booking);
+  const token = notificationOnly ? null : generateConfirmationToken();
   const expiresAt = confirmationLinkExpiresAt();
   const supabase = await createClient();
   const args = {
@@ -562,28 +567,31 @@ export async function rescheduleBookingAction(
     p_expires_at: expiresAt.toISOString(),
   };
   const { data, error } = whatsappConfig().pilotBusinessIds.includes(business.id)
-    ? await supabase.rpc("reschedule_booking_with_notification_with_channels", {
+    ? await supabase.rpc("reschedule_booking_update_with_channels", {
         ...args,
         p_capability_token: token,
       })
-    : await supabase.rpc("reschedule_booking_with_notification", {
+    : await supabase.rpc("reschedule_booking_update", {
         ...args,
-        p_token_hash: hashConfirmationToken(token),
+        p_token_hash: token ? hashConfirmationToken(token) : null,
       });
 
   if (error || !data?.[0]) {
     return {
       status: "error",
-      message: "This booking could not be rescheduled.",
+      message: error?.message?.includes("booking_confirmation_contact_unavailable")
+        ? "The original confirmation email is unavailable. The schedule was not changed."
+        : "This booking could not be rescheduled.",
     };
   }
 
   const result = data[0];
   let emailAccepted = false;
-  if (result.email_event_id && result.confirmation_link_id) {
+  if (result.email_event_id) {
     const baseUrl = publicEnv.NEXT_PUBLIC_APP_URL.replace(/\/$/, "");
     const delivery = await deliverEmailEvent(result.email_event_id, undefined, {
-      confirmationUrl: `${baseUrl}/c/${token}`,
+      confirmationUrl:
+        result.confirmation_link_id && token ? `${baseUrl}/c/${token}` : undefined,
     });
     emailAccepted = delivery.status === "sent";
   }
@@ -595,12 +603,18 @@ export async function rescheduleBookingAction(
   return {
     status: "success",
     message:
-      result.status === "AWAITING_CUSTOMER"
+      result.status === "AWAITING_CUSTOMER" || result.confirmation_link_id
         ? emailAccepted
           ? "Booking rescheduled. The new confirmation request was accepted for delivery."
           : result.email_event_id
             ? "Booking rescheduled. Email delivery was not accepted; generate a new link to share manually."
             : "Booking rescheduled. Customer confirmation is required again."
-        : "Booking rescheduled.",
+        : result.email_event_id
+          ? emailAccepted
+            ? "Booking rescheduled. The schedule update was accepted for email delivery. No customer action is required."
+            : "Booking rescheduled. Email delivery was not accepted. Check customer updates for details."
+          : notificationOnly
+            ? "Booking rescheduled. No customer action is required."
+            : "Booking rescheduled.",
   };
 }

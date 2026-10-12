@@ -78,6 +78,8 @@ try {
       ...psql,
       "-f",
       "supabase/migrations/20260924210343_reschedule_through_ready.sql",
+      "-f",
+      "supabase/migrations/20261012003112_operational_reschedule_updates.sql",
     ]);
     console.log(run("psql", [...psql, "-f", "tests/database/whatsapp/lifecycle.sql"]));
     console.log(run("psql", [...psql, "-f", "tests/database/whatsapp/reschedule.sql"]));
@@ -123,6 +125,32 @@ try {
       "PASS: concurrent workers claim distinct events without duplicate handoff",
     );
     console.log(run("psql", [...psql, "-f", "tests/database/whatsapp/entitlements.sql"]));
+    // Exercise the new RPCs and actual integrity trigger in CI's isolated cluster.
+    // Other lifecycle helpers remain covered by the full-schema local run.
+    const materialSource = readFileSync(
+      "supabase/migrations/20260823120902_confirmed_booking_integrity_cancellation_notification.sql",
+      "utf8",
+    );
+    const materialFunction = materialSource.match(
+      /create or replace function private\.booking_material_terms_changed[\s\S]*?\$\$;/i,
+    )?.[0];
+    if (!materialFunction) throw new Error("Material integrity function missing");
+    const operationalSetup = path.join(directory, "operational-setup.sql");
+    writeFileSync(
+      operationalSetup,
+      "truncate public.email_events cascade; alter table public.email_events add constraint email_events_subject_check check(true);\n" +
+        materialFunction,
+    );
+    run("psql", [
+      ...psql,
+      "-f",
+      operationalSetup,
+      "-f",
+      "supabase/migrations/20260823131332_booking_amendment_revocation_resolution_fix.sql",
+      "-f",
+      "supabase/migrations/20261012003112_operational_reschedule_updates.sql",
+    ]);
+    console.log(run("psql", [...psql, "-f", "tests/database/whatsapp/operational.sql"]));
   }
 } finally {
   if (started) run("pg_ctl", ["-D", data, "-m", "fast", "stop"]);
