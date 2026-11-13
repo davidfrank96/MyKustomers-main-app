@@ -60,7 +60,26 @@ Local checks: clean npm ci, typecheck, lint (zero errors; existing warnings),
 production build, 1,224 passing tests with 24 protected/environment-gated skips,
 and all 24 audit-policy tests. Both production and full dependency audits are
 clean without an exception. Focused follow-up includes signed-in signup recovery.
-Current-head GitHub CI and authenticated production acceptance remain pending.
+Production authenticated acceptance passed: a fresh `/login` navigation with the
+existing account session redirected to `/dashboard` and rendered the Frankenstein
+workspace. This proves returning-session membership routing; it is not a claim
+of a new password/OAuth exchange in the production browser.
+
+Read-only successful-statement counters between 01:43:44 and 01:46:29 UTC rose
+by three each for `process_overdue_notifications`, `claim_notification_push` and
+`claim_whatsapp_event`, confirming automatic scheduled database work resumed.
+No claim/send RPC was manually invoked. PostgREST logs show the 10-connection
+pool initialized and the schema cache loaded at 01:34:12 UTC. Sentry inspection
+covered all five unresolved production groups in its available 30-day window;
+worker and rate-limit event breadcrumbs also contain the pre-recovery HTTP 503s.
+
+The application review is [PR #98](https://github.com/davidfrank96/MyKustomers-main-app/pull/98).
+Implementation commit `85bf841a5aed194b050a2453650314a039a52cce` passed all seven
+enabled jobs in [CI run 43347100458](https://github.com/davidfrank96/MyKustomers-main-app/actions/runs/43347100458),
+including E2E, notification contracts and dependency security. Its test job
+reported 1,225 passing tests and 24 guarded skips. Current-head checks remain
+the authoritative merge gate; local evidence is not a substitute for them. Vercel preview success is not a production
+application release. The existing guarded Runtime Security job remains skipped.
 A skipped runtime security suite is not a security pass.
 
 Application release requires a passing PR and the owner's manual merge.
