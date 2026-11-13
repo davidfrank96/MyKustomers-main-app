@@ -1,6 +1,6 @@
 # Production incident — 13 November 2026
 
-STATUS: PRODUCTION SERVICE RECOVERED — APPLICATION RELEASE PENDING
+STATUS: PRODUCTION SERVICE RECOVERED — APPLICATION RELEASE VERIFIED
 
 ## Observed incident
 
@@ -73,7 +73,7 @@ pool initialized and the schema cache loaded at 01:34:12 UTC. Sentry inspection
 covered all five unresolved production groups in its available 30-day window;
 worker and rate-limit event breadcrumbs also contain the pre-recovery HTTP 503s.
 
-The application review is [PR #98](https://github.com/davidfrank96/MyKustomers-main-app/pull/98).
+The application review was [PR #98](https://github.com/davidfrank96/MyKustomers-main-app/pull/98).
 Implementation commit `85bf841a5aed194b050a2453650314a039a52cce` passed all seven
 enabled jobs in [CI run 43347100458](https://github.com/davidfrank96/MyKustomers-main-app/actions/runs/43347100458),
 including E2E, notification contracts and dependency security. Its test job
@@ -82,6 +82,16 @@ the authoritative merge gate; local evidence is not a substitute for them. Verce
 application release. The existing guarded Runtime Security job remains skipped.
 A skipped runtime security suite is not a security pass.
 
-Application release requires a passing PR and the owner's manual merge.
+The owner manually merged PR #98 at 01:57:06 UTC. Vercel marks merge commit
+`f933022aceb9761c2a62d21458fe4967fd665ce1` Ready in Production, with
+`mykustomers.com` assigned, at 02:00:25 UTC (3m 15s build).
+Deployment: [2UAt4hiri](https://vercel.com/david-frank-s-projects/my-kustomers-main-app/2UAt4hiri4EPd4jtfqXUw2abvj3R).
+Post-deployment `/api/health` and public `/login` probes returned HTTP 200.
+A fresh production `/login` browser navigation again redirected the existing
+session to `/dashboard` and rendered the Frankenstein workspace on this release.
+The initial deployment runtime-log view showed zero warnings/errors/fatal events,
+with scheduled notification worker completion entries at 02:01 and 02:02 UTC.
+This is a short observation window, not a guarantee against future incidents.
+The assistant did not merge either application or documentation changes.
 No Sentry issue is marked resolved merely because a patch exists or a short
 observation window is quiet. No controlled customer message is sent by this task.
