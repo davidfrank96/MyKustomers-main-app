@@ -67,7 +67,7 @@ it("records a fixed failure message without leaking provider errors", async () =
   expect(console.error).toHaveBeenCalledWith("Notification worker unavailable");
   expect(mocks.capture).toHaveBeenCalledWith("Notification worker unavailable", {
     level: "error",
-    tags: { notification_stage: "worker" },
+    tags: { notification_stage: "worker", storage_code: "unknown" },
   });
 });
 
@@ -81,6 +81,6 @@ it("keeps both channels independent when either worker fails", async () => {
   expect(mocks.whatsapp).toHaveBeenCalledTimes(1);
   expect(mocks.capture).toHaveBeenCalledWith("WhatsApp worker unavailable", {
     level: "error",
-    tags: { whatsapp_stage: "worker" },
+    tags: { whatsapp_stage: "worker", storage_code: "unknown" },
   });
 });

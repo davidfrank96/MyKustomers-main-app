@@ -1,3 +1,4 @@
+import { StorageFailure } from "@/lib/observability/storage-failure";
 import "server-only";
 import { z } from "zod";
 import { createServiceRoleClient } from "@/lib/supabase/admin";
@@ -47,7 +48,7 @@ export async function processWhatsApp() {
   const { data, error } = await db.rpc("claim_whatsapp_event", {
     p_business_ids: config.pilotBusinessIds,
   });
-  if (error) throw new Error("WhatsApp worker storage unavailable");
+  if (error) throw new StorageFailure("WhatsApp worker storage unavailable", error);
   const event = data?.[0];
   if (!event?.lease_id) return { processed: 0, accepted: 0, unknown: 0, disabled: false };
   // Missing/expired/disabled context terminates without sending. If this query
@@ -56,7 +57,8 @@ export async function processWhatsApp() {
     p_event_id: event.id,
     p_lease_id: event.lease_id,
   });
-  if (context.error) throw new Error("WhatsApp worker storage unavailable");
+  if (context.error)
+    throw new StorageFailure("WhatsApp worker storage unavailable", context.error);
   const parsed = dispatchSchema.safeParse(context.data);
   if (!parsed.success || !whatsappAvailable(event.business_id)) {
     const final = await db.rpc("finish_whatsapp_event", {
@@ -66,7 +68,7 @@ export async function processWhatsApp() {
       p_error_code: "dispatch_context_unavailable",
     });
     if (final.error || !final.data)
-      throw new Error("WhatsApp worker storage unavailable");
+      throw new StorageFailure("WhatsApp worker storage unavailable", final.error);
     return { processed: 1, accepted: 0, unknown: 0, disabled: false };
   }
   const c = parsed.data;
@@ -93,7 +95,8 @@ export async function processWhatsApp() {
     p_error_code: result.state === "ACCEPTED" ? null : result.errorCode,
     p_retryable: result.state === "FAILED" && result.retryable,
   });
-  if (final.error || !final.data) throw new Error("WhatsApp worker storage unavailable");
+  if (final.error || !final.data)
+    throw new StorageFailure("WhatsApp worker storage unavailable", final.error);
   return {
     processed: 1,
     accepted: Number(result.state === "ACCEPTED"),

@@ -1,3 +1,4 @@
+import { storageFailureTags } from "@/lib/observability/storage-failure";
 import * as Sentry from "@sentry/nextjs";
 import { after } from "next/server";
 import { validWorkerAuthorization } from "@/features/notifications/delivery";
@@ -39,11 +40,11 @@ export async function POST(request: Request) {
           accepted,
           unknown,
         });
-      } catch {
+      } catch (error) {
         console.error("Notification worker unavailable");
         Sentry.captureMessage("Notification worker unavailable", {
           level: "error",
-          tags: { notification_stage: "worker" },
+          tags: { notification_stage: "worker", ...storageFailureTags(error) },
         });
       }
     });
@@ -51,10 +52,10 @@ export async function POST(request: Request) {
     after(async () => {
       try {
         await processWhatsApp();
-      } catch {
+      } catch (error) {
         Sentry.captureMessage("WhatsApp worker unavailable", {
           level: "error",
-          tags: { whatsapp_stage: "worker" },
+          tags: { whatsapp_stage: "worker", ...storageFailureTags(error) },
         });
       }
     });
@@ -63,7 +64,7 @@ export async function POST(request: Request) {
     if (!(error instanceof NotificationHttpError))
       Sentry.captureMessage("Notification worker unavailable", {
         level: "error",
-        tags: { notification_stage: "worker" },
+        tags: { notification_stage: "worker", ...storageFailureTags(error) },
       });
     return notificationError(error);
   }

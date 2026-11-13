@@ -51,7 +51,7 @@ function optionalComment(maxLength: number) {
 function yesNoBoolean(label: string) {
   return z
     .enum(["yes", "no"], {
-      errorMap: () => ({ message: `${label} is required.` }),
+      error: `${label} is required.`,
     })
     .transform((value) => value === "yes");
 }
@@ -68,7 +68,7 @@ export const publicFeedbackSchema = z.object({
 
 export const bookingIssueCreateSchema = z.object({
   category: z.enum(issueCategories, {
-    errorMap: () => ({ message: "Choose an issue category." }),
+    error: "Choose an issue category.",
   }),
   description: z
     .string()

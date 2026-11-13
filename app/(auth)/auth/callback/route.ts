@@ -3,7 +3,7 @@ import { isSupabasePublicEnvConfigured } from "@/lib/config/public-env";
 import { getSafeRedirectPath } from "@/lib/security/redirects";
 import { createClient } from "@/lib/supabase/server";
 import { consumeOAuthNextPath } from "@/features/auth/oauth-next";
-import { resolvePostAuthDestination } from "@/lib/auth/post-auth";
+import { resolvePostAuthDestinationWithRecovery } from "@/lib/auth/post-auth";
 import { toAuthenticatedUser } from "@/lib/auth/server";
 import { setPasswordRecoveryIntent } from "@/features/auth/password-recovery";
 
@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
     await setPasswordRecoveryIntent();
   }
 
-  const destination = await resolvePostAuthDestination(
+  const destination = await resolvePostAuthDestinationWithRecovery(
     next,
     toAuthenticatedUser(data.user),
   );

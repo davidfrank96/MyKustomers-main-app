@@ -1,5 +1,16 @@
 # Testing
 
+## Production incident regressions — 13 November 2026
+
+`login-recovery.test.tsx`, `auth-routing-state.test.ts`, and
+`storage-failure.test.ts` cover unavailable membership without workspace access
+or false onboarding, sanitized return paths, successful rechecks, signed-out
+login, unexpected errors and finite diagnostic codes. Sentry tests preserve
+source-map frame schemes while redacting capabilities and queries. Worker
+independence and provider privacy assertions remain. Dependency, full-suite,
+build and current-head CI evidence is recorded in the [incident report](PRODUCTION_OUTAGE_2026_11_13.md).
+
+
 ## Communication and About — 12 October 2026
 
 STATUS: IMPLEMENTED — VERIFICATION PENDING

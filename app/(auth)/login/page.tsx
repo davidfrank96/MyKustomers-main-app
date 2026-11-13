@@ -8,6 +8,10 @@ import { getAuthenticatedUser } from "@/lib/auth/server";
 import { getSafeRedirectPath } from "@/lib/security/redirects";
 import { isGoogleAuthEnabled } from "@/features/auth/provider-status";
 import { resolvePostAuthDestination } from "@/lib/auth/post-auth";
+import { BusinessMembershipLookupError } from "@/lib/auth/business-access";
+import { storageFailureTags } from "@/lib/observability/storage-failure";
+import * as Sentry from "@sentry/nextjs";
+import { buttonVariants } from "@/components/ui/button";
 
 type LoginPageProps = {
   searchParams: Promise<{
@@ -32,7 +36,34 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   ]);
 
   if (user) {
-    redirect((await resolvePostAuthDestination(next, user)) as Route);
+    let destination: string;
+    try {
+      destination = await resolvePostAuthDestination(next, user);
+    } catch (error) {
+      if (!(error instanceof BusinessMembershipLookupError)) throw error;
+      Sentry.captureMessage("Workspace access temporarily unavailable", {
+        level: "error",
+        tags: { auth_stage: "workspace_lookup", ...storageFailureTags(error) },
+      });
+      return (
+        <section className="w-full space-y-5 rounded-xl border border-border bg-card p-6">
+          <h1 className="text-2xl font-semibold">We couldn’t open your workspace</h1>
+          <p role="status" className="text-sm text-muted-foreground">
+            You’re signed in, but we couldn’t verify your business access. Please try
+            again in a moment. You don’t need to reset your password or create another
+            account.
+          </p>
+          <a
+            className={buttonVariants({ className: "w-full" })}
+            href={`/login?next=${encodeURIComponent(next)}`}
+          >
+            Try again
+          </a>
+        </section>
+      );
+    }
+    // Next redirects throw; keep them outside the lookup catch.
+    redirect(destination as Route);
   }
 
   return (

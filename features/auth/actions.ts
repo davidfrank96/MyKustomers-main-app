@@ -31,7 +31,7 @@ import {
 import { setOAuthNextPath } from "@/features/auth/oauth-next";
 import { isGoogleAuthEnabled } from "@/features/auth/provider-status";
 import { clearPendingBusinessOnboardingId } from "@/features/businesses/pending-onboarding";
-import { resolvePostAuthDestination } from "@/lib/auth/post-auth";
+import { resolvePostAuthDestinationWithRecovery } from "@/lib/auth/post-auth";
 import {
   clearPasswordRecoveryIntent,
   hasPasswordRecoveryIntent,
@@ -125,7 +125,7 @@ export async function signupAction(
 
   if (data.session && data.user) {
     redirect(
-      (await resolvePostAuthDestination(
+      (await resolvePostAuthDestinationWithRecovery(
         "/dashboard",
         toAuthenticatedUser(data.user),
       )) as Route,
@@ -189,7 +189,7 @@ export async function loginAction(
   });
 
   redirect(
-    (await resolvePostAuthDestination(
+    (await resolvePostAuthDestinationWithRecovery(
       parsed.data.next,
       toAuthenticatedUser(data.user),
     )) as Route,

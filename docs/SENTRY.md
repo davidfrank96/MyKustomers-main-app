@@ -1,5 +1,17 @@
 # Sentry Production Observability
 
+## Data API incident diagnostics — 13 November 2026
+
+Storage failures now include only an allowlisted `storage_code` tag, defaulting
+to `unknown`; they never attach raw errors or causes. Membership unavailability
+on login remains an error event with a recoverable, fail-closed UI. Worker and
+rate-limit messages retain their existing grouping and severity. Frame URL
+sanitization preserves `app:`, `webpack:` and `webpack-internal:` schemes and
+dot segments for private source-map matching while removing queries and private
+capabilities. Actual post-deploy source-map matching requires release evidence.
+See [incident report](PRODUCTION_OUTAGE_2026_11_13.md).
+
+
 ## Missing-action recovery — 8 October 2026
 
 Issue 152107717 has three events from old release `84971b2` shortly after PR #94 deployment. Version skew is strongly supported; original POST serving-deployment correlation is absent. Exact-signature one-per-tab reload retains Sentry capture/bounded flush/normal fallback; no generic reload or encryption-key change. Two immutable local builds verified no replay/loop. Post-release observation remains pending; do not resolve from brief silence. [Evidence](PREPRODUCTION_STABILITY.md).
