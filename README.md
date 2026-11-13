@@ -1,5 +1,13 @@
 # My Kustomers
 
+## Production maintenance — 13 November 2026
+
+The incident branch updates Next.js to 16.4.6, Sentry to 10.78.0, Vitest to 4.1.12
+and Zod to 4.6.7, with narrow patched build-tool overrides. Node 22 and `npm ci`
+remain the supported setup. Login recovery and Data API incident/release evidence
+are tracked in [the incident report](docs/PRODUCTION_OUTAGE_2026_11_13.md).
+
+
 ## Pre-production stabilization — 8 October 2026
 
 Terms and bounded stale-action recovery are implemented; manual merge and production verification remain pending. The existing READY migration is applied and rollback-smoke verified. See [full A–BR audit](docs/PREPRODUCTION_STABILITY.md) and [legal review](docs/LEGAL_REVIEW.md).

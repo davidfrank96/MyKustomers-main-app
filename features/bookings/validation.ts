@@ -64,7 +64,7 @@ const bookingFieldsSchema = z.object({
     .max(160, "Booking title must be 160 characters or fewer."),
   description: optionalTrimmedString(5000),
   currency: z.enum(bookingCurrencies, {
-    errorMap: () => ({ message: "Choose a valid currency." }),
+    error: "Choose a valid currency.",
   }),
   totalAmount: moneyField("Agreed total"),
   depositAmount: optionalMoneyField("Deposit recorded"),

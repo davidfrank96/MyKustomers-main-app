@@ -38,7 +38,10 @@ import {
   requireVendorWorkspace,
   BusinessMembershipLookupError,
 } from "@/lib/auth/server";
-import { resolvePostAuthDestination } from "@/lib/auth/post-auth";
+import {
+  resolvePostAuthDestination,
+  resolvePostAuthDestinationWithRecovery,
+} from "@/lib/auth/post-auth";
 
 function membership(id = "business-a", pending = false, role = "owner") {
   return {
@@ -158,5 +161,32 @@ describe("server authentication and workspace routing", () => {
   ])("does not apply vendor onboarding to %s", async (next) => {
     await expect(resolvePostAuthDestination(next)).resolves.toBe(next);
     expect(mocks.rows).not.toHaveBeenCalled();
+  });
+});
+
+describe("post-auth outage recovery", () => {
+  const user = { id: "user-a", userMetadata: {} };
+  it("preserves the session and requested route without granting workspace access", async () => {
+    mocks.rows.mockResolvedValue({ data: null, error: { code: "PGRST002" } });
+    await expect(
+      resolvePostAuthDestinationWithRecovery("/bookings?status=active", user),
+    ).resolves.toBe("/login?next=%2Fbookings%3Fstatus%3Dactive");
+    expect(mocks.admin).not.toHaveBeenCalled();
+    mocks.rows.mockResolvedValue({ data: [membership()], error: null });
+    await expect(
+      resolvePostAuthDestinationWithRecovery("/bookings?status=active", user),
+    ).resolves.toBe("/bookings?status=active");
+  });
+  it("keeps unexpected programming errors visible", async () => {
+    mocks.rows.mockRejectedValue(new Error("unexpected"));
+    await expect(
+      resolvePostAuthDestinationWithRecovery("/dashboard", user),
+    ).rejects.toThrow("unexpected");
+  });
+  it("sanitizes an external return destination during an outage", async () => {
+    mocks.rows.mockResolvedValue({ data: null, error: { code: "PGRST002" } });
+    await expect(
+      resolvePostAuthDestinationWithRecovery("https://example.invalid", user),
+    ).resolves.toBe("/login?next=%2Fdashboard");
   });
 });

@@ -1,5 +1,16 @@
 # Security
 
+## Production incident boundary — 13 November 2026
+
+Login recovery preserves the current verified session but grants no business
+access until a fresh authoritative membership read succeeds. It does not treat
+failed reads as zero memberships, change RLS, or relax throttling. Diagnostic
+codes use a finite allowlist; no database/provider messages, parameters or causes
+are retained. Current dependency updates replace affected versions; the expired
+October audit exception is not extended. Narrow patched build-tool overrides
+require full lint/build verification. [Evidence](PRODUCTION_OUTAGE_2026_11_13.md).
+
+
 ## Communication and About — 12 October 2026
 
 STATUS: IMPLEMENTED — VERIFICATION PENDING

@@ -235,22 +235,19 @@ describe("Sentry privacy boundary", () => {
     expect(sentryTraceSampleRate("GET /dashboard")).toBe(0.05);
   });
 
-  it.each(["c", "a", "x", "f"])(
-    "does not trace %s capability requests",
-    (prefix) => {
-      expect(sentryTraceSampleRate(`GET /${prefix}/private-token`)).toBe(0);
-      expect(
-        sentryTraceSampleRate(
-          `https://mykustomers.com/${prefix}/private-token?source=private`,
-        ),
-      ).toBe(0);
-      expect(
-        SENTRY_IGNORED_TRANSACTIONS.some((pattern) =>
-          pattern.test(`GET /${prefix}/private-token`),
-        ),
-      ).toBe(true);
-    },
-  );
+  it.each(["c", "a", "x", "f"])("does not trace %s capability requests", (prefix) => {
+    expect(sentryTraceSampleRate(`GET /${prefix}/private-token`)).toBe(0);
+    expect(
+      sentryTraceSampleRate(
+        `https://mykustomers.com/${prefix}/private-token?source=private`,
+      ),
+    ).toBe(0);
+    expect(
+      SENTRY_IGNORED_TRANSACTIONS.some((pattern) =>
+        pattern.test(`GET /${prefix}/private-token`),
+      ),
+    ).toBe(true);
+  });
 
   it("fails closed when an event cannot be normalized", () => {
     const event = { type: undefined, message: "safe" } as ErrorEvent;
@@ -262,4 +259,16 @@ describe("Sentry privacy boundary", () => {
 
     expect(beforeSentrySend(event)).toBeNull();
   });
+});
+
+it("preserves source-map frame schemes while removing queries and capabilities", () => {
+  expect(sanitizeSentryUrl("app:///_next/server/chunks/3878.js?token=secret")).toBe(
+    "app:///_next/server/chunks/3878.js",
+  );
+  expect(
+    sanitizeSentryUrl("webpack-internal:///./lib/auth/server.ts?private=value"),
+  ).toBe("webpack-internal:///./lib/auth/server.ts");
+  expect(
+    sanitizeSentryUrl("webpack:///./app/c/private-capability/page.tsx"),
+  ).not.toContain("private-capability");
 });

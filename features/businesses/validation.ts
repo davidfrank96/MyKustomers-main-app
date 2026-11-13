@@ -41,14 +41,25 @@ function optionalTrimmedString(maxLength: number) {
 }
 
 function optionalPhone(label: string) {
-  return z.preprocess((value) => {
-    if (typeof value !== "string") {
-      return undefined;
-    }
+  return z.preprocess(
+    (value) => {
+      if (typeof value !== "string") {
+        return undefined;
+      }
 
-    const trimmed = value.trim();
-    return trimmed.length === 0 ? undefined : trimmed;
-  }, z.string().min(7, `${label} must be at least 7 characters.`).max(32, `${label} must be 32 characters or fewer.`).regex(phonePattern, `${label} can only contain numbers, spaces, +, -, parentheses, and periods.`).optional());
+      const trimmed = value.trim();
+      return trimmed.length === 0 ? undefined : trimmed;
+    },
+    z
+      .string()
+      .min(7, `${label} must be at least 7 characters.`)
+      .max(32, `${label} must be 32 characters or fewer.`)
+      .regex(
+        phonePattern,
+        `${label} can only contain numbers, spaces, +, -, parentheses, and periods.`,
+      )
+      .optional(),
+  );
 }
 
 function optionalInstagram() {
@@ -71,34 +82,38 @@ function optionalWebsite() {
     }
   }
 
-  return z.preprocess((value) => {
-    if (typeof value !== "string") {
-      return undefined;
-    }
+  return z.preprocess(
+    (value) => {
+      if (typeof value !== "string") {
+        return undefined;
+      }
 
-    const trimmed = value.trim();
-    if (trimmed.length === 0) {
-      return undefined;
-    }
+      const trimmed = value.trim();
+      if (trimmed.length === 0) {
+        return undefined;
+      }
 
-    return /^[a-z][a-z0-9+.-]*:/i.test(trimmed) ? trimmed : `https://${trimmed}`;
-  }, z.string()
-    .max(2048, "Website must be 2048 characters or fewer.")
-    .url("Enter a valid website address.")
-    .refine((value) => {
-      const url = parseUrl(value);
-      return url?.protocol === "https:" || url?.protocol === "http:";
-    }, "Website must use http or https.")
-    .refine((value) => {
-      const url = parseUrl(value);
-      return Boolean(url && !url.username && !url.password);
-    }, "Website cannot include embedded credentials.")
-    .transform((value) => {
-      const url = parseUrl(value)!;
-      url.hash = "";
-      return url.toString();
-    })
-    .optional());
+      return /^[a-z][a-z0-9+.-]*:/i.test(trimmed) ? trimmed : `https://${trimmed}`;
+    },
+    z
+      .string()
+      .max(2048, "Website must be 2048 characters or fewer.")
+      .url("Enter a valid website address.")
+      .refine((value) => {
+        const url = parseUrl(value);
+        return url?.protocol === "https:" || url?.protocol === "http:";
+      }, "Website must use http or https.")
+      .refine((value) => {
+        const url = parseUrl(value);
+        return Boolean(url && !url.username && !url.password);
+      }, "Website cannot include embedded credentials.")
+      .transform((value) => {
+        const url = parseUrl(value)!;
+        url.hash = "";
+        return url.toString();
+      })
+      .optional(),
+  );
 }
 
 export const businessProfileSchema = z
@@ -110,7 +125,7 @@ export const businessProfileSchema = z
       .max(160, "Business name must be 160 characters or fewer."),
     slug: z.string().trim().optional(),
     category: z.enum(businessCategories, {
-      errorMap: () => ({ message: "Choose a valid category." }),
+      error: "Choose a valid category.",
     }),
     description: optionalTrimmedString(1000),
     phone: optionalPhone("Phone"),

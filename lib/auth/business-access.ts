@@ -1,6 +1,8 @@
-export class BusinessMembershipLookupError extends Error {
-  constructor() {
-    super("Business access could not be verified. Please try again.");
+import { StorageFailure } from "@/lib/observability/storage-failure";
+
+export class BusinessMembershipLookupError extends StorageFailure {
+  constructor(error?: unknown) {
+    super("Business access could not be verified. Please try again.", error);
     this.name = "BusinessMembershipLookupError";
   }
 }
@@ -10,7 +12,7 @@ export function requireBusinessAccessRows<Row>(
   error: unknown,
 ): Row[] {
   if (error || data === null) {
-    throw new BusinessMembershipLookupError();
+    throw new BusinessMembershipLookupError(error);
   }
 
   return data;

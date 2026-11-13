@@ -1,3 +1,4 @@
+import { StorageFailure } from "@/lib/observability/storage-failure";
 import "server-only";
 import webPush from "web-push";
 import * as Sentry from "@sentry/nextjs";
@@ -88,14 +89,16 @@ export async function processNotifications() {
   const vapidDetails = vapidConfig();
   const supabase = createServiceRoleClient();
   const overdue = await supabase.rpc("process_overdue_notifications", { p_limit: 100 });
-  if (overdue.error) throw new Error("notification_overdue_processing_failed");
+  if (overdue.error)
+    throw new StorageFailure("notification_overdue_processing_failed", overdue.error);
   let processed = 0;
   let accepted = 0;
   let unknown = 0;
   const started = Date.now();
   for (let batch = 0; batch < 4 && Date.now() - started < 35000; batch++) {
     const claimed = await supabase.rpc("claim_notification_push", { p_limit: 2 });
-    if (claimed.error) throw new Error("notification_claim_failed");
+    if (claimed.error)
+      throw new StorageFailure("notification_claim_failed", claimed.error);
     if (!claimed.data?.length) break;
     await Promise.all(
       claimed.data.map(async (delivery) => {
@@ -107,7 +110,7 @@ export async function processNotifications() {
           p_retry_after_seconds: result.retryAfter,
         });
         if (finished.error || !finished.data)
-          throw new Error("notification_finish_failed");
+          throw new StorageFailure("notification_finish_failed", finished.error);
         processed++;
         if (result.status && result.status >= 200 && result.status < 300) accepted++;
         if (result.status === null) unknown++;
@@ -116,7 +119,8 @@ export async function processNotifications() {
   }
   if (isNotificationMaintenanceMinute()) {
     const maintained = await supabase.rpc("maintain_notifications", { p_limit: 1000 });
-    if (maintained.error) throw new Error("notification_maintenance_failed");
+    if (maintained.error)
+      throw new StorageFailure("notification_maintenance_failed", maintained.error);
   }
   if (unknown)
     Sentry.captureMessage("Notification provider outcome unknown", {

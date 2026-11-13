@@ -87,6 +87,13 @@ export function sanitizeSentryUrl(value: string): string {
       return pathname;
     }
 
+    // Sentry/webpack frame URLs have no web origin. Turning app:///_next/...
+    // into null/_next/... breaks source-map matching and hides useful stacks.
+    if (["app:", "webpack:", "webpack-internal:"].includes(url.protocol)) {
+      const framePath = value.match(/^[a-z-]+:\/\/[^/]*(\/[^?#]*)/i)?.[1];
+      return `${url.protocol}//${url.host}${redactPath(framePath ?? pathname)}`;
+    }
+
     return `${url.origin}${pathname}`;
   } catch {
     return value

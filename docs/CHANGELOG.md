@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-11-13 — Production Data API incident recovery
+
+IMPLEMENTED — VERIFICATION PENDING. Login now presents a fail-closed retry state
+when a verified session cannot load membership; password/OAuth session creation
+can reach recovery without replay. Fixed source-map frame URL sanitization and
+added bounded storage-code diagnostics for login, workers and throttling.
+Updated vulnerable dependencies and adapted Zod 4 error options; required CI and
+its security gate remain intact. See [incident evidence](PRODUCTION_OUTAGE_2026_11_13.md).
+
+
 ## Communication and About — 12 October 2026
 
 STATUS: IMPLEMENTED — VERIFICATION PENDING

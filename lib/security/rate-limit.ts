@@ -1,13 +1,11 @@
 import "server-only";
+import { storageFailureTags } from "@/lib/observability/storage-failure";
 
 import { randomInt } from "node:crypto";
 import * as Sentry from "@sentry/nextjs";
 import { headers } from "next/headers";
 import { assertSupabaseServiceRoleEnv } from "@/lib/config/server-env";
-import {
-  canUseServiceRoleClient,
-  createServiceRoleClient,
-} from "@/lib/supabase/admin";
+import { canUseServiceRoleClient, createServiceRoleClient } from "@/lib/supabase/admin";
 import {
   deriveRateLimitBucketKey,
   parseTrustedForwardedFor,
@@ -43,22 +41,23 @@ function safeTelemetryAction(action: string) {
   return /^[a-z0-9_.-]{1,80}$/i.test(action) ? action : "invalid";
 }
 
-function captureStorageFailure(action: string, operation: "consume" | "clear" | "cleanup") {
+function captureStorageFailure(
+  action: string,
+  operation: "consume" | "clear" | "cleanup",
+  error?: unknown,
+) {
   Sentry.captureMessage("Application rate-limit storage unavailable", {
     level: "warning",
     tags: {
       rate_limit_action: safeTelemetryAction(action),
       rate_limit_operation: operation,
+      ...storageFailureTags(error),
     },
   });
 }
 
 function bucketKey(action: string, keyParts: readonly string[]) {
-  return deriveRateLimitBucketKey(
-    assertSupabaseServiceRoleEnv(),
-    action,
-    keyParts,
-  );
+  return deriveRateLimitBucketKey(assertSupabaseServiceRoleEnv(), action, keyParts);
 }
 
 async function maybeCleanupRateLimitBuckets() {
@@ -73,9 +72,9 @@ async function maybeCleanupRateLimitBuckets() {
       },
     );
 
-    if (error) captureStorageFailure("aggregate", "cleanup");
-  } catch {
-    captureStorageFailure("aggregate", "cleanup");
+    if (error) captureStorageFailure("aggregate", "cleanup", error);
+  } catch (error) {
+    captureStorageFailure("aggregate", "cleanup", error);
   }
 }
 
@@ -108,7 +107,7 @@ export async function consumeApplicationRateLimit({
     const result = data?.[0];
 
     if (error || !result) {
-      captureStorageFailure(action, "consume");
+      captureStorageFailure(action, "consume", error);
       return UNAVAILABLE_RESULT;
     }
 
@@ -120,8 +119,8 @@ export async function consumeApplicationRateLimit({
       retryAfterSeconds: result.retry_after_seconds,
       resetAt: result.reset_at,
     };
-  } catch {
-    captureStorageFailure(action, "consume");
+  } catch (error) {
+    captureStorageFailure(action, "consume", error);
     return UNAVAILABLE_RESULT;
   }
 }
@@ -184,22 +183,19 @@ export async function clearApplicationRateLimit({
     );
 
     if (error) {
-      captureStorageFailure(action, "clear");
+      captureStorageFailure(action, "clear", error);
       return false;
     }
 
     return data === true;
-  } catch {
-    captureStorageFailure(action, "clear");
+  } catch (error) {
+    captureStorageFailure(action, "clear", error);
     return false;
   }
 }
 
 export type OutboundMessageKind =
-  | "confirmation_email"
-  | "booking_amendment"
-  | "booking_addon"
-  | "booking_reschedule";
+  "confirmation_email" | "booking_amendment" | "booking_addon" | "booking_reschedule";
 
 export function consumeOutboundMessageRateLimit(input: {
   kind: OutboundMessageKind;

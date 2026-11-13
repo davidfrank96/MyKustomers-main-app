@@ -5,7 +5,7 @@ const mocks = vi.hoisted(() => ({
   consumeAuthRateLimit: vi.fn(),
   clearSuccessfulLoginRateLimit: vi.fn(),
   recordAuditEvent: vi.fn(),
-  resolvePostAuthDestination: vi.fn(),
+  resolvePostAuthDestinationWithRecovery: vi.fn(),
   redirect: vi.fn(),
 }));
 
@@ -45,7 +45,7 @@ vi.mock("@/features/businesses/pending-onboarding", () => ({
   clearPendingBusinessOnboardingId: vi.fn(),
 }));
 vi.mock("@/lib/auth/post-auth", () => ({
-  resolvePostAuthDestination: mocks.resolvePostAuthDestination,
+  resolvePostAuthDestinationWithRecovery: mocks.resolvePostAuthDestinationWithRecovery,
 }));
 vi.mock("@/features/auth/password-recovery", () => ({
   clearPasswordRecoveryIntent: vi.fn(),
@@ -107,7 +107,7 @@ describe("Auth actions", () => {
     expect(signUp).toHaveBeenCalledWith(
       expect.objectContaining({ email: "taylor+desk@example.com" }),
     );
-    expect(mocks.resolvePostAuthDestination).not.toHaveBeenCalled();
+    expect(mocks.resolvePostAuthDestinationWithRecovery).not.toHaveBeenCalled();
     expect(mocks.redirect).not.toHaveBeenCalled();
   });
 

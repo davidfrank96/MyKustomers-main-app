@@ -6,7 +6,7 @@ import { AuthForm } from "@/components/forms/auth-form";
 import { resendSignupConfirmationAction, signupAction } from "@/features/auth/actions";
 import { getAuthenticatedUser } from "@/lib/auth/server";
 import { isGoogleAuthEnabled } from "@/features/auth/provider-status";
-import { resolvePostAuthDestination } from "@/lib/auth/post-auth";
+import { resolvePostAuthDestinationWithRecovery } from "@/lib/auth/post-auth";
 
 export default async function SignupPage() {
   const [user, googleAuthEnabled] = await Promise.all([
@@ -15,7 +15,7 @@ export default async function SignupPage() {
   ]);
 
   if (user) {
-    redirect((await resolvePostAuthDestination("/dashboard", user)) as Route);
+    redirect((await resolvePostAuthDestinationWithRecovery("/dashboard", user)) as Route);
   }
 
   return (

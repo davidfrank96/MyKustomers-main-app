@@ -5,7 +5,7 @@ const phonePattern = /^[0-9+().\s-]+$/;
 
 export const confirmationContactSchema = z.object({
   contactEmail: z
-    .string({ required_error: "Email address is required." })
+    .string({ error: "Email address is required." })
     .trim()
     .min(1, "Email address is required.")
     .max(254, "Email address must be 254 characters or fewer.")
