@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-11-19 — CI browser installation recovery
+
+Add bounded APT/Playwright installation retries and a ten-minute setup limit to
+the three browser jobs after Ubuntu download failures prevented two suites from
+starting. No application behavior, browser/test versions, assertions, required
+checks or security policy changes. See [CI evidence](CI.md#browser-setup-resilience--19-november-2026).
+
+## 2026-11-19 — PWA request lifecycle maintenance
+
+IMPLEMENTED — LOCAL VERIFICATION; NOT RELEASED. Coalesce notification-count
+bursts, discard stale responses after navigation/suspension, stop offline booking
+polls and resume refreshes, and retain authoritative reconciliation when resume
+overlaps an existing poll. Three client components changed; architecture,
+database, Auth, booking mutations, providers and dependencies are unchanged.
+See [audit and regression evidence](PERFORMANCE.md#surgical-pwa-maintenance--19-november-2026).
+
 ## 2026-11-13 — Production Data API incident recovery
 
 IMPLEMENTED — VERIFICATION PENDING. Login now presents a fail-closed retry state

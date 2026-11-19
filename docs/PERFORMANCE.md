@@ -1,5 +1,46 @@
 # Performance And Cache Governance
 
+## Surgical PWA maintenance — 19 November 2026
+
+Scope: returning to the installed app and switching pages. Reviewed the shell
+coordinator, booking polling, notification bell, service worker, navigation/loading
+boundaries, request-scoped Auth reads and current dependency audit. This is a
+bounded maintenance audit, not a penetration test or a physical-device benchmark.
+
+Three client components changed; architecture, endpoints, database, Auth/RLS,
+booking actions, delivery behavior, dependencies and default prefetch are unchanged.
+
+| Reproduced issue | Maintenance change | Regression evidence |
+| --- | --- | --- |
+| A count request plus six change events started seven overlapping reads | One active notification-count read plus one coalesced follow-up | Two total reads for the same burst; final count stays current |
+| Late reads could update the badge or refresh the route after leaving it | Abort on cleanup/background/offline and ignore obsolete responses | No late destination refresh, completion dialog or stale badge update |
+| Resume during an active booking poll lost the required authoritative refresh | Fold resume intent into the active poll | One snapshot read and one authoritative refresh, including unchanged revisions |
+| Offline booking intervals and BFCache restoration attempted requests | Gate work on online/visible state | Zero offline polls/refreshes; one reconciliation after reconnect |
+
+Seven new regression cases failed against the unchanged baseline and passed after
+the fix; two additional suspension/late-response cases also pass. Full unit,
+integration and static-security suite: 1,232 passed with 24 existing guarded skips;
+focused final lifecycle suite: 31 passed (includes the two additional cases).
+Typecheck and lint passed; lint retained eight existing warnings. Dependency
+policy audit reports no moderate-or-higher vulnerabilities; no package upgrade,
+audit exception or security-check bypass was needed. The optimized production
+build and all eight selected Chromium/WebKit browser checks passed (navigation,
+scroll anchoring, history/read semantics, PWA resume and dialog cleanup).
+
+Public production smoke on 19 November returned HTTP 200 for health, login, the
+worker and manifest. First observed health/login TTFB was 2,176/1,927 ms; follow-up
+health samples were 339/124/117 ms and login samples were 205/160/139 ms.
+These are anonymous Dublin-host samples, not authenticated PWA latency or proof
+of a backend cause. The warm improvement suggests startup/network variability;
+there is no evidence here to justify changing infrastructure or Auth caching.
+
+No production latency improvement is claimed from request-count tests. These
+remove proven avoidable work and stale refreshes; remaining cold navigation or
+physical-phone lag needs an authenticated device/network trace before another
+change. Private caching, broad prefetch, database/index changes, UI redesign and
+dependency churn were deliberately deferred without evidence. Local verification
+does not constitute a deployment or manual release approval.
+
 ## Status
 
 STATUS: VERIFIED

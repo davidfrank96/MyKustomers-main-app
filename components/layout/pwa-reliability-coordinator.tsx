@@ -112,7 +112,8 @@ export function PwaReliabilityCoordinator() {
     }
 
     function reconcile(trigger: ReconcileTrigger, destination?: string) {
-      if (!active) return false;
+      if (!active || !navigator.onLine || document.visibilityState !== "visible")
+        return false;
       if (hasUnsafeInteraction()) {
         setDeferredPath(pathname);
         return false;

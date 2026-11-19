@@ -1,5 +1,27 @@
 # Continuous Integration
 
+## Browser setup resilience — 19 November 2026
+
+Run 44521754077 failed Profile/Social and Notification Contracts before browser
+tests started: Ubuntu 26.04 APT downloads returned connection resets and
+`Could not wait for server fd - select (11: Resource temporarily unavailable)`.
+The same commit passed E2E, unit/integration tests, build, quality and dependency
+security. This was an installation failure, not evidence of a failed UI assertion.
+
+All three browser jobs now use `scripts/install-ci-browsers.sh`: APT retries
+downloads three times with 30-second HTTP/HTTPS timeouts; the existing locked
+Playwright installer gets at most three attempts, separated by ten seconds.
+Each installation step has a ten-minute overall limit. Exhausted attempts or
+the step timeout fail the job. `--no-install` requires the npm-ci-installed CLI.
+No test is retried by this helper, skipped or weakened. OS image, package
+mirrors, signature checks, browser versions, security gates and deployment
+policy are unchanged. Local stubbed-command verification checks first-attempt
+success, recovery after two failures, and nonzero exit after three failures;
+GitHub's current-head run remains the real Linux installation/test evidence.
+The governance test follows the shared installer and verifies that all three
+browser jobs invoke it, both browser engines remain required, and exhausted
+installation attempts retain their nonzero exit status.
+
 ## Communication and About — 12 October 2026
 
 STATUS: IMPLEMENTED — VERIFICATION PENDING

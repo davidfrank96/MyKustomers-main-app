@@ -28,8 +28,6 @@ export function BookingLiveSync({ bookingId, initialState }: BookingLiveSyncProp
   const router = useRouter();
   const currentRef = useRef(initialState);
   const syncRef = useRef<HTMLSpanElement>(null);
-  const requestRef = useRef<AbortController | null>(null);
-  const pollingRef = useRef(false);
   const [toastOpen, setToastOpen] = useState(false);
   const [completionOpen, setCompletionOpen] = useState(false);
   const [completionContext, setCompletionContext] = useState({
@@ -53,17 +51,24 @@ export function BookingLiveSync({ bookingId, initialState }: BookingLiveSyncProp
 
   useEffect(() => {
     let active = true;
+    let request: AbortController | null = null;
+    let reconcileRequested = false;
     syncRef.current?.setAttribute("data-ready", "true");
 
     async function poll(refreshEvenIfUnchanged = false) {
-      if (!active || document.visibilityState !== "visible" || pollingRef.current) {
+      if (!active || document.visibilityState !== "visible" || !navigator.onLine) {
         return;
       }
-
-      pollingRef.current = true;
-      requestRef.current?.abort();
+      // A resume during a normal poll must still revalidate authoritative data.
+      reconcileRequested ||= refreshEvenIfUnchanged;
+      if (request) return;
       const controller = new AbortController();
-      requestRef.current = controller;
+      request = controller;
+      const isCurrent = () =>
+        active &&
+        !controller.signal.aborted &&
+        navigator.onLine &&
+        document.visibilityState === "visible";
 
       try {
         const result = await fetch(
@@ -74,15 +79,17 @@ export function BookingLiveSync({ bookingId, initialState }: BookingLiveSyncProp
             signal: controller.signal,
           },
         );
+        if (!isCurrent()) return;
         if (!result.ok) {
-          if (refreshEvenIfUnchanged) startTransition(() => router.refresh());
+          if (reconcileRequested) startTransition(() => router.refresh());
           return;
         }
 
         const nextState = (await result.json()) as BookingLiveState;
+        if (!isCurrent()) return;
         const previousState = currentRef.current;
         if (!nextState.revision || nextState.revision === previousState.revision) {
-          if (refreshEvenIfUnchanged) startTransition(() => router.refresh());
+          if (reconcileRequested) startTransition(() => router.refresh());
           return;
         }
 
@@ -101,13 +108,25 @@ export function BookingLiveSync({ bookingId, initialState }: BookingLiveSyncProp
         }
         startTransition(() => router.refresh());
       } catch (error) {
-        if (!(error instanceof DOMException && error.name === "AbortError")) {
-          if (refreshEvenIfUnchanged) startTransition(() => router.refresh());
+        if (
+          isCurrent() &&
+          !(error instanceof DOMException && error.name === "AbortError")
+        ) {
+          if (reconcileRequested) startTransition(() => router.refresh());
         }
       } finally {
-        if (requestRef.current === controller) requestRef.current = null;
-        pollingRef.current = false;
+        if (request === controller) {
+          request = null;
+          reconcileRequested = false;
+        }
       }
+    }
+
+    function pause() {
+      if (navigator.onLine && document.visibilityState === "visible") return;
+      request?.abort();
+      request = null;
+      reconcileRequested = false;
     }
 
     function reconcileBooking() {
@@ -116,12 +135,16 @@ export function BookingLiveSync({ bookingId, initialState }: BookingLiveSyncProp
 
     const interval = window.setInterval(() => void poll(), BOOKING_POLL_INTERVAL_MS);
     window.addEventListener(PWA_BOOKING_RECONCILE_EVENT, reconcileBooking);
+    window.addEventListener("offline", pause);
+    document.addEventListener("visibilitychange", pause);
 
     return () => {
       active = false;
       window.clearInterval(interval);
       window.removeEventListener(PWA_BOOKING_RECONCILE_EVENT, reconcileBooking);
-      requestRef.current?.abort();
+      window.removeEventListener("offline", pause);
+      document.removeEventListener("visibilitychange", pause);
+      request?.abort();
     };
   }, [bookingId, router]);
 
