@@ -61,7 +61,15 @@ describe("repository governance", () => {
     expect(workflow).toContain("npm ci");
     expect(workflow).toContain("node --test scripts/audit-dependencies.test.mjs");
     expect(workflow).toContain("node scripts/audit-dependencies.mjs");
-    expect(workflow).toContain("npx playwright install --with-deps chromium");
+    expect(workflow.match(/run: bash scripts\/install-ci-browsers\.sh/g)).toHaveLength(3);
+    const browserInstaller = fs.readFileSync(
+      path.join(process.cwd(), "scripts/install-ci-browsers.sh"),
+      "utf8",
+    );
+    expect(browserInstaller).toContain("npx --no-install playwright install --with-deps chromium webkit");
+    expect(browserInstaller).toContain("set -euo pipefail");
+    expect(browserInstaller).toContain('exit "$install_status"');
+    expect(browserInstaller).not.toContain("|| true");
     expect(workflow).not.toContain("|| true");
     expect(workflow).not.toMatch(/supabase\s+db\s+(push|reset)/);
   });

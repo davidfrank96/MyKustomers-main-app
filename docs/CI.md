@@ -18,6 +18,9 @@ mirrors, signature checks, browser versions, security gates and deployment
 policy are unchanged. Local stubbed-command verification checks first-attempt
 success, recovery after two failures, and nonzero exit after three failures;
 GitHub's current-head run remains the real Linux installation/test evidence.
+The governance test follows the shared installer and verifies that all three
+browser jobs invoke it, both browser engines remain required, and exhausted
+installation attempts retain their nonzero exit status.
 
 ## Communication and About — 12 October 2026
 
