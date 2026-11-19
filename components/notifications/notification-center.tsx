@@ -193,37 +193,68 @@ export function NotificationListView({ onNavigate }: { onNavigate?: () => void }
 export function NotificationBell() {
   const [count, setCount] = useState(0);
   const [open, setOpen] = useState(false);
-  const lastRefresh = useRef(0);
-  const refresh = useCallback(async (force = false) => {
-    if (
-      document.visibilityState === "hidden" ||
-      (!force && Date.now() - lastRefresh.current < 2000)
-    )
-      return;
-    lastRefresh.current = Date.now();
-    try {
-      const result = await notificationRequest<{ unreadCount: number }>("?countOnly=1");
-      setCount(result.unreadCount);
-      await updateAppBadge(result.unreadCount);
-    } catch {
-      /* The list has a visible retry state; no background alert or prompt. */
-    }
-  }, []);
   useEffect(() => {
+    let active = true;
+    let lastRefresh = 0;
+    let request: AbortController | null = null;
+    let queuedRefresh = false;
+    let countVersion = 0;
+    async function refresh(force = false) {
+      if (!active || document.visibilityState === "hidden" || !navigator.onLine) return;
+      if (request) {
+        // Push/change bursts need at most one fresh read after the current read.
+        queuedRefresh ||= force;
+        return;
+      }
+      if (!force && Date.now() - lastRefresh < 2000) return;
+      lastRefresh = Date.now();
+      const controller = new AbortController();
+      request = controller;
+      const version = countVersion;
+      try {
+        const result = await notificationRequest<{ unreadCount: number }>(
+          "?countOnly=1",
+          {
+            signal: controller.signal,
+          },
+        );
+        if (!active || controller.signal.aborted || version !== countVersion) return;
+        setCount(result.unreadCount);
+        await updateAppBadge(result.unreadCount);
+      } catch {
+        /* The list has a visible retry state; no background alert or prompt. */
+      } finally {
+        if (request === controller) {
+          request = null;
+          if (active && queuedRefresh) {
+            queuedRefresh = false;
+            void refresh(true);
+          }
+        }
+      }
+    }
+    const pause = () => {
+      request?.abort();
+      request = null;
+      queuedRefresh = false;
+      lastRefresh = 0;
+    };
     if ("serviceWorker" in navigator && window.isSecureContext)
       void registerNotificationWorker().catch(() => undefined);
-    let active = true;
     queueMicrotask(() => {
       if (active) void refresh();
     });
     const reconcile = () => {
-      void refresh();
+      if (document.visibilityState === "hidden" || !navigator.onLine) pause();
+      else void refresh();
     };
     const changed = (event: Event) => {
       const count = event instanceof CustomEvent ? event.detail : undefined;
       if (Number.isSafeInteger(count) && count >= 0) {
+        countVersion++;
+        queuedRefresh = false;
         setCount(count);
-        lastRefresh.current = Date.now();
+        lastRefresh = Date.now();
       } else void refresh(true);
     };
     const message = (event: MessageEvent) => {
@@ -232,19 +263,22 @@ export function NotificationBell() {
     window.addEventListener("focus", reconcile);
     window.addEventListener("pageshow", reconcile);
     window.addEventListener("online", reconcile);
+    window.addEventListener("offline", pause);
     document.addEventListener("visibilitychange", reconcile);
     window.addEventListener(NOTIFICATIONS_CHANGED, changed);
     navigator.serviceWorker?.addEventListener("message", message);
     return () => {
       active = false;
+      request?.abort();
       window.removeEventListener("focus", reconcile);
       window.removeEventListener("pageshow", reconcile);
       window.removeEventListener("online", reconcile);
+      window.removeEventListener("offline", pause);
       document.removeEventListener("visibilitychange", reconcile);
       window.removeEventListener(NOTIFICATIONS_CHANGED, changed);
       navigator.serviceWorker?.removeEventListener("message", message);
     };
-  }, [refresh]);
+  }, []);
   return (
     <Dialog
       open={open}

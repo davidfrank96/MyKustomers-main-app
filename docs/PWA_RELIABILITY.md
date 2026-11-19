@@ -2,11 +2,23 @@
 
 Status: IMPLEMENTED - REAL IOS VERIFICATION PENDING
 
+## Maintenance — 19 November 2026
+
+Booking checks now pause/abort when offline or backgrounded and discard results
+from a disposed route. A resume during an existing poll retains the required
+authoritative refresh without starting a second snapshot request. Shell resume
+reconciliation also requires an online, visible page. Existing 30-second resume
+threshold, two-second cooldown, ten-second visible booking interval, dirty-form
+and dialog protections, and no mutation replay remain intact. Notification count
+reads are coalesced and obsolete responses cannot overwrite newer list evidence.
+See [maintenance evidence and limits](PERFORMANCE.md#surgical-pwa-maintenance--19-november-2026).
+
 ## Scope
 
 My Kustomers remains an installable responsive web application with a manifest
-and standalone display mode. It has no service worker, background sync, push
-subscription, or private offline cache. This maintenance pass addresses restored
+and standalone display mode. The notification phase added a push-only service
+worker; there is no fetch interception, background sync or private offline cache.
+This maintenance pass addresses restored
 authenticated UI after background suspension, BFCache restoration, and network
 reconnection without creating a second source of truth.
 

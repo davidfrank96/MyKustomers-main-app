@@ -1,5 +1,14 @@
 # Notifications
 
+## Client maintenance — 19 November 2026
+
+The bell keeps at most one count read active and coalesces push/change bursts
+into one fresh follow-up. An authoritative list/read count supersedes older
+in-flight counts. Background/offline transitions and shell cleanup abort pending
+reads; late responses are ignored. Existing list pagination, read mutations,
+badge semantics, worker registration, endpoints and delivery policies remain.
+Regression evidence is in [PERFORMANCE.md](PERFORMANCE.md#surgical-pwa-maintenance--19-november-2026).
+
 ## Golden Stability — 2026-09-14
 
 A new local stability pass filters stale read history by first-read time and bounds the shared history region; list count updates avoid duplicate bell requests. The explicitly approved [function/index migration](../supabase/migrations/20260914020434_notification_read_retention.sql) is applied: history cleanup uses first `read_at` older than 72 hours and preserves unread rows. The scheduler is ACTIVE every minute, freshly verified 2026-09-14. See [GOLDEN_STABILITY_PASS](GOLDEN_STABILITY_PASS.md).

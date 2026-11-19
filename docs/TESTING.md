@@ -1,5 +1,22 @@
 # Testing
 
+## PWA maintenance — 19 November 2026
+
+`notification-bell-maintenance.test.tsx`, `booking-live-sync.test.tsx` and
+`pwa-reliability-coordinator.test.tsx` cover request bursts, authoritative count
+ordering, late unmounted responses, offline/BFCache restoration, resume during
+an active poll, and abort/late-response isolation across suspension. Seven new
+cases reproduce failures on the baseline. Final focused suite: 31 passed;
+full suite before the two additional suspension cases: 1,232 passed, 24 existing
+guarded skips. Typecheck and lint passed with zero errors. The optimized production
+build and eight selected Chromium/WebKit fixture checks passed: golden shell
+navigation/scrolling, bounded notification history/read semantics, existing-worker
+PWA resume/cold resolver, and Preferences dialog cleanup. Run:
+`NOTIFICATIONS_PRODUCTION_BUILD=1 npx playwright test --config playwright.notifications.config.ts --grep 'golden shell:|golden PWA:|golden notification panel:|notification Preferences'`.
+The fixture simulates standalone mode; physical-phone and deployed performance
+acceptance remain separate. Dependency policy audit passed without new exceptions.
+No live customer mutation or provider send is part of this maintenance pass.
+
 ## Production incident regressions — 13 November 2026
 
 `login-recovery.test.tsx`, `auth-routing-state.test.ts`, and

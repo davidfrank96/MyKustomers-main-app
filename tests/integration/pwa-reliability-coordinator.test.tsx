@@ -44,9 +44,7 @@ describe("PwaReliabilityCoordinator", () => {
 
   it("exposes the pathname whose reconciliation listeners are active", () => {
     const { container, rerender } = render(<PwaReliabilityCoordinator />);
-    const coordinator = container.querySelector(
-      "[data-pwa-reliability-coordinator]",
-    );
+    const coordinator = container.querySelector("[data-pwa-reliability-coordinator]");
     expect(coordinator).toHaveAttribute("data-reconcile-path", "/dashboard");
 
     pathname = "/customers";
@@ -77,6 +75,17 @@ describe("PwaReliabilityCoordinator", () => {
     render(<PwaReliabilityCoordinator />);
     dispatchPersistedPageShow();
     dispatchPersistedPageShow();
+    expect(navigation.refresh).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not refresh an offline restored page, then reconciles once online", () => {
+    render(<PwaReliabilityCoordinator />);
+    setOnline(false);
+    act(() => window.dispatchEvent(new Event("offline")));
+    dispatchPersistedPageShow();
+    expect(navigation.refresh).not.toHaveBeenCalled();
+    setOnline(true);
+    act(() => window.dispatchEvent(new Event("online")));
     expect(navigation.refresh).toHaveBeenCalledTimes(1);
   });
 

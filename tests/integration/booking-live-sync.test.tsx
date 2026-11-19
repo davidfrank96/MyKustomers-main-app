@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   BOOKING_POLL_INTERVAL_MS,
@@ -35,6 +35,7 @@ function liveState(
 describe("BookingLiveSync PWA reconciliation", () => {
   beforeEach(() => {
     navigation.refresh.mockReset();
+    Object.defineProperty(navigator, "onLine", { configurable: true, value: true });
     Object.defineProperty(document, "visibilityState", {
       configurable: true,
       value: "visible",
@@ -45,6 +46,93 @@ describe("BookingLiveSync PWA reconciliation", () => {
     vi.useRealTimers();
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
+  });
+
+  it("does not refresh the destination after leaving a booking with a pending response", async () => {
+    let resolve!: (response: Response) => void;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        () =>
+          new Promise<Response>((done) => {
+            resolve = done;
+          }),
+      ),
+    );
+    const { unmount } = render(
+      <BookingLiveSync bookingId="booking-a" initialState={initialState} />,
+    );
+    window.dispatchEvent(new Event(PWA_BOOKING_RECONCILE_EVENT));
+    unmount();
+    await act(async () => {
+      resolve(Response.json(liveState("DELIVERED")));
+    });
+    expect(navigation.refresh).not.toHaveBeenCalled();
+  });
+
+  it("folds a resume into an existing poll without losing the authoritative refresh", async () => {
+    vi.useFakeTimers();
+    let resolve!: (response: Response) => void;
+    const fetchMock = vi.fn(
+      () =>
+        new Promise<Response>((done) => {
+          resolve = done;
+        }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    render(<BookingLiveSync bookingId="booking-a" initialState={initialState} />);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(BOOKING_POLL_INTERVAL_MS);
+    });
+    window.dispatchEvent(new Event(PWA_BOOKING_RECONCILE_EVENT));
+    await act(async () => {
+      resolve(Response.json(initialState));
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(navigation.refresh).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not poll while offline", async () => {
+    vi.useFakeTimers();
+    const fetchMock = vi.fn(async () => Response.json(initialState));
+    vi.stubGlobal("fetch", fetchMock);
+    Object.defineProperty(navigator, "onLine", { configurable: true, value: false });
+    render(<BookingLiveSync bookingId="booking-a" initialState={initialState} />);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(BOOKING_POLL_INTERVAL_MS * 3);
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("aborts a backgrounded booking read and ignores its late response after resume", async () => {
+    const replies: Array<(value: Response) => void> = [];
+    const fetchMock = vi.fn<typeof fetch>(
+      () => new Promise<Response>((resolve) => replies.push(resolve)),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    render(<BookingLiveSync bookingId="booking-a" initialState={initialState} />);
+    window.dispatchEvent(new Event(PWA_BOOKING_RECONCILE_EVENT));
+    const signal = fetchMock.mock.calls[0][1]!.signal as AbortSignal;
+    Object.defineProperty(document, "visibilityState", {
+      configurable: true,
+      value: "hidden",
+    });
+    act(() => document.dispatchEvent(new Event("visibilitychange")));
+    expect(signal.aborted).toBe(true);
+    Object.defineProperty(document, "visibilityState", {
+      configurable: true,
+      value: "visible",
+    });
+    window.dispatchEvent(new Event(PWA_BOOKING_RECONCILE_EVENT));
+    await act(async () => {
+      replies[0](Response.json(liveState("COMPLETED")));
+    });
+    expect(navigation.refresh).not.toHaveBeenCalled();
+    expect(screen.queryByRole("dialog", { name: "Booking complete" })).toBeNull();
+    await act(async () => {
+      replies[1](Response.json(initialState));
+    });
+    expect(navigation.refresh).toHaveBeenCalledTimes(1);
   });
 
   it("claims one booking resume check, announces a meaningful change, and refreshes", async () => {
@@ -192,7 +280,10 @@ describe("BookingLiveSync PWA reconciliation", () => {
   });
 
   it("uses delivery-email evidence for pending feedback and opens the existing panel", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => Response.json(liveState("COMPLETED"))));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => Response.json(liveState("COMPLETED"))),
+    );
     const { rerender } = render(
       <>
         <section id="private-feedback">
@@ -221,7 +312,9 @@ describe("BookingLiveSync PWA reconciliation", () => {
       </>,
     );
 
-    expect(await screen.findByRole("dialog", { name: "Booking complete" })).toHaveTextContent(
+    expect(
+      await screen.findByRole("dialog", { name: "Booking complete" }),
+    ).toHaveTextContent(
       "A private feedback link was included in the customer’s delivery email.",
     );
     fireEvent.click(screen.getByRole("button", { name: "Share feedback" }));
@@ -235,7 +328,10 @@ describe("BookingLiveSync PWA reconciliation", () => {
   });
 
   it("acknowledges received feedback without offering another share action", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => Response.json(liveState("COMPLETED"))));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => Response.json(liveState("COMPLETED"))),
+    );
     const { rerender } = render(
       <BookingLiveSync
         bookingId="00000000-0000-4000-8000-000000000001"
@@ -254,9 +350,9 @@ describe("BookingLiveSync PWA reconciliation", () => {
       />,
     );
 
-    expect(await screen.findByRole("dialog", { name: "Booking complete" })).toHaveTextContent(
-      "Customer feedback has been received",
-    );
+    expect(
+      await screen.findByRole("dialog", { name: "Booking complete" }),
+    ).toHaveTextContent("Customer feedback has been received");
     expect(screen.queryByRole("button", { name: "Share feedback" })).toBeNull();
   });
 
