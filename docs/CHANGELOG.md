@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-11-19 — CI browser installation recovery
+
+Add bounded APT/Playwright installation retries and a ten-minute setup limit to
+the three browser jobs after Ubuntu download failures prevented two suites from
+starting. No application behavior, browser/test versions, assertions, required
+checks or security policy changes. See [CI evidence](CI.md#browser-setup-resilience--19-november-2026).
+
 ## 2026-11-19 — PWA request lifecycle maintenance
 
 IMPLEMENTED — LOCAL VERIFICATION; NOT RELEASED. Coalesce notification-count
